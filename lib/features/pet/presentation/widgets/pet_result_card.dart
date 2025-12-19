@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/pet_analysis_result.dart';
+import '../../models/pet_analysis_result.dart';
 import '../../../../core/utils/color_helper.dart';
 
 class PetResultCard extends StatefulWidget {

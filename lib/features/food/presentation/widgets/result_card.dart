@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../models/food_analysis_model.dart';
+import '../../models/food_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
 
 class ResultCard extends StatefulWidget {

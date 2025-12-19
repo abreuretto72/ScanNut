@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../l10n/app_localizations.dart';
 
 // Core
 import '../../../core/providers/analysis_provider.dart';
@@ -486,7 +486,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildNavItem(0, CupertinoIcons.apple, l10n.tabFood, Colors.redAccent),
+                _buildNavItem(0, Icons.restaurant, l10n.tabFood, Colors.redAccent),
                 _buildNavItem(1, Icons.grass, l10n.tabPlants, Colors.greenAccent),
                 _buildNavItem(2, Icons.pets, l10n.tabPets, Colors.orangeAccent),
               ],

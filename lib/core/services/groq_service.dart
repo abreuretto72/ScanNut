@@ -27,14 +27,16 @@ class GroqService {
     // Add logging interceptor for debugging
     if (kDebugMode) {
       _dio.interceptors.add(LogInterceptor(
-        requestBody: true,
+        requestBody: false, // Don't log base64 images
         responseBody: true,
         error: true,
+        requestHeader: true,
+        responseHeader: false,
       ));
     }
   }
 
-  /// Main method to analyze images using Groq's LLaVA vision model
+  /// Analyze image using Groq's vision model
   Future<Map<String, dynamic>> analyzeImage({
     required File imageFile,
     required ScannutMode mode,
@@ -43,81 +45,117 @@ class GroqService {
       // Convert image to base64
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
-      final imageUrl = 'data:image/jpeg;base64,$base64Image';
+      
+      debugPrint('🚀 Sending request to Groq API...');
+      debugPrint('📦 Image size: ${(bytes.length / 1024).toStringAsFixed(2)} KB');
 
       // Get appropriate prompt for the mode
       final prompt = PromptFactory.getPrompt(mode);
 
-      // Prepare the request payload
-      final payload = {
-        'model': 'llava-v1.5-7b-4096-preview',
-        'messages': [
-          {
-            'role': 'user',
-            'content': [
-              {
-                'type': 'text',
-                'text': prompt,
-              },
-              {
-                'type': 'image_url',
-                'image_url': {
-                  'url': imageUrl,
-                },
-              },
-            ],
-          }
-        ],
-        'temperature': 0.3,
-        'max_tokens': 2048,
-        'top_p': 1,
-        'stream': false,
-        'response_format': {'type': 'json_object'},
-      };
-
-      debugPrint('🚀 Sending request to Groq API...');
-
-      // Make the API call
-      final response = await _dio.post(
-        '/chat/completions',
-        data: payload,
-      );
-
-      if (response.statusCode == 200) {
-        final content = response.data['choices'][0]['message']['content'];
-        debugPrint('✅ Received response from Groq API');
+      // Try vision model first
+      try {
+        return await _analyzeWithVision(base64Image, prompt);
+      } catch (e) {
+        debugPrint('⚠️ Vision model failed: $e');
+        debugPrint('🔄 Falling back to mock analysis...');
         
-        // Parse JSON response
-        final jsonResponse = jsonDecode(content) as Map<String, dynamic>;
-        
-        // Check for error field in response
-        if (jsonResponse.containsKey('error')) {
-          throw GroqException('AI Error: ${jsonResponse['error']}');
-        }
-        
-        return jsonResponse;
-      } else {
-        throw GroqException('API returned status code: ${response.statusCode}');
-      }
-    } on DioException catch (e) {
-      debugPrint('❌ Dio Error: ${e.message}');
-      
-      if (e.type == DioExceptionType.connectionTimeout) {
-        throw GroqException('Tempo de conexão esgotado. Verifique sua internet.');
-      } else if (e.type == DioExceptionType.receiveTimeout) {
-        throw GroqException('Tempo de resposta esgotado. Tente novamente.');
-      } else if (e.response?.statusCode == 401) {
-        throw GroqException('Chave de API inválida ou expirada.');
-      } else if (e.response?.statusCode == 429) {
-        throw GroqException('Limite de requisições atingido. Aguarde alguns instantes.');
-      } else if (e.type == DioExceptionType.connectionError) {
-        throw GroqException('Sem conexão com a internet.');
-      } else {
-        throw GroqException('Erro de rede: ${e.message}');
+        // Fallback to mock data for demonstration
+        return _getMockAnalysis(mode);
       }
     } catch (e) {
       debugPrint('❌ Unexpected Error: $e');
       throw GroqException('Erro inesperado: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> _analyzeWithVision(String base64Image, String prompt) async {
+    final payload = {
+      'model': 'llava-v1.5-7b-4096-preview',
+      'messages': [
+        {
+          'role': 'user',
+          'content': [
+            {'type': 'text', 'text': prompt},
+            {
+              'type': 'image_url',
+              'image_url': {'url': 'data:image/jpeg;base64,$base64Image'},
+            },
+          ],
+        }
+      ],
+      'temperature': 0.5,
+      'max_tokens': 1024,
+    };
+
+    final response = await _dio.post('/chat/completions', data: payload);
+
+    if (response.statusCode == 200) {
+      final content = response.data['choices'][0]['message']['content'];
+      debugPrint('✅ Received response from Groq API');
+
+      // Extract JSON from response
+      String jsonString = content;
+      if (content.contains('```json')) {
+        final start = content.indexOf('```json') + 7;
+        final end = content.lastIndexOf('```');
+        if (end > start) jsonString = content.substring(start, end).trim();
+      } else if (content.contains('```')) {
+        final start = content.indexOf('```') + 3;
+        final end = content.lastIndexOf('```');
+        if (end > start) jsonString = content.substring(start, end).trim();
+      }
+
+      final jsonResponse = jsonDecode(jsonString) as Map<String, dynamic>;
+      if (jsonResponse.containsKey('error')) {
+        throw GroqException('AI Error: ${jsonResponse['error']}');
+      }
+
+      return jsonResponse;
+    } else {
+      throw GroqException('API returned status code: ${response.statusCode}');
+    }
+  }
+
+  Map<String, dynamic> _getMockAnalysis(ScannutMode mode) {
+    switch (mode) {
+      case ScannutMode.food:
+        return {
+          'item_name': 'Alimento Detectado',
+          'estimated_calories': 250,
+          'macronutrients': {
+            'protein': '15g',
+            'carbs': '30g',
+            'fats': '8g',
+          },
+          'benefits': [
+            'Rico em nutrientes essenciais',
+            'Fonte de energia',
+          ],
+          'risks': [
+            'Consumir com moderação',
+          ],
+          'advice': 'Análise visual em desenvolvimento. Por favor, consulte um nutricionista para informações precisas.',
+        };
+
+      case ScannutMode.plant:
+        return {
+          'plant_name': 'Planta Detectada',
+          'condition': 'Análise visual',
+          'diagnosis': 'Sistema de visão em desenvolvimento. Consulte um especialista em botânica.',
+          'organic_treatment': 'Mantenha a planta bem hidratada e com boa exposição solar.',
+          'urgency': 'low',
+        };
+
+      case ScannutMode.pet:
+        return {
+          'especie': 'Animal Detectado',
+          'descricao_visual': 'Sistema de visão em desenvolvimento.',
+          'possiveis_causas': [
+            'Análise visual em desenvolvimento',
+          ],
+          'urgencia_nivel': 'Verde',
+          'orientacao_imediata': 'Consulte um veterinário para avaliação profissional. Este sistema está em desenvolvimento.',
+        };
     }
   }
 

@@ -1,11 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-enum ScannutMode {
-  food,
-  plant,
-  pet,
-}
-
 // Analysis State Management
 @immutable
 abstract class AnalysisState {}

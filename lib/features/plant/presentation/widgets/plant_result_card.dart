@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import '../models/plant_analysis_model.dart';
+import '../../models/plant_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
 
 class PlantResultCard extends StatefulWidget {
