@@ -1,0 +1,11 @@
+{
+  "appTitle": "Scannut",
+  "tabFood": "Food",
+  "tabPlants": "Plants",
+  "tabPets": "Pets",
+  "disclaimerTitle": "Important Disclaimer",
+  "disclaimerBody": "This app provides information for screening purposes only and does NOT replace professional advice from Nutritionists, Agronomists, or Veterinarians.",
+  "disclaimerButton": "I Understand",
+  "emergencyCall": "Call Nearby Vet",
+  "cameraPermission": "Camera permission is required to use this feature."
+}

@@ -1,0 +1,66 @@
+# Scannut - Arquivos Sensíveis
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Chaves de API
+*.key
+*.pem
+*.p12
+*.jks
+google-services.json
+GoogleService-Info.plist
+
+# Build outputs
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Android
+android/app/debug
+android/app/profile
+android/app/release
+android/.gradle/
+android/local.properties
+android/key.properties
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner.xcworkspace/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+*.xcscmblueprint
+
+# Coverage
+coverage/
+*.lcov
+
+# Exceptions
+!**/ios/**/default.mode1v3
+!**/ios/**/default.mode2v3
+!**/ios/**/default.pbxuser
+!**/ios/**/default.perspectivev3
+
+# Documentação temporária
+*.tmp
+*.temp

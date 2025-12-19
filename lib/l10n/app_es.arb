@@ -1,0 +1,11 @@
+{
+  "appTitle": "Scannut",
+  "tabFood": "Comida",
+  "tabPlants": "Plantas",
+  "tabPets": "Mascotas",
+  "disclaimerTitle": "Aviso Importante",
+  "disclaimerBody": "Esta aplicación proporciona información solo con fines de detección y NO reemplaza el consejo profesional de Nutricionistas, Agrónomos o Veterinarios.",
+  "disclaimerButton": "Entendido",
+  "emergencyCall": "Llamar al Veterinario Cercano",
+  "cameraPermission": "Se requiere permiso de cámara para usar esta función."
+}
