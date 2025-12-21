@@ -153,6 +153,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Camera permission is required to use this feature.'**
   String get cameraPermission;
+
+  /// No description provided for @petNamePromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet Name'**
+  String get petNamePromptTitle;
+
+  /// No description provided for @petNamePromptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your pet\'s name'**
+  String get petNamePromptHint;
+
+  /// No description provided for @petNamePromptCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get petNamePromptCancel;
+
+  /// No description provided for @petNameEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Pet\'s name not provided. Pet mode canceled.'**
+  String get petNameEmptyError;
 }
 
 class _AppLocalizationsDelegate

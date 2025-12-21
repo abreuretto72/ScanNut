@@ -7,5 +7,9 @@
   "disclaimerBody": "This app provides information for screening purposes only and does NOT replace professional advice from Nutritionists, Agronomists, or Veterinarians.",
   "disclaimerButton": "I Understand",
   "emergencyCall": "Call Nearby Vet",
-  "cameraPermission": "Camera permission is required to use this feature."
+  "cameraPermission": "Camera permission is required to use this feature.",
+  "petNamePromptTitle": "Pet Name",
+  "petNamePromptHint": "Enter your pet's name",
+  "petNamePromptCancel": "Cancel",
+  "petNameEmptyError": "Pet's name not provided. Pet mode canceled."
 }

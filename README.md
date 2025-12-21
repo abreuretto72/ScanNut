@@ -1,275 +1,418 @@
-# 🌟 Scannut - AI Visual Assistant
+# 🍎 Scannut - AI Visual Assistant
 
-<div align="center">
+[![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter)](https://flutter.dev)
+[![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4?logo=google)](https://ai.google.dev)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?style=for-the-badge&logo=flutter)
-![Dart](https://img.shields.io/badge/Dart-3.0+-0175C2?style=for-the-badge&logo=dart)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+> **Assistente Visual com IA para Análise Nutricional, Diagnóstico de Plantas e Triagem Veterinária**
 
-**AI-Powered Visual Analysis for Nutrition, Botany & Pet Care**
-
-[Features](#-features) • [Screenshots](#-screenshots) • [Installation](#-installation) • [Architecture](#-architecture) • [Contributing](#-contributing)
-
-</div>
-
----
-
-## 📱 About
-
-**Scannut** is a revolutionary mobile application that uses **AI Vision** to analyze:
-- 🍎 **Food** - Nutritional analysis with calories, macros, benefits & risks
-- 🌿 **Plants** - Disease diagnosis with organic treatment plans
-- 🐾 **Pets** - Health screening with urgency levels & emergency guidance
-
-Powered by **Groq's LLaVA Vision Model** for lightning-fast analysis (< 2 seconds).
+Scannut é um aplicativo Flutter que utiliza o Google Gemini 2.5 Flash para análise inteligente de imagens em três categorias: alimentos, plantas e pets.
 
 ---
 
 ## ✨ Features
 
-### 🍎 Food Analysis
-- **Nutritional Breakdown**: Calories, proteins, carbs, fats
-- **Health Insights**: Benefits and potential risks
-- **Vitality Score**: AI-calculated health rating (1-10)
-- **Personalized Advice**: Tailored nutritional recommendations
+- **🧠 IA Avançada (Gemini 2.5 Flash)**:
+  - 🍎 **Nutri Vision**: Identifica alimentos, calcula calorias com precisão e analisa macros.
+  - 🍳 **Co-Piloto de Cozinha**: Sugere receitas completas (ingredientes + modo de preparo) baseadas no que você escaneou.
+  - 🌿 **Botany AI**: Diagnostica saúde de plantas e sugere tratamentos orgânicos.
+  - 🐾 **Vet Lens**: Triagem visual de condições dermatológicas em pets com níveis de urgência.
 
-### 🌿 Plant Diagnosis
-- **Disease Detection**: Identifies plant health issues
-- **Treatment Timeline**: Step-by-step organic recovery plan
-- **Urgency Meter**: Visual risk level indicator
-- **Shopping Integration**: Direct link to recommended treatments
+- **💎 Interface Premium (Design System)**:
+  - **Experiência Imersiva**: Hero animations, Slivers e efeitos Glassmorphism.
+  - **Dashboard Fluido**: Navegação por abas persistentes e gráficos interativos.
+  - **Feedback Rico**: Micro-interações e transições suaves.
 
-### 🐾 Pet Health Screening
-- **Visual Triage**: Identifies species and symptoms
-- **Urgency Levels**: Green (observation) / Yellow (attention) / Red (emergency)
-- **Emergency Mode**: Direct access to 24h veterinary clinics
-- **First Aid Guidance**: Immediate care instructions
+- **📊 Dashboard Interativo**:
+  - Score de Vitalidade (1-10).
+  - Gráficos de macros e metas diárias.
+  - Alertas de riscos e benefícios.
+  - 💡 Dicas - Benefícios e pontos de atenção
+
+### 🌿 Diagnóstico de Plantas
+- **Identificação de espécies**
+- **Detecção de doenças** e pragas
+- **Tratamentos orgânicos** recomendados
+- **Nível de urgência** (baixo, médio, alto)
+
+### 🐾 Triagem Veterinária + Gestão Completa
+- **Análise visual** de feridas e condições de pele
+- **Possíveis causas** identificadas
+- **Nível de urgência** (Verde, Amarelo, Vermelho)
+- **Cuidados imediatos** sugeridos
+- **Botão de emergência** para acesso rápido a veterinários
+
+#### 🆕 Identificação de Raça e Perfil Completo
+- **Identificação de raça** com linhagem provável
+- **Perfil comportamental** (energia, inteligência, sociabilidade)
+- **Plano nutricional semanal** com Alimentação Natural (AN)
+- **Tabelas de alimentos** benignos e malignos para a raça
+- **Grooming personalizado** (pelagem, banho, tosa)
+- **Saúde preventiva** (predisposições, checkups)
+
+#### 💉 Protocolo de Imunização (NOVO!)
+- **Vacinas essenciais** (V10/V8, Antirrábica, Gripe, Giárdia)
+- **Calendário preventivo** (filhotes e adultos)
+- **Prevenção parasitária** (vermífugos, pulgas/carrapatos)
+- **Saúde bucal** (ossos naturais permitidos)
+- **Alertas regionais** (Leishmaniose, Dirofilariose)
+- **Checklist interativo** para marcar vacinas aplicadas
+
+#### 📅 Agenda do Pet (NOVO!)
+- **Gerenciamento de eventos** (vacinas, banho, tosa, veterinário, medicamentos)
+- **Recorrência configurável** (única, diária, semanal, mensal, anual)
+- **Notificações** antes dos eventos
+- **3 visualizações** (Próximos, Passados, Todos)
+- **Filtros por tipo** de evento
+- **Badges visuais** (HOJE, ATRASADO)
+- **Marcar como concluído**
+
+#### 🍽️ Cardápio Semanal Inteligente
+- **Rotação nutricional** automática
+- **Exclusão de ingredientes** já utilizados
+- **Gerar novo cardápio** para próxima semana
+- **Histórico completo** de cardápios (em desenvolvimento)
+- **PDF personalizado** com nome do pet
 
 ---
 
-## 🎨 Design Highlights
+## 🎨 UI/UX Premium
 
-- **Glassmorphism UI**: Frosted glass effects with backdrop blur
-- **Dark Mode**: Optimized for OLED displays
-- **Haptic Feedback**: Multi-sensorial experience
-- **Staggered Animations**: Smooth, cascading element reveals
-- **Dynamic Colors**: Context-aware theming (health-based)
+### Design Moderno
+- ✅ **Glassmorphism** e gradientes suaves
+- ✅ **Dark mode** nativo
+- ✅ **Haptic feedback** em interações
+- ✅ **Animações fluidas** e micro-interações
+- ✅ **Zero overflow** - Layout 100% responsivo
 
----
+### Navegação Intuitiva
+- 📱 **Menu Drawer** com 4 opções:
+  - ⚙️ Configuração
+  - ❓ Ajuda
+  - ℹ️ Sobre
+  - 🚪 Sair
+- 🔄 **TabBar** para organização de informações
+- 👆 **Cards clicáveis** com explicações detalhadas
 
-## 🏗️ Architecture
-
-### Clean Architecture + Riverpod
-
-```
-lib/
-├── core/
-│   ├── enums/          # ScannutMode
-│   ├── models/         # AnalysisState
-│   ├── providers/      # Riverpod StateNotifiers
-│   ├── services/       # GroqService (API)
-│   └── utils/          # PromptFactory, ColorHelper
-├── features/
-│   ├── food/
-│   │   ├── models/
-│   │   └── presentation/widgets/
-│   ├── plant/
-│   │   ├── models/
-│   │   └── presentation/widgets/
-│   ├── pet/
-│   │   ├── models/
-│   │   └── presentation/widgets/
-│   ├── home/
-│   │   └── presentation/
-│   └── splash/
-└── l10n/               # i18n (PT, EN, ES)
-```
-
-### State Management
-- **Riverpod** for reactive state
-- **StateNotifier** for analysis lifecycle
-- **Consumer** widgets for UI reactivity
+### Interatividade
+- 💡 **Score de Vitalidade** - Toque para ver explicação
+- 🟢 **Benefícios** - Toque para lista completa
+- 🟠 **Alertas** - Toque para pontos de atenção
+- 📊 **Gráficos circulares** para visualização de dados
 
 ---
 
-## 🚀 Installation
+## 🛡️ Error Handling Robusto
 
-### Prerequisites
+### 11 Tipos de Erro Específicos
+- ⏱️ **Timeout** - "A conexão demorou muito. Verifique seu Wi-Fi/4G."
+- 🌐 **Network** - "Sem conexão com a internet."
+- 📄 **Parse Error** - "Erro ao processar dados. Tente tirar a foto novamente."
+- 🔴 **Server Error** - "Serviço temporariamente indisponível."
+- 🖼️ **Invalid Image** - Validação de tamanho e integridade
+- 🚫 **Rate Limit** - Controle de requisições
+- ⚙️ **Configuration** - Validação de API key
+
+### Validação de Imagem
+- ✅ Verifica existência do arquivo
+- ✅ Valida se não está vazio
+- ✅ Limita tamanho máximo (4MB)
+- ✅ Mensagens amigáveis ao usuário
+
+### SnackBar Helper
+- 🔴 **Erro** - Vermelho com ícone de alerta
+- 🟢 **Sucesso** - Verde com ícone de check
+- 🔵 **Info** - Azul com ícone de informação
+- 🟠 **Aviso** - Laranja com ícone de atenção
+
+---
+
+## ⚙️ Configurações
+
+### Personalizáveis
+- 🎯 **Meta Diária de Calorias** (1500-3000 kcal)
+- 👤 **Nome do Usuário**
+- 💡 **Exibir/Ocultar Dicas**
+
+### Presets Rápidos
+- 1500 kcal
+- 1800 kcal
+- 2000 kcal (padrão)
+- 2200 kcal
+- 2500 kcal
+- 3000 kcal
+
+### Persistência
+- 💾 **SharedPreferences** - Salvamento automático
+- 🔄 **Restaurar Padrões** - Reset com um toque
+
+---
+
+## 🚀 Tecnologias
+
+### Core
+- **Flutter** 3.0+
+- **Dart** 3.0+
+- **Riverpod** 2.6+ - State management
+
+### IA & API
+- **Google Gemini 2.5 Flash** - Análise de imagens
+- **Dio** 5.4+ - HTTP client
+- **flutter_dotenv** - Gerenciamento de variáveis de ambiente
+
+### UI/UX
+- **google_fonts** - Tipografia (Poppins)
+- **percent_indicator** - Gráficos circulares
+- **camera** - Captura de imagens
+
+### Armazenamento
+- **shared_preferences** - Configurações do usuário
+- **path_provider** - Gerenciamento de arquivos
+- **hive_flutter** - Banco de dados local (histórico, agenda)
+
+### Utilitários
+- **uuid** - Geração de IDs únicos
+- **intl** - Formatação de datas
+- **pdf** + **printing** - Geração e compartilhamento de PDFs
+- **share_plus** - Compartilhamento de arquivos
+
+---
+
+## 📦 Instalação
+
+### Pré-requisitos
 - Flutter SDK 3.0+
-- Dart 3.0+
 - Android Studio / VS Code
-- Groq API Key ([Get one here](https://console.groq.com))
+- Dispositivo Android ou iOS
 
-### Setup
+### Passos
 
-1. **Clone the repository**
+1. **Clone o repositório**
 ```bash
-git clone https://github.com/abreuretto72/ScanNut.git
-cd ScanNut
+git clone https://github.com/seu-usuario/scannut.git
+cd scannut
 ```
 
-2. **Install dependencies**
+2. **Instale as dependências**
 ```bash
 flutter pub get
 ```
 
-3. **Configure environment variables**
+3. **Configure a API Key**
 
-Create a `.env` file in the project root:
+Crie um arquivo `.env` na raiz do projeto:
 ```env
-GROQ_API_KEY=your_groq_api_key_here
-BASE_URL=https://api.groq.com/openai/v1
+GOOGLE_API_KEY=sua_chave_aqui
 ```
 
-4. **Run the app**
+> 📝 Obtenha sua chave em: https://makersuite.google.com/app/apikey
+
+4. **Execute o app**
 ```bash
 flutter run
 ```
 
 ---
 
-## 📦 Dependencies
+## 🎯 Como Usar
 
-### Core
-- `flutter_riverpod` - State management
-- `dio` - HTTP client
-- `camera` - Camera access
-- `flutter_dotenv` - Environment variables
+### 1️⃣ Escolha o Modo
+Selecione na barra inferior:
+- 🍎 **Alimentos**
+- 🌿 **Plantas**
+- 🐾 **Pets**
 
-### UI/UX
-- `google_fonts` - Typography
-- `lottie` - Animations
-- `percent_indicator` - Progress visualizations
-- `flutter_staggered_animations` - Cascading animations
-- `font_awesome_flutter` - Icon library
+### 2️⃣ Capture a Imagem
+- Aponte a câmera para o objeto
+- Toque no botão central para capturar
 
-### Utilities
-- `url_launcher` - External links
-- `permission_handler` - Device permissions
-- `shared_preferences` - Local storage
-- `path_provider` - File system access
+### 3️⃣ Aguarde a Análise
+- A IA processará a imagem (5-10 segundos)
+- Indicador de progresso será exibido
 
----
+### 4️⃣ Explore os Resultados
+- **Navegue pelas abas** (Visão Geral, Detalhes, Dicas)
+- **Toque nos cards** para ver explicações
+- **Salve no diário** para histórico
 
-## 🌍 Internationalization
-
-Scannut supports:
-- 🇧🇷 **Portuguese** (default)
-- 🇺🇸 **English**
-- 🇪🇸 **Spanish**
-
-AI responses are always in **Portuguese** for consistency.
+### 5️⃣ Configure sua Meta
+- Abra o **menu** (☰)
+- Vá em **Configuração**
+- Defina sua **meta diária**
 
 ---
 
-## 🤖 AI Integration
+## 📊 Arquitetura
 
-### Groq LLaVA Vision Model
-- **Model**: `llava-v1.5-7b-4096-preview`
-- **Response Time**: < 2 seconds
-- **Temperature**: 0.3 (consistent results)
-- **Format**: Strict JSON output
-
-### Prompt Engineering
-- Prompts in **English** for maximum accuracy
-- Explicit instruction: "Answer in Portuguese (pt-BR)"
-- Structured JSON schemas for each mode
-- Error handling with fallback responses
-
----
-
-## 📸 Screenshots
-
-> Coming soon! Run the app to see the magic ✨
-
----
-
-## 🛠️ Development
-
-### Run in debug mode
-```bash
-flutter run
+### Estrutura de Pastas
+```
+lib/
+├── core/
+│   ├── enums/           # ScannutMode
+│   ├── models/          # AnalysisState
+│   ├── providers/       # Riverpod providers
+│   ├── services/        # GeminiService
+│   └── utils/           # Helpers e factories
+├── features/
+│   ├── food/            # Análise de alimentos
+│   ├── plant/           # Diagnóstico de plantas
+│   ├── pet/             # Triagem veterinária
+│   ├── home/            # Tela principal
+│   ├── settings/        # Configurações
+│   └── splash/          # Splash screen
+└── main.dart
 ```
 
-### Build for release
-```bash
-# Android
-flutter build apk --release
-
-# iOS
-flutter build ios --release
-```
-
-### Run tests
-```bash
-flutter test
-```
-
-### Analyze code
-```bash
-flutter analyze
-```
+### Padrões Utilizados
+- **Provider Pattern** - State management
+- **Repository Pattern** - Acesso a dados
+- **Factory Pattern** - Criação de prompts
+- **Singleton Pattern** - Serviços
 
 ---
 
-## 🗺️ Roadmap
+## 🔒 Segurança
 
-- [x] AI Vision integration (Groq LLaVA)
-- [x] Food nutritional analysis
-- [x] Plant disease diagnosis
-- [x] Pet health screening
-- [x] Glassmorphism UI
-- [x] Haptic feedback
-- [x] i18n (PT/EN/ES)
-- [ ] Lottie scan animations
-- [ ] History persistence (Hive)
-- [ ] User profiles
-- [ ] Share results
-- [ ] Export to PDF
-- [ ] Offline mode
+### API Key
+- ✅ Armazenada em `.env` (não versionado)
+- ✅ Nunca exposta no código
+- ✅ Validação na inicialização
+
+### Dados do Usuário
+- ✅ Armazenamento local (SharedPreferences)
+- ✅ Sem envio de dados pessoais
+- ✅ Imagens não são armazenadas
 
 ---
 
-## 🤝 Contributing
+## 🐛 Troubleshooting
 
-Contributions are welcome! Please follow these steps:
+### Erro: "API Key não configurada"
+**Solução:** Crie o arquivo `.env` com sua chave do Gemini
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Erro: "Modelo não encontrado"
+**Solução:** O serviço tenta automaticamente outros modelos disponíveis
 
----
+### Erro: "Sem conexão"
+**Solução:** Verifique sua conexão Wi-Fi/4G
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### Overflow na UI
+**Solução:** Já corrigido! Layout 100% responsivo
 
 ---
 
-## 👨‍💻 Author
+## 🎨 Screenshots
 
-**Abreu Retto**
+### Tela Principal
+- Camera preview com frame de scan
+- Botão de menu (☰)
+- Seletor de modo (Food/Plant/Pet)
 
-- GitHub: [@abreuretto72](https://github.com/abreuretto72)
-- Project Link: [https://github.com/abreuretto72/ScanNut](https://github.com/abreuretto72/ScanNut)
+### Análise de Alimentos
+- Dashboard com gráficos
+- Score de Vitalidade
+- Macronutrientes
+- Benefícios e Alertas
+
+### Configurações
+- Meta diária personalizável
+- Presets rápidos
+- Nome do usuário
 
 ---
 
-## 🙏 Acknowledgments
+## 🤝 Contribuindo
 
-- [Groq](https://groq.com) - Lightning-fast AI inference
-- [Flutter](https://flutter.dev) - Beautiful native apps
-- [Riverpod](https://riverpod.dev) - Reactive state management
-- Community contributors and testers
+Contribuições são bem-vindas! Por favor:
+
+1. Fork o projeto
+2. Crie uma branch (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
 ---
 
-<div align="center">
+## 📝 Changelog
 
-**Made with ❤️ and AI**
+### v2.0.0 (2025-12-20) - 🐾 Pet Management Update
+#### Novas Funcionalidades
+- ✅ **Agenda do Pet** - Sistema completo de gerenciamento de eventos
+  - 6 tipos de eventos (vacina, banho, tosa, veterinário, medicamento, outro)
+  - Recorrência configurável
+  - Notificações antes dos eventos
+  - Filtros e visualizações múltiplas
+- ✅ **Protocolo de Imunização** - Caderneta de vacinação digital
+  - Vacinas essenciais com calendário
+  - Prevenção parasitária
+  - Saúde bucal e óssea
+  - Checklist interativo
+- ✅ **Identificação de Raça** - Análise completa do pet
+  - Perfil comportamental
+  - Plano nutricional semanal (AN)
+  - Tabelas de alimentos benignos/malignos
+  - Grooming personalizado
+- ✅ **Cardápio Semanal Inteligente**
+  - Rotação nutricional automática
+  - Geração de novos cardápios
+  - PDF personalizado com nome do pet
+- ✅ **Histórico de Pets** - Salvamento e recuperação de análises
+  - Ícones de ação (agenda, cardápio, editar)
+  - Visualização completa de dados salvos
 
-⭐ Star this repo if you find it useful!
+#### Melhorias Técnicas
+- ✅ Hive database para persistência local
+- ✅ Deep conversion de Maps para compatibilidade
+- ✅ Provider async para serviços
+- ✅ Layout responsivo sem overflow
+- ✅ Error handling aprimorado
 
-</div>
+### v1.0.0 (2025-01-19)
+- ✅ Integração com Gemini 2.5 Flash
+- ✅ Dashboard com TabBar
+- ✅ Menu Drawer
+- ✅ Configurações personalizáveis
+- ✅ Error handling robusto
+- ✅ Cards clicáveis com explicações
+- ✅ Score de Vitalidade
+- ✅ Layout sem overflow
+- ✅ Símbolo ± para aproximações
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+---
+
+## 👨‍💻 Autor
+
+**Seu Nome**
+- GitHub: [@seu-usuario](https://github.com/seu-usuario)
+- Email: seu-email@example.com
+
+---
+
+## 🙏 Agradecimentos
+
+- **Google Gemini** - Por fornecer a API de IA
+- **Flutter Team** - Pelo framework incrível
+- **Comunidade Open Source** - Pelas bibliotecas utilizadas
+
+---
+
+## 🔮 Roadmap
+
+### Próximas Features
+- [ ] Histórico de análises
+- [ ] Exportar relatórios em PDF
+- [ ] Compartilhamento de resultados
+- [ ] Modo offline com cache
+- [ ] Suporte a múltiplos idiomas
+- [ ] Integração com wearables
+- [ ] Reconhecimento de voz
+
+---
+
+**Feito com ❤️ usando Flutter e Gemini AI**

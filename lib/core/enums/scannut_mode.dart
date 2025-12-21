@@ -1,5 +1,6 @@
 enum ScannutMode {
   food,
   plant,
-  pet,
+  petIdentification,
+  petDiagnosis,
 }

@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../home/presentation/home_view.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -99,12 +99,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           gradient: LinearGradient(
                             colors: [
                               const Color(0xFF00E676),
-                              const Color(0xFF00E676).withOpacity(0.6),
+                              const Color(0xFF00E676).withValues(alpha: 0.6),
                             ],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF00E676).withOpacity(0.5),
+                              color: const Color(0xFF00E676).withValues(alpha: 0.5),
                               blurRadius: 40,
                               spreadRadius: 10,
                             ),
@@ -217,9 +217,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -266,7 +266,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final size = 2.0 + (random % 4);
     final left = (random * 3.7) % 100;
     final top = (random * 5.3) % 100;
-    final duration = 2000 + (random * 20);
 
     return Positioned(
       left: MediaQuery.of(context).size.width * (left / 100),
@@ -277,7 +276,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: const Color(0xFF00E676).withOpacity(0.3),
+            color: const Color(0xFF00E676).withValues(alpha: 0.3),
             shape: BoxShape.circle,
           ),
         ),

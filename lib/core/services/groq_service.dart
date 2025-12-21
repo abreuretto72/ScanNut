@@ -146,7 +146,8 @@ class GroqService {
           'urgency': 'low',
         };
 
-      case ScannutMode.pet:
+      case ScannutMode.petIdentification:
+      case ScannutMode.petDiagnosis:
         return {
           'especie': 'Animal Detectado',
           'descricao_visual': 'Sistema de visão em desenvolvimento.',

@@ -36,4 +36,17 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get cameraPermission =>
       'A permissão da câmera é necessária para usar este recurso.';
+
+  @override
+  String get petNamePromptTitle => 'Nome do Pet';
+
+  @override
+  String get petNamePromptHint => 'Digite o nome do seu pet';
+
+  @override
+  String get petNamePromptCancel => 'Cancelar';
+
+  @override
+  String get petNameEmptyError =>
+      'Nome do pet não fornecido. Pet mode cancelado.';
 }

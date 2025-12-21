@@ -64,3 +64,8 @@ coverage/
 # Documentação temporária
 *.tmp
 *.temp
+
+# Documentation Restrictions
+*.md
+!README.md
+

@@ -1,0 +1,970 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import '../models/pet_event.dart';
+import '../services/pet_event_service.dart';
+import '../../../core/providers/pet_event_provider.dart';
+import 'package:uuid/uuid.dart';
+
+class PetAgendaScreen extends ConsumerStatefulWidget {
+  final String petName;
+
+  const PetAgendaScreen({Key? key, required this.petName}) : super(key: key);
+
+  @override
+  ConsumerState<PetAgendaScreen> createState() => _PetAgendaScreenState();
+}
+
+class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  EventType? _filterType;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _showAddEventDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => _AddEventDialog(petName: widget.petName),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final eventServiceAsync = ref.watch(petEventServiceProvider);
+
+    return eventServiceAsync.when(
+      data: (eventService) => _buildContent(context, eventService),
+      loading: () => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Agenda',
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: Color(0xFF00E676)),
+        ),
+      ),
+      error: (error, stack) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Agenda',
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+        ),
+        body: Center(
+          child: Text(
+            'Erro ao carregar agenda: $error',
+            style: GoogleFonts.poppins(color: Colors.red),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, PetEventService eventService) {
+    final allEvents = eventService.getEventsByPet(widget.petName);
+    final upcomingEvents = eventService.getUpcomingEvents(widget.petName);
+    final pastEvents = eventService.getPastEvents(widget.petName);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Agenda',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+              ),
+            ),
+            Text(
+              widget.petName,
+              style: GoogleFonts.poppins(
+                color: Colors.white54,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          // Filter button
+          PopupMenuButton<EventType?>(
+            icon: Icon(
+              _filterType == null ? Icons.filter_list : Icons.filter_alt,
+              color: _filterType == null ? Colors.white54 : Colors.blueAccent,
+            ),
+            onSelected: (type) {
+              setState(() => _filterType = type);
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: null,
+                child: Text('Todos', style: GoogleFonts.poppins()),
+              ),
+              ...EventType.values.map((type) {
+                final event = PetEvent(
+                  id: '',
+                  petName: '',
+                  title: '',
+                  type: type,
+                  dateTime: DateTime.now(),
+                );
+                return PopupMenuItem(
+                  value: type,
+                  child: Row(
+                    children: [
+                      Text(event.typeEmoji),
+                      const SizedBox(width: 8),
+                      Text(event.typeLabel, style: GoogleFonts.poppins()),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: const Color(0xFF00E676),
+          labelColor: const Color(0xFF00E676),
+          unselectedLabelColor: Colors.white54,
+          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          tabs: [
+            Tab(text: 'Próximos (${upcomingEvents.length})'),
+            Tab(text: 'Passados (${pastEvents.length})'),
+            Tab(text: 'Todos (${allEvents.length})'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildEventList(upcomingEvents, isEmpty: upcomingEvents.isEmpty, emptyMessage: 'Nenhum evento próximo'),
+          _buildEventList(pastEvents, isEmpty: pastEvents.isEmpty, emptyMessage: 'Nenhum evento passado'),
+          _buildEventList(allEvents, isEmpty: allEvents.isEmpty, emptyMessage: 'Nenhum evento cadastrado'),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddEventDialog,
+        backgroundColor: const Color(0xFF00E676),
+        icon: const Icon(Icons.add, color: Colors.black),
+        label: Text(
+          'Novo Evento',
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventList(List<PetEvent> events, {required bool isEmpty, required String emptyMessage}) {
+    if (isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_busy, size: 64, color: Colors.white.withValues(alpha: 0.2)),
+            const SizedBox(height: 16),
+            Text(
+              emptyMessage,
+              style: GoogleFonts.poppins(color: Colors.white54),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Apply filter if set
+    final filteredEvents = _filterType == null
+        ? events
+        : events.where((e) => e.type == _filterType).toList();
+
+    if (filteredEvents.isEmpty) {
+      return Center(
+        child: Text(
+          'Nenhum evento deste tipo',
+          style: GoogleFonts.poppins(color: Colors.white54),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: filteredEvents.length,
+      itemBuilder: (context, index) {
+        final event = filteredEvents[index];
+        return _EventCard(
+          event: event,
+          onTap: () => _showEventDetails(event),
+          onDelete: () => _deleteEvent(event),
+          onToggleComplete: () => _toggleComplete(event),
+        );
+      },
+    );
+  }
+
+  void _showEventDetails(PetEvent event) {
+    showDialog(
+      context: context,
+      builder: (context) => _EventDetailsDialog(event: event),
+    );
+  }
+
+  void _deleteEvent(PetEvent event) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: Text('Excluir Evento?', style: GoogleFonts.poppins(color: Colors.white)),
+        content: Text(
+          'Tem certeza que deseja excluir "${event.title}"?',
+          style: GoogleFonts.poppins(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Excluir', style: GoogleFonts.poppins(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final service = await ref.read(petEventServiceProvider.future);
+      await service.deleteEvent(event.id);
+      setState(() {});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Evento excluído', style: GoogleFonts.poppins()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _toggleComplete(PetEvent event) async {
+    final service = await ref.read(petEventServiceProvider.future);
+    await service.markAsCompleted(event.id);
+    setState(() {});
+  }
+}
+
+// Event Card Widget
+class _EventCard extends StatelessWidget {
+  final PetEvent event;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+  final VoidCallback onToggleComplete;
+
+  const _EventCard({
+    required this.event,
+    required this.onTap,
+    required this.onDelete,
+    required this.onToggleComplete,
+  });
+
+  Color get _eventColor {
+    switch (event.type) {
+      case EventType.vaccine:
+        return Colors.purple;
+      case EventType.bath:
+        return Colors.blue;
+      case EventType.grooming:
+        return Colors.pink;
+      case EventType.veterinary:
+        return Colors.red;
+      case EventType.medication:
+        return Colors.orange;
+      case EventType.other:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+    final isOverdue = event.isPast && !event.completed;
+
+    return Card(
+      color: Colors.white.withValues(alpha: 0.05),
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isOverdue ? Colors.red.withValues(alpha: 0.5) : _eventColor.withValues(alpha: 0.3),
+          width: 2,
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Type icon
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _eventColor.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(event.typeEmoji, style: const TextStyle(fontSize: 20)),
+                  ),
+                  const SizedBox(width: 12),
+                  // Title and type
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          event.title,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            decoration: event.completed ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                        Text(
+                          event.typeLabel,
+                          style: GoogleFonts.poppins(
+                            color: _eventColor,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Complete checkbox
+                  if (!event.isPast)
+                    IconButton(
+                      icon: Icon(
+                        event.completed ? Icons.check_circle : Icons.circle_outlined,
+                        color: event.completed ? Colors.green : Colors.white54,
+                      ),
+                      onPressed: onToggleComplete,
+                    ),
+                  // Delete button
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    onPressed: onDelete,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Date and time
+              Row(
+                children: [
+                  Icon(Icons.access_time, size: 16, color: isOverdue ? Colors.red : Colors.white54),
+                  const SizedBox(width: 4),
+                  Text(
+                    dateFormat.format(event.dateTime),
+                    style: GoogleFonts.poppins(
+                      color: isOverdue ? Colors.red : Colors.white70,
+                      fontSize: 13,
+                    ),
+                  ),
+                  if (isOverdue) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'ATRASADO',
+                        style: GoogleFonts.poppins(
+                          color: Colors.red,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                  if (event.isToday && !event.completed) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'HOJE',
+                        style: GoogleFonts.poppins(
+                          color: Colors.orange,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              // Recurrence
+              if (event.recurrence != RecurrenceType.once) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.repeat, size: 16, color: Colors.white54),
+                    const SizedBox(width: 4),
+                    Text(
+                      event.recurrenceLabel,
+                      style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+              // Notes
+              if (event.notes != null && event.notes!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  event.notes!,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white54,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Add Event Dialog (placeholder - will be implemented next)
+class _AddEventDialog extends ConsumerStatefulWidget {
+  final String petName;
+  final PetEvent? existingEvent;
+
+  const _AddEventDialog({required this.petName, this.existingEvent});
+
+  @override
+  ConsumerState<_AddEventDialog> createState() => _AddEventDialogState();
+}
+
+class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _notesController = TextEditingController();
+  
+  EventType _selectedType = EventType.other;
+  RecurrenceType _selectedRecurrence = RecurrenceType.once;
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  int _notificationMinutes = 1440; // 1 day
+  
+  // Available vaccines
+  final List<String> _availableVaccines = [
+    'V10 ou V8 (Polivalente)',
+    'Antirrábica',
+    'Gripe Canina (Tosse dos Canis)',
+    'Giárdia',
+    'Leishmaniose',
+    'Influenza Canina (H3N8)',
+    'Outra vacina',
+  ];
+  String? _selectedVaccine;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingEvent != null) {
+      _titleController.text = widget.existingEvent!.title;
+      _notesController.text = widget.existingEvent!.notes ?? '';
+      _selectedType = widget.existingEvent!.type;
+      _selectedRecurrence = widget.existingEvent!.recurrence;
+      _selectedDate = widget.existingEvent!.dateTime;
+      _selectedTime = TimeOfDay.fromDateTime(widget.existingEvent!.dateTime);
+      _notificationMinutes = widget.existingEvent!.notificationMinutes;
+      
+      // If it's a vaccine event, try to match with available vaccines
+      if (_selectedType == EventType.vaccine) {
+        final title = widget.existingEvent!.title;
+        if (_availableVaccines.contains(title)) {
+          _selectedVaccine = title;
+        } else {
+          _selectedVaccine = 'Outra vacina';
+          _titleController.text = title;
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+    );
+    if (date != null) {
+      setState(() => _selectedDate = date);
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (time != null) {
+      setState(() => _selectedTime = time);
+    }
+  }
+
+  void _saveEvent() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final dateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
+
+    final service = await ref.read(petEventServiceProvider.future);
+    
+    // Get the correct title based on event type
+    String eventTitle;
+    if (_selectedType == EventType.vaccine) {
+      if (_selectedVaccine == 'Outra vacina' || _selectedVaccine == null) {
+        eventTitle = _titleController.text.trim();
+      } else {
+        eventTitle = _selectedVaccine!;
+      }
+    } else {
+      eventTitle = _titleController.text.trim();
+    }
+
+    if (widget.existingEvent != null) {
+      // Update existing event
+      final updatedEvent = PetEvent(
+        id: widget.existingEvent!.id,
+        petName: widget.petName,
+        title: eventTitle,
+        type: _selectedType,
+        dateTime: dateTime,
+        recurrence: _selectedRecurrence,
+        notificationMinutes: _notificationMinutes,
+        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        completed: widget.existingEvent!.completed,
+        createdAt: widget.existingEvent!.createdAt,
+      );
+      await service.updateEvent(updatedEvent);
+    } else {
+      // Create new event
+      final event = PetEvent(
+        id: const Uuid().v4(),
+        petName: widget.petName,
+        title: eventTitle,
+        type: _selectedType,
+        dateTime: dateTime,
+        recurrence: _selectedRecurrence,
+        notificationMinutes: _notificationMinutes,
+        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+      );
+      await service.addEvent(event);
+    }
+    
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.existingEvent != null ? 'Evento atualizado!' : 'Evento criado!',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEdit = widget.existingEvent != null;
+    return AlertDialog(
+      backgroundColor: Colors.grey[900],
+      title: Text(
+        isEdit ? 'Editar Evento' : 'Novo Evento',
+        style: GoogleFonts.poppins(color: Colors.white),
+      ),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Title/Vaccine Selection
+              if (_selectedType == EventType.vaccine) ...[
+                // Vaccine dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedVaccine,
+                  dropdownColor: Colors.grey[800],
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Selecione a Vacina',
+                    labelStyle: const TextStyle(color: Colors.white54),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF00E676)),
+                    ),
+                  ),
+                  items: _availableVaccines.map((vaccine) {
+                    return DropdownMenuItem(
+                      value: vaccine,
+                      child: Text(vaccine),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedVaccine = value;
+                      if (value != 'Outra vacina') {
+                        _titleController.text = value ?? '';
+                      } else {
+                        _titleController.clear();
+                      }
+                    });
+                  },
+                  validator: (value) => value == null ? 'Selecione uma vacina' : null,
+                ),
+                const SizedBox(height: 16),
+                // Show text field if "Outra vacina" is selected
+                if (_selectedVaccine == 'Outra vacina')
+                  TextFormField(
+                    controller: _titleController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Nome da Vacina',
+                      labelStyle: const TextStyle(color: Colors.white54),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFF00E676)),
+                      ),
+                    ),
+                    validator: (value) => value == null || value.trim().isEmpty ? 'Obrigatório' : null,
+                  ),
+              ] else
+                // Regular title field for non-vaccine events
+                TextFormField(
+                  controller: _titleController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Título',
+                    labelStyle: const TextStyle(color: Colors.white54),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF00E676)),
+                    ),
+                  ),
+                  validator: (value) => value == null || value.trim().isEmpty ? 'Obrigatório' : null,
+                ),
+              const SizedBox(height: 16),
+              // Type
+              DropdownButtonFormField<EventType>(
+                value: _selectedType,
+                dropdownColor: Colors.grey[800],
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Tipo',
+                  labelStyle: const TextStyle(color: Colors.white54),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF00E676)),
+                  ),
+                ),
+                items: EventType.values.map((type) {
+                  final dummyEvent = PetEvent(
+                    id: '',
+                    petName: '',
+                    title: '',
+                    type: type,
+                    dateTime: DateTime.now(),
+                  );
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Row(
+                      children: [
+                        Text(dummyEvent.typeEmoji),
+                        const SizedBox(width: 8),
+                        Text(dummyEvent.typeLabel),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedType = value!;
+                    // Clear vaccine selection when changing from vaccine to something else
+                    if (value != EventType.vaccine) {
+                      _selectedVaccine = null;
+                      if (_titleController.text.isEmpty) {
+                        _titleController.clear();
+                      }
+                    } else {
+                      // Reset title when switching to vaccine type
+                      _titleController.clear();
+                      _selectedVaccine = null;
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              // Date and Time
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _selectDate,
+                      icon: const Icon(Icons.calendar_today, color: Colors.white),
+                      label: Text(
+                        DateFormat('dd/MM/yyyy').format(_selectedDate),
+                        style: GoogleFonts.poppins(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _selectTime,
+                      icon: const Icon(Icons.access_time, color: Colors.white),
+                      label: Text(
+                        _selectedTime.format(context),
+                        style: GoogleFonts.poppins(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Recurrence
+              DropdownButtonFormField<RecurrenceType>(
+                value: _selectedRecurrence,
+                dropdownColor: Colors.grey[800],
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Recorrência',
+                  labelStyle: const TextStyle(color: Colors.white54),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF00E676)),
+                  ),
+                ),
+                items: RecurrenceType.values.map((type) {
+                  final dummyEvent = PetEvent(
+                    id: '',
+                    petName: '',
+                    title: '',
+                    type: EventType.other,
+                    dateTime: DateTime.now(),
+                    recurrence: type,
+                  );
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(dummyEvent.recurrenceLabel),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => _selectedRecurrence = value!),
+              ),
+              const SizedBox(height: 16),
+              // Notes
+              TextFormField(
+                controller: _notesController,
+                style: const TextStyle(color: Colors.white),
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Observações (opcional)',
+                  labelStyle: const TextStyle(color: Colors.white54),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF00E676)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white54)),
+        ),
+        ElevatedButton(
+          onPressed: _saveEvent,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF00E676),
+          ),
+          child: Text('Salvar', style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+}
+
+// Event Details Dialog (placeholder)
+class _EventDetailsDialog extends StatelessWidget {
+  final PetEvent event;
+
+  const _EventDetailsDialog({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.grey[900],
+      title: Row(
+        children: [
+          Text(event.typeEmoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              event.title,
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _DetailRow(label: 'Tipo', value: event.typeLabel),
+          _DetailRow(label: 'Data', value: DateFormat('dd/MM/yyyy HH:mm').format(event.dateTime)),
+          _DetailRow(label: 'Recorrência', value: event.recurrenceLabel),
+          if (event.notes != null) _DetailRow(label: 'Observações', value: event.notes!),
+          _DetailRow(label: 'Status', value: event.completed ? 'Concluído' : event.isPast ? 'Atrasado' : 'Pendente'),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context); // Close details dialog
+            // Open edit dialog
+            showDialog(
+              context: context,
+              builder: (context) => _AddEventDialog(
+                petName: event.petName,
+                existingEvent: event,
+              ),
+            );
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.edit, size: 18, color: Colors.blueAccent),
+              const SizedBox(width: 4),
+              Text('Editar', style: GoogleFonts.poppins(color: Colors.blueAccent)),
+            ],
+          ),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Fechar', style: GoogleFonts.poppins(color: Colors.white)),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

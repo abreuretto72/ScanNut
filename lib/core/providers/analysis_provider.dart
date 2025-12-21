@@ -1,35 +1,71 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/analysis_state.dart';
-import '../services/groq_service.dart';
+import '../services/gemini_service.dart';
+import '../services/groq_api_service.dart';
+import '../services/history_service.dart';
+import '../services/meal_history_service.dart';
 import '../enums/scannut_mode.dart';
+import '../utils/prompt_factory.dart';
 import '../../features/food/models/food_analysis_model.dart';
 import '../../features/plant/models/plant_analysis_model.dart';
 import '../../features/pet/models/pet_analysis_result.dart';
 
-// Provider for GroqService
-final groqServiceProvider = Provider<GroqService>((ref) {
-  return GroqService();
+// Provider for GeminiService
+final geminiServiceProvider = Provider<GeminiService>((ref) {
+  return GeminiService();
 });
 
 // StateNotifier for managing analysis state
 class AnalysisNotifier extends StateNotifier<AnalysisState> {
-  final GroqService _groqService;
+  final GeminiService _geminiService;
+  final GroqApiService _groqService;
+  final HistoryService _historyService;
 
-  AnalysisNotifier(this._groqService) : super(AnalysisIdle());
+  AnalysisNotifier(this._geminiService, this._groqService, this._historyService) : super(AnalysisIdle());
 
   /// Analyze image based on selected mode
   Future<void> analyzeImage({
     required File imageFile,
     required ScannutMode mode,
+    String? petName,
+    List<String> excludedBases = const [],
   }) async {
     state = AnalysisLoading(message: _getLoadingMessage(mode));
 
     try {
-      final jsonResponse = await _groqService.analyzeImage(
-        imageFile: imageFile,
-        mode: mode,
-      );
+      Map<String, dynamic> jsonResponse;
+      
+      try {
+        jsonResponse = await _geminiService.analyzeImage(
+          imageFile: imageFile,
+          mode: mode,
+          excludedBases: excludedBases, // Pass restriction
+        );
+      } catch (geminiError) {
+        debugPrint('⚠️ Gemini falhou, tentando Groq: $geminiError');
+        
+        // Use Groq as fallback
+        final prompt = PromptFactory.getPrompt(mode);
+        final groqResponse = await _groqService.analyzeImage(imageFile, prompt);
+        
+        if (groqResponse == null) {
+          throw Exception('Todas as IAs falharam em analisar a imagem.');
+        }
+
+        // Clean up markdown code blocks if present in Groq response
+        final cleanJson = groqResponse
+            .replaceAll('```json', '')
+            .replaceAll('```', '')
+            .trim();
+        
+        jsonResponse = jsonDecode(cleanJson);
+      }
+      
+      // Save to history
+      await _historyService.saveAnalysis(jsonResponse, mode.toString());
 
       // Parse response based on mode
       switch (mode) {
@@ -43,15 +79,52 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           state = AnalysisSuccess<PlantAnalysisModel>(plantAnalysis);
           break;
 
-        case ScannutMode.pet:
-          final petAnalysis = PetAnalysisResult.fromJson(jsonResponse);
+        case ScannutMode.petIdentification:
+        case ScannutMode.petDiagnosis:
+          final petAnalysis = PetAnalysisResult.fromJson({
+            ...jsonResponse,
+            if (petName != null) 'pet_name': petName,
+          });
+          
+          // Save meal plan ingredients for rotation logic
+          if (mode == ScannutMode.petIdentification && 
+              petName != null && 
+              petAnalysis.planoSemanal.isNotEmpty) {
+            final mealService = MealHistoryService();
+            await mealService.init();
+            
+            // Extract base ingredients from meal plan
+            final ingredients = <String>{};
+            for (var day in petAnalysis.planoSemanal) {
+              final meal = day['refeicao'] ?? '';
+              // Simple extraction: split by common separators
+              final parts = meal.split(RegExp(r'[,;e]'));
+              for (var part in parts) {
+                final cleaned = part.trim().toLowerCase();
+                if (cleaned.isNotEmpty) {
+                  // Extract first meaningful word (usually the protein/veggie)
+                  final firstWord = cleaned.split(' ').first;
+                  if (firstWord.length > 3) ingredients.add(firstWord);
+                }
+              }
+            }
+            
+            await mealService.saveWeeklyIngredients(petName, ingredients.toList());
+            debugPrint('💾 Salvos ${ingredients.length} ingredientes para rotação futura');
+          }
+          
           state = AnalysisSuccess<PetAnalysisResult>(petAnalysis);
           break;
       }
-    } on GroqException catch (e) {
-      state = AnalysisError(e.message);
+    } on GeminiException catch (e) {
+      // Use user-friendly message
+      state = AnalysisError(e.userMessage);
+    } on FormatException catch (e) {
+      debugPrint('❌ Erro de formato no JSON: $e');
+      state = AnalysisError('Erro ao processar dados da IA. Tente tirar a foto novamente.');
     } catch (e) {
-      state = AnalysisError('Erro ao processar análise: $e');
+      debugPrint('❌ Erro inesperado: $e');
+      state = AnalysisError('Erro inesperado. Tente novamente.');
     }
   }
 
@@ -66,8 +139,10 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         return 'Analisando alimento...';
       case ScannutMode.plant:
         return 'Diagnosticando planta...';
-      case ScannutMode.pet:
-        return 'Avaliando pet...';
+      case ScannutMode.petIdentification:
+        return 'Identificando raça...';
+      case ScannutMode.petDiagnosis:
+         return 'Analisando saúde...';
     }
   }
 }
@@ -75,6 +150,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 // Provider for AnalysisNotifier
 final analysisNotifierProvider =
     StateNotifierProvider<AnalysisNotifier, AnalysisState>((ref) {
-  final groqService = ref.watch(groqServiceProvider);
-  return AnalysisNotifier(groqService);
+  final geminiService = ref.watch(geminiServiceProvider);
+  final groqService = ref.watch(groqApiServiceProvider);
+  final historyService = ref.watch(historyServiceProvider);
+  return AnalysisNotifier(geminiService, groqService, historyService);
 });

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/groq_api_service.dart';
 import '../models/pet_analysis_result.dart';
+import '../../../core/utils/prompt_factory.dart';
+import '../../../core/enums/scannut_mode.dart';
 
 final petAnalysisServiceProvider = Provider<PetAnalysisService>((ref) {
   final groqService = ref.watch(groqApiServiceProvider);
@@ -14,11 +16,8 @@ class PetAnalysisService {
 
   PetAnalysisService(this._groqService);
 
-  Future<PetAnalysisResult> analyzePet(File image) async {
-import '../../../core/utils/prompt_factory.dart';
-import '../../../core/enums/scannut_mode.dart';
-
-    final prompt = PromptFactory.getPrompt(ScannutMode.pet);
+  Future<PetAnalysisResult> analyzePet(File image, ScannutMode mode) async {
+    final prompt = PromptFactory.getPrompt(mode);
 
     try {
       final jsonString = await _groqService.analyzeImage(image, prompt);
@@ -38,11 +37,21 @@ import '../../../core/enums/scannut_mode.dart';
     } catch (e) {
       // Fallback for parsing errors or API errors
       return PetAnalysisResult(
-        especie: "Não identificado",
-        descricaoVisual: "Erro ao processar a resposta da IA.",
-        possiveisCausas: ["Erro de conexão ou formato inválido"],
-        urgenciaNivel: "Amarelo", // Default to caution
-        orientacaoImediata: "Tente novamente ou procure um veterinário se houver dúvidas.",
+        analysisType: 'identification',
+        identificacao: IdentificacaoPet.empty(),
+        perfilComportamental: PerfilComportamental.empty(),
+        nutricao: NutricaoEStrutura.empty(),
+        higiene: Grooming.empty(),
+        saude: SaudePreventiva.empty(),
+        lifestyle: LifestyleEEducacao.empty(),
+        dica: DicaEspecialista.empty(),
+        especieDiag: "Não identificado",
+        racaDiag: "Não identificada",
+        caracteristicasDiag: "Erro na análise",
+        descricaoVisualDiag: "Erro ao processar a resposta da IA.",
+        possiveisCausasDiag: ["Erro de conexão ou formato inválido"],
+        urgenciaNivelDiag: "Amarelo",
+        orientacaoImediataDiag: "Tente novamente ou procure um veterinário se houver dúvidas.",
       );
     }
   }

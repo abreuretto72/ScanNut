@@ -1,16 +1,21 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../home/presentation/home_view.dart';
 import '../models/pet_analysis_result.dart';
 import '../services/pet_analysis_service.dart';
+import '../../../core/enums/scannut_mode.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../models/pet_profile_extended.dart';
+import 'widgets/edit_pet_form.dart';
+import '../services/pet_profile_service.dart';
+import '../../../core/services/history_service.dart';
 
 final petResultProvider = StateProvider<PetAnalysisResult?>((ref) => null);
 
 class PetResultScreen extends ConsumerStatefulWidget {
   final File imageFile;
 
-  const PetResultScreen({super.key, required this.imageFile});
+  const PetResultScreen({Key? key, required this.imageFile}) : super(key: key);
 
   @override
   ConsumerState<PetResultScreen> createState() => _PetResultScreenState();
@@ -28,7 +33,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   Future<void> _analyzeImage() async {
     try {
       final service = ref.read(petAnalysisServiceProvider);
-      final result = await service.analyzePet(widget.imageFile);
+      final result = await service.analyzePet(widget.imageFile, ScannutMode.petIdentification);
       
       if (mounted) {
         ref.read(petResultProvider.notifier).state = result;
@@ -59,6 +64,13 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
         title: const Text('Análise Veterinária', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
+      floatingActionButton: _isLoading || result == null ? null : FloatingActionButton.extended(
+        onPressed: () => _navigateToEdit(context, result),
+        label: const Text('Salvar na Carteira', style: TextStyle(fontWeight: FontWeight.bold)),
+        icon: const Icon(Icons.save_as),
+        backgroundColor: const Color(0xFF00E676),
+        foregroundColor: Colors.black,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
           : result == null
@@ -80,29 +92,72 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                       ),
                       const SizedBox(height: 24),
                       
-                      // Urgency Card
-                      _buildUrgencyCard(result),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Details Card
-                      _buildInfoCard(
-                        title: 'Identificação',
-                        content: result.especie,
-                        icon: Icons.search,
-                      ),
-                      _buildInfoCard(
-                        title: 'Padrões Visuais',
-                        content: result.descricaoVisual,
-                        icon: Icons.visibility,
-                      ),
-                      _buildInfoCard(
-                        title: 'Possíveis Causas',
-                        content: result.possiveisCausas.join('\n• '),
-                        icon: Icons.list,
-                        isList: true,
-                      ),
-                      
+                      if (result.analysisType == 'diagnosis') ...[
+                        // DIAGNOSIS MODE: Urgency First
+                        _buildUrgencyCard(result),
+                        const SizedBox(height: 16),
+                        _buildInfoCard(
+                          title: 'Análise Visual / Sintomas',
+                          content: result.descricaoVisual,
+                          icon: Icons.visibility,
+                        ),
+                        _buildInfoCard(
+                          title: 'Possíveis Causas',
+                          content: result.possiveisCausas.join('\n• '),
+                          icon: Icons.list,
+                          isList: true,
+                        ),
+                        _buildInfoCard(
+                          title: 'Identificação',
+                          content: '${result.especie} - ${result.raca}',
+                          icon: Icons.pets,
+                        ),
+                      ] else ...[
+                        // IDENTIFICATION MODE: Breed First
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.blueAccent.withValues(alpha: 0.2), Colors.purpleAccent.withValues(alpha: 0.2)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.5)),
+                          ),
+                          child: Column(
+                            children: [
+                              const Icon(Icons.pets, color: Colors.blueAccent, size: 40),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${result.especie} - ${result.raca}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                result.caracteristicas,
+                                style: const TextStyle(color: Colors.white70, fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInfoCard(
+                          title: 'Estado de Saúde',
+                          content: result.descricaoVisual, // General health check text
+                          icon: Icons.health_and_safety,
+                        ),
+                        // Only show urgency card if it's NOT just simple "Verde" (Healthy), or show a subtle version
+                         _buildUrgencyCard(result),
+                      ],
+
                       const SizedBox(height: 16),
                       
                       // Disclaimer Footer
@@ -144,8 +199,8 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: color.withValues(alpha: 0.15),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(16),
@@ -199,7 +254,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -230,5 +285,41 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
         ],
       ),
     );
+  }
+
+  void _navigateToEdit(BuildContext context, PetAnalysisResult result) {
+     final profile = PetProfileExtended.fromAnalysisResult(result, widget.imageFile.path);
+
+     Navigator.push(
+        context, 
+        MaterialPageRoute(
+            builder: (_) => EditPetForm(
+                existingProfile: profile, 
+                isNewEntry: true,
+                onSave: (savedProfile) async {
+                    // 1. Save Profile (Source of Truth)
+                    final profileService = PetProfileService();
+                    await profileService.init();
+                    await profileService.saveOrUpdateProfile(savedProfile.petName, savedProfile.toJson());
+                    
+                    // 2. Update History (Legacy List Support)
+                    final historyService = HistoryService();
+                     await historyService.savePetAnalysis(
+                        savedProfile.petName, 
+                        savedProfile.rawAnalysis ?? {}, 
+                        imagePath: savedProfile.imagePath
+                    );
+                    
+                    if (context.mounted) {
+                        Navigator.pop(context); // Close Edit
+                        Navigator.pop(context); // Close Result
+                        ScaffoldMessenger.of(context).showSnackBar(
+                           const SnackBar(content: Text('Perfil do pet salvo e atualizado! 🐾')),
+                        );
+                    }
+                }
+            )
+        )
+     );
   }
 }

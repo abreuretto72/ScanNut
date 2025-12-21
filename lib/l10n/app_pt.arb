@@ -7,5 +7,9 @@
   "disclaimerBody": "Este aplicativo realiza apenas triagem informativa e NÃO substitui o conselho profissional de Nutricionistas, Agrônomos ou Veterinários.",
   "disclaimerButton": "Entendi",
   "emergencyCall": "Ligar para Veterinário Próximo",
-  "cameraPermission": "A permissão da câmera é necessária para usar este recurso."
+  "cameraPermission": "A permissão da câmera é necessária para usar este recurso.",
+  "petNamePromptTitle": "Nome do Pet",
+  "petNamePromptHint": "Digite o nome do seu pet",
+  "petNamePromptCancel": "Cancelar",
+  "petNameEmptyError": "Nome do pet não fornecido. Pet mode cancelado."
 }
