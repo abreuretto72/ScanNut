@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import '../../../../core/services/gemini_service.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
+import '../../../../core/services/export_service.dart';
+import '../../../../core/widgets/pdf_preview_screen.dart';
 
 class WeeklyMenuScreen extends StatefulWidget {
   final List<Map<String, String>> currentWeekPlan;
@@ -101,203 +103,24 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
   }
 
   Future<void> _generateMenuPDF() async {
-    final pdf = pw.Document();
-    final now = DateTime.now();
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(now);
-
-    // Calculate dates for each day of the week (starting from next Monday)
-    final today = DateTime.now();
-    final daysUntilMonday = (DateTime.monday - today.weekday + 7) % 7;
-    final nextMonday = today.add(Duration(days: daysUntilMonday == 0 ? 7 : daysUntilMonday));
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(
-                    'ScanNut',
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 24,
-                      color: PdfColors.green,
-                    ),
-                  ),
-                  pw.Text(
-                    'Cardápio Semanal',
-                    style: pw.TextStyle(fontSize: 18),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 10),
-            pw.Text('Gerado em: $dateStr', style: const pw.TextStyle(color: PdfColors.grey)),
-            pw.SizedBox(height: 10),
-            pw.Text(
-              'Pet: ${widget.petName}',
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16),
-            ),
-            pw.Text(
-              'Raça: ${widget.raceName}',
-              style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
-            ),
-            pw.SizedBox(height: 20),
-
-            if (widget.generalGuidelines != null) ...[
-              pw.Container(
-                padding: const pw.EdgeInsets.all(12),
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.orange50,
-                  borderRadius: pw.BorderRadius.circular(8),
-                ),
-                child: pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('💡 ', style: const pw.TextStyle(fontSize: 14)),
-                    pw.Expanded(
-                      child: pw.Text(
-                        widget.generalGuidelines!,
-                        style: const pw.TextStyle(fontSize: 11),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              pw.SizedBox(height: 20),
-            ],
-
-            pw.Text(
-              'Plano Alimentar da Semana',
-              style: pw.TextStyle(
-                fontSize: 18,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-            pw.Divider(),
-            pw.SizedBox(height: 10),
-
-            ...widget.currentWeekPlan.asMap().entries.map((entry) {
-              final index = entry.key;
-              final day = entry.value;
-              final dia = day['dia'] ?? 'Dia ${index + 1}';
-              final refeicao = day['refeicao'] ?? '';
-              final beneficio = day['beneficio'] ?? '';
-
-              // Calculate the actual date for this day
-              final dayDate = nextMonday.add(Duration(days: index));
-              final formattedDate = DateFormat('EEEE, dd/MM/yyyy', 'pt_BR').format(dayDate);
-
-              return pw.Container(
-                margin: const pw.EdgeInsets.only(bottom: 15),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Row(
-                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                      children: [
-                        pw.Text(
-                          dia,
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        pw.Text(
-                          formattedDate,
-                          style: const pw.TextStyle(
-                            fontSize: 10,
-                            color: PdfColors.grey600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    pw.SizedBox(height: 5),
-                    pw.Bullet(text: refeicao, style: const pw.TextStyle(fontSize: 12)),
-                    pw.SizedBox(height: 3),
-                    pw.Text(
-                      '   → $beneficio',
-                      style: const pw.TextStyle(
-                        fontSize: 10,
-                        color: PdfColors.grey700,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-
-            pw.SizedBox(height: 20),
-            pw.Divider(),
-            pw.Text(
-              '⚠️ Lembre-se: Sempre cozinhar sem sal. Consulte um veterinário antes de mudanças alimentares.',
-              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey),
-            ),
-
-            pw.Footer(
-              title: pw.Text(
-                'ScanNut App - Alimentação Natural para Pets',
-                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey),
-              ),
-            ),
-          ];
-        },
-      ),
-    );
-
     try {
-      final pdfBytes = await pdf.save();
-      final output = await getTemporaryDirectory();
-      final file = File('${output.path}/cardapio_${widget.petName}_${DateTime.now().millisecondsSinceEpoch}.pdf');
-      await file.writeAsBytes(pdfBytes);
-
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.grey[900],
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.print, color: Colors.blueAccent),
-                  title: const Text('Imprimir Cardápio', style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Printing.layoutPdf(onLayout: (format) async => pdfBytes);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.share, color: Colors.greenAccent),
-                  title: const Text('Compartilhar PDF', style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Share.shareXFiles(
-                      [XFile(file.path)],
-                      text: 'Cardápio Semanal - ${widget.petName}',
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.open_in_new, color: Colors.amberAccent),
-                  title: const Text('Abrir no Visualizador', style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await OpenFilex.open(file.path);
-                  },
-                ),
-              ],
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PdfPreviewScreen(
+              title: 'Cardápio Semanal: ${widget.petName}',
+              buildPdf: (format) async {
+                final pdf = await ExportService().generateWeeklyMenuReport(
+                  petName: widget.petName,
+                  raceName: widget.raceName,
+                  plan: widget.currentWeekPlan,
+                  guidelines: widget.generalGuidelines,
+                );
+                return pdf.save();
+              },
             ),
           ),
         );
-      }
     } catch (e) {
       debugPrint('Erro ao gerar PDF: $e');
       if (mounted) {

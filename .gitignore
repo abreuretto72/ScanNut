@@ -69,4 +69,6 @@ coverage/
 *.md
 !README.md
 !MAINTENANCE_PROTOCOL.md
+!CHANGELOG.md
+!UI_UX_DOCS.md
 

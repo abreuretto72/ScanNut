@@ -6,9 +6,11 @@ import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/services/whatsapp_service.dart';
 import '../../../core/providers/settings_provider.dart';
-import '../../../core/widgets/pdf_action_button.dart';
 import '../../settings/settings_screen.dart';
 import 'partner_registration_screen.dart';
+import '../../../core/widgets/pdf_action_button.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
+import '../../../core/services/export_service.dart';
 
 class PartnersHubScreen extends ConsumerStatefulWidget {
   final bool isSelectionMode;
@@ -85,8 +87,155 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   }
 
   Future<void> _generatePdf() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Gerar PDF: Funcionalidade em desenvolvimento'), backgroundColor: Colors.redAccent),
+    String selectedReportCategory = 'Todos';
+    String selectedReportType = 'Resumo';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Exportar PDF: Hub de Apoio',
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Tipo de Parceiro', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedReportCategory,
+                        isExpanded: true,
+                        dropdownColor: Colors.grey[850],
+                        style: const TextStyle(color: Colors.white),
+                        items: _filterCategories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                        onChanged: (val) => setDialogState(() => selectedReportCategory = val!),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Nível de Detalhamento', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _buildTypeOption(
+                        'Resumo', 
+                        selectedReportType == 'Resumo', 
+                        () => setDialogState(() => selectedReportType = 'Resumo')
+                      ),
+                      const SizedBox(width: 12),
+                      _buildTypeOption(
+                        'Detalhamento', 
+                        selectedReportType == 'Detalhamento', 
+                        () => setDialogState(() => selectedReportType = 'Detalhamento')
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'O relatório incluirá os parceiros cadastrados no seu Hub de Apoio conforme os filtros selecionados.',
+                    style: TextStyle(color: Colors.white38, fontSize: 11),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _executePdfGeneration(selectedReportCategory, selectedReportType);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00E676),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 4,
+                      ),
+                      child: const Text('GERAR RELATÓRIO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.1)),
+                    ),
+                  ),
+                  const SizedBox(height: 20), // Anti-overflow Rule of Gold
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('VOLTAR', style: TextStyle(color: Colors.white24, fontSize: 12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeOption(String label, bool isSelected, VoidCallback onTap) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF00E676).withOpacity(0.2) : Colors.white.withOpacity(0.05),
+            border: Border.all(color: isSelected ? const Color(0xFF00E676) : Colors.white10),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: isSelected ? const Color(0xFF00E676) : Colors.white38,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _executePdfGeneration(String category, String type) async {
+    final reportPartners = category == 'Todos' 
+        ? _registeredPartners 
+        : _registeredPartners.where((p) => p.category == category).toList();
+
+    if (reportPartners.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nenhum parceiro encontrado para os filtros selecionados.'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PdfPreviewScreen(
+          title: 'Relatório Hub de Apoio',
+          buildPdf: (format) async {
+            final pdf = await ExportService().generatePartnersHubReport(
+              partners: reportPartners,
+              reportType: type,
+            );
+            return pdf.save();
+          },
+        ),
+      ),
     );
   }
 
@@ -384,7 +533,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                  MaterialPageRoute(builder: (context) => SettingsScreen()),
                 ).then((_) => _startDiscovery()); // Re-search if settings changed
               },
               borderRadius: BorderRadius.circular(12),

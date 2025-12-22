@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/models/partner_model.dart';
-import '../../../core/services/partner_service.dart';
-import '../../pet/services/pet_profile_service.dart';
+import '../../pet/services/pet_event_service.dart';
+import '../../pet/models/pet_event.dart';
 import '../models/agenda_event.dart';
-import 'partner_agenda_screen.dart';
+import '../../pet/services/pet_profile_service.dart';
+import '../../pet/presentation/widgets/edit_pet_form.dart';
+import '../../pet/models/pet_profile_extended.dart';
+import '../../../core/services/partner_service.dart';
+import 'partner_event_detail_screen.dart';
+import '../../../core/widgets/pdf_action_button.dart';
+import '../../../core/services/export_service.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
 
-/// Agenda Global - Visão consolidada de todos os pets e parceiros
+/// Agenda Global - Visão consolidada REATIVA de todos os eventos (PetEventService)
 class GlobalAgendaScreen extends StatefulWidget {
   const GlobalAgendaScreen({Key? key}) : super(key: key);
 
@@ -19,53 +27,84 @@ class GlobalAgendaScreen extends StatefulWidget {
 class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  List<AgendaEvent> _allEvents = [];
-  bool _isLoading = true;
+  bool _isServiceReady = false;
+  bool _showAllEvents = false; // Toggle para ver lista completa vs dia selecionado
+  String? _selectedPetName; // Novo filtro de Pet
 
   @override
   void initState() {
     super.initState();
-    _loadAllEvents();
+    _initService();
   }
 
-  Future<void> _loadAllEvents() async {
-    setState(() => _isLoading = true);
-    
-    try {
-      final petService = PetProfileService();
-      await petService.init();
-      
-      final petNames = await petService.getAllPetNames();
-      final List<AgendaEvent> events = [];
-      
-      // Carregar eventos de todos os pets
-      for (final petName in petNames) {
-        final profileData = await petService.getProfile(petName);
-        if (profileData != null) {
-          final agendaEvents = profileData['data']?['agendaEvents'] as List? ?? [];
-          for (final eventData in agendaEvents) {
-            try {
-              final event = AgendaEvent.fromJson(Map<String, dynamic>.from(eventData as Map));
-              events.add(event);
-            } catch (e) {
-              debugPrint('Error parsing event: $e');
-            }
-          }
-        }
-      }
-      
-      setState(() {
-        _allEvents = events;
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('Error loading events: $e');
-      setState(() => _isLoading = false);
+  Future<void> _initService() async {
+    await PetEventService().init();
+    await _syncLegacyEvents(); // AUTO-MIGRATE LEGACY DATA
+    if (mounted) {
+      setState(() => _isServiceReady = true);
     }
   }
 
-  List<AgendaEvent> _getEventsForDay(DateTime day) {
-    return _allEvents.where((event) {
+  Future<void> _syncLegacyEvents() async {
+    try {
+        final profileService = PetProfileService();
+        await profileService.init();
+        final petNames = await profileService.getAllPetNames();
+        final eventService = PetEventService();
+        
+        int count = 0;
+        for (var petName in petNames) {
+            final profile = await profileService.getProfile(petName);
+            final agendaEvents = profile?['data']?['agendaEvents'] as List? ?? [];
+            
+            for (var evMap in agendaEvents) {
+                final id = evMap['id'].toString();
+                if (!eventService.box.containsKey(id)) {
+                     final agEvent = AgendaEvent.fromJson(Map<String, dynamic>.from(evMap));
+                     
+                     EventType pType = EventType.other;
+                     if (agEvent.category == EventCategory.vacina) pType = EventType.vaccine;
+                     else if (agEvent.category == EventCategory.banho) pType = EventType.bath;
+                     else if (agEvent.category == EventCategory.tosa) pType = EventType.grooming;
+                     else if (agEvent.category == EventCategory.consulta || agEvent.category == EventCategory.saude || agEvent.category == EventCategory.emergencia) pType = EventType.veterinary;
+                     else if (agEvent.category == EventCategory.remedios) pType = EventType.medication;
+                     
+                     final pEvent = PetEvent(
+                        id: agEvent.id,
+                        petName: petName,
+                        title: agEvent.title,
+                        type: pType,
+                        dateTime: agEvent.dateTime,
+                        notes: agEvent.description,
+                        createdAt: agEvent.createdAt,
+                        attendant: agEvent.attendant,
+                        partnerId: agEvent.partnerId,
+                     );
+                     
+                     await eventService.addEvent(pEvent);
+                     count++;
+                }
+            }
+        }
+        if (count > 0) debugPrint('✅ MIGRATION: $count eventos legados importados para PetEventService (Hive).');
+    } catch (e) {
+        debugPrint('⚠️ Migration Warning: $e');
+    }
+  }
+
+  Color _getCategoryColor(EventType type) {
+    switch (type) {
+      case EventType.vaccine: return Colors.blueAccent;
+      case EventType.bath: return Colors.cyanAccent;
+      case EventType.grooming: return Colors.purpleAccent;
+      case EventType.veterinary: return Colors.redAccent;
+      case EventType.medication: return Colors.orangeAccent;
+      case EventType.other: return Colors.grey;
+    }
+  }
+
+  List<PetEvent> _getEventsForDay(List<PetEvent> allEvents, DateTime day) {
+    return allEvents.where((event) {
       return event.dateTime.year == day.year &&
           event.dateTime.month == day.month &&
           event.dateTime.day == day.day;
@@ -75,8 +114,6 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eventsForSelectedDay = _getEventsForDay(_selectedDay);
-    
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
@@ -86,178 +123,543 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loadAllEvents,
-          ),
+            IconButton(
+                icon: Icon(_showAllEvents ? Icons.calendar_today : Icons.list, color: const Color(0xFF00E676)),
+                onPressed: () {
+                    setState(() {
+                        _showAllEvents = !_showAllEvents;
+                        if (!_showAllEvents) {
+                            _selectedDay = DateTime.now(); // Reset to today when going back to calendar
+                        }
+                    });
+                },
+                tooltip: _showAllEvents ? 'Ver Calendário' : 'Ver Todos os Eventos',
+            ),
+            PdfActionButton(onPressed: _showExportOptions),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
-          : Column(
-              children: [
-                // Calendário
+      body: ValueListenableBuilder<Box<PetEvent>>(
+        valueListenable: PetEventService().box.listenable(),
+        builder: (context, box, _) {
+          final allEvents = box.values.toList();
+          allEvents.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+          
+          final dayEvents = _showAllEvents 
+              ? allEvents 
+              : _getEventsForDay(allEvents, _selectedDay);
+          
+          final visibleEvents = _selectedPetName == null 
+              ? dayEvents 
+              : dayEvents.where((e) => e.petName == _selectedPetName).toList();
+
+          return Column(
+            children: [
+              if (!_showAllEvents)
                 TableCalendar(
                   firstDay: DateTime.now().subtract(const Duration(days: 365)),
                   lastDay: DateTime.now().add(const Duration(days: 365)),
                   focusedDay: _focusedDay,
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  calendarFormat: CalendarFormat.week,
+                  availableCalendarFormats: const {CalendarFormat.week: 'Semana', CalendarFormat.month: 'Mês'},
+                  eventLoader: (day) => _getEventsForDay(allEvents, day),
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  calendarStyle: const CalendarStyle(
+                    outsideDaysVisible: false,
+                    defaultTextStyle: TextStyle(color: Colors.white),
+                    weekendTextStyle: TextStyle(color: Colors.white70),
+                    selectedDecoration: BoxDecoration(
+                      color: Color(0xFF00E676),
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: Colors.white24,
+                      shape: BoxShape.circle,
+                    ),
+                    markerDecoration: BoxDecoration(
+                      color: Colors.orange,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  headerStyle: HeaderStyle(
+                    titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+                    formatButtonTextStyle: const TextStyle(color: Color(0xFF00E676)),
+                    formatButtonDecoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF00E676)),
+                        borderRadius: BorderRadius.circular(12),
+                    ),
+                    leftChevronIcon: const Icon(Icons.chevron_left, color: Colors.white),
+                    rightChevronIcon: const Icon(Icons.chevron_right, color: Colors.white),
+                  ),
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
                       _selectedDay = selectedDay;
                       _focusedDay = focusedDay;
                     });
                   },
-                  calendarStyle: CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                      color: const Color(0xFF00E676).withOpacity(0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedDecoration: const BoxDecoration(
-                      color: Color(0xFF00E676),
-                      shape: BoxShape.circle,
-                    ),
-                    defaultTextStyle: const TextStyle(color: Colors.white),
-                    weekendTextStyle: const TextStyle(color: Colors.white70),
-                  ),
-                  headerStyle: HeaderStyle(
-                    titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
-                    formatButtonVisible: false,
-                    leftChevronIcon: const Icon(Icons.chevron_left, color: Colors.white),
-                    rightChevronIcon: const Icon(Icons.chevron_right, color: Colors.white),
-                  ),
-                  daysOfWeekStyle: const DaysOfWeekStyle(
-                    weekdayStyle: TextStyle(color: Colors.white70),
-                    weekendStyle: TextStyle(color: Colors.white70),
-                  ),
                 ),
                 
-                const Divider(color: Colors.white10),
+              _buildPetFilter(),
                 
-                // Timeline de eventos
-                Expanded(
-                  child: eventsForSelectedDay.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.event_busy, size: 64, color: Colors.white30),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Nenhum evento para este dia',
-                                style: GoogleFonts.poppins(color: Colors.white30, fontSize: 16),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Acesse o perfil de um pet para adicionar',
-                                style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.2), fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: eventsForSelectedDay.length,
-                          itemBuilder: (context, index) {
-                            final event = eventsForSelectedDay[index];
-                            return _buildEventCard(event);
-                          },
+              const Divider(color: Colors.white12),
+              
+              Expanded(
+                child: visibleEvents.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.event_busy, size: 64, color: Colors.white24),
+                            const SizedBox(height: 16),
+                            Text(
+                              _showAllEvents ? 'Nenhum evento registrado.' : 'Nenhum evento para este dia.',
+                              style: const TextStyle(color: Colors.white54),
+                            ),
+                          ],
                         ),
-                ),
-              ],
-            ),
+                      )
+                    : ListView.builder(
+                        itemCount: visibleEvents.length,
+                        itemBuilder: (context, index) {
+                          return _buildEventCard(visibleEvents[index]);
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildEventCard(AgendaEvent event) {
+  Widget _buildPetFilter() {
+      return FutureBuilder<List<String>>(
+          future: PetProfileService().getAllPetNames(),
+          builder: (context, snapshot) {
+              final pets = snapshot.data ?? [];
+              if (pets.isEmpty) return const SizedBox.shrink();
+              
+              return Container(
+                  height: 40,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: pets.length + 1,
+                      itemBuilder: (context, index) {
+                          final isAll = index == 0;
+                          final petName = isAll ? null : pets[index - 1];
+                          final isSelected = _selectedPetName == petName;
+                          
+                          return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                  label: Text(isAll ? 'Todos os Pets' : petName!, style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Colors.white70)),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                      setState(() {
+                                          _selectedPetName = selected ? petName : null;
+                                      });
+                                  },
+                                  selectedColor: const Color(0xFF00E676),
+                                  backgroundColor: Colors.white.withOpacity(0.05),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  showCheckmark: false,
+                              ),
+                          );
+                      },
+                  ),
+              );
+          },
+      );
+  }
+
+  Widget _buildEventCard(PetEvent event) {
+    final color = _getCategoryColor(event.type);
+    
     return Card(
+      clipBehavior: Clip.antiAlias,
       color: Colors.white.withOpacity(0.08),
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: event.category.color.withOpacity(0.3)),
+        side: BorderSide(color: color.withOpacity(0.5), width: 1), // Dynamic color border
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(event.category.icon, color: event.category.color, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    event.title,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF00E676).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    event.petId ?? 'Pet',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF00E676),
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.access_time, color: Colors.white54, size: 14),
-                const SizedBox(width: 4),
-                Text(
-                  DateFormat('HH:mm').format(event.dateTime),
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-                if (event.attendant != null) ...[
-                  const SizedBox(width: 16),
-                  Icon(Icons.person, color: Colors.white54, size: 14),
-                  const SizedBox(width: 4),
-                  Text(
-                    event.attendant!,
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                ],
-              ],
-            ),
-            if (event.description.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                event.description,
-                style: const TextStyle(color: Colors.white60, fontSize: 12),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            if (event.attachments.isNotEmpty) ...[
-              const SizedBox(height: 8),
+      child: InkWell(
+        onTap: () => _handleCardTap(event),
+        splashColor: color.withOpacity(0.2),
+        highlightColor: color.withOpacity(0.1),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
-                  Icon(Icons.attach_file, color: Colors.white30, size: 14),
-                  const SizedBox(width: 4),
                   Text(
-                    '${event.attachments.length} anexo(s)',
-                    style: const TextStyle(color: Colors.white30, fontSize: 11),
+                    event.typeEmoji, 
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          event.title,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                           DateFormat('dd/MM HH:mm').format(event.dateTime),
+                           style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _handlePetNameTap(event),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: color.withOpacity(0.6)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                           Icon(Icons.pets, size: 12, color: color),
+                           const SizedBox(width: 4),
+                           Text(
+                            event.petName,
+                            style: GoogleFonts.poppins(
+                              color: color,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
+              if (event.notes != null && event.notes!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: Colors.black26,
+                        borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      event.notes!,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13, fontStyle: FontStyle.italic),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _handlePetNameTap(PetEvent event) async {
+     final petService = PetProfileService();
+     await petService.init();
+     final profileData = await petService.getProfile(event.petName); 
+     
+     if (profileData != null && mounted) {
+        debugPrint('Navegando para o Pet: ${event.petName} | Foto: ${profileData['photo_path']} | Vínculos: ${profileData['data']?['linked_partner_ids']}');
+        
+        Navigator.push(context, MaterialPageRoute(builder: (_) => EditPetForm(
+             petData: profileData,
+             onSave: (updated) async {
+                  await petService.saveOrUpdateProfile(event.petName, updated.toJson());
+                  if (mounted) Navigator.pop(context);
+             },
+             onCancel: () => Navigator.pop(context),
+        )));
+     } else {
+         ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Perfil de ${event.petName} não encontrado.'), 
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.redAccent,
+            ),
+         );
+     }
+  }
+
+  Future<void> _handleCardTap(PetEvent event) async {
+      final profileService = PetProfileService();
+      final profile = await profileService.getProfile(event.petName);
+      
+      String? partnerId;
+      
+      if (profile != null) {
+          final data = Map<String, dynamic>.from(profile['data'] as Map);
+          final linkedPartners = data['linked_partner_ids'] as List?;
+          
+          if (linkedPartners != null && linkedPartners.isNotEmpty) {
+               partnerId = linkedPartners.first.toString();
+          }
+      }
+      
+      if (partnerId != null) {
+          Navigator.push(
+            context, 
+            MaterialPageRoute(
+                builder: (context) => PartnerEventDetailScreen(partnerId: partnerId!, event: event)
+            )
+          );
+      } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Este evento não tem parceiro vinculado para exibir detalhes.'), 
+                  backgroundColor: Colors.orange,
+                  behavior: SnackBarBehavior.floating,
+              ),
+          );
+      }
+  }
+
+  Future<void> _showExportOptions() async {
+    DateTime start = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    DateTime end = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
+    String? petFilter;
+    EventType? categoryFilter;
+    String reportType = 'Detalhamento';
+    
+    final petNames = await PetProfileService().getAllPetNames();
+
+    if (!mounted) return;
+
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                left: 24, right: 24, top: 24
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Exportar Relatório PDF', 
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context), 
+                        icon: const Icon(Icons.close, color: Colors.white54, size: 20)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Date Range - Selection via Pencil icon only
+                  const Text('Período de Apuração', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${DateFormat('dd/MM/yyyy').format(start)} - ${DateFormat('dd/MM/yyyy').format(end)}',
+                          style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.w500),
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.edit, color: Color(0xFF00E676), size: 18),
+                          onPressed: () async {
+                            final range = await showDateRangePicker(
+                              context: context,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2030),
+                              initialDateRange: DateTimeRange(start: start, end: end),
+                              builder: (context, child) => Theme(
+                                data: ThemeData.dark().copyWith(
+                                  colorScheme: const ColorScheme.dark(
+                                    primary: Color(0xFF00E676),
+                                    onPrimary: Colors.black,
+                                    surface: Color(0xFF1A1A1A),
+                                    onSurface: Colors.white,
+                                  ),
+                                ),
+                                child: child!,
+                              ),
+                            );
+                            if (range != null) {
+                              setSheetState(() {
+                                start = range.start;
+                                end = range.end;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Pet Filter
+                  const Text('Filtrar por Pet', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String?>(
+                        dropdownColor: Colors.grey[850],
+                        value: petFilter,
+                        isExpanded: true,
+                        items: [
+                           const DropdownMenuItem(value: null, child: Text('Todos os Pets', style: TextStyle(color: Colors.white))),
+                           ...petNames.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(color: Colors.white)))),
+                        ],
+                        onChanged: (val) => setSheetState(() => petFilter = val),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+  
+                  // Category Filter
+                  const Text('Filtrar por Categoria', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<EventType?>(
+                        dropdownColor: Colors.grey[850],
+                        value: categoryFilter,
+                        isExpanded: true,
+                        items: [
+                           const DropdownMenuItem(value: null, child: Text('Todas as Categorias', style: TextStyle(color: Colors.white))),
+                           ...EventType.values.map((type) => DropdownMenuItem(
+                             value: type, 
+                             child: Text(PetEvent(id: '', petName: '', title: '', type: type, dateTime: DateTime.now()).typeLabel, style: const TextStyle(color: Colors.white))
+                           )),
+                        ],
+                        onChanged: (val) => setSheetState(() => categoryFilter = val),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 20),
+                
+                // Report Type
+                const Text('Nível de Detalhamento', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white12),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      dropdownColor: Colors.grey[850],
+                      value: reportType,
+                      isExpanded: true,
+                      items: [
+                         const DropdownMenuItem(value: 'Detalhamento', child: Text('Detalhado (Com Tabela)', style: TextStyle(color: Colors.white))),
+                         const DropdownMenuItem(value: 'Resumo', child: Text('Resumo (Apenas Indicadores)', style: TextStyle(color: Colors.white))),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setSheetState(() => reportType = val);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00E676),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('GERAR RELATÓRIO', 
+                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (result == true) {
+      final events = PetEventService().box.values.where((e) {
+          final inRange = (e.dateTime.isAfter(start) || isSameDay(e.dateTime, start)) && 
+                          (e.dateTime.isBefore(end) || isSameDay(e.dateTime, end));
+          final matchesPet = petFilter == null || e.petName == petFilter;
+          final matchesCategory = categoryFilter == null || e.type == categoryFilter;
+          return inRange && matchesPet && matchesCategory;
+      }).toList();
+
+      events.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfPreviewScreen(
+            title: 'Relatório de Agenda Pet',
+            buildPdf: (format) async {
+              final pdf = await ExportService().generateAgendaReport(
+                events: events,
+                start: start,
+                end: end,
+                petFilter: petFilter,
+                categoryFilter: categoryFilter?.name,
+                reportType: reportType,
+              );
+              return pdf.save();
+            },
+          ),
+        ),
+      );
+    }
   }
 }

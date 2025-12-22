@@ -10,33 +10,54 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PartnerService {
+  static final PartnerService _instance = PartnerService._internal();
+  factory PartnerService() => _instance;
+  PartnerService._internal();
+
   static const String _boxName = 'partners_box';
+  Box? _box;
 
   Future<void> init() async {
-    if (!Hive.isBoxOpen(_boxName)) {
-      await Hive.openBox(_boxName);
-      // Removed _seedDataIfNeeded() to operate with real data/user entries only
+    if (_box != null && _box!.isOpen) return;
+    try {
+      if (!Hive.isBoxOpen(_boxName)) {
+        _box = await Hive.openBox(_boxName);
+      } else {
+        _box = Hive.box(_boxName);
+      }
+      debugPrint('✅ PartnerService initialized (Singleton). Box Open: ${_box?.isOpen}');
+    } catch (e, stack) {
+      debugPrint('❌ CRITICAL: Failed to open Partner Box: $e\n$stack');
     }
   }
 
+  Box get _getBox {
+    if (_box == null || !_box!.isOpen) {
+      // Emergency attempt to get the box if supposedly opened elsewhere
+      if (Hive.isBoxOpen(_boxName)) {
+        _box = Hive.box(_boxName);
+        return _box!;
+      }
+      throw Exception('PartnerService not initialized. Call init() first.');
+    }
+    return _box!;
+  }
+
   Future<void> clearAllPartners() async {
-    final box = Hive.box(_boxName);
-    await box.clear();
+    await _getBox.clear();
   }
 
   List<PartnerModel> getAllPartners() {
-    final box = Hive.box(_boxName);
-    return box.values.map((e) => PartnerModel.fromJson(Map<String, dynamic>.from(e))).toList();
+    return _getBox.values.map((e) => PartnerModel.fromJson(Map<String, dynamic>.from(e))).toList();
   }
 
   Future<void> savePartner(PartnerModel partner) async {
-    final box = Hive.box(_boxName);
-    await box.put(partner.id, partner.toJson());
+    await _getBox.put(partner.id, partner.toJson());
+    await _getBox.flush();
   }
 
   PartnerModel? getPartner(String id) {
-    final box = Hive.box(_boxName);
-    final data = box.get(id);
+    final data = _getBox.get(id);
     if (data != null) {
       return PartnerModel.fromJson(Map<String, dynamic>.from(data));
     }

@@ -56,6 +56,9 @@ class PartnerModel {
   @HiveField(17)
   final List<String> teamMembers; // Lista de nomes de atendentes/veterinários
 
+  @HiveField(18)
+  final String? website;
+
   PartnerModel({
     required this.id,
     required this.name,
@@ -75,6 +78,7 @@ class PartnerModel {
     this.metadata = const {},
     this.isFavorite = false,
     this.teamMembers = const [],
+    this.website,
   });
 
   factory PartnerModel.fromJson(Map<String, dynamic> json) {
@@ -103,6 +107,7 @@ class PartnerModel {
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
       isFavorite: json['is_favorite'] ?? false,
       teamMembers: List<String>.from(json['team_members'] ?? []),
+      website: json['website'],
     );
   }
 
@@ -128,6 +133,7 @@ class PartnerModel {
       'metadata': metadata,
       'is_favorite': isFavorite,
       'team_members': teamMembers,
+      'website': website,
     };
   }
 }

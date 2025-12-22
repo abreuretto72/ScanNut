@@ -56,7 +56,7 @@ class PetProfileExtended {
 
   factory PetProfileExtended.fromJson(Map<String, dynamic> json) {
     return PetProfileExtended(
-      petName: json['pet_name'] as String,
+      petName: (json['pet_name'] ?? json['name'] ?? '').toString(),
       raca: json['raca'] as String?,
       idadeExata: json['idade_exata'] as String?,
       pesoAtual: (json['peso_atual'] as num?)?.toDouble(),
@@ -81,11 +81,29 @@ class PetProfileExtended {
       lastUpdated: json['last_updated'] != null
           ? DateTime.parse(json['last_updated'] as String)
           : DateTime.now(),
-      imagePath: json['image_path'] as String?,
+      imagePath: (json['image_path'] ?? json['photo_path']) as String?,
       rawAnalysis: json['raw_analysis'] != null 
           ? Map<String, dynamic>.from(json['raw_analysis'] as Map) 
           : null,
     );
+  }
+
+  factory PetProfileExtended.fromHiveEntry(Map<String, dynamic> entry) {
+    final rawData = entry['data'] != null 
+        ? Map<String, dynamic>.from(entry['data'] as Map) 
+        : Map<String, dynamic>.from(entry);
+    
+    // Ensure petName consistency
+    if (rawData['pet_name'] == null && entry['pet_name'] != null) {
+      rawData['pet_name'] = entry['pet_name'];
+    }
+    
+    // Map photo_path from wrapper to image_path if missing
+    if (rawData['image_path'] == null && entry['photo_path'] != null) {
+      rawData['image_path'] = entry['photo_path'];
+    }
+    
+    return PetProfileExtended.fromJson(rawData);
   }
 
   factory PetProfileExtended.fromAnalysisResult(PetAnalysisResult result, String imagePath) {

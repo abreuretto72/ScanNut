@@ -6,6 +6,73 @@ part of 'pet_event.dart';
 // TypeAdapterGenerator
 // **************************************************************************
 
+class PetEventAdapter extends TypeAdapter<PetEvent> {
+  @override
+  final int typeId = 6;
+
+  @override
+  PetEvent read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return PetEvent(
+      id: fields[0] as String,
+      petName: fields[1] as String,
+      title: fields[2] as String,
+      type: fields[3] as EventType,
+      dateTime: fields[4] as DateTime,
+      recurrence: fields[5] as RecurrenceType,
+      notificationMinutes: fields[6] as int,
+      notes: fields[7] as String?,
+      completed: fields[8] as bool,
+      createdAt: fields[9] as DateTime?,
+      attendant: fields[10] as String?,
+      partnerId: fields[11] as String?,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, PetEvent obj) {
+    writer
+      ..writeByte(12)
+      ..writeByte(0)
+      ..write(obj.id)
+      ..writeByte(1)
+      ..write(obj.petName)
+      ..writeByte(2)
+      ..write(obj.title)
+      ..writeByte(3)
+      ..write(obj.type)
+      ..writeByte(4)
+      ..write(obj.dateTime)
+      ..writeByte(5)
+      ..write(obj.recurrence)
+      ..writeByte(6)
+      ..write(obj.notificationMinutes)
+      ..writeByte(7)
+      ..write(obj.notes)
+      ..writeByte(8)
+      ..write(obj.completed)
+      ..writeByte(9)
+      ..write(obj.createdAt)
+      ..writeByte(10)
+      ..write(obj.attendant)
+      ..writeByte(11)
+      ..write(obj.partnerId);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PetEventAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
 class EventTypeAdapter extends TypeAdapter<EventType> {
   @override
   final int typeId = 4;
@@ -26,7 +93,7 @@ class EventTypeAdapter extends TypeAdapter<EventType> {
       case 5:
         return EventType.other;
       default:
-        return EventType.other;
+        return EventType.vaccine;
     }
   }
 
@@ -115,67 +182,6 @@ class RecurrenceTypeAdapter extends TypeAdapter<RecurrenceType> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is RecurrenceTypeAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
-class PetEventAdapter extends TypeAdapter<PetEvent> {
-  @override
-  final int typeId = 6;
-
-  @override
-  PetEvent read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return PetEvent(
-      id: fields[0] as String,
-      petName: fields[1] as String,
-      title: fields[2] as String,
-      type: fields[3] as EventType,
-      dateTime: fields[4] as DateTime,
-      recurrence: fields[5] as RecurrenceType,
-      notificationMinutes: fields[6] as int,
-      notes: fields[7] as String?,
-      completed: fields[8] as bool,
-      createdAt: fields[9] as DateTime,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, PetEvent obj) {
-    writer
-      ..writeByte(10)
-      ..writeByte(0)
-      ..write(obj.id)
-      ..writeByte(1)
-      ..write(obj.petName)
-      ..writeByte(2)
-      ..write(obj.title)
-      ..writeByte(3)
-      ..write(obj.type)
-      ..writeByte(4)
-      ..write(obj.dateTime)
-      ..writeByte(5)
-      ..write(obj.recurrence)
-      ..writeByte(6)
-      ..write(obj.notificationMinutes)
-      ..writeByte(7)
-      ..write(obj.notes)
-      ..writeByte(8)
-      ..write(obj.completed)
-      ..writeByte(9)
-      ..write(obj.createdAt);
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PetEventAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

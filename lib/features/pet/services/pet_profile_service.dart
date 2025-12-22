@@ -1,5 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'pet_event_service.dart';
 
 /// Service for managing pet profiles (Raça & ID data)
 class PetProfileService {
@@ -45,6 +46,7 @@ class PetProfileService {
       await _profileBox!.put(key, {
         'pet_name': petName.trim(), // Keep original display name
         'last_updated': DateTime.now().toIso8601String(),
+        'photo_path': profileData['image_path'], // New top-level key for auditing
         'data': profileData,
       });
       await _profileBox!.flush(); // Force write to disk
@@ -95,7 +97,11 @@ class PetProfileService {
       final key = _normalizeKey(petName);
       await _profileBox?.delete(key);
       await _profileBox?.flush();
-      debugPrint('✅ Profile deleted for key: "$key"');
+      
+      // Cleanup associated events
+      await PetEventService().deleteAllEventsForPet(petName);
+      
+      debugPrint('✅ Profile deleted for key: "$key" and events purged.');
     } catch (e) {
       debugPrint('❌ Error deleting profile: $e');
     }

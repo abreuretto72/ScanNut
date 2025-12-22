@@ -10,6 +10,9 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import '../../../core/models/partner_model.dart';
 import '../models/agenda_event.dart';
+import '../../pet/services/pet_event_service.dart';
+import '../../pet/models/pet_event.dart';
+import './widgets/add_event_modal.dart';
 
 class PartnerAgendaScreen extends StatefulWidget {
   final PartnerModel partner;
@@ -85,7 +88,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
             color: Colors.grey[900],
             borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
           ),
-          child: _AddEventModal(
+          child: AddEventModal(
             selectedDate: _selectedDay ?? DateTime.now(),
             scrollController: scrollController,
             partner: widget.partner,
@@ -94,6 +97,48 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
               // Convert AgendaEvent to old format for compatibility
               final eventMap = event.toJson();
               _addEvent(eventMap);
+              Navigator.pop(context);
+            },
+            speech: _speech,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditEventModal(Map<String, dynamic> eventMap) {
+    final event = AgendaEvent.fromJson(eventMap);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+          ),
+          child: AddEventModal(
+            selectedDate: event.dateTime,
+            scrollController: scrollController,
+            partner: widget.partner,
+            petId: widget.petId,
+            existingEvent: event,
+            onSave: (AgendaEvent updatedEvent) {
+              setState(() {
+                final index = _events.indexWhere((e) => e['id'] == event.id);
+                if (index != -1) {
+                  _events[index] = updatedEvent.toJson();
+                } else {
+                  _events.add(updatedEvent.toJson());
+                }
+              });
+              widget.onSave(_events);
               Navigator.pop(context);
             },
             speech: _speech,
@@ -268,572 +313,50 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
             child: Padding(
               padding: const EdgeInsets.only(bottom: 24),
               child: Container(
-                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.white.withOpacity(0.05)),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: InkWell(
+                  onTap: () => _showEditEventModal(event),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          DateFormat('HH:mm').format(date),
-                          style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        // Badge if needed
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      event['title'],
-                      style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
-                    ),
-                    if (event['content'] != null && event['content'].toString().isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        event['content'],
-                        style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
-                      ),
-                    ]
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// --------------------------------------------------------
-// MODAL DE ENTRADA MULTIMODAL
-// --------------------------------------------------------
-class _AddEventModal extends StatefulWidget {
-  final DateTime selectedDate;
-  final ScrollController scrollController;
-  final PartnerModel partner;
-  final String? petId;
-  final Function(AgendaEvent event) onSave;
-  final stt.SpeechToText speech;
-
-  const _AddEventModal({
-    required this.selectedDate,
-    required this.scrollController,
-    required this.partner,
-    this.petId,
-    required this.onSave,
-    required this.speech,
-  });
-
-  @override
-  State<_AddEventModal> createState() => _AddEventModalState();
-}
-
-class _AddEventModalState extends State<_AddEventModal> {
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
-  late TimeOfDay _time;
-  bool _isListening = false;
-  
-  // Novos campos multimodais
-  EventCategory _selectedCategory = EventCategory.consulta;
-  String? _selectedAttendant;
-  List<String> _attachments = [];
-  final ImagePicker _imagePicker = ImagePicker();
-
-  @override
-  void initState() {
-    super.initState();
-    _time = TimeOfDay.now();
-  }
-  
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _contentController.dispose();
-    super.dispose();
-  }
-  
-  Future<void> _pickAttachment() async {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.grey[900],
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFF00E676)),
-              title: const Text('Câmera', style: TextStyle(color: Colors.white)),
-              onTap: () async {
-                Navigator.pop(context);
-                final photo = await _imagePicker.pickImage(source: ImageSource.camera);
-                if (photo != null) {
-                  setState(() => _attachments.add(photo.path));
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFF00E676)),
-              title: const Text('Galeria', style: TextStyle(color: Colors.white)),
-              onTap: () async {
-                Navigator.pop(context);
-                final photo = await _imagePicker.pickImage(source: ImageSource.gallery);
-                if (photo != null) {
-                  setState(() => _attachments.add(photo.path));
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.attach_file, color: Color(0xFF00E676)),
-              title: const Text('Arquivo PDF', style: TextStyle(color: Colors.white)),
-              onTap: () async {
-                Navigator.pop(context);
-                final result = await FilePicker.platform.pickFiles(
-                  type: FileType.custom,
-                  allowedExtensions: ['pdf'],
-                );
-                if (result != null && result.files.single.path != null) {
-                  setState(() => _attachments.add(result.files.single.path!));
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _listen() async {
-    if (!_isListening) {
-      bool available = await widget.speech.initialize(
-        onStatus: (status) => debugPrint('onStatus: $status'),
-        onError: (errorNotification) => debugPrint('onError: $errorNotification'),
-      );
-      if (available) {
-        setState(() => _isListening = true);
-        widget.speech.listen(
-          onResult: (val) {
-            setState(() {
-              _contentController.text = val.recognizedWords;
-            });
-          },
-          localeId: 'pt_BR', 
-        );
-      } else {
-        debugPrint("Speech not available");
-        // Fallback or permission request
-        await Permission.microphone.request();
-      }
-    } else {
-      setState(() => _isListening = false);
-      widget.speech.stop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-      child: ListView(
-        controller: widget.scrollController,
-        children: [
-          Text(
-            'Novo Evento • ${DateFormat('d/MM').format(widget.selectedDate)}',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-
-          // Hora
-          InkWell(
-            onTap: () async {
-              final t = await showTimePicker(
-                context: context,
-                initialTime: _time,
-                builder: (ctx, child) => Theme(
-                  data: Theme.of(ctx).copyWith(
-                    timePickerTheme: const TimePickerThemeData(
-                      backgroundColor: Color(0xFF1E1E1E),
-                      hourMinuteTextColor: Colors.white,
-                      dialBackgroundColor: Colors.black,
-                      dialHandColor: Color(0xFF00E676),
-                    ),
-                    colorScheme: const ColorScheme.dark(
-                      primary: Color(0xFF00E676),
-                      onSurface: Colors.white,
-                    ),
-                  ),
-                  child: child!,
-                ),
-              );
-              if (t != null) setState(() => _time = t);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time, color: Color(0xFF00E676)),
-                  const SizedBox(width: 12),
-                  Text(
-                    _time.format(context),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Text(
-                    'Alterar',
-                    style: TextStyle(color: Colors.white24, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Categoria
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<EventCategory>(
-                value: _selectedCategory,
-                isExpanded: true,
-                dropdownColor: Colors.grey[850],
-                icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00E676)),
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                items: EventCategory.values.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Row(
-                      children: [
-                        Icon(category.icon, color: category.color, size: 18),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            category.label,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: category == EventCategory.ocorrencias 
-                                  ? FontWeight.bold 
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: (EventCategory? newValue) {
-                  if (newValue != null) {
-                    setState(() => _selectedCategory = newValue);
-                  }
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Atendente (se houver equipe cadastrada)
-          if (widget.partner.teamMembers.isNotEmpty) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedAttendant,
-                  isExpanded: true,
-                  dropdownColor: Colors.grey[850],
-                  icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00E676)),
-                  hint: Row(
-                    children: [
-                      const Icon(Icons.person, color: Colors.white54, size: 18),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Selecione o atendente',
-                        style: GoogleFonts.poppins(color: Colors.white30, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  items: widget.partner.teamMembers.map((name) {
-                    return DropdownMenuItem(
-                      value: name,
-                      child: Row(
-                        children: [
-                          const Icon(Icons.person, color: Color(0xFF00E676), size: 18),
-                          const SizedBox(width: 12),
-                          Text(name),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() => _selectedAttendant = newValue);
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Titulo
-          TextField(
-            controller: _titleController,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Título (ex: Vacina, Banho)',
-              hintStyle: const TextStyle(color: Colors.white30),
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.05),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.all(16),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Voice & Text Area
-          Stack(
-            children: [
-              TextField(
-                controller: _contentController,
-                maxLines: 3,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Descrição ou notas...',
-                  hintStyle: const TextStyle(color: Colors.white30),
-                  filled: true,
-                  fillColor: Colors.white.withOpacity(0.05),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.all(16),
-                ),
-              ),
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: FloatingActionButton.small(
-                  onPressed: _listen,
-                  backgroundColor: _isListening
-                      ? Colors.redAccent
-                      : const Color(0xFF00E676),
-                  child: Icon(
-                    _isListening ? Icons.stop : Icons.mic,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-          
-          // Anexos
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.attach_file,
-                          color: _selectedCategory == EventCategory.ocorrencias
-                              ? const Color(0xFFFF6B6B)
-                              : const Color(0xFF00E676),
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _selectedCategory == EventCategory.ocorrencias
-                              ? 'Anexos (Fotos/Vídeos)'
-                              : 'Anexos (Opcional)',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add_photo_alternate, color: Color(0xFF00E676), size: 20),
-                      onPressed: _pickAttachment,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-                if (_attachments.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _attachments.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final path = entry.value;
-                      final fileName = path.split('/').last;
-                      final isImage = fileName.toLowerCase().endsWith('.jpg') ||
-                          fileName.toLowerCase().endsWith('.jpeg') ||
-                          fileName.toLowerCase().endsWith('.png');
-                      final isPdf = fileName.toLowerCase().endsWith('.pdf');
-                      
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF00E676).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Icon(
-                              isImage ? Icons.image : (isPdf ? Icons.picture_as_pdf : Icons.videocam),
-                              size: 16,
-                              color: isImage ? Colors.blue : (isPdf ? Colors.red : Colors.purple),
-                            ),
-                            const SizedBox(width: 6),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 120),
-                              child: Text(
-                                fileName,
-                                style: const TextStyle(color: Colors.white, fontSize: 11),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() => _attachments.removeAt(index));
-                              },
-                              child: const Icon(Icons.close, size: 14, color: Colors.white70),
+                            Text(
+                              DateFormat('HH:mm').format(date),
+                              style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                           ],
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ] else
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      'Nenhum anexo',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white30,
-                        fontSize: 11,
-                        fontStyle: FontStyle.italic,
-                      ),
+                        const SizedBox(height: 4),
+                        Text(
+                          event['title'],
+                          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                        if (event['content'] != null && event['content'].toString().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            event['content'],
+                            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Confirm Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                if (_titleController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Por favor, insira um título'),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
-                  return;
-                }
-                
-                // Create AgendaEvent
-                final event = AgendaEvent(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  partnerId: widget.partner.id,
-                  petId: widget.petId,
-                  category: _selectedCategory,
-                  title: _titleController.text.trim(),
-                  description: _contentController.text.trim(),
-                  dateTime: DateTime(
-                    widget.selectedDate.year,
-                    widget.selectedDate.month,
-                    widget.selectedDate.day,
-                    _time.hour,
-                    _time.minute,
-                  ),
-                  attendant: _selectedAttendant,
-                  attachments: _attachments,
-                  createdAt: DateTime.now(),
-                );
-                
-                widget.onSave(event);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00E676),
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 4,
-              ),
-              child: const Text(
-                'Confirmar',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
                 ),
               ),
             ),
           ),
-          
-          // Extra space at bottom for keyboard
-          SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
         ],
       ),
     );
   }
 }
+

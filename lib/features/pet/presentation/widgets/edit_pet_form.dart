@@ -19,6 +19,8 @@ import '../../../../core/services/whatsapp_service.dart';
 import '../../../../core/services/partner_service.dart';
 import '../../../../core/models/partner_model.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
+import '../../../../core/services/export_service.dart';
+import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
 import '../../models/lab_exam.dart';
 import '../../services/lab_exam_service.dart';
@@ -32,12 +34,21 @@ enum SaveStatus { saved, saving, error }
 /// Comprehensive pet profile edit form with tabs
 class EditPetForm extends StatefulWidget {
   final PetProfileExtended? existingProfile;
+  final Map<String, dynamic>? petData;
   final Function(PetProfileExtended) onSave;
   final VoidCallback? onCancel;
   final VoidCallback? onDelete;
   final bool isNewEntry;
 
-  const EditPetForm({Key? key, this.existingProfile, required this.onSave, this.onCancel, this.onDelete, this.isNewEntry = false}) : super(key: key);
+  const EditPetForm({
+    Key? key, 
+    this.existingProfile, 
+    this.petData,
+    required this.onSave, 
+    this.onCancel, 
+    this.onDelete, 
+    this.isNewEntry = false
+  }) : super(key: key);
 
   @override
   State<EditPetForm> createState() => _EditPetFormState();
@@ -88,6 +99,7 @@ class _EditPetFormState extends State<EditPetForm>
   
   Map<String, dynamic>? _currentRawAnalysis;
   File? _profileImage;
+  String? _initialImagePath;
 
   // Auto-Save State
   bool _hasChanges = false;
@@ -150,10 +162,10 @@ class _EditPetFormState extends State<EditPetForm>
     }
 
     try {
-       String? finalImagePath = widget.existingProfile?.imagePath;
+       String? finalImagePath = _initialImagePath;
       
        // Save new profile image if selected
-       if (_profileImage != null && _profileImage!.path != widget.existingProfile?.imagePath) {
+       if (_profileImage != null && _profileImage!.path != _initialImagePath) {
         final savedPath = await _fileService.saveMedicalDocument(
           file: _profileImage!,
           petName: _nameController.text.trim(),
@@ -242,9 +254,14 @@ class _EditPetFormState extends State<EditPetForm>
     _partnerService.init();
     _loadAttachments();
     
+    // Compute the working profile from direct object or raw Map entry
+    final existing = widget.existingProfile ?? 
+        (widget.petData != null ? PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(widget.petData!)) : null);
+
     // Load existing profile image
-    if (widget.existingProfile?.imagePath != null) {
-      final file = File(widget.existingProfile!.imagePath!);
+    _initialImagePath = existing?.imagePath;
+    if (_initialImagePath != null) {
+      final file = File(_initialImagePath!);
       if (file.existsSync()) {
         _profileImage = file;
       }
@@ -252,8 +269,6 @@ class _EditPetFormState extends State<EditPetForm>
 
     _tabController = TabController(length: 5, vsync: this);
     
-    // Initialize controllers with existing data
-    final existing = widget.existingProfile;
     if (existing != null) {
         _petBackup = _deepCopyProfile(existing);
     }
@@ -289,7 +304,7 @@ class _EditPetFormState extends State<EditPetForm>
     } else {
         _currentRawAnalysis = {};
     }
-    debugPrint('DEBUG_LOAD: Pet carregado da Box: ${widget.existingProfile?.petName}');
+    debugPrint('DEBUG_LOAD: Pet carregado da Box: ${existing?.petName}');
 
 
     // Auto-Save Listeners (Direct Binding)
@@ -872,14 +887,7 @@ class _EditPetFormState extends State<EditPetForm>
               ),
             ),
             PdfActionButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Gerar PDF: Funcionalidade em desenvolvimento'),
-                    backgroundColor: Colors.blueAccent,
-                  ),
-                );
-              },
+              onPressed: _generatePetReport,
             ),
             if (widget.onCancel != null)
               IconButton(
@@ -2273,6 +2281,55 @@ class _EditPetFormState extends State<EditPetForm>
          }
      }
   }
+
+  Future<void> _generatePetReport() async {
+    try {
+        final exportService = ExportService();
+        
+        // Construct current profile from screen data
+        final profile = PetProfileExtended(
+            petName: _nameController.text.trim(),
+            raca: _racaController.text.trim(),
+            idadeExata: _idadeController.text.trim(),
+            pesoAtual: double.tryParse(_pesoController.text.trim()),
+            pesoIdeal: double.tryParse(_pesoIdealController.text.trim()),
+            nivelAtividade: _nivelAtividade,
+            statusReprodutivo: _statusReprodutivo,
+            alergiasConhecidas: _alergiasConhecidas,
+            preferencias: _preferencias,
+            dataUltimaV10: _dataUltimaV10,
+            dataUltimaAntirrabica: _dataUltimaAntirrabica,
+            frequenciaBanho: _frequenciaBanho,
+            linkedPartnerIds: _linkedPartnerIds,
+            partnerNotes: _partnerNotes,
+            weightHistory: _weightHistory,
+            labExams: _labExams.map((e) => e.toJson()).toList(),
+            lastUpdated: DateTime.now(),
+            imagePath: _profileImage?.path,
+            rawAnalysis: _currentRawAnalysis,
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PdfPreviewScreen(
+              title: 'Prontuário de ${profile.petName}',
+              buildPdf: (format) async {
+                final pdf = await ExportService().generatePetProfileReport(profile: profile);
+                return pdf.save();
+              },
+            ),
+          ),
+        );
+    } catch (e) {
+        debugPrint('Erro ao gerar PDF: $e');
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+            );
+        }
+    }
+  }
 }
 
 class _PartnerAgendaSheet extends StatefulWidget {
@@ -2770,11 +2827,21 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
   }
 
   Future<void> _launch(String scheme, String path) async {
-      final uri = Uri(scheme: scheme, path: path);
+      String processedPath = path;
+      if (scheme == 'tel') {
+        processedPath = path.replaceAll(RegExp(r'[^\d]'), '');
+      }
+      
+      final uri = Uri(scheme: scheme, path: processedPath);
       try {
         await launchUrl(uri);
       } catch (e) {
         debugPrint('Could not launch $uri: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Não foi possível abrir o aplicativo'))
+          );
+        }
       }
   }
 
@@ -2885,12 +2952,15 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                          onTap: widget.onOpenAgenda,
                          isHighlighted: true,
                      ),
-                     if (widget.partner.whatsapp != null && widget.partner.whatsapp!.isNotEmpty)
+                     if (widget.partner.whatsapp != null && widget.partner.whatsapp!.isNotEmpty || widget.partner.phone.isNotEmpty)
                          _ActionIcon(
                              icon: Icons.chat, // WhatsApp
                              color: const Color(0xFF25D366),
                              label: 'Zap',
-                             onTap: () => WhatsAppService.abrirChat(telefone: widget.partner.whatsapp!, mensagem: 'Olá ${widget.partner.name}!')
+                             onTap: () => WhatsAppService.abrirChat(
+                               telefone: widget.partner.whatsapp ?? widget.partner.phone, 
+                               mensagem: 'Olá ${widget.partner.name}! Venho através do app ScanNut.'
+                             )
                          ),
                  ],
              )

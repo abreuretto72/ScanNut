@@ -21,7 +21,7 @@ class VaccineStatusAdapter extends TypeAdapter<VaccineStatus> {
       vaccineName: fields[1] as String,
       isCompleted: fields[2] as bool,
       completedDate: fields[3] as DateTime?,
-      createdAt: fields[4] as DateTime,
+      createdAt: fields[4] as DateTime?,
     );
   }
 

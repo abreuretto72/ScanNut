@@ -128,6 +128,7 @@ class PetEventService {
     for (var event in events) {
       await box.delete(event.id);
     }
+    await box.flush(); // FORCE DISK WRITE
     debugPrint('🗑️ All events deleted for: $petName');
   }
 

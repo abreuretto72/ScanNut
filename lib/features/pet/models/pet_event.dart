@@ -64,6 +64,12 @@ class PetEvent extends HiveObject {
   @HiveField(9)
   DateTime createdAt;
 
+  @HiveField(10)
+  String? attendant;
+
+  @HiveField(11)
+  String? partnerId;
+
   PetEvent({
     required this.id,
     required this.petName,
@@ -75,6 +81,8 @@ class PetEvent extends HiveObject {
     this.notes,
     this.completed = false,
     DateTime? createdAt,
+    this.attendant,
+    this.partnerId,
   }) : createdAt = createdAt ?? DateTime.now();
 
   // Helper methods

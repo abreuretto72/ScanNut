@@ -16,6 +16,9 @@ import '../../../core/services/file_upload_service.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/models/partner_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../pet/services/pet_event_service.dart';
+import '../../pet/models/pet_event.dart';
+import '../../partners/models/agenda_event.dart';
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
   const PetHistoryScreen({Key? key}) : super(key: key);
@@ -259,11 +262,50 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                           partner: partner,
                                           initialEvents: eventsList,
                                           onSave: (events) async {
-                                            // Salvar eventos na agenda do pet
+                                            // Salvar eventos na agenda do pet (Profile)
                                             if (profileData != null) {
                                               final data = Map<String, dynamic>.from(profileData['data'] as Map);
                                               data['agendaEvents'] = events;
                                               await service.saveOrUpdateProfile(petName, data);
+                                              
+                                              // BRIDGE: Salvar também no PetEventService para Agenda Global
+                                              try {
+                                                  final eventService = PetEventService();
+                                                  await eventService.init();
+                                                  
+                                                  for (var eMap in events) {
+                                                      // Parse JSON -> AgendaEvent
+                                                      final agEvent = AgendaEvent.fromJson(eMap);
+                                                      
+                                                      // Map -> PetEvent
+                                                      EventType pType = EventType.other;
+                                                      if (agEvent.category == EventCategory.vacina) pType = EventType.vaccine;
+                                                      else if (agEvent.category == EventCategory.banho) pType = EventType.bath;
+                                                      else if (agEvent.category == EventCategory.tosa) pType = EventType.grooming;
+                                                      else if (agEvent.category == EventCategory.consulta || 
+                                                               agEvent.category == EventCategory.emergencia ||
+                                                               agEvent.category == EventCategory.saude ||
+                                                               agEvent.category == EventCategory.exame ||
+                                                               agEvent.category == EventCategory.cirurgia) pType = EventType.veterinary;
+                                                      else if (agEvent.category == EventCategory.remedios) pType = EventType.medication;
+                                                      
+                                                      final pEvent = PetEvent(
+                                                          id: agEvent.id,
+                                                          petName: petName, // Usar nome real do pet
+                                                          title: agEvent.title,
+                                                          type: pType,
+                                                          dateTime: agEvent.dateTime,
+                                                          notes: agEvent.description,
+                                                          createdAt: agEvent.createdAt,
+                                                          completed: false
+                                                      );
+                                                      
+                                                      await eventService.addEvent(pEvent); // Flush automático (Singleton)
+                                                  }
+                                                  debugPrint('BRIDGE: ${events.length} eventos sincronizados com PetEventService');
+                                              } catch (e) {
+                                                  debugPrint('❌ Error bridging events: $e');
+                                              }
                                             }
                                           },
                                           petId: petName, // Filtro automático por pet

@@ -8,6 +8,8 @@ import '../../../core/services/whatsapp_service.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../pet/models/pet_analysis_result.dart';
+import '../../../core/services/export_service.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
 
 class PartnersScreen extends ConsumerStatefulWidget {
   final PetAnalysisResult? suggestionContext;
@@ -148,11 +150,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         elevation: 0,
         actions: [
           PdfActionButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Gerar PDF: Funcionalidade em desenvolvimento'), backgroundColor: Colors.blueAccent),
-              );
-            },
+            onPressed: _generatePartnersPDF,
           ),
           IconButton(
             icon: const Icon(Icons.add_business, color: Color(0xFF00E676)),
@@ -397,5 +395,32 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _generatePartnersPDF() async {
+    try {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PdfPreviewScreen(
+              title: 'Guia de Parceiros ScanNut',
+              buildPdf: (format) async {
+                final pdf = await ExportService().generatePartnersReport(
+                  partners: _partners,
+                  region: 'SP (Mock Location)',
+                );
+                return pdf.save();
+              },
+            ),
+          ),
+        );
+    } catch (e) {
+        debugPrint('Erro ao gerar PDF: $e');
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+            );
+        }
+    }
   }
 }

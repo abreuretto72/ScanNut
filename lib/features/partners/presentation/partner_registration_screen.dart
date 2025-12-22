@@ -33,6 +33,11 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   final _openingHoursController = TextEditingController();
   final _instagramController = TextEditingController();
   final _specialtiesController = TextEditingController();
+  final _websiteController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _teamController = TextEditingController(); // Input auxiliar para o time
+  
+  List<String> _teamMembers = [];
   
   // Notes Logic
   final _noteController = TextEditingController();
@@ -57,6 +62,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       _category = widget.initialData!.category;
       _lat = widget.initialData!.latitude;
       _lng = widget.initialData!.longitude;
+      _websiteController.text = widget.initialData!.website ?? '';
+      _emailController.text = widget.initialData!.email ?? '';
+      _teamMembers = List.from(widget.initialData!.teamMembers);
     }
     if (widget.linkedNotes != null) {
         _notes = List.from(widget.linkedNotes!);
@@ -158,6 +166,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         instagram: _instagramController.text.isNotEmpty ? _instagramController.text : null,
         address: _addressController.text,
         specialties: specialties,
+        email: _emailController.text,
+        teamMembers: _teamMembers,
+        website: _websiteController.text,
+        metadata: {
+            // website removed from here as it's now a formal field
+        },
         openingHours: {
           'plantao24h': _is24h,
           'raw': _openingHoursController.text,
@@ -242,6 +256,11 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               const SizedBox(height: 16),
               _buildTextField(_specialtiesController, 'Especialidades (separe por vírgula)', Icons.stars),
               const SizedBox(height: 16),
+              _buildTextField(_websiteController, 'Website', Icons.language),
+              const SizedBox(height: 16),
+              _buildTextField(_emailController, 'E-mail', Icons.email),
+              const SizedBox(height: 16),
+              _buildTeamSection(),
               const SizedBox(height: 16),
               _buildTextField(_addressController, 'Endereço Completo', Icons.location_on, maxLines: 2),
               const SizedBox(height: 32),
@@ -377,7 +396,17 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         fillColor: Colors.white.withOpacity(0.05),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
       ),
-      validator: (v) => null,
+      validator: (v) {
+          if (label == 'Nome do Estabelecimento' && (v == null || v.isEmpty)) return 'Obrigatório';
+          if (label == 'E-mail' && v != null && v.isNotEmpty) {
+              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+              if (!emailRegex.hasMatch(v)) return 'E-mail inválido';
+          }
+          if (label == 'Website' && v != null && v.isNotEmpty) {
+              if (!v.startsWith('http')) return 'Deve começar com http:// ou https://';
+          }
+          return null;
+      },
     );
   }
 
@@ -500,6 +529,77 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       setState(() {
           _notes.removeAt(index);
       });
+  }
+
+  Widget _buildTeamSection() {
+      return Container(
+          decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(15),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                   Row(
+                       children: [
+                           const Icon(Icons.people, color: Color(0xFF00E676)),
+                           const SizedBox(width: 8),
+                           Text('Corpo Clínico / Equipe', style: GoogleFonts.poppins(color: Colors.white70)),
+                       ],
+                   ),
+                   const SizedBox(height: 8),
+                   Wrap(
+                       spacing: 8,
+                       runSpacing: 4,
+                       children: _teamMembers.map((member) => Chip(
+                           label: Text(member, style: const TextStyle(fontSize: 12)),
+                           backgroundColor: const Color(0xFF00E676).withOpacity(0.2),
+                           deleteIcon: const Icon(Icons.close, size: 14),
+                           onDeleted: () {
+                               setState(() {
+                                   _teamMembers.remove(member);
+                               });
+                           },
+                       )).toList(),
+                   ),
+                   const SizedBox(height: 8),
+                   Row(
+                       children: [
+                           Expanded(
+                               child: TextField(
+                                   controller: _teamController,
+                                   style: const TextStyle(color: Colors.white, fontSize: 13),
+                                   decoration: InputDecoration(
+                                       hintText: 'Adicionar nome (ex: Dra. Ana)',
+                                       hintStyle: const TextStyle(color: Colors.white24),
+                                       isDense: true,
+                                       filled: true,
+                                       fillColor: Colors.black26,
+                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                                   ),
+                                   onSubmitted: (_) => _addTeamMember(),
+                               ),
+                           ),
+                           IconButton(
+                               icon: const Icon(Icons.add_circle, color: Color(0xFF00E676)),
+                               onPressed: _addTeamMember,
+                           )
+                       ],
+                   )
+              ],
+          ),
+      );
+  }
+
+  void _addTeamMember() {
+      final name = _teamController.text.trim();
+      if (name.isNotEmpty && !_teamMembers.contains(name)) {
+          setState(() {
+              _teamMembers.add(name);
+              _teamController.clear();
+          });
+      }
   }
 
   Widget _buildCategoryDropdown() {

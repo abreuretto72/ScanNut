@@ -14,6 +14,8 @@ import 'package:printing/printing.dart';
 import '../models/food_analysis_model.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/widgets/pdf_action_button.dart';
+import '../../../core/services/export_service.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
 
 class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -46,130 +48,29 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   }
 
   Future<void> _generatePDF() async {
-    final pdf = pw.Document();
-
-    pw.MemoryImage? image;
-    if (widget.imageFile != null) {
-      final imageBytes = await widget.imageFile!.readAsBytes();
-      image = pw.MemoryImage(imageBytes);
-    }
-
-    final now = DateTime.now();
-    final dateStr = "${now.day}/${now.month}/${now.year} - ${now.hour}:${now.minute}";
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                   pw.Text("ScanNut", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.green)),
-                   pw.Text("Dossiê Nutricional Profundo", style: pw.TextStyle(fontSize: 18)),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 10),
-            pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(color: PdfColors.grey)),
-            pw.SizedBox(height: 20),
-            
-            if (image != null) 
-              pw.Center(child: pw.Image(image, height: 200, fit: pw.BoxFit.contain)),
-            
-            pw.SizedBox(height: 20),
-            pw.Text("Alimento: ${widget.analysis.identidade.nome.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}", style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.green)),
-            pw.Text("Categoria (NOVA): ${widget.analysis.identidade.categoria}"),
-            pw.SizedBox(height: 10),
-            pw.Text("Veredito: ${widget.analysis.analise.vereditoIa}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Composição Nutricional", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            pw.Text("Calorias: ${widget.analysis.macros.calorias} kcal"),
-            pw.Text("Proteínas: ${widget.analysis.macros.proteinas['valor']} (${widget.analysis.macros.proteinas['aminoacidos']})"),
-            pw.Text("Carboidratos Líquidos: ${widget.analysis.macros.carboidratos['liquidos']}"),
-            pw.Text("Fibras: ${widget.analysis.macros.fibras['total']}"),
-            pw.Text("Gorduras: ${widget.analysis.macros.gorduras['total']} (${widget.analysis.macros.gorduras['perfil']})"),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Micronutrientes (Vitamins & Minerais)", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            ...widget.analysis.micronutrientes.lista.map((n) => pw.Bullet(text: "${n.nome}: ${n.quantidade.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')} (${n.percentualDv}% DV) - ${n.funcao.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}")),
-            pw.SizedBox(height: 10),
-            pw.Text("Sinergia: ${widget.analysis.micronutrientes.sinergiaNutricional.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}", style: pw.TextStyle(fontStyle: pw.FontStyle.italic)),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Biohacking e Performance", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            pw.Text("Indice de Saciedade: ${widget.analysis.performance.indiceSaciedade}/5"),
-            pw.Text("Impacto no Foco: ${widget.analysis.performance.impactoNoFoco.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}"),
-            pw.Text("Momento Ideal: ${widget.analysis.performance.momentoIdeal}"),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Inteligência Culinária", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            pw.Text("Melhor Preparo: ${widget.analysis.gastronomia.preservacaoNutrientes}"),
-            pw.Text("Sugestão de Troca (Smart Swap): ${widget.analysis.gastronomia.smartSwap}"),
-            
-            pw.SizedBox(height: 30),
-            pw.Text("Dica do Especialista:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.amber)),
-            pw.Text(widget.analysis.dicaEspecialista.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')),
-
-            pw.Footer(title: pw.Text("ScanNut App - Nutrição de Elite", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey))),
-          ];
-        },
-      ),
-    );
-
     try {
-      final pdfBytes = await pdf.save();
-      final output = await getTemporaryDirectory();
-      final file = File("${output.path}/food_dossier_${DateTime.now().millisecondsSinceEpoch}.pdf");
-      await file.writeAsBytes(pdfBytes);
-      
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.grey[900],
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-          builder: (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.print, color: Colors.blueAccent),
-                  title: const Text("Imprimir Relatório", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Printing.layoutPdf(onLayout: (format) async => pdfBytes);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.share, color: Colors.greenAccent),
-                  title: const Text("Compartilhar PDF", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Share.shareXFiles([XFile(file.path)], text: 'Dossiê Nutricional ScanNut - ${widget.analysis.identidade.nome.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.open_in_new, color: Colors.amberAccent),
-                  title: const Text("Abrir no Visualizador", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await OpenFilex.open(file.path);
-                  },
-                ),
-              ],
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PdfPreviewScreen(
+              title: 'Análise Nutricional: ${widget.analysis.identidade.nome}',
+              buildPdf: (format) async {
+                final pdf = await ExportService().generateFoodAnalysisReport(
+                  analysis: widget.analysis,
+                  imageFile: widget.imageFile,
+                );
+                return pdf.save();
+              },
             ),
           ),
         );
-      }
     } catch (e) {
       debugPrint("Erro ao gerar PDF: $e");
+      if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+          );
+      }
     }
   }
 
