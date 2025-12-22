@@ -34,6 +34,15 @@ class PartnerService {
     await box.put(partner.id, partner.toJson());
   }
 
+  PartnerModel? getPartner(String id) {
+    final box = Hive.box(_boxName);
+    final data = box.get(id);
+    if (data != null) {
+      return PartnerModel.fromJson(Map<String, dynamic>.from(data));
+    }
+    return null;
+  }
+
   // -------------------------------------------------
   // Search partners using Google Places API (Google Maps APIs)
   // -------------------------------------------------

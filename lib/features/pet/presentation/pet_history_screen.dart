@@ -9,9 +9,13 @@ import '../../pet/models/pet_profile_extended.dart';
 import '../../pet/services/pet_profile_service.dart';
 import 'widgets/pet_result_card.dart';
 import 'widgets/edit_pet_form.dart';
-import 'pet_agenda_screen.dart';
+import '../../partners/presentation/partner_agenda_screen.dart';
 import 'widgets/weekly_menu_screen.dart';
+import '../../../core/services/meal_history_service.dart';
 import '../../../core/services/file_upload_service.dart';
+import '../../../core/services/partner_service.dart';
+import '../../../core/models/partner_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
   const PetHistoryScreen({Key? key}) : super(key: key);
@@ -22,6 +26,7 @@ class PetHistoryScreen extends ConsumerStatefulWidget {
 
 class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
   List<Map<String, dynamic>> _history = [];
+  Map<String, PartnerModel?> _petVets = {};
   bool _isLoading = true;
 
   @override
@@ -32,6 +37,13 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
   Future<void> _loadHistory() async {
     setState(() => _isLoading = true);
+
+    // Init services for Vet lookup
+    final partnerService = PartnerService();
+    await partnerService.init();
+    final profileService = PetProfileService();
+    await profileService.init();
+
     final history = await HistoryService.getHistory();
     // Filter only pet related items
     final petHistory = history.where((item) => 
@@ -45,9 +57,27 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
       return dateB.compareTo(dateA);
     });
 
+    // Load Linked Vets
+    final vetMap = <String, PartnerModel?>{};
+    for (var item in petHistory) {
+         final petName = item['pet_name'] as String? ?? '';
+         if (petName.isNotEmpty) {
+             final profileData = await profileService.getProfile(petName);
+             if (profileData != null && profileData['linkedPartnerIds'] != null) {
+                 final ids = profileData['linkedPartnerIds'] as List;
+                 if (ids.isNotEmpty) {
+                     final partnerId = ids.first; // Primary Vet
+                     final partner = partnerService.getPartner(partnerId);
+                     vetMap[petName] = partner;
+                 }
+             }
+         }
+    }
+
     if (mounted) {
       setState(() {
         _history = petHistory;
+        _petVets = vetMap;
         _isLoading = false;
       });
     }
@@ -168,18 +198,96 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                           DateFormat('dd/MM/yyyy HH:mm').format(date),
                           style: GoogleFonts.poppins(color: Colors.white30, fontSize: 12),
                         ),
+                        
+                        // Vet do Pet Display
+                        if (_petVets[petName] != null) ...[
+                            const SizedBox(height: 8),
+                            InkWell(
+                                onTap: () async {
+                                    final p = _petVets[petName]!;
+                                    final uri = Uri(scheme: 'tel', path: p.phone);
+                                    if (await canLaunchUrl(uri)) launchUrl(uri);
+                                },
+                                child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: const Color(0xFF00E676).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3))
+                                    ),
+                                    child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                            const Icon(Icons.medical_services, color: Color(0xFF00E676), size: 12),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                                'Vet: ${_petVets[petName]!.name}',
+                                                style: const TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.bold)
+                                            ),
+                                            const SizedBox(width: 4),
+                                            const Icon(Icons.call, color: Color(0xFF00E676), size: 10)
+                                        ],
+                                    ),
+                                ),
+                            )
+                        ],
+
                         const SizedBox(height: 12),
                         // Action buttons row (Agenda & Menu)
                         Row(
                           children: [
                             InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => PetAgendaScreen(petName: petName),
-                                  ),
-                                );
+                              onTap: () async {
+                                // AGENDA ÚNICA - Filtrada por Pet
+                                final partner = _petVets[petName];
+                                
+                                if (partner != null) {
+                                  // Navegar para Agenda Única com filtro de pet
+                                  final service = PetProfileService();
+                                  await service.init();
+                                  final profileData = await service.getProfile(petName);
+                                  
+                                  // Extrair eventos da agenda (se existirem)
+                                  final agendaEvents = profileData?['data']?['agendaEvents'] as List? ?? [];
+                                  final eventsList = agendaEvents.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+                                  
+                                  if (context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PartnerAgendaScreen(
+                                          partner: partner,
+                                          initialEvents: eventsList,
+                                          onSave: (events) async {
+                                            // Salvar eventos na agenda do pet
+                                            if (profileData != null) {
+                                              final data = Map<String, dynamic>.from(profileData['data'] as Map);
+                                              data['agendaEvents'] = events;
+                                              await service.saveOrUpdateProfile(petName, data);
+                                            }
+                                          },
+                                          petId: petName, // Filtro automático por pet
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  // Sem parceiro vinculado
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text('Vincule um parceiro na aba "Parc." para acessar a agenda'),
+                                        backgroundColor: Colors.orange,
+                                        duration: const Duration(seconds: 4),
+                                        action: SnackBarAction(
+                                          label: 'OK',
+                                          textColor: Colors.white,
+                                          onPressed: () {},
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                               child: Container(
                                 padding: const EdgeInsets.all(8),
@@ -231,12 +339,26 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                         IconButton(
                           icon: const Icon(Icons.edit, color: Color(0xFF00E676)),
                           tooltip: 'Editar Perfil',
-                          onPressed: () {
-                             Navigator.push(
+                          onPressed: () async {
+                             PetProfileExtended? loaded;
+                             try {
+                               final profileService = PetProfileService();
+                               await profileService.init();
+                               final existingMap = await profileService.getProfile(petName.trim());
+                               if (existingMap != null && existingMap['data'] != null) {
+                                  loaded = PetProfileExtended.fromJson(Map<String,dynamic>.from(existingMap['data']));
+                               }
+                             } catch (e) {
+                               debugPrint('Error loading full profile: $e');
+                             }
+
+                             if (!context.mounted) return;
+
+                             final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => EditPetForm(
-                                  existingProfile: PetProfileExtended(
+                                  existingProfile: loaded ?? PetProfileExtended(
                                     petName: petName,
                                     raca: data['breed'] ?? data['identificacao']?['raca_predominante'],
                                     nivelAtividade: (data['perfil_comportamental']?['nivel_energia'] is int) 
@@ -250,24 +372,109 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                   onSave: (profile) async {
                                     final service = PetProfileService();
                                     await service.init();
+                                    
+                                    final oldName = petName;
+                                    final newName = profile.petName;
+                                    
+                                    // 1. Save Profile (Canonical Data)
                                     await service.saveOrUpdateProfile(
-                                      profile.petName,
+                                      newName,
                                       profile.toJson(),
                                     );
-                                    Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Perfil atualizado!')),
+                                    
+                                    // 2. Sync with History (Display Data)
+                                    // Update raw analysis with edited fields for consistency
+                                    final analysisData = profile.rawAnalysis ?? {};
+                                    if (profile.raca != null) {
+                                      if (analysisData['identificacao'] == null) analysisData['identificacao'] = {};
+                                      analysisData['identificacao']['raca_predominante'] = profile.raca;
+                                      analysisData['breed'] = profile.raca;
+                                    }
+                                    
+                                    // If name changed, delete old entries
+                                    if (oldName != newName) {
+                                        await HistoryService.deletePet(oldName);
+                                        await service.deleteProfile(oldName);
+                                    }
+                                    
+                                    // Re-save to History to update list view
+                                    await HistoryService().savePetAnalysis(
+                                      newName,
+                                      analysisData,
+                                      imagePath: profile.imagePath
                                     );
-                                    _loadHistory();
+
+                                    // DO NOT POP HERE - Handled by WillPop in EditPetForm
+                                    // Just update history locally
                                   },
                                   onDelete: () async {
                                     await HistoryService.deletePet(petName);
+                                    final service = PetProfileService(); 
+                                    await service.init();
+                                    await service.deleteProfile(petName);
+                                    
                                     if (context.mounted) Navigator.pop(context);
                                     _loadHistory();
                                   },
                                 ),
                               ),
                             );
+
+                            // Handle Undo Result
+                            if (result != null && result is Map && result['action'] == 'save') {
+                                _loadHistory(); // Refresh with new data
+                                if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                            content: const Text('Alterações no perfil salvas.'),
+                                            duration: const Duration(seconds: 8), // Máximo 10s conforme solicitado
+                                            backgroundColor: const Color(0xFF00E676),
+                                            behavior: SnackBarBehavior.floating, // Permite dismiss por swipe
+                                            margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16), // Acima do rodapé
+                                            action: SnackBarAction(
+                                                label: 'DESFAZER',
+                                                textColor: Colors.black,
+                                                onPressed: () async {
+                                                    final backup = result['backup'] as PetProfileExtended?;
+                                                    if (backup != null) {
+                                                        final service = PetProfileService();
+                                                        await service.init();
+                                                        // Restore Backup
+                                                        await service.saveOrUpdateProfile(backup.petName, backup.toJson());
+                                                        
+                                                        // Restore History (simplified)
+                                                        // Note: We are restoring based on the backup content.
+                                                        // If name changed, this might be tricky, but backup has original name.
+                                                        final originalName = backup.petName;
+                                                        // If name was changed during edit, we need to delete the NEW name
+                                                        // But result['petName'] has the new name
+                                                        final newName = result['petName'];
+                                                        if (newName != null && newName != originalName) {
+                                                            await service.deleteProfile(newName);
+                                                            await HistoryService.deletePet(newName);
+                                                        }
+
+                                                        // Restore History entry
+                                                        await HistoryService().savePetAnalysis(
+                                                            originalName,
+                                                            backup.rawAnalysis ?? {},
+                                                            imagePath: backup.imagePath
+                                                        );
+
+                                                        if (context.mounted) {
+                                                            _loadHistory();
+                                                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alterações revertidas com sucesso.')));
+                                                        }
+                                                    }
+                                                }
+                                            ),
+                                        )
+                                    );
+                                }
+                            } else {
+                                _loadHistory();
+                            }
+
                           },
                         ),
                       ],

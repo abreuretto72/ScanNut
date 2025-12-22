@@ -68,4 +68,5 @@ coverage/
 # Documentation Restrictions
 *.md
 !README.md
+!MAINTENANCE_PROTOCOL.md
 

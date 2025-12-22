@@ -24,6 +24,8 @@ import '../../../../core/services/file_upload_service.dart';
 import 'edit_pet_form.dart';
 import '../../models/pet_profile_extended.dart';
 import '../../services/pet_profile_service.dart';
+import '../../../../core/widgets/app_pdf_icon.dart';
+import '../../../../core/widgets/pdf_action_button.dart';
 
 class PetResultCard extends StatefulWidget {
   final PetAnalysisResult analysis;
@@ -386,7 +388,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 children: [
                   if (_isEmergency) 
                     IconButton(onPressed: () => launchUrl(Uri.parse('geo:0,0?q=veterinario+24h')), icon: const Icon(Icons.phone, color: Colors.redAccent)),
-                  IconButton(onPressed: _generatePDF, icon: const Icon(Icons.picture_as_pdf, color: Colors.orangeAccent)),
+                  PdfActionButton(onPressed: _generatePDF),
                   IconButton(
                     onPressed: () {
                       if (!_isSaved) {
@@ -470,7 +472,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               },
             ),
             ListTile(
-              leading: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+              leading: const AppPdfIcon(),
               title: Text('Selecionar PDF', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(context);

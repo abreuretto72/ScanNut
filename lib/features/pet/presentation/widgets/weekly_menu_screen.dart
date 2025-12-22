@@ -9,6 +9,7 @@ import 'package:open_filex/open_filex.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
 import '../../../../core/services/gemini_service.dart';
+import '../../../../core/widgets/pdf_action_button.dart';
 
 class WeeklyMenuScreen extends StatefulWidget {
   final List<Map<String, String>> currentWeekPlan;
@@ -71,8 +72,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: Colors.orangeAccent),
+          PdfActionButton(
             onPressed: _generateMenuPDF,
           ),
         ],

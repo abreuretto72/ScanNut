@@ -57,6 +57,11 @@ Scannut é um aplicativo Flutter que utiliza o Google Gemini 2.5 Flash para aná
 - **Saúde bucal** (ossos naturais permitidos)
 - **Alertas regionais** (Leishmaniose, Dirofilariose)
 - **Checklist interativo** para marcar vacinas aplicadas
+- **Vínculo com Parceiros** (Veterinários, Petshops)
+  - Histórico compartilhado
+  - Acesso rápido a contatos
+  - Agendamento direto
+
 
 #### 📅 Agenda do Pet (NOVO!)
 - **Gerenciamento de eventos** (vacinas, banho, tosa, veterinário, medicamentos)
@@ -334,6 +339,14 @@ Contribuições são bem-vindas! Por favor:
 ---
 
 ## 📝 Changelog
+
+### v2.1.0 (2025-12-22) - 🛡️ Persistence & Reliability Update
+#### Estabilidade & Dados
+- ✅ **Persistência Blindada**: Arquitetura Singleton para serviços Hive
+- ✅ **Escrita Atômica**: Fluxo de salvamento imediato com Flush físico
+- ✅ **Sync Reverso**: Fusão inteligente de dados entre telas para evitar perdas
+- ✅ **Vínculo Robusto**: Associações com veterinários salvas instantaneamente
+- ✅ **Correção de Tipagem**: Suporte total a estruturas complexas no Hive
 
 ### v2.0.0 (2025-12-20) - 🐾 Pet Management Update
 #### Novas Funcionalidades

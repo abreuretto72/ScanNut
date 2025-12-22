@@ -6,6 +6,7 @@ import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/services/whatsapp_service.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/widgets/pdf_action_button.dart';
 import '../../pet/models/pet_analysis_result.dart';
 
 class PartnersScreen extends ConsumerStatefulWidget {
@@ -146,6 +147,13 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         actions: [
+          PdfActionButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Gerar PDF: Funcionalidade em desenvolvimento'), backgroundColor: Colors.blueAccent),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add_business, color: Color(0xFF00E676)),
             onPressed: () => _showAddPartnerDialog(),

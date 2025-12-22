@@ -49,6 +49,12 @@ class PartnerModel {
   
   @HiveField(15)
   final bool isFavorite;
+  
+  @HiveField(16)
+  final String? email;
+  
+  @HiveField(17)
+  final List<String> teamMembers; // Lista de nomes de atendentes/veterinários
 
   PartnerModel({
     required this.id,
@@ -60,6 +66,7 @@ class PartnerModel {
     required this.phone,
     this.whatsapp,
     this.instagram,
+    this.email,
     required this.address,
     required this.openingHours,
     this.rating = 5.0,
@@ -67,6 +74,7 @@ class PartnerModel {
     this.specialties = const [],
     this.metadata = const {},
     this.isFavorite = false,
+    this.teamMembers = const [],
   });
 
   factory PartnerModel.fromJson(Map<String, dynamic> json) {
@@ -86,6 +94,7 @@ class PartnerModel {
       phone: json['phone'] ?? json['whatsapp'] ?? '',
       whatsapp: json['whatsapp'],
       instagram: json['instagram'],
+      email: json['email'],
       address: json['address'] ?? '',
       openingHours: Map<String, dynamic>.from(json['opening_hours'] ?? {}),
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
@@ -93,6 +102,7 @@ class PartnerModel {
       specialties: List<String>.from(json['specialties'] ?? []),
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
       isFavorite: json['is_favorite'] ?? false,
+      teamMembers: List<String>.from(json['team_members'] ?? []),
     );
   }
 
@@ -109,6 +119,7 @@ class PartnerModel {
       'whatsapp': whatsapp,
       'phone': phone,
       'instagram': instagram,
+      'email': email,
       'address': address,
       'opening_hours': openingHours,
       'rating': rating,
@@ -116,6 +127,7 @@ class PartnerModel {
       'specialties': specialties,
       'metadata': metadata,
       'is_favorite': isFavorite,
+      'team_members': teamMembers,
     };
   }
 }

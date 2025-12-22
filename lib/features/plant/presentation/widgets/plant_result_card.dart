@@ -319,7 +319,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          _buildActionButton(Icons.picture_as_pdf, "DOSSIÊ", Colors.orangeAccent, _generatePDF),
+                          _buildActionButton(Icons.picture_as_pdf_rounded, "DOSSIÊ", Colors.redAccent, _generatePDF),
                           const SizedBox(width: 8),
                           _buildActionButton(
                             _isSaved ? Icons.check : Icons.save, 

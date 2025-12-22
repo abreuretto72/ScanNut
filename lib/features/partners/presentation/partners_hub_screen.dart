@@ -6,11 +6,14 @@ import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/services/whatsapp_service.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/widgets/pdf_action_button.dart';
 import '../../settings/settings_screen.dart';
 import 'partner_registration_screen.dart';
 
 class PartnersHubScreen extends ConsumerStatefulWidget {
-  const PartnersHubScreen({Key? key}) : super(key: key);
+  final bool isSelectionMode;
+
+  const PartnersHubScreen({Key? key, this.isSelectionMode = false}) : super(key: key);
 
   @override
   ConsumerState<PartnersHubScreen> createState() => _PartnersHubScreenState();
@@ -81,6 +84,12 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
     if (result == true) _loadData();
   }
 
+  Future<void> _generatePdf() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Gerar PDF: Funcionalidade em desenvolvimento'), backgroundColor: Colors.redAccent),
+    );
+  }
+
   List<PartnerModel> get _filteredPartners {
     if (_selectedCategory == 'Todos') return _registeredPartners;
     return _registeredPartners.where((p) => p.category == _selectedCategory).toList();
@@ -97,23 +106,14 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             floating: true,
             backgroundColor: Colors.black,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text('Meu Hub de Apoio', 
+              title: Text(widget.isSelectionMode ? 'Selecionar Parceiro' : 'Meu Hub de Apoio', 
                   style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
               centerTitle: false,
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
             ),
             actions: [
-              IconButton(
-                onPressed: _openRadar,
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.radar, color: Colors.blueAccent),
-                ),
-              ),
+              if (!widget.isSelectionMode)
+                  PdfActionButton(onPressed: _generatePdf),
               const SizedBox(width: 8),
             ],
           ),
@@ -136,7 +136,9 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: widget.isSelectionMode 
+          ? null 
+          : FloatingActionButton.extended(
         onPressed: _openManualRegistration,
         backgroundColor: const Color(0xFF00E676),
         icon: const Icon(Icons.add, color: Colors.black),
@@ -210,27 +212,33 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
       ),
       child: ListTile(
         onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PartnerRegistrationScreen(initialData: partner),
-            ),
-          );
-          if (result == true) _loadData();
+          if (widget.isSelectionMode) {
+              Navigator.pop(context, partner);
+          } else {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PartnerRegistrationScreen(initialData: partner),
+                ),
+              );
+              if (result == true) _loadData();
+          }
         },
         contentPadding: const EdgeInsets.all(16),
         leading: _getCategoryIcon(partner.category),
         title: Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
         subtitle: Text(partner.category, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12)),
-        trailing: IconButton(
-          icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF00E676)),
-          onPressed: () {
-            WhatsAppService.abrirChat(
-              telefone: partner.phone,
-              mensagem: 'Olá, venho através do ScanNut e gostaria de informações sobre seus serviços.',
-            );
-          },
-        ),
+        trailing: widget.isSelectionMode 
+            ? const Icon(Icons.check_circle_outline, color: Color(0xFF00E676))
+            : IconButton(
+                icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF00E676)),
+                onPressed: () {
+                    WhatsAppService.abrirChat(
+                    telefone: partner.phone,
+                    mensagem: 'Olá, venho através do ScanNut e gostaria de informações sobre seus serviços.',
+                    );
+                },
+            ),
       ),
     );
   }

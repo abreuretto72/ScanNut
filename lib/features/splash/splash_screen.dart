@@ -134,7 +134,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       );
                     },
                     child: Text(
-                      'Scannut',
+                      'ScanNut',
                       style: GoogleFonts.poppins(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,

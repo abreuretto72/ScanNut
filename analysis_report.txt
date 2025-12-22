@@ -1,0 +1,127 @@
+Analyzing ScanNut...                                            
+
+   info - The imported package 'hive' isn't a dependency of the importing package - lib\core\models\partner_model.dart:1:8 - depend_on_referenced_packages
+  error - Target of URI doesn't exist: '../../features/pet/services/meal_history_service.dart' - lib\core\providers\pet_data_router_provider.dart:5:8 - uri_does_not_exist
+  error - Undefined name 'mealHistoryServiceProvider' - lib\core\providers\pet_data_router_provider.dart:22:27 - undefined_identifier
+   info - Unnecessary braces in a string interpolation - lib\core\services\file_upload_service.dart:127:46 - unnecessary_brace_in_string_interps
+warning - Unused import: '../enums/scannut_mode.dart' - lib\core\services\meal_plan_generator.dart:3:8 - unused_import
+warning - The value of the local variable 'geminiService' isn't used - lib\core\services\meal_plan_generator.dart:25:11 - unused_local_variable
+warning - The value of the local variable 'prompt' isn't used - lib\core\services\meal_plan_generator.dart:29:11 - unused_local_variable
+warning - Dead code - lib\core\services\partner_service.dart:90:20 - dead_code
+  error - Target of URI doesn't exist: '../../features/pet/services/meal_history_service.dart' - lib\core\services\pet_data_router.dart:6:8 - uri_does_not_exist
+warning - The value of the field '_profileService' isn't used - lib\core\services\pet_data_router.dart:11:27 - unused_field
+warning - The value of the field '_healthService' isn't used - lib\core\services\pet_data_router.dart:12:26 - unused_field
+  error - Undefined class 'MealHistoryService' - lib\core\services\pet_data_router.dart:13:9 - undefined_class
+  error - Undefined class 'MealHistoryService' - lib\core\services\pet_data_router.dart:19:14 - undefined_class
+warning - This default clause is covered by the previous cases - lib\core\services\pet_data_router.dart:49:9 - unreachable_switch_default
+  error - The method 'getEventsByPetName' isn't defined for the type 'PetEventService' - lib\core\services\pet_data_router.dart:115:37 - undefined_method
+warning - Unused import: 'package:flutter/foundation.dart' - lib\features\food\models\food_analysis_model.dart:1:8 - unused_import
+   info - The import of 'dart:ui' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' - lib\features\food\presentation\food_result_screen.dart:2:8 - unnecessary_import
+   info - Use 'const' with the constructor to improve performance - lib\features\food\presentation\food_result_screen.dart:75:66 - prefer_const_constructors
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\features\food\presentation\food_result_screen.dart:159:27 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\features\food\presentation\food_result_screen.dart:159:33 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\food\presentation\widgets\result_card.dart:133:37 - prefer_const_constructors
+warning - The declaration '_buildMacroRow' isn't referenced - lib\features\food\presentation\widgets\result_card.dart:713:10 - unused_element
+   info - Unnecessary use of 'toList' in a spread - lib\features\food\presentation\widgets\result_card.dart:1210:22 - unnecessary_to_list_in_spreads
+   info - Use 'const' with the constructor to improve performance - lib\features\food\presentation\widgets\result_card.dart:1239:13 - prefer_const_constructors
+   info - Unnecessary use of 'toList' in a spread - lib\features\food\presentation\widgets\result_card.dart:1305:22 - unnecessary_to_list_in_spreads
+   info - Unnecessary use of 'toList' in a spread - lib\features\food\presentation\widgets\result_card.dart:1463:20 - unnecessary_to_list_in_spreads
+   info - Unnecessary use of 'toList' in a spread - lib\features\food\presentation\widgets\result_card.dart:1500:20 - unnecessary_to_list_in_spreads
+   info - Use 'const' with the constructor to improve performance - lib\features\food\presentation\widgets\result_card.dart:1618:35 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\food\presentation\widgets\result_card.dart:1637:27 - prefer_const_constructors
+warning - Duplicate import - lib\features\home\presentation\home_view.dart:30:8 - duplicate_import
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\home\presentation\home_view.dart:125:34 - use_build_context_synchronously
+   info - The private field _lastConfig could be 'final' - lib\features\home\presentation\home_view.dart:775:10 - prefer_final_fields
+warning - The value of the field '_lastConfig' isn't used - lib\features\home\presentation\home_view.dart:775:10 - unused_field
+warning - The declaration '_buildStaticNavItem' isn't referenced - lib\features\home\presentation\home_view.dart:777:10 - unused_element
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\home\presentation\widgets\app_drawer.dart:150:24 - deprecated_member_use
+   info - Use 'const' for final variables initialized to a constant value - lib\features\partners\presentation\partners_screen.dart:37:5 - prefer_const_declarations
+   info - Use 'const' for final variables initialized to a constant value - lib\features\partners\presentation\partners_screen.dart:38:5 - prefer_const_declarations
+   info - Use interpolation to compose strings and values - lib\features\partners\presentation\partners_screen.dart:69:21 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\features\partners\presentation\partners_screen.dart:111:11 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\features\partners\presentation\partners_screen.dart:123:40 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\features\partners\presentation\partners_screen.dart:190:13 - prefer_interpolation_to_compose_strings
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\partners\presentation\partners_screen.dart:233:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\partners\presentation\partners_screen.dart:235:59 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\partners\presentation\partners_screen.dart:262:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\partners\presentation\partners_screen.dart:264:50 - deprecated_member_use
+   info - Use interpolation to compose strings and values - lib\features\partners\presentation\partners_screen.dart:285:28 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\features\partners\presentation\partners_screen.dart:310:28 - prefer_interpolation_to_compose_strings
+   info - Use interpolation to compose strings and values - lib\features\partners\presentation\partners_screen.dart:330:88 - prefer_interpolation_to_compose_strings
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\partners\presentation\partners_screen.dart:358:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\partners\presentation\partners_screen.dart:369:29 - deprecated_member_use
+   info - The imported package 'hive' isn't a dependency of the importing package - lib\features\pet\models\pet_event.dart:1:8 - depend_on_referenced_packages
+warning - Unused import: 'dart:convert' - lib\features\pet\models\pet_model.dart:1:8 - unused_import
+   info - The imported package 'hive' isn't a dependency of the importing package - lib\features\pet\models\vaccine_status.dart:1:8 - depend_on_referenced_packages
+   info - The member 'key' overrides an inherited member but isn't annotated with '@override' - lib\features\pet\models\vaccine_status.dart:30:14 - annotate_overrides
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\pet\presentation\pet_agenda_screen.dart:664:19 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\pet\presentation\pet_agenda_screen.dart:733:17 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\pet\presentation\pet_agenda_screen.dart:812:17 - deprecated_member_use
+warning - Unused import: 'dart:io' - lib\features\pet\presentation\pet_history_screen.dart:1:8 - unused_import
+warning - Unused import: '../../../core/services/file_upload_service.dart' - lib\features\pet\presentation\pet_history_screen.dart:14:8 - unused_import
+warning - The value of the field '_isLoading' isn't used - lib\features\pet\presentation\pet_history_screen.dart:25:8 - unused_field
+   info - Don't use 'BuildContext's across async gaps - lib\features\pet\presentation\pet_history_screen.dart:257:51 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\pet\presentation\pet_history_screen.dart:258:58 - use_build_context_synchronously
+warning - Unused import: 'package:hive_flutter/hive_flutter.dart' - lib\features\pet\presentation\pet_result_screen.dart:7:8 - unused_import
+warning - Unused import: '../../../../core/models/partner_model.dart' - lib\features\pet\presentation\widgets\edit_pet_form.dart:14:8 - unused_import
+   info - The private field _attachments could be 'final' - lib\features\pet\presentation\widgets\edit_pet_form.dart:64:27 - prefer_final_fields
+   info - Use 'const' with the constructor to improve performance - lib\features\pet\presentation\widgets\edit_pet_form.dart:478:35 - prefer_const_constructors
+   info - 'WillPopScope' is deprecated and shouldn't be used. Use PopScope instead. The Android predictive back feature will not work with WillPopScope. This feature was deprecated after v3.12.0-1.0.pre - lib\features\pet\presentation\widgets\edit_pet_form.dart:547:12 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\features\pet\presentation\widgets\edit_pet_form.dart:958:9 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps - lib\features\pet\presentation\widgets\edit_pet_form.dart:1146:9 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\pet\presentation\widgets\edit_pet_form.dart:1162:23 - use_build_context_synchronously
+   info - The 'if' statement could be replaced by a null-aware assignment - lib\features\pet\presentation\widgets\edit_pet_form.dart:1182:13 - prefer_conditional_assignment
+   info - Don't use 'BuildContext's across async gaps - lib\features\pet\presentation\widgets\edit_pet_form.dart:1191:30 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\pet\presentation\widgets\edit_pet_form.dart:1203:23 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\pet\presentation\widgets\edit_pet_form.dart:1204:30 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\edit_pet_form.dart:1236:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\edit_pet_form.dart:1238:76 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\pet\presentation\widgets\edit_pet_form.dart:1240:29 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\pet\presentation\widgets\edit_pet_form.dart:1242:34 - prefer_const_literals_to_create_immutables
+   info - Unnecessary use of 'toList' in a spread - lib\features\pet\presentation\widgets\edit_pet_form.dart:1429:12 - unnecessary_to_list_in_spreads
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\edit_pet_form.dart:1531:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\edit_pet_form.dart:1531:82 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\edit_pet_form.dart:1536:61 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\edit_pet_form.dart:1538:43 - deprecated_member_use
+warning - Unused import: 'package:font_awesome_flutter/font_awesome_flutter.dart' - lib\features\pet\presentation\widgets\pet_result_card.dart:11:8 - unused_import
+warning - Duplicate import - lib\features\pet\presentation\widgets\pet_result_card.dart:17:8 - duplicate_import
+warning - Unused import: '../../../../core/templates/weekly_meal_planner_component.dart' - lib\features\pet\presentation\widgets\pet_result_card.dart:20:8 - unused_import
+warning - Unused import: 'weekly_menu_screen.dart' - lib\features\pet\presentation\widgets\pet_result_card.dart:21:8 - unused_import
+warning - Unused import: 'edit_pet_form.dart' - lib\features\pet\presentation\widgets\pet_result_card.dart:24:8 - unused_import
+warning - Unused import: '../../models/pet_profile_extended.dart' - lib\features\pet\presentation\widgets\pet_result_card.dart:25:8 - unused_import
+warning - Unused import: '../../services/pet_profile_service.dart' - lib\features\pet\presentation\widgets\pet_result_card.dart:26:8 - unused_import
+   info - Use 'const' with the constructor to improve performance - lib\features\pet\presentation\widgets\pet_result_card.dart:147:56 - prefer_const_constructors
+   info - Unnecessary use of 'toList' in a spread - lib\features\pet\presentation\widgets\pet_result_card.dart:245:18 - unnecessary_to_list_in_spreads
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\features\pet\presentation\widgets\pet_result_card.dart:289:27 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\features\pet\presentation\widgets\pet_result_card.dart:289:33 - deprecated_member_use
+warning - The declaration '_showAttachmentOptions' isn't referenced - lib\features\pet\presentation\widgets\pet_result_card.dart:414:16 - unused_element
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\pet\presentation\widgets\pet_result_card.dart:451:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\pet\presentation\widgets\pet_result_card.dart:471:42 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\pet\presentation\widgets\pet_result_card.dart:491:42 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\pet_result_card.dart:744:190 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\pet\presentation\widgets\pet_result_card.dart:744:220 - deprecated_member_use
+warning - Unused import: '../../services/vaccine_status_service.dart' - lib\features\pet\presentation\widgets\vaccine_card.dart:5:8 - unused_import
+   info - Use 'const' with the constructor to improve performance - lib\features\pet\presentation\widgets\weekly_menu_screen.dart:139:28 - prefer_const_constructors
+   info - Unnecessary use of 'toList' in a spread - lib\features\pet\presentation\widgets\weekly_menu_screen.dart:238:16 - unnecessary_to_list_in_spreads
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\features\pet\presentation\widgets\weekly_menu_screen.dart:288:27 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\features\pet\presentation\widgets\weekly_menu_screen.dart:288:33 - deprecated_member_use
+   info - Unnecessary use of 'toList' in a spread - lib\features\pet\presentation\widgets\weekly_menu_screen.dart:437:12 - unnecessary_to_list_in_spreads
+  error - The named parameter 'dica' is required, but there's no corresponding argument - lib\features\pet\services\pet_analysis_service.dart:39:14 - missing_required_argument
+  error - The named parameter 'higiene' is required, but there's no corresponding argument - lib\features\pet\services\pet_analysis_service.dart:39:14 - missing_required_argument
+  error - The named parameter 'identificacao' is required, but there's no corresponding argument - lib\features\pet\services\pet_analysis_service.dart:39:14 - missing_required_argument
+  error - The named parameter 'lifestyle' is required, but there's no corresponding argument - lib\features\pet\services\pet_analysis_service.dart:39:14 - missing_required_argument
+  error - The named parameter 'nutricao' is required, but there's no corresponding argument - lib\features\pet\services\pet_analysis_service.dart:39:14 - missing_required_argument
+  error - The named parameter 'perfilComportamental' is required, but there's no corresponding argument - lib\features\pet\services\pet_analysis_service.dart:39:14 - missing_required_argument
+  error - The named parameter 'saude' is required, but there's no corresponding argument - lib\features\pet\services\pet_analysis_service.dart:39:14 - missing_required_argument
+  error - The named parameter 'especie' isn't defined - lib\features\pet\services\pet_analysis_service.dart:41:9 - undefined_named_parameter
+  error - The named parameter 'raca' isn't defined - lib\features\pet\services\pet_analysis_service.dart:42:9 - undefined_named_parameter
+  error - The named parameter 'caracteristicas' isn't defined - lib\features\pet\services\pet_analysis_service.dart:43:9 - undefined_named_parameter
+  error - The named parameter 'descricaoVisual' isn't defined - lib\features\pet\services\pet_analysis_service.dart:44:9 - undefined_named_parameter
+  error - The named parameter 'possiveisCausas' isn't defined - lib\features\pet\services\pet_analysis_service.dart:45:9 - undefined_named_parameter
+  error - The named parameter 'urgenciaNivel' isn't defined - lib\features\pet\services\pet_analysis_service.dart:46:9 - undefined_named_parameter
+  error - The named parameter 'orientacaoImediata' isn't defined - lib\features\pet\services\pet_analysis_service.dart:47:9 - undefined_named_parameter
+   info - Use 'const' with the constructor to improve performance - lib\features\plant\presentation\widgets\plant_result_card.dart:147:65 - prefer_const_constructors
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\features\plant\presentation\widgets\plant_result_card.dart:224:27 - deprecated_member_use
+   info - 'shareXFiles' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\features\plant\presentation\widgets\plant_result_card.dart:224:33 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\settings\settings_screen.dart:565:42 - use_build_context_synchronously
+

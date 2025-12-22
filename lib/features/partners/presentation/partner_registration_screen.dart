@@ -1,18 +1,23 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:geolocator/geolocator.dart'; // Add this line
 import 'dart:developer' as dev;
-import 'package:geolocator/geolocator.dart';
+import 'package:uuid/uuid.dart';
 import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
-import '../../../core/providers/settings_provider.dart';
+import '../../../core/widgets/pdf_action_button.dart';
+import '../../../core/providers/settings_provider.dart'; // Add this line
 import '../../settings/settings_screen.dart';
-import 'package:uuid/uuid.dart';
+
+import 'package:intl/intl.dart';
 
 class PartnerRegistrationScreen extends StatefulWidget {
   final PartnerModel? initialData;
+  final List<Map<String, dynamic>>? linkedNotes; // If provided, shows notes section
 
-  const PartnerRegistrationScreen({Key? key, this.initialData}) : super(key: key);
+  const PartnerRegistrationScreen({Key? key, this.initialData, this.linkedNotes}) : super(key: key);
 
   @override
   State<PartnerRegistrationScreen> createState() => _PartnerRegistrationScreenState();
@@ -28,6 +33,11 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   final _openingHoursController = TextEditingController();
   final _instagramController = TextEditingController();
   final _specialtiesController = TextEditingController();
+  
+  // Notes Logic
+  final _noteController = TextEditingController();
+  List<Map<String, dynamic>> _notes = [];
+
   String _category = 'Veterinário';
   bool _is24h = false;
   double? _lat;
@@ -47,6 +57,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       _category = widget.initialData!.category;
       _lat = widget.initialData!.latitude;
       _lng = widget.initialData!.longitude;
+    }
+    if (widget.linkedNotes != null) {
+        _notes = List.from(widget.linkedNotes!);
     }
   }
 
@@ -78,6 +91,25 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   }
 
   Future<void> _deletePartner() async {
+    // Check if partner is linked to any pet (Stub logic - Replace with real check when relational DB is ready)
+    // For now, we assume no pets are linked to partners directly in the PartnerModel.
+    // Use PetProfileService or similar to iterate pets and check foreign keys if they existed.
+    
+    // Simulate check (always false for now in this MVP structure)
+    bool isLinkedToPet = false; 
+
+    if (isLinkedToPet) {
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Não é possível excluir: Este parceiro está vinculado a um Pet.'),
+                    backgroundColor: Colors.redAccent
+                ),
+            );
+        }
+        return;
+    }
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -144,7 +176,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               backgroundColor: const Color(0xFF00E676),
             ),
           );
-          Navigator.pop(context, true);
+          
+          if (widget.linkedNotes != null) {
+              Navigator.pop(context, {'updated': true, 'notes': _notes});
+          } else {
+              Navigator.pop(context, true);
+          }
         }
       } catch (e) {
         debugPrint("Erro fatal ao salvar: $e");
@@ -159,6 +196,15 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     }
   }
 
+  Future<void> _generatePdf() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Gerar PDF: Funcionalidade em desenvolvimento'), 
+        backgroundColor: Colors.blueAccent
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,11 +214,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          if (widget.initialData != null)
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-              onPressed: _deletePartner,
-            ),
+          if (widget.initialData != null) ...[
+            PdfActionButton(onPressed: _generatePdf),
+          ],
         ],
       ),
       body: SingleChildScrollView(
@@ -198,8 +242,15 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               const SizedBox(height: 16),
               _buildTextField(_specialtiesController, 'Especialidades (separe por vírgula)', Icons.stars),
               const SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildTextField(_addressController, 'Endereço Completo', Icons.location_on, maxLines: 2),
               const SizedBox(height: 32),
+              
+              if (widget.linkedNotes != null) ...[
+                 _buildNotesSection(),
+                 const SizedBox(height: 32),
+              ],
+
               ElevatedButton(
                 onPressed: _savePartner,
                 style: ElevatedButton.styleFrom(
@@ -211,10 +262,51 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                 ),
                 child: Text('SALVAR PARCEIRO', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
+              const SizedBox(height: 32),
+              if (widget.initialData != null) _buildDangerZone(),
               const SizedBox(height: 100), // Extra space to scroll past the keyboard
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDangerZone() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.05),
+        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+              const SizedBox(width: 8),
+              Text('Zona de Perigo', style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Ao excluir este parceiro, ele será removido permanentemente da sua lista. Esta ação é irreversível.',
+            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _deletePartner,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent.withOpacity(0.1),
+              foregroundColor: Colors.redAccent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: Colors.redAccent)),
+            ),
+            child: const Text('EXCLUIR PARCEIRO'),
+          ),
+        ],
       ),
     );
   }
@@ -287,6 +379,127 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       ),
       validator: (v) => null,
     );
+  }
+
+  Widget _buildNotesSection() {
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+            Row(
+              children: [
+                const Icon(Icons.note_alt_outlined, color: Colors.amberAccent),
+                const SizedBox(width: 8),
+                Text('Notas e Observações', style: GoogleFonts.poppins(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: _notes.isEmpty 
+                ? Center(
+                    child: Text(
+                      'Nenhuma anotação ainda.\nEscreva ou grave lembretes sobre este parceiro.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: Colors.white30, fontSize: 12),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: _notes.length,
+                    separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                    itemBuilder: (context, index) {
+                      final note = _notes[index];
+                      final date = DateTime.parse(note['date']);
+                      final formattedDate = DateFormat('dd/MM/yy HH:mm').format(date);
+                      
+                      return Dismissible(
+                          key: Key(note['id']),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 16),
+                              color: Colors.redAccent.withOpacity(0.3),
+                              child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          onDismissed: (_) => _deleteNote(index),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(note['content'], style: GoogleFonts.poppins(color: Colors.white, fontSize: 13)),
+                              const SizedBox(height: 4),
+                              Text(formattedDate, style: const TextStyle(color: Colors.white30, fontSize: 10)),
+                            ],
+                          ),
+                      );
+                    },
+                  ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _noteController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Nova observação...',
+                      hintStyle: const TextStyle(color: Colors.white30),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.05),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                    ),
+                    onSubmitted: (_) => _addNote(),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundColor: const Color(0xFF00E676),
+                  child: IconButton(
+                    icon: const Icon(Icons.send, color: Colors.black, size: 20),
+                    onPressed: _addNote,
+                  ),
+                ),
+                 // Mic button placeholder
+                 const SizedBox(width: 8),
+                 CircleAvatar(
+                  backgroundColor: Colors.white.withOpacity(0.1),
+                  child: IconButton(
+                    icon: const Icon(Icons.mic, color: Colors.amberAccent, size: 20),
+                    onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gravação de voz: Em breve')));
+                    },
+                  ),
+                ),
+              ],
+            ),
+        ],
+    );
+  }
+
+  void _addNote() {
+    final text = _noteController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _notes.insert(0, {
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'content': text,
+        'date': DateTime.now().toIso8601String(),
+        'type': 'text' // ready for audio later
+      });
+      _noteController.clear();
+    });
+  }
+
+  void _deleteNote(int index) {
+      setState(() {
+          _notes.removeAt(index);
+      });
   }
 
   Widget _buildCategoryDropdown() {

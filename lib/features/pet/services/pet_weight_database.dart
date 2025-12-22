@@ -1,0 +1,189 @@
+import 'package:flutter/material.dart';
+
+/// Database de referência de pesos ideais por raça e porte
+class PetWeightDatabase {
+  // Pesos médios por porte (em kg)
+  static const Map<String, Map<String, double>> porteWeights = {
+    'Pequeno': {'min': 2.0, 'ideal': 5.0, 'max': 10.0},
+    'Médio': {'min': 10.0, 'ideal': 15.0, 'max': 25.0},
+    'Grande': {'min': 25.0, 'ideal': 35.0, 'max': 45.0},
+    'Gigante': {'min': 45.0, 'ideal': 60.0, 'max': 80.0},
+  };
+
+  // Database de raças específicas (peso ideal médio em kg)
+  static const Map<String, Map<String, dynamic>> breedWeights = {
+    // Pequeno Porte
+    'Chihuahua': {'ideal': 2.5, 'porte': 'Pequeno'},
+    'Yorkshire': {'ideal': 3.0, 'porte': 'Pequeno'},
+    'Pinscher': {'ideal': 4.0, 'porte': 'Pequeno'},
+    'Maltês': {'ideal': 3.5, 'porte': 'Pequeno'},
+    'Shih Tzu': {'ideal': 6.0, 'porte': 'Pequeno'},
+    'Pug': {'ideal': 7.0, 'porte': 'Pequeno'},
+    'Lhasa Apso': {'ideal': 6.5, 'porte': 'Pequeno'},
+    'Poodle Toy': {'ideal': 3.0, 'porte': 'Pequeno'},
+    'Spitz Alemão': {'ideal': 4.5, 'porte': 'Pequeno'},
+    'Dachshund': {'ideal': 9.0, 'porte': 'Pequeno'},
+    
+    // Médio Porte
+    'Beagle': {'ideal': 12.0, 'porte': 'Médio'},
+    'Cocker Spaniel': {'ideal': 14.0, 'porte': 'Médio'},
+    'Bulldog Francês': {'ideal': 11.0, 'porte': 'Médio'},
+    'Bulldog Inglês': {'ideal': 23.0, 'porte': 'Médio'},
+    'Border Collie': {'ideal': 18.0, 'porte': 'Médio'},
+    'Poodle Médio': {'ideal': 12.0, 'porte': 'Médio'},
+    'Schnauzer': {'ideal': 16.0, 'porte': 'Médio'},
+    'Basset Hound': {'ideal': 25.0, 'porte': 'Médio'},
+    'Shar Pei': {'ideal': 22.0, 'porte': 'Médio'},
+    'Corgi': {'ideal': 12.0, 'porte': 'Médio'},
+    
+    // Grande Porte
+    'Labrador': {'ideal': 32.0, 'porte': 'Grande'},
+    'Golden Retriever': {'ideal': 32.0, 'porte': 'Grande'},
+    'Pastor Alemão': {'ideal': 35.0, 'porte': 'Grande'},
+    'Rottweiler': {'ideal': 45.0, 'porte': 'Grande'},
+    'Boxer': {'ideal': 30.0, 'porte': 'Grande'},
+    'Husky Siberiano': {'ideal': 23.0, 'porte': 'Grande'},
+    'Dálmata': {'ideal': 27.0, 'porte': 'Grande'},
+    'Doberman': {'ideal': 38.0, 'porte': 'Grande'},
+    'Weimaraner': {'ideal': 32.0, 'porte': 'Grande'},
+    'Akita': {'ideal': 40.0, 'porte': 'Grande'},
+    
+    // Gigante
+    'São Bernardo': {'ideal': 70.0, 'porte': 'Gigante'},
+    'Dogue Alemão': {'ideal': 65.0, 'porte': 'Gigante'},
+    'Mastiff': {'ideal': 80.0, 'porte': 'Gigante'},
+    'Fila Brasileiro': {'ideal': 55.0, 'porte': 'Gigante'},
+    'Terra Nova': {'ideal': 60.0, 'porte': 'Gigante'},
+    'Bernese': {'ideal': 45.0, 'porte': 'Gigante'},
+    'Leonberger': {'ideal': 65.0, 'porte': 'Gigante'},
+    
+    // Gatos (peso em kg)
+    'Persa': {'ideal': 4.5, 'porte': 'Pequeno', 'species': 'cat'},
+    'Siamês': {'ideal': 4.0, 'porte': 'Pequeno', 'species': 'cat'},
+    'Maine Coon': {'ideal': 7.0, 'porte': 'Médio', 'species': 'cat'},
+    'Ragdoll': {'ideal': 6.5, 'porte': 'Médio', 'species': 'cat'},
+    'Bengal': {'ideal': 5.5, 'porte': 'Pequeno', 'species': 'cat'},
+    'Sphynx': {'ideal': 4.0, 'porte': 'Pequeno', 'species': 'cat'},
+    'British Shorthair': {'ideal': 5.5, 'porte': 'Médio', 'species': 'cat'},
+    'Vira-lata': {'ideal': 4.5, 'porte': 'Pequeno', 'species': 'cat'},
+  };
+
+  /// Busca o peso ideal baseado na raça ou porte
+  static double? getIdealWeight({String? raca, String? porte}) {
+    // Prioridade 1: Buscar por raça específica
+    if (raca != null && raca.isNotEmpty) {
+      // Busca exata
+      if (breedWeights.containsKey(raca)) {
+        return breedWeights[raca]!['ideal'] as double;
+      }
+      
+      // Busca fuzzy (case insensitive, partial match)
+      final racaLower = raca.toLowerCase();
+      for (var entry in breedWeights.entries) {
+        if (entry.key.toLowerCase().contains(racaLower) || 
+            racaLower.contains(entry.key.toLowerCase())) {
+          return entry.value['ideal'] as double;
+        }
+      }
+    }
+    
+    // Prioridade 2: Buscar por porte
+    if (porte != null && porte.isNotEmpty && porteWeights.containsKey(porte)) {
+      return porteWeights[porte]!['ideal'];
+    }
+    
+    // Fallback: Médio porte
+    return porteWeights['Médio']!['ideal'];
+  }
+
+  /// Detecta o porte baseado na raça
+  static String? getPorteFromRaca(String? raca) {
+    if (raca == null || raca.isEmpty) return null;
+    
+    final racaLower = raca.toLowerCase();
+    for (var entry in breedWeights.entries) {
+      if (entry.key.toLowerCase().contains(racaLower) || 
+          racaLower.contains(entry.key.toLowerCase())) {
+        return entry.value['porte'] as String?;
+      }
+    }
+    
+    return null;
+  }
+
+  /// Calcula o status do peso
+  static WeightStatus calculateWeightStatus({
+    required double currentWeight,
+    required double idealWeight,
+  }) {
+    final ratio = currentWeight / idealWeight;
+    
+    if (ratio < 0.90) {
+      return WeightStatus(
+        status: WeightStatusType.underweight,
+        message: 'Abaixo do ideal: O peso sugerido para este porte é ${idealWeight.toStringAsFixed(1)} kg.',
+        color: Colors.blue,
+        icon: Icons.trending_down,
+        percentage: (ratio * 100).toInt(),
+      );
+    } else if (ratio > 1.10) {
+      return WeightStatus(
+        status: WeightStatusType.overweight,
+        message: 'Acima do ideal: O peso sugerido para este porte é ${idealWeight.toStringAsFixed(1)} kg.',
+        color: Colors.orange,
+        icon: Icons.trending_up,
+        percentage: (ratio * 100).toInt(),
+      );
+    } else {
+      return WeightStatus(
+        status: WeightStatusType.normal,
+        message: 'Peso Normal: Excelente! O pet está na faixa ideal.',
+        color: const Color(0xFF00E676),
+        icon: Icons.check_circle,
+        percentage: (ratio * 100).toInt(),
+      );
+    }
+  }
+
+  /// Lista de raças disponíveis para autocomplete
+  static List<String> get allBreeds => breedWeights.keys.toList()..sort();
+  
+  /// Lista de portes disponíveis
+  static List<String> get allPortes => porteWeights.keys.toList();
+}
+
+/// Tipos de status de peso
+enum WeightStatusType {
+  underweight,
+  normal,
+  overweight,
+}
+
+/// Modelo de status de peso
+class WeightStatus {
+  final WeightStatusType status;
+  final String message;
+  final Color color;
+  final IconData icon;
+  final int percentage; // Percentual em relação ao ideal
+
+  WeightStatus({
+    required this.status,
+    required this.message,
+    required this.color,
+    required this.icon,
+    required this.percentage,
+  });
+
+  /// Retorna recomendação baseada no status
+  String get recommendation {
+    switch (status) {
+      case WeightStatusType.underweight:
+        return 'Considere consultar o veterinário para avaliar a nutrição e saúde geral do pet.';
+      case WeightStatusType.overweight:
+        return 'Agende uma consulta com o veterinário na aba "Parc." para ajustar a dieta e exercícios.';
+      case WeightStatusType.normal:
+        return 'Continue com os cuidados atuais! Mantenha a rotina de alimentação e exercícios.';
+    }
+  }
+}

@@ -13,6 +13,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import '../models/food_analysis_model.dart';
 import '../../../core/providers/settings_provider.dart';
+import '../../../core/widgets/pdf_action_button.dart';
 
 class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -188,8 +189,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               backgroundColor: Colors.transparent,
               elevation: 0,
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+                PdfActionButton(
                   onPressed: _generatePDF,
                 ),
                 const SizedBox(width: 8),

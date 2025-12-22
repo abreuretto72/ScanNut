@@ -1,4 +1,5 @@
 import 'pet_analysis_result.dart';
+import 'lab_exam.dart';
 
 /// Extended Pet Profile Model with bio-information
 class PetProfileExtended {
@@ -7,6 +8,7 @@ class PetProfileExtended {
   final String? raca;
   final String? idadeExata; // "2 anos 3 meses" ou "15 meses"
   final double? pesoAtual; // kg
+  final double? pesoIdeal; // kg - Target Weight
   final String? nivelAtividade; // Sedentário, Moderado, Ativo
   final String? statusReprodutivo; // Castrado, Inteiro
   
@@ -19,6 +21,12 @@ class PetProfileExtended {
   final DateTime? dataUltimaAntirrabica;
   final String? frequenciaBanho; // Semanal, Quinzenal, Mensal
   
+  // Rede de Apoio
+  final List<String> linkedPartnerIds;
+  final Map<String, List<Map<String, dynamic>>> partnerNotes; // PartnerID -> List of notes {id, content, date}
+  final List<Map<String, dynamic>> weightHistory; // [{date: iso, weight: 10.5, status: 'normal'}]
+  final List<Map<String, dynamic>> labExams; // Lab exams with OCR and AI analysis
+  
   // Metadata
   final DateTime lastUpdated;
   final String? imagePath;
@@ -29,6 +37,7 @@ class PetProfileExtended {
     this.raca,
     this.idadeExata,
     this.pesoAtual,
+    this.pesoIdeal,
     this.nivelAtividade,
     this.statusReprodutivo,
     this.alergiasConhecidas = const [],
@@ -36,6 +45,10 @@ class PetProfileExtended {
     this.dataUltimaV10,
     this.dataUltimaAntirrabica,
     this.frequenciaBanho,
+    this.linkedPartnerIds = const [],
+    this.partnerNotes = const {},
+    this.weightHistory = const [],
+    this.labExams = const [],
     required this.lastUpdated,
     this.imagePath,
     this.rawAnalysis,
@@ -47,6 +60,7 @@ class PetProfileExtended {
       raca: json['raca'] as String?,
       idadeExata: json['idade_exata'] as String?,
       pesoAtual: (json['peso_atual'] as num?)?.toDouble(),
+      pesoIdeal: (json['peso_ideal'] as num?)?.toDouble(),
       nivelAtividade: json['nivel_atividade'] as String?,
       statusReprodutivo: json['status_reprodutivo'] as String?,
       alergiasConhecidas: (json['alergias_conhecidas'] as List?)?.cast<String>() ?? [],
@@ -58,6 +72,12 @@ class PetProfileExtended {
           ? DateTime.parse(json['data_ultima_antirrabica'] as String)
           : null,
       frequenciaBanho: json['frequencia_banho'] as String?,
+      linkedPartnerIds: (json['linked_partner_ids'] as List?)?.cast<String>() ?? [],
+      partnerNotes: (json['partner_notes'] as Map?)?.map(
+            (k, v) => MapEntry(k.toString(), (v as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? []),
+          ) ?? {},
+      weightHistory: (json['weight_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
+      labExams: (json['lab_exams'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
       lastUpdated: json['last_updated'] != null
           ? DateTime.parse(json['last_updated'] as String)
           : DateTime.now(),
@@ -101,6 +121,10 @@ class PetProfileExtended {
          alergiasConhecidas: [],
          preferencias: [],
          frequenciaBanho: 'Quinzenal',
+         linkedPartnerIds: [],
+         partnerNotes: {},
+         weightHistory: [],
+         labExams: [],
      );
   }
 
@@ -110,6 +134,7 @@ class PetProfileExtended {
       if (raca != null) 'raca': raca,
       if (idadeExata != null) 'idade_exata': idadeExata,
       if (pesoAtual != null) 'peso_atual': pesoAtual,
+      if (pesoIdeal != null) 'peso_ideal': pesoIdeal,
       if (nivelAtividade != null) 'nivel_atividade': nivelAtividade,
       if (statusReprodutivo != null) 'status_reprodutivo': statusReprodutivo,
       'alergias_conhecidas': alergiasConhecidas,
@@ -117,6 +142,10 @@ class PetProfileExtended {
       if (dataUltimaV10 != null) 'data_ultima_v10': dataUltimaV10!.toIso8601String(),
       if (dataUltimaAntirrabica != null) 'data_ultima_antirrabica': dataUltimaAntirrabica!.toIso8601String(),
       if (frequenciaBanho != null) 'frequencia_banho': frequenciaBanho,
+      'linked_partner_ids': linkedPartnerIds,
+      'partner_notes': partnerNotes,
+      'weight_history': weightHistory,
+      'lab_exams': labExams,
       'last_updated': lastUpdated.toIso8601String(),
       if (imagePath != null) 'image_path': imagePath,
       if (rawAnalysis != null) 'raw_analysis': rawAnalysis,
@@ -125,6 +154,7 @@ class PetProfileExtended {
 
   /// Calculate ideal weight based on breed (simplified)
   double? getIdealWeight() {
+    if (pesoIdeal != null) return pesoIdeal;
     if (raca == null) return null;
     // TODO: Implement breed-specific ideal weight calculation
     return pesoAtual; // Placeholder
@@ -149,6 +179,7 @@ class PetProfileExtended {
     String? raca,
     String? idadeExata,
     double? pesoAtual,
+    double? pesoIdeal,
     String? nivelAtividade,
     String? statusReprodutivo,
     List<String>? alergiasConhecidas,
@@ -156,6 +187,10 @@ class PetProfileExtended {
     DateTime? dataUltimaV10,
     DateTime? dataUltimaAntirrabica,
     String? frequenciaBanho,
+    List<String>? linkedPartnerIds,
+    Map<String, List<Map<String, dynamic>>>? partnerNotes,
+    List<Map<String, dynamic>>? weightHistory,
+    List<Map<String, dynamic>>? labExams,
     DateTime? lastUpdated,
     String? imagePath,
   }) {
@@ -164,6 +199,7 @@ class PetProfileExtended {
       raca: raca ?? this.raca,
       idadeExata: idadeExata ?? this.idadeExata,
       pesoAtual: pesoAtual ?? this.pesoAtual,
+      pesoIdeal: pesoIdeal ?? this.pesoIdeal,
       nivelAtividade: nivelAtividade ?? this.nivelAtividade,
       statusReprodutivo: statusReprodutivo ?? this.statusReprodutivo,
       alergiasConhecidas: alergiasConhecidas ?? this.alergiasConhecidas,
@@ -171,6 +207,10 @@ class PetProfileExtended {
       dataUltimaV10: dataUltimaV10 ?? this.dataUltimaV10,
       dataUltimaAntirrabica: dataUltimaAntirrabica ?? this.dataUltimaAntirrabica,
       frequenciaBanho: frequenciaBanho ?? this.frequenciaBanho,
+      linkedPartnerIds: linkedPartnerIds ?? this.linkedPartnerIds,
+      partnerNotes: partnerNotes ?? this.partnerNotes,
+      weightHistory: weightHistory ?? this.weightHistory,
+      labExams: labExams ?? this.labExams,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       imagePath: imagePath ?? this.imagePath,
     );

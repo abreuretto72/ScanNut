@@ -540,6 +540,100 @@ class GeminiService {
       throw GeminiException('Erro ao gerar dieta: $e', type: GeminiErrorType.serverError);
     }
   }
+  
+  /// Generate plain text response (not JSON)
+  Future<String> generatePlainText(String prompt) async {
+    if (_apiKey.isEmpty) {
+      throw GeminiException(
+        'API Key não configurada. Verifique o arquivo .env',
+        type: GeminiErrorType.configuration,
+      );
+    }
+
+    try {
+      debugPrint('🚀 Gerando texto com Gemini...');
+
+      // Find working model
+      final workingModel = await _findWorkingModel();
+      if (workingModel == null) {
+        throw GeminiException(
+          'Nenhum modelo Gemini disponível',
+          type: GeminiErrorType.serviceUnavailable,
+        );
+      }
+
+      debugPrint('🤖 Modelo: $workingModel');
+
+      // Make request
+      final response = await _dio.post(
+        '/v1beta/models/$workingModel:generateContent',
+        queryParameters: {'key': _apiKey},
+        data: {
+          'contents': [
+            {
+              'parts': [
+                {'text': prompt}
+              ]
+            }
+          ],
+        },
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Tempo limite excedido');
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw GeminiException(
+          'Erro HTTP: ${response.statusCode}',
+          type: GeminiErrorType.serverError,
+        );
+      }
+
+      final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      
+      if (text == null || text.isEmpty) {
+        throw GeminiException(
+          'Resposta vazia da IA',
+          type: GeminiErrorType.emptyResponse,
+        );
+      }
+
+      debugPrint('✅ Texto gerado com sucesso');
+      return text.toString();
+
+    } on TimeoutException catch (e) {
+      debugPrint('❌ Timeout: $e');
+      throw GeminiException(
+        'A conexão demorou muito. Verifique sua internet.',
+        type: GeminiErrorType.timeout,
+      );
+    } on DioException catch (e) {
+      debugPrint('❌ Erro Dio: ${e.type}');
+      
+      if (e.response?.statusCode == 429) {
+        throw GeminiException(
+          'Muitas requisições. Aguarde um momento.',
+          type: GeminiErrorType.rateLimitExceeded,
+        );
+      }
+      
+      throw GeminiException(
+        'Erro de comunicação: ${e.message}',
+        type: GeminiErrorType.network,
+      );
+    } catch (e) {
+      debugPrint('❌ Erro inesperado: $e');
+      throw GeminiException(
+        'Erro inesperado. Tente novamente.',
+        type: GeminiErrorType.unknown,
+      );
+    }
+  }
 }
 
 /// Error types

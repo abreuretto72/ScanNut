@@ -3,14 +3,24 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/pet_event.dart';
 
 class PetEventService {
+  static final PetEventService _instance = PetEventService._internal();
+  factory PetEventService() => _instance;
+  PetEventService._internal();
+
   static const String _boxName = 'pet_events';
   Box<PetEvent>? _box;
 
   Future<void> init() async {
-    if (!Hive.isBoxOpen(_boxName)) {
-      _box = await Hive.openBox<PetEvent>(_boxName);
-    } else {
-      _box = Hive.box<PetEvent>(_boxName);
+    if (_box != null && _box!.isOpen) return;
+    try {
+        if (!Hive.isBoxOpen(_boxName)) {
+            _box = await Hive.openBox<PetEvent>(_boxName);
+        } else {
+            _box = Hive.box<PetEvent>(_boxName);
+        }
+        debugPrint('✅ PetEventService initialized (Singleton). Box Open: ${_box?.isOpen}');
+    } catch (e, stack) {
+        debugPrint('❌ CRITICAL: Failed to open Pet Event Box: $e\n$stack');
     }
   }
 
@@ -24,7 +34,8 @@ class PetEventService {
   // Create
   Future<void> addEvent(PetEvent event) async {
     await box.put(event.id, event);
-    debugPrint('✅ Event added: ${event.title} for ${event.petName}');
+    await box.flush(); // FORCE DISK WRITE
+    debugPrint('✅ Event persistido no disco: ${event.title} (Pet: ${event.petName})');
   }
 
   // Read
@@ -91,7 +102,8 @@ class PetEventService {
   // Update
   Future<void> updateEvent(PetEvent event) async {
     await box.put(event.id, event);
-    debugPrint('✅ Event updated: ${event.title}');
+    await box.flush(); // FORCE DISK WRITE
+    debugPrint('✅ Event updated and flushed: ${event.title}');
   }
 
   Future<void> markAsCompleted(String eventId) async {
@@ -99,14 +111,16 @@ class PetEventService {
     if (event != null) {
       event.completed = true;
       await event.save();
-      debugPrint('✅ Event marked as completed: ${event.title}');
+      await box.flush(); // FORCE DISK WRITE
+      debugPrint('✅ Event marked as completed and flushed: ${event.title}');
     }
   }
 
   // Delete
   Future<void> deleteEvent(String eventId) async {
     await box.delete(eventId);
-    debugPrint('🗑️ Event deleted: $eventId');
+    await box.flush(); // FORCE DISK WRITE
+    debugPrint('🗑️ Event deleted and flushed: $eventId');
   }
 
   Future<void> deleteAllEventsForPet(String petName) async {

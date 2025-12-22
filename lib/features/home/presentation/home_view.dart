@@ -31,6 +31,7 @@ import '../../pet/presentation/widgets/pet_result_card.dart';
 import '../../pet/presentation/pet_history_screen.dart';
 import '../../partners/presentation/partners_hub_screen.dart';
 import '../../partners/presentation/partners_screen.dart';
+import '../../partners/presentation/global_agenda_screen.dart';
 import 'widgets/app_drawer.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -574,6 +575,26 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Agenda Global Button (only in PET mode)
+                  if (_currentIndex == 2) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.calendar_month, color: Color(0xFF00E676), size: 28),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const GlobalAgendaScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
                   // Partners Button
                   Container(
                     decoration: BoxDecoration(
