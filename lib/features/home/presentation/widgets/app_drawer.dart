@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../settings/settings_screen.dart';
+import '../../../pet/presentation/nutritional_pillars_screen.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -76,6 +77,21 @@ class AppDrawer extends ConsumerWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.temple_buddhist, // Or local_library or spa
+                    title: 'Pilares da Nutrição',
+                    subtitle: 'Conceitos do ScanNut',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NutritionalPillarsScreen(),
                         ),
                       );
                     },
@@ -266,26 +282,192 @@ class AppDrawer extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text(
-          'Como Usar',
-          style: GoogleFonts.poppins(color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00E676).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.help_outline, color: Color(0xFF00E676), size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Guia Completo',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ),
+          ],
         ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHelpItem('1️⃣', 'Escolha o modo de análise na barra inferior'),
-              _buildHelpItem('2️⃣', 'Aponte a câmera para o objeto'),
-              _buildHelpItem('3️⃣', 'Toque no botão central para capturar'),
-              _buildHelpItem('4️⃣', 'Aguarde a análise da IA'),
-              _buildHelpItem('5️⃣', 'Navegue pelas abas para ver detalhes'),
-              const SizedBox(height: 16),
+              // Seções do Perfil
               Text(
-                '💡 Dica: Configure sua meta diária em Configurações!',
+                '📋 SEÇÕES DO PERFIL DO PET',
                 style: GoogleFonts.poppins(
-                  color: Colors.green.shade300,
-                  fontSize: 12,
+                  color: const Color(0xFF00E676),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              _buildSectionInfo(
+                '🐾 Identidade',
+                'Gerencie os dados vitais do pet: peso, raça, idade e análise comportamental genética completa.',
+              ),
+              
+              _buildSectionInfo(
+                '💉 Saúde',
+                'Histórico médico completo com controle de vacinas, vermífugos, exames laboratoriais e lembretes de consultas.',
+              ),
+              
+              _buildSectionInfo(
+                '🍖 Nutrição',
+                'Planejamento alimentar semanal detalhado com cálculos de Kcal, datas (DD/MM) e os 5 pilares nutricionais.',
+              ),
+              
+              _buildSectionInfo(
+                '📸 Galeria',
+                'Documente visualmente a evolução e momentos especiais do seu pet com fotos e vídeos.',
+              ),
+              
+              _buildSectionInfo(
+                '🤝 Prac',
+                'Prontuário de Acompanhamento Comportamental para registrar rotinas, mudanças de hábito e rede de apoio.',
+              ),
+              
+              const SizedBox(height: 20),
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 16),
+              
+              // Campo de Observações
+              Text(
+                '📝 OBSERVAÇÕES E HISTÓRICO',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFF00E676),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              _buildFeatureItem(
+                '✅ Histórico Cumulativo',
+                'Cada seção possui um campo de observações. Novas anotações NÃO apagam as antigas - tudo fica registrado!',
+              ),
+              
+              _buildFeatureItem(
+                '🕐 Timestamps Automáticos',
+                'O sistema insere automaticamente Data e Hora em cada entrada, criando um histórico cronológico completo.',
+              ),
+              
+              _buildFeatureItem(
+                '📌 Ordem Inteligente',
+                'A entrada mais recente sempre aparece no topo, facilitando a leitura e acompanhamento.',
+              ),
+              
+              _buildFeatureItem(
+                '🎤 Ditado por Voz',
+                'Use o ícone de microfone para ditar observações em vez de digitar. Mais rápido e prático!',
+              ),
+              
+              const SizedBox(height: 20),
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 16),
+              
+              // Exportação PDF
+              Text(
+                '📄 EXPORTAÇÃO EM PDF',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFF00E676),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.picture_as_pdf, color: Colors.blue, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Prontuário Veterinário Completo',
+                            style: GoogleFonts.poppins(
+                              color: Colors.blue[200],
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Todas as informações e observações acumuladas podem ser exportadas de forma seletiva no PDF do Perfil.',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '✓ Serve como prontuário oficial para veterinários\n✓ Escolha quais seções incluir\n✓ Formato profissional com capa e timestamps',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white60,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // Dica Final
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00E676).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.lightbulb, color: Color(0xFF00E676), size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'O ScanNut é uma ferramenta de longo prazo para acompanhar toda a vida do seu pet!',
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF00E676),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -296,7 +478,89 @@ class AppDrawer extends ConsumerWidget {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Entendi',
-              style: GoogleFonts.poppins(color: Colors.green),
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF00E676),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionInfo(String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: GoogleFonts.poppins(
+                color: Colors.white70,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem(String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 2),
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: Color(0xFF00E676),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white60,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

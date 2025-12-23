@@ -21,16 +21,19 @@ import '../../../core/enums/scannut_mode.dart';
 import '../../food/models/food_analysis_model.dart';
 import '../../plant/models/plant_analysis_model.dart';
 import '../../pet/models/pet_analysis_result.dart';
+import '../../pet/models/pet_profile_extended.dart';
+import '../../pet/services/pet_profile_service.dart';
+import '../../pet/presentation/widgets/edit_pet_form.dart';
 
 // Widgets
 import '../../food/presentation/widgets/result_card.dart';
 import '../../food/presentation/food_result_screen.dart';
 import '../../plant/presentation/widgets/plant_result_card.dart';
 import '../../pet/presentation/widgets/pet_result_card.dart';
-import '../../pet/presentation/widgets/pet_result_card.dart';
+import '../../pet/presentation/widgets/pet_selection_dialog.dart';
 import '../../pet/presentation/pet_history_screen.dart';
+import '../../pet/services/pet_profile_service.dart';
 import '../../partners/presentation/partners_hub_screen.dart';
-import '../../partners/presentation/partners_screen.dart';
 import '../../partners/presentation/global_agenda_screen.dart';
 import 'widgets/app_drawer.dart';
 
@@ -208,8 +211,23 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       await _disposeCamera();
       debugPrint('✅ _onCapture: Camera disposed');
 
-      // Prompt for pet name AFTER taking picture (ALWAYS for pet mode)
-      if (capturedMode == 2) {
+      // For Health/Diagnosis mode (petMode == 1), show pet selection dialog
+      if (capturedMode == 2 && capturedPetMode == 1) {
+        debugPrint('🏥 _onCapture: Health mode detected, showing pet selection...');
+        final selectedPet = await _showPetSelectionDialog();
+        
+        if (selectedPet == null) {
+          debugPrint('❌ _onCapture: User cancelled pet selection');
+          return;
+        }
+        
+        setState(() {
+          _petName = selectedPet == '<NOVO>' ? null : selectedPet;
+        });
+        debugPrint('✅ _onCapture: Selected pet: ${_petName ?? "NOVO (no save)"}');
+      }
+      // For Identification mode, prompt for pet name as before
+      else if (capturedMode == 2 && capturedPetMode == 0) {
         debugPrint('🐾 _onCapture: Prompting for pet name...');
         final name = await _promptPetName();
         if (name == null || name.trim().isEmpty) {
@@ -298,10 +316,20 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           ),
         );
       } else if (state.data is PetAnalysisResult) {
+        final petAnalysis = state.data as PetAnalysisResult;
+        
+        // If in diagnosis mode and a pet was selected (not NOVO), save wound analysis
+        if (_petMode == 1 && _petName != null) {
+          debugPrint('💾 Saving wound analysis for pet: $_petName');
+          _saveWoundAnalysis(petAnalysis);
+        } else if (_petMode == 1 && _petName == null) {
+          debugPrint('ℹ️ NOVO selected - showing analysis without saving');
+        }
+        
         _showResultSheet(
           context,
           PetResultCard(
-            analysis: state.data as PetAnalysisResult,
+            analysis: petAnalysis,
             imagePath: _capturedImage!.path,
             onSave: () => _handleSave('Pet'),
             petName: _petName,
@@ -345,6 +373,47 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Dossiê do $petName salvo/atualizado com sucesso!')),
         );
+
+        // Auto-Navigation Logic for Diagnosis Mode
+        if (_petMode == 1) { // 1 = Diagnosis
+            // Close the Result Sheet
+            Navigator.of(context).pop();
+
+            // Load Profile and Navigate to Health Tab
+            try {
+                final profileService = PetProfileService();
+                await profileService.init();
+                final profileData = await profileService.getProfile(petName);
+
+                if (profileData != null && profileData['data'] != null) {
+                    final profile = PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(profileData['data']));
+
+                    if (mounted) {
+                        Navigator.of(context).push(
+                            MaterialPageRoute(builder: (ctx) => Scaffold(
+                                backgroundColor: const Color(0xFF1E1E1E),
+                                appBar: AppBar(
+                                    title: Text(petName),
+                                    backgroundColor: Colors.black,
+                                    iconTheme: const IconThemeData(color: Colors.white),
+                                    titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 20),
+                                ),
+                                body: EditPetForm(
+                                    existingProfile: profile,
+                                    onSave: (p) async { 
+                                        await profileService.saveOrUpdateProfile(p.petName, p.toJson());
+                                        if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+                                    },
+                                    initialTabIndex: 1, // HEALTH TAB
+                                ),
+                            ))
+                        );
+                    }
+                }
+            } catch (e) {
+                debugPrint('Navigation error: $e');
+            }
+        }
       } else {
          if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -699,28 +768,53 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             builder: (context, ref, child) {
               final analysisState = ref.watch(analysisNotifierProvider);
               if (analysisState is AnalysisLoading) {
-                return Container(
-                  color: Colors.black54,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CircularProgressIndicator(color: Color(0xFF00E676)),
-                        const SizedBox(height: 16),
-                        Text(
-                          analysisState.message,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                                shadows: [
-                                  Shadow(blurRadius: 10, color: Colors.black54, offset: Offset(0, 2)),
-                                ],
-                          ),
-                        ),
-                      ],
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Background Preview
+                    if (analysisState.imagePath != null)
+                      Image.file(
+                        File(analysisState.imagePath!),
+                        fit: BoxFit.cover,
+                      ),
+                    
+                    // Dark Overlay
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.7),
                     ),
-                  ),
+
+                    // Loading Content
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                            child: const CircularProgressIndicator(
+                              color: Color(0xFF00E676),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            analysisState.message,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              shadows: [
+                                const Shadow(blurRadius: 4, color: Colors.black, offset: Offset(0, 2)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 );
               }
               return const SizedBox.shrink();
@@ -919,6 +1013,104 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       },
     );
     return petName;
+  }
+
+  // Show pet selection dialog for Health mode
+  Future<String?> _showPetSelectionDialog() async {
+    try {
+      // Load all registered pets
+      final petProfileService = PetProfileService();
+      await petProfileService.init();
+      final petNames = await petProfileService.getAllPetNames();
+      
+      debugPrint('📋 Loaded ${petNames.length} registered pets for selection');
+      
+      // Show dialog
+      final selectedPet = await showDialog<String>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => PetSelectionDialog(
+          registeredPets: petNames,
+        ),
+      );
+      
+      return selectedPet;
+    } catch (e) {
+      debugPrint('❌ Error loading pets for selection: $e');
+      return null;
+    }
+  }
+
+  // Save wound analysis to pet's health history
+  Future<void> _saveWoundAnalysis(PetAnalysisResult analysis) async {
+    try {
+      final petProfileService = PetProfileService();
+      await petProfileService.init();
+      
+      // Extract wound/diagnosis information from analysis
+      final analysisData = {
+        'imagePath': _capturedImage?.path ?? '',
+        'diagnosis': analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? 'Análise de ferida/lesão',
+        'severity': _extractSeverity(analysis),
+        'recommendations': analysis.possiveisCausasDiag ?? [],
+        'rawData': analysis.toJson(), // Store complete analysis
+      };
+      
+      await petProfileService.saveWoundAnalysis(
+        petName: _petName!,
+        analysisData: analysisData,
+      );
+      
+      debugPrint('✅ Wound analysis saved successfully for $_petName');
+      
+      // Show confirmation to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Análise salva no histórico de saúde de $_petName'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error saving wound analysis: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao salvar análise: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // Extract severity level from analysis
+  String _extractSeverity(PetAnalysisResult analysis) {
+    // For diagnosis mode, use urgenciaNivelDiag if available
+    if (analysis.urgenciaNivelDiag != null) {
+      final nivel = analysis.urgenciaNivelDiag!.toLowerCase();
+      if (nivel.contains('vermelho') || nivel.contains('urgente')) {
+        return 'Alta';
+      } else if (nivel.contains('amarelo') || nivel.contains('atenção')) {
+        return 'Média';
+      } else {
+        return 'Baixa';
+      }
+    }
+    
+    // Fallback: analyze description text
+    final descricao = (analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? '').toLowerCase();
+    
+    if (descricao.contains('grave') || descricao.contains('urgente') || descricao.contains('crítico')) {
+      return 'Alta';
+    } else if (descricao.contains('moderado') || descricao.contains('atenção')) {
+      return 'Média';
+    } else {
+      return 'Baixa';
+    }
   }
 
 }

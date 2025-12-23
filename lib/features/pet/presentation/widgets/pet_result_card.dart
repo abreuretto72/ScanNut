@@ -12,6 +12,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:printing/printing.dart';
 
 import 'dart:io';
+import 'package:intl/intl.dart';
 import '../../models/pet_analysis_result.dart';
 import '../../../../core/utils/color_helper.dart';
 import '../../../../core/utils/color_helper.dart';
@@ -22,6 +23,7 @@ import 'weekly_menu_screen.dart';
 import 'vaccine_card.dart';
 import '../../../../core/services/file_upload_service.dart';
 import 'edit_pet_form.dart';
+import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../models/pet_profile_extended.dart';
 import '../../services/pet_profile_service.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
@@ -225,17 +227,42 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 ),
                 pw.SizedBox(height: 10),
               ],
-              ...pet.planoSemanal.map((day) {
-                final dia = day['dia'] ?? '';
-                final refeicao = day['refeicao'] ?? '';
-                final beneficio = day['beneficio'] ?? '';
+              ...pet.planoSemanal.asMap().entries.map((entry) {
+                final index = entry.key;
+                final day = entry.value;
+                
+                // FORCE DYNAMIC DATE FOR PDF - Basendo na Segunda-feira desta semana
+                final now = DateTime.now();
+                final mondayStart = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+                final dateForDay = mondayStart.add(Duration(days: index));
+                final dateStr = DateFormat('dd/MM').format(dateForDay);
+                final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay); 
+                final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
+                final String dia = "$weekDayCap - $dateStr";
+
+                final String refeicao = (day['refeicao'] ?? '').toString();
+                final String beneficio = (day['beneficio'] ?? '').toString();
+                final String dailyKcal = pet.nutricao.metaCalorica['kcal_adulto'] ?? pet.nutricao.metaCalorica['kcal_filhote'] ?? pet.nutricao.metaCalorica['kcal_senior'] ?? 'N/A';
+                
                 return pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(dia, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13)),
-                    pw.Bullet(text: refeicao),
-                    pw.Text("   → $beneficio", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                    pw.SizedBox(height: 8),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text(dia, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12, color: PdfColors.blue800)),
+                        pw.RichText(text: pw.TextSpan(children: [
+                             pw.TextSpan(text: 'Principais Nutrientes: ', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                             pw.TextSpan(text: dailyKcal, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.red800)),
+                        ])),
+                      ],
+                    ),
+                    pw.Bullet(text: refeicao, style: const pw.TextStyle(fontSize: 10)),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.only(left: 15),
+                      child: pw.Text("↳ Motivo: $beneficio", style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic)),
+                    ),
+                    pw.SizedBox(height: 10),
                   ],
                 );
               }).toList(),
@@ -254,52 +281,17 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       ),
     );
 
-    try {
-      final pdfBytes = await pdf.save();
-      final output = await getTemporaryDirectory();
-      final file = File("${output.path}/pet_dossier_${DateTime.now().millisecondsSinceEpoch}.pdf");
-      await file.writeAsBytes(pdfBytes);
-      
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.grey[900],
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-          builder: (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.print, color: Colors.blueAccent),
-                  title: const Text("Imprimir Relatório", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Printing.layoutPdf(onLayout: (format) async => pdfBytes);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.share, color: Colors.greenAccent),
-                  title: const Text("Compartilhar PDF", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Share.shareXFiles([XFile(file.path)], text: 'Dossiê Pet ScanNut - ${widget.analysis.raca}');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.open_in_new, color: Colors.amberAccent),
-                  title: const Text("Abrir no Visualizador", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await OpenFilex.open(file.path);
-                  },
-                ),
-              ],
-            ),
+    // OPEN PREVIEW SCREEN
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfPreviewScreen(
+            title: "Dossiê: ${widget.petName ?? 'Pet'}",
+            buildPdf: (format) async => pdf.save(),
           ),
-        );
-      }
-    } catch (e) {
-      debugPrint("Erro PDF: $e");
+        ),
+      );
     }
   }
 
@@ -386,8 +378,6 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (_isEmergency) 
-                    IconButton(onPressed: () => launchUrl(Uri.parse('geo:0,0?q=veterinario+24h')), icon: const Icon(Icons.phone, color: Colors.redAccent)),
                   PdfActionButton(onPressed: _generatePDF),
                   IconButton(
                     onPressed: () {
@@ -624,25 +614,38 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
           ),
           const SizedBox(height: 16),
         ],
+        
+        // NOVO: Cardápio Semanal Sugerido pela IA
+        if (widget.analysis.planoSemanal.isNotEmpty) ...[
+          _buildSectionCard(
+            title: "Plano Alimentar Sugerido",
+            icon: Icons.calendar_today,
+            color: Colors.lightBlueAccent,
+            child: WeeklyMealPlanner(
+              weeklyPlan: widget.analysis.planoSemanal.map((e) => Map<String, String>.from(
+                e.map((key, value) => MapEntry(key, value.toString()))
+              )).toList(),
+              generalGuidelines: widget.analysis.orientacoesGerais,
+              startDate: DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)), // Começamos na Segunda-feira desta semana
+              dailyKcal: nut.metaCalorica['kcal_adulto'] ?? nut.metaCalorica['kcal_filhote'] ?? nut.metaCalorica['kcal_senior'],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+
         _buildSectionCard(
-          title: "Meta Calórica: Filhote",
-          icon: Icons.child_care,
-          color: Colors.pinkAccent,
-          child: _buildInfoRow("Kcal/Dia:", nut.metaCalorica['kcal_filhote'] ?? 'N/A'),
-        ),
-        const SizedBox(height: 12),
-        _buildSectionCard(
-          title: "Meta Calórica: Adulto",
-          icon: Icons.pets,
-          color: Colors.orange,
-          child: _buildInfoRow("Kcal/Dia:", nut.metaCalorica['kcal_adulto'] ?? 'N/A'),
-        ),
-        const SizedBox(height: 12),
-        _buildSectionCard(
-          title: "Meta Calórica: Sênior",
-          icon: Icons.access_time_filled,
-          color: Colors.blueGrey,
-          child: _buildInfoRow("Kcal/Dia:", nut.metaCalorica['kcal_senior'] ?? 'N/A'),
+          title: "Metas Calóricas Diárias",
+          icon: Icons.bolt,
+          color: Colors.orangeAccent,
+          child: Column(
+            children: [
+              _buildCaloricRow("Filhote:", nut.metaCalorica['kcal_filhote'] ?? 'N/A', Colors.pinkAccent),
+              const Divider(color: Colors.white10, height: 16),
+              _buildCaloricRow("Adulto:", nut.metaCalorica['kcal_adulto'] ?? 'N/A', Colors.orange),
+              const Divider(color: Colors.white10, height: 16),
+              _buildCaloricRow("Sênior:", nut.metaCalorica['kcal_senior'] ?? 'N/A', Colors.blueGrey),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         _buildSectionCard(
@@ -737,5 +740,42 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
   Widget _buildToggleInfo(String label, bool value) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)), Icon(value ? Icons.report_problem : Icons.check_circle, color: value ? Colors.redAccent : Colors.greenAccent, size: 16)]);
 
-  Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withOpacity(0.2), Colors.blue.withOpacity(0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text("💡 INSIGHT EXCLUSIVO", style: TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
+  Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text("💡 INSIGHT EXCLUSIVO", style: TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
+  Widget _buildCaloricRow(String label, String value, Color color) {
+    // Limpar o valor para evitar duplicidade de 'Kcal'
+    final cleanValue = value
+        .replaceAll('aproximadamente', '+-')
+        .replaceAll('Aproximadamente', '+-')
+        .replaceAll('Kcal/dia', '')
+        .replaceAll('kcal/dia', '')
+        .replaceAll('Kcal', '')
+        .replaceAll('kcal', '')
+        .trim();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(Icons.label_important, color: color.withValues(alpha: 0.5), size: 14),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 85,
+            child: Text(label, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+          ),
+          Expanded(
+            child: Text(
+              cleanValue, 
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 55,
+            child: Text("Kcal/dia", style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11), textAlign: TextAlign.left),
+          ),
+        ],
+      ),
+    );
+  }
 }

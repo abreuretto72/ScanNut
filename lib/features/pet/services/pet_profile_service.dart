@@ -182,4 +182,135 @@ class PetProfileService {
           debugPrint('❌ Error updating partner notes: $e\n$stack');
       }
   }
+  /// Update Weekly Menu Plan (Atomic Patch)
+  Future<void> saveWeeklyMenu({
+    required String petName,
+    required List<Map<String, dynamic>> menuPlan,
+    String? guidelines,
+    String? startDate,
+    String? endDate,
+  }) async {
+      try {
+          await init();
+          final key = _normalizeKey(petName);
+          final entry = _profileBox?.get(key);
+          
+          if (entry != null) {
+              final map = Map<String, dynamic>.from(entry as Map);
+              final data = Map<String, dynamic>.from(map['data'] as Map);
+              
+              // CRITICAL: Preserve all keys (especially 'refeicoes' array)
+              final List<Map<String, dynamic>> sanitizedPlan = menuPlan.map((item) {
+                 return Map<String, dynamic>.from(item);
+              }).toList();
+
+              data['plano_semanal'] = sanitizedPlan;
+              data['orientacoes_gerais'] = guidelines ?? data['orientacoes_gerais']; // Preserve if null
+              
+              // New date fields for date range logic
+              if (startDate != null) data['data_inicio_semana'] = startDate;
+              if (endDate != null) data['data_fim_semana'] = endDate;
+              
+              map['data'] = data;
+              map['last_updated'] = DateTime.now().toIso8601String();
+              
+              await _profileBox!.put(key, map);
+              await _profileBox!.flush();
+              debugPrint('HIVE_OK: Cardápio Semanal persistido. Key: $key. Items: ${sanitizedPlan.length}. Range: $startDate to $endDate');
+              // Debug first item to ensure structure
+              if (sanitizedPlan.isNotEmpty) {
+                 debugPrint('  [DEBUG MENU SAMPLE] Item 0: ${sanitizedPlan.first}');
+              }
+          } else {
+              debugPrint('⚠️ Cannot update menu: Profile not found for $petName');
+          }
+      } catch (e, stack) {
+          debugPrint('❌ Error updating weekly menu: $e\n$stack');
+      }
+  }
+
+  /// Add Wound Analysis to History (Atomic Append)
+  Future<void> saveWoundAnalysis({
+    required String petName,
+    required Map<String, dynamic> analysisData,
+  }) async {
+      try {
+          await init();
+          final key = _normalizeKey(petName);
+          final entry = _profileBox?.get(key);
+          
+          if (entry != null) {
+              final map = Map<String, dynamic>.from(entry as Map);
+              final data = Map<String, dynamic>.from(map['data'] as Map);
+              
+              // Get existing wound analysis history or create new list
+              final List<Map<String, dynamic>> history = 
+                  (data['wound_analysis_history'] as List?)
+                      ?.map((e) => Map<String, dynamic>.from(e as Map))
+                      .toList() ?? [];
+              
+              // Add new analysis with timestamp
+              final newEntry = {
+                'date': DateTime.now().toIso8601String(),
+                'imagePath': analysisData['imagePath'],
+                'diagnosis': analysisData['diagnosis'],
+                'severity': analysisData['severity'],
+                'recommendations': analysisData['recommendations'],
+                'rawData': analysisData['rawData'], // Store complete analysis
+              };
+              
+              history.insert(0, newEntry); // Most recent first
+              
+              data['wound_analysis_history'] = history;
+              map['data'] = data;
+              map['last_updated'] = DateTime.now().toIso8601String();
+              
+              await _profileBox!.put(key, map);
+              await _profileBox!.flush();
+              debugPrint('HIVE_OK: Wound analysis saved for $petName. Total entries: ${history.length}');
+          } else {
+              debugPrint('⚠️ Cannot save wound analysis: Profile not found for $petName');
+          }
+      } catch (e, stack) {
+          debugPrint('❌ Error saving wound analysis: $e\n$stack');
+      }
+  }
+
+  /// Delete Wound Analysis from History
+  Future<void> deleteWoundAnalysis({
+    required String petName,
+    required String analysisDate,
+  }) async {
+      try {
+          await init();
+          final key = _normalizeKey(petName);
+          final entry = _profileBox?.get(key);
+          
+          if (entry != null) {
+              final map = Map<String, dynamic>.from(entry as Map);
+              final data = Map<String, dynamic>.from(map['data'] as Map);
+              
+              // Get existing wound analysis history
+              final List<Map<String, dynamic>> history = 
+                  (data['wound_analysis_history'] as List?)
+                      ?.map((e) => Map<String, dynamic>.from(e as Map))
+                      .toList() ?? [];
+              
+              // Remove the analysis with matching date
+              history.removeWhere((analysis) => analysis['date'] == analysisDate);
+              
+              data['wound_analysis_history'] = history;
+              map['data'] = data;
+              map['last_updated'] = DateTime.now().toIso8601String();
+              
+              await _profileBox!.put(key, map);
+              await _profileBox!.flush();
+              debugPrint('HIVE_OK: Wound analysis deleted for $petName. Remaining entries: ${history.length}');
+          } else {
+              debugPrint('⚠️ Cannot delete wound analysis: Profile not found for $petName');
+          }
+      } catch (e, stack) {
+          debugPrint('❌ Error deleting wound analysis: $e\n$stack');
+      }
+  }
 }

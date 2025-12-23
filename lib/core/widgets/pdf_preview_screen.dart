@@ -23,6 +23,9 @@ class PdfPreviewScreen extends StatelessWidget {
         canChangePageFormat: false,
         allowPrinting: true,
         allowSharing: true,
+        canDebug: false,
+        pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
+        // Standard icons are handled by default in PdfPreview's toolbar
       ),
     );
   }

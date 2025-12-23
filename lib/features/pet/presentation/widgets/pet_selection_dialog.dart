@@ -1,0 +1,192 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+/// Dialog for selecting a pet from registered pets or creating a new analysis
+class PetSelectionDialog extends StatelessWidget {
+  final List<String> registeredPets;
+
+  const PetSelectionDialog({
+    Key? key,
+    required this.registeredPets,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+          maxWidth: 400,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A1A), // Fundo escuro
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade400, Colors.blue.shade600],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.pets,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'De qual pet é esta análise?',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Pet List
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  // NOVO option at the top
+                  _buildPetOption(
+                    context: context,
+                    petName: '<NOVO>',
+                    isNew: true,
+                  ),
+                  
+                  if (registeredPets.isNotEmpty)
+                    Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+                  
+                  // Registered pets
+                  ...registeredPets.map((petName) => _buildPetOption(
+                    context: context,
+                    petName: petName,
+                    isNew: false,
+                  )),
+                ],
+              ),
+            ),
+            
+            // Cancel button
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(null),
+                child: Text(
+                  'Cancelar',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPetOption({
+    required BuildContext context,
+    required String petName,
+    required bool isNew,
+  }) {
+    return InkWell(
+      onTap: () => Navigator.of(context).pop(petName),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withOpacity(0.1),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isNew 
+                    ? Colors.green.withOpacity(0.2)
+                    : Colors.blue.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isNew 
+                      ? Colors.green.shade400
+                      : Colors.blue.shade400,
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                isNew ? Icons.add_circle_outline : Icons.pets,
+                color: isNew 
+                    ? Colors.green.shade300
+                    : Colors.blue.shade300,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    petName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: isNew ? FontWeight.w600 : FontWeight.w500,
+                      color: Colors.white, // TEXTO BRANCO
+                    ),
+                  ),
+                  if (isNew)
+                    Text(
+                      'Análise rápida sem salvar',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.white60, // Subtítulo em branco translúcido
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.white30,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

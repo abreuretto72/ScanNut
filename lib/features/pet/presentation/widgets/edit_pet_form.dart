@@ -22,9 +22,12 @@ import '../../../../core/widgets/pdf_action_button.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
+import '../../../../core/widgets/pdf_section_filter_dialog.dart';
+import '../../../../core/widgets/cumulative_observations_field.dart';
 import '../../models/lab_exam.dart';
 import '../../services/lab_exam_service.dart';
 import 'lab_exams_section.dart';
+import 'race_analysis_detail_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/pet_weight_database.dart';
 import '../../services/pet_profile_service.dart';
@@ -47,8 +50,11 @@ class EditPetForm extends StatefulWidget {
     required this.onSave, 
     this.onCancel, 
     this.onDelete, 
-    this.isNewEntry = false
+    this.isNewEntry = false,
+    this.initialTabIndex = 0,
   }) : super(key: key);
+
+  final int initialTabIndex;
 
   @override
   State<EditPetForm> createState() => _EditPetFormState();
@@ -85,6 +91,14 @@ class _EditPetFormState extends State<EditPetForm>
   Map<String, List<Map<String, dynamic>>> _partnerNotes = {}; 
   List<Map<String, dynamic>> _weightHistory = [];
   List<LabExam> _labExams = []; // Lab exams with OCR
+  List<Map<String, dynamic>> _woundHistory = []; // Local state for wound analysis history
+
+  // Cumulative Observations (with timestamps)
+  String _observacoesIdentidade = '';
+  String _observacoesSaude = '';
+  String _observacoesNutricao = '';
+  String _observacoesGaleria = '';
+  String _observacoesPrac = '';
 
   // File Upload
   final FileUploadService _fileService = FileUploadService();
@@ -193,6 +207,12 @@ class _EditPetFormState extends State<EditPetForm>
         partnerNotes: _partnerNotes,
         weightHistory: _getUpdatedWeightHistory(),
         labExams: _labExams.map((e) => e.toJson()).toList(),
+        woundAnalysisHistory: _woundHistory,
+        observacoesIdentidade: _observacoesIdentidade,
+        observacoesSaude: _observacoesSaude,
+        observacoesNutricao: _observacoesNutricao,
+        observacoesGaleria: _observacoesGaleria,
+        observacoesPrac: _observacoesPrac,
         lastUpdated: DateTime.now(),
         imagePath: finalImagePath,
         rawAnalysis: _currentRawAnalysis,
@@ -267,7 +287,7 @@ class _EditPetFormState extends State<EditPetForm>
       }
     }
 
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTabIndex);
     
     if (existing != null) {
         _petBackup = _deepCopyProfile(existing);
@@ -297,6 +317,12 @@ class _EditPetFormState extends State<EditPetForm>
       _partnerNotes = Map.from(existing.partnerNotes).map((k, v) => MapEntry(k, List<Map<String, dynamic>>.from(v)));
       _weightHistory = List.from(existing.weightHistory);
       _labExams = (existing.labExams).map((json) => LabExam.fromJson(json)).toList();
+      _woundHistory = (existing.woundAnalysisHistory).map((e) => Map<String, dynamic>.from(e)).toList();
+      _observacoesIdentidade = existing.observacoesIdentidade;
+      _observacoesSaude = existing.observacoesSaude;
+      _observacoesNutricao = existing.observacoesNutricao;
+      _observacoesGaleria = existing.observacoesGaleria;
+      _observacoesPrac = existing.observacoesPrac;
       _loadLinkedPartners(); // Async load
       _currentRawAnalysis = existing.rawAnalysis != null 
           ? Map<String, dynamic>.from(existing.rawAnalysis!) 
@@ -352,34 +378,6 @@ class _EditPetFormState extends State<EditPetForm>
     }
   }
 
-  Future<void> _reloadFreshData() async {
-      try {
-          if (_nameController.text.isEmpty) return;
-          final service = PetProfileService();
-          await service.init();
-          
-          final freshData = await service.getProfile(_nameController.text.trim());
-          if (freshData != null && freshData['data'] != null) {
-               // Merge strategy: Update opaque data (rawAnalysis, agendaEvents) 
-               // but KEEP UI controllers state (user edits).
-               
-               final freshRaw = freshData['data']['raw_analysis'];
-               if (freshRaw != null) {
-                   _currentRawAnalysis = Map<String,dynamic>.from(freshRaw);
-               }
-               
-               // Restore external Agenda Events if missing from local context
-               if (freshData['data']['agendaEvents'] != null) {
-                   _currentRawAnalysis ??= {};
-                   _currentRawAnalysis!['agendaEvents'] = freshData['data']['agendaEvents'];
-               }
-               
-               debugPrint('HIVE: Dados recarregados e fundidos com sucesso (Merge Strategy).');
-          }
-      } catch (e) {
-          debugPrint('⚠️ Reload error: $e');
-      }
-  }
 
   @override
   void dispose() {
@@ -682,6 +680,18 @@ class _EditPetFormState extends State<EditPetForm>
           ),
         ),
 
+        const SizedBox(height: 24),
+        CumulativeObservationsField(
+          sectionName: 'Galeria',
+          initialValue: _observacoesGaleria,
+          onChanged: (value) {
+            setState(() => _observacoesGaleria = value);
+            _onUserTyping();
+          },
+          icon: Icons.photo_library,
+          accentColor: Colors.purple,
+        ),
+
         // Include actions at the bottom explicitly
          _buildActionButtons(),
       ],
@@ -933,10 +943,11 @@ class _EditPetFormState extends State<EditPetForm>
             ? allPartners 
             : allPartners.where((p) => p.category == _selectedPartnerFilter).toList();
 
-        return Column(
-          children: [
-             // 1. Filter Chips (Header moved up)
-             SingleChildScrollView(
+        return CustomScrollView(
+          slivers: [
+            // 1. Filter Chips Header
+            SliverToBoxAdapter(
+              child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Row(
@@ -956,13 +967,15 @@ class _EditPetFormState extends State<EditPetForm>
                     );
                   }).toList(),
                 ),
-             ),
-             const SizedBox(height: 10),
+              ),
+            ),
+            
+            const SliverToBoxAdapter(child: SizedBox(height: 10)),
 
-             // 2. List
-             Expanded(
-               child: allPartners.isEmpty 
-               ? Center(
+            // 2. Partners List
+            if (allPartners.isEmpty)
+              SliverFillRemaining(
+                child: Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
@@ -971,80 +984,119 @@ class _EditPetFormState extends State<EditPetForm>
                       textAlign: TextAlign.center,
                     ),
                   ),
-                 )
-               : filtered.isEmpty 
-                  ? Center(child: Text('Nenhum parceiro encontrado nesta categoria.', style: GoogleFonts.poppins(color: Colors.white30)))
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                         final partner = filtered[index];
-                         final isLinked = _linkedPartnerIds.contains(partner.id);
-                         
-                         if (isLinked) {
-                             return _LinkedPartnerCard(
-                               partner: partner,
-                               onUnlink: () async {
-                                   setState(() {
-                                       _linkedPartnerIds.remove(partner.id);
-                                       _linkedPartnerModels.removeWhere((p) => p.id == partner.id);
-                                   });
-                                   await PetProfileService().updateLinkedPartners(_nameController.text.trim(), _linkedPartnerIds);
-                               },
-                               onUpdate: (updated) async {
-                                   setState(() {
-                                       _modifiedPartners[updated.id] = updated;
-                                       final idx = _linkedPartnerModels.indexWhere((p) => p.id == updated.id);
-                                       if (idx != -1) _linkedPartnerModels[idx] = updated;
-                                   });
-                                   await PartnerService().savePartner(updated);
-                               },
-                               onOpenAgenda: () => _openPartnerAgenda(partner),
-                             );
-                         }
-
-                         return Card(
-                           color: Colors.white.withOpacity(0.05),
-                           margin: const EdgeInsets.only(bottom: 12),
-                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                           child: Padding(
-                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                               child: Row(
-                                   children: [
-                                       CircleAvatar(
-                                           backgroundColor: Colors.grey.withOpacity(0.1),
-                                           child: const Icon(Icons.link_off, color: Colors.grey, size: 20),
-                                       ),
-                                       const SizedBox(width: 16),
-                                       Expanded(
-                                           child: Column(
-                                               crossAxisAlignment: CrossAxisAlignment.start,
-                                               children: [
-                                                   Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-                                                   Text(partner.category, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                                               ],
-                                           ),
-                                       ),
-                                       Switch(
-                                           value: false,
-                                           activeColor: const Color(0xFF00E676),
-                                           onChanged: (val) async {
-                                               if (val) {
-                                                   setState(() {
-                                                       _linkedPartnerIds.add(partner.id);
-                                                       _linkedPartnerModels.add(partner);
-                                                   });
-                                                   await PetProfileService().updateLinkedPartners(_nameController.text.trim(), _linkedPartnerIds);
-                                               }
-                                           },
-                                       )
-                                   ],
-                               ),
-                           ),
-                         );
-                      },
+                ),
+              )
+            else if (filtered.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    'Nenhum parceiro encontrado nesta categoria.',
+                    style: GoogleFonts.poppins(color: Colors.white30),
                   ),
-             ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final partner = filtered[index];
+                      final isLinked = _linkedPartnerIds.contains(partner.id);
+                      
+                      if (isLinked) {
+                        return _LinkedPartnerCard(
+                          partner: partner,
+                          onUnlink: () async {
+                            setState(() {
+                              _linkedPartnerIds.remove(partner.id);
+                              _linkedPartnerModels.removeWhere((p) => p.id == partner.id);
+                            });
+                            await PetProfileService().updateLinkedPartners(_nameController.text.trim(), _linkedPartnerIds);
+                          },
+                          onUpdate: (updated) async {
+                            setState(() {
+                              _modifiedPartners[updated.id] = updated;
+                              final idx = _linkedPartnerModels.indexWhere((p) => p.id == updated.id);
+                              if (idx != -1) _linkedPartnerModels[idx] = updated;
+                            });
+                            await PartnerService().savePartner(updated);
+                          },
+                          onOpenAgenda: () => _openPartnerAgenda(partner),
+                        );
+                      }
+
+                      return Card(
+                        color: Colors.white.withOpacity(0.05),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Colors.grey.withOpacity(0.1),
+                                child: const Icon(Icons.link_off, color: Colors.grey, size: 20),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
+                                    Text(partner.category, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                              Switch(
+                                value: false,
+                                activeColor: const Color(0xFF00E676),
+                                onChanged: (val) async {
+                                  if (val) {
+                                    setState(() {
+                                      _linkedPartnerIds.add(partner.id);
+                                      _linkedPartnerModels.add(partner);
+                                    });
+                                    await PetProfileService().updateLinkedPartners(_nameController.text.trim(), _linkedPartnerIds);
+                                  }
+                                },
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: filtered.length,
+                  ),
+                ),
+              ),
+
+            // 3. Observations Field
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: CumulativeObservationsField(
+                  sectionName: 'Prac (Rede de Apoio)',
+                  initialValue: _observacoesPrac,
+                  onChanged: (value) {
+                    setState(() => _observacoesPrac = value);
+                    _onUserTyping();
+                  },
+                  icon: Icons.handshake,
+                  accentColor: Colors.blue,
+                ),
+              ),
+            ),
+
+            // 4. Action Buttons
+            SliverToBoxAdapter(
+              child: _buildActionButtons(),
+            ),
+
+            // 5. Bottom Padding (ensures content is visible above keyboard)
+            const SliverToBoxAdapter(
+              child: SizedBox(height: 100),
+            ),
           ],
         );
       }
@@ -1112,6 +1164,18 @@ class _EditPetFormState extends State<EditPetForm>
           onChanged: (v) { setState(() => _statusReprodutivo = v!); _onUserInteractionGeneric(); },
         ),
 
+
+        const SizedBox(height: 24),
+        CumulativeObservationsField(
+          sectionName: 'Identidade',
+          initialValue: _observacoesIdentidade,
+          onChanged: (value) {
+            setState(() => _observacoesIdentidade = value);
+            _onUserTyping();
+          },
+          icon: Icons.pets,
+          accentColor: const Color(0xFF00E676),
+        ),
 
         _buildAttachmentSection('identity', 'Documentos de Identificação'),
         
@@ -1188,6 +1252,21 @@ class _EditPetFormState extends State<EditPetForm>
         _buildAttachmentSection('health_prescriptions', '📝 Receitas Veterinárias'),
         _buildAttachmentSection('health_vaccines', '💉 Carteira de Vacinação'),
 
+        const SizedBox(height: 24),
+        _buildWoundAnalysisHistory(),
+
+        const SizedBox(height: 24),
+        CumulativeObservationsField(
+          sectionName: 'Saúde',
+          initialValue: _observacoesSaude,
+          onChanged: (value) {
+            setState(() => _observacoesSaude = value);
+            _onUserTyping();
+          },
+          icon: Icons.medical_services,
+          accentColor: Colors.red,
+        ),
+
         _buildActionButtons(),
       ],
     );
@@ -1256,6 +1335,18 @@ class _EditPetFormState extends State<EditPetForm>
 
         _buildAttachmentSection('nutrition', 'Receitas e Dietas'),
         
+        const SizedBox(height: 24),
+        CumulativeObservationsField(
+          sectionName: 'Nutrição',
+          initialValue: _observacoesNutricao,
+          onChanged: (value) {
+            setState(() => _observacoesNutricao = value);
+            _onUserTyping();
+          },
+          icon: Icons.restaurant,
+          accentColor: Colors.orange,
+        ),
+
         _buildActionButtons(),
       ],
     );
@@ -1295,7 +1386,385 @@ class _EditPetFormState extends State<EditPetForm>
     return const SizedBox(height: 40);
   }
 
-  // Helper Widgets
+  Widget _buildWoundAnalysisHistory() {
+    final woundHistory = _woundHistory;
+    
+    if (woundHistory.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('🩹 Histórico de Análises de Feridas'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.white54, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Nenhuma análise de ferida registrada ainda',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white54,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('🩹 Histórico de Análises de Feridas'),
+        const SizedBox(height: 8),
+        Text(
+          '${woundHistory.length} análise(s) registrada(s)',
+          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+        ),
+        const SizedBox(height: 16),
+        ...woundHistory.map((analysis) => _buildWoundAnalysisCard(analysis)),
+      ],
+    );
+  }
+
+  Widget _buildWoundAnalysisCard(Map<String, dynamic> analysis) {
+    final date = DateTime.parse(analysis['date'] as String);
+    final diagnosis = analysis['diagnosis'] as String? ?? 'Sem diagnóstico';
+    final severity = analysis['severity'] as String? ?? 'Baixa';
+    final recommendations = (analysis['recommendations'] as List?)?.cast<String>() ?? [];
+    
+    Color severityColor;
+    switch (severity) {
+      case 'Alta':
+        severityColor = Colors.red;
+        break;
+      case 'Média':
+        severityColor = Colors.orange;
+        break;
+      default:
+        severityColor = Colors.green;
+    }
+
+    final imagePath = analysis['imagePath'] as String?;
+    final hasImage = imagePath != null && imagePath.isNotEmpty && File(imagePath).existsSync();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: severityColor.withOpacity(0.3)),
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        leading: hasImage 
+            ? GestureDetector(
+                onTap: () {
+                    showDialog(
+                        context: context,
+                        builder: (ctx) => Dialog(
+                            backgroundColor: Colors.transparent,
+                            insetPadding: const EdgeInsets.all(10),
+                            child: Stack(
+                                alignment: Alignment.topRight,
+                                children: [
+                                    ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.file(File(imagePath!)),
+                                    ),
+                                    Container(
+                                        margin: const EdgeInsets.all(8),
+                                        decoration: const BoxDecoration(
+                                            color: Colors.black54,
+                                            shape: BoxShape.circle,
+                                        ),
+                                        child: IconButton(
+                                            icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                                            onPressed: () => Navigator.pop(ctx),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ),
+                    );
+                },
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: severityColor.withOpacity(0.5)),
+                    image: DecorationImage(
+                        image: FileImage(File(imagePath!)),
+                        fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+            ) 
+            : Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: severityColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.medical_services,
+                color: severityColor,
+                size: 24,
+              ),
+            ),
+        title: Text(
+          DateFormat('dd/MM/yyyy - HH:mm').format(date),
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: severityColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Gravidade: $severity',
+                style: GoogleFonts.poppins(
+                  color: severityColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: const Icon(
+            Icons.delete_outline,
+            color: Colors.red,
+            size: 22,
+          ),
+          onPressed: () => _confirmDeleteWoundAnalysis(analysis['date'] as String),
+          tooltip: 'Excluir análise',
+        ),
+        children: [
+          const Divider(color: Colors.white12),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Diagnóstico:',
+              style: GoogleFonts.poppins(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            diagnosis,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 13,
+            ),
+          ),
+          if (recommendations.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Recomendações:',
+              style: GoogleFonts.poppins(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            ...recommendations.map((rec) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '• ',
+                    style: GoogleFonts.poppins(color: Colors.white70),
+                  ),
+                  Expanded(
+                    child: Text(
+                      rec,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _reloadFreshData() async {
+      try {
+          final service = PetProfileService();
+          await service.init();
+          final freshData = await service.getProfile(_nameController.text.trim());
+          
+          if (freshData != null && freshData['data'] != null) {
+               final data = freshData['data'];
+               
+               // 1. Refresh Wound History (Local State)
+               if (data['wound_analysis_history'] != null) {
+                   if (mounted) {
+                      setState(() {
+                          _woundHistory = (data['wound_analysis_history'] as List)
+                              .map((e) => Map<String, dynamic>.from(e as Map))
+                              .toList();
+                      });
+                   }
+               }
+
+               // 2. Refresh Opaque Data (Raw Analysis & Agenda)
+               final freshRaw = data['raw_analysis'];
+               if (freshRaw != null) {
+                   _currentRawAnalysis = Map<String,dynamic>.from(freshRaw);
+               }
+               
+               if (data['agendaEvents'] != null) {
+                   _currentRawAnalysis ??= {};
+                   _currentRawAnalysis!['agendaEvents'] = data['agendaEvents'];
+               }
+
+               debugPrint('HIVE: Dados recarregados e fundidos com sucesso (Wound History + Raw Data).');
+          }
+      } catch (e) {
+          debugPrint('ERRO RECARREGANDO DADOS: $e');
+      }
+  }
+
+  Future<void> _confirmDeleteWoundAnalysis(String analysisDate) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Excluir Análise',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Tem certeza que deseja excluir esta análise de ferida? Esta ação não pode ser desfeita.',
+          style: GoogleFonts.poppins(
+            color: Colors.white70,
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.poppins(
+                color: Colors.white60,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Excluir',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // Optimistic update: Remove immediately from UI
+      setState(() {
+        _woundHistory.removeWhere((w) => w['date'] == analysisDate);
+      });
+
+      try {
+        // Delete from database
+        await PetProfileService().deleteWoundAnalysis(
+          petName: _nameController.text.trim(),
+          analysisDate: analysisDate,
+        );
+
+        // Update verify sync
+        await _reloadFreshData();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Análise de ferida excluída com sucesso',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('❌ Error deleting wound analysis: $e');
+        // Revert optimistic update if needed (optional, but good practice)
+        await _reloadFreshData(); 
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Erro ao excluir análise: $e',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    }
+  }
 
   Widget _buildSectionTitle(String title) {
     return Text(
@@ -1518,85 +1987,292 @@ class _EditPetFormState extends State<EditPetForm>
         return;
      }
 
-     final confirm = await showDialog<bool>(
+     DateTimeRange? selectedDateRange = DateTimeRange(
+        start: DateTime.now().add(const Duration(days: 1)),
+        end: DateTime.now().add(const Duration(days: 7)),
+     );
+     bool isNatural = true;
+     bool isKibble = false;
+     String goal = 'Manutenção de Peso';
+     final goals = ['Manutenção de Peso', 'Perda de Peso', 'Ganho de Massa', 'Recuperação/Convalescença'];
+
+     final confirmed = await showDialog<bool>(
         context: context,
-        builder: (ctx) => AlertDialog(
-            backgroundColor: Colors.grey[900],
-            title: const Text('✨ Gerar Novo Cardápio com IA?', style: TextStyle(color: Colors.white)),
-            content: const Text(
-                'A IA vai criar um plano semanal novo baseado nos dados atuais do pet (peso, idade, alergias). O plano atual será substituído.',
-                style: TextStyle(color: Colors.white70)),
-            actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                TextButton(
-                    onPressed: () => Navigator.pop(ctx, true), 
-                    child: const Text('Gerar Agora', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold))
-                ),
-            ],
-        )
+        builder: (ctx) {
+           return StatefulBuilder(
+              builder: (context, setDialogState) {
+                 return AlertDialog(
+                    backgroundColor: Colors.grey[900],
+                    title: Row(
+                       children: [
+                          Icon(Icons.auto_awesome, color: const Color(0xFF00E676)),
+                          const SizedBox(width: 10),
+                          const Text('Planejar Cardápio Inteligente', style: TextStyle(color: Colors.white, fontSize: 16)),
+                       ],
+                    ),
+                    content: SingleChildScrollView(
+                       child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                             Text('Período do Cardápio', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 8),
+                             InkWell(
+                                onTap: () async {
+                                   final picked = await showDateRangePicker(
+                                      context: context,
+                                      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+                                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                                      initialDateRange: selectedDateRange,
+                                      builder: (context, child) => Theme(
+                                        data: Theme.of(context).copyWith(
+                                          colorScheme: const ColorScheme.dark(primary: Color(0xFF00E676), onPrimary: Colors.black, onSurface: Colors.white),
+                                        ),
+                                        child: child!,
+                                      ),
+                                   );
+                                   if (picked != null) setDialogState(() => selectedDateRange = picked);
+                                },
+                                child: Container(
+                                   padding: const EdgeInsets.all(12),
+                                   decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
+                                   child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                         Text(
+                                            selectedDateRange != null 
+                                            ? '${DateFormat('dd/MM').format(selectedDateRange!.start)} até ${DateFormat('dd/MM').format(selectedDateRange!.end)}'
+                                            : 'Selecionar Datas',
+                                            style: const TextStyle(color: Colors.white),
+                                         ),
+                                         const Icon(Icons.calendar_today, color: Color(0xFF00E676), size: 16),
+                                      ],
+                                   ),
+                                ),
+                             ),
+                             const SizedBox(height: 16),
+                             Text('Regime Alimentar', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                             CheckboxListTile(
+                                title: const Text('Alimentação Natural', style: TextStyle(color: Colors.white, fontSize: 14)),
+                                value: isNatural,
+                                activeColor: const Color(0xFF00E676),
+                                checkColor: Colors.black,
+                                contentPadding: EdgeInsets.zero,
+                                onChanged: (v) => setDialogState(() => isNatural = v ?? false),
+                             ),
+                             CheckboxListTile(
+                                title: const Text('Ração Comercial', style: TextStyle(color: Colors.white, fontSize: 14)),
+                                value: isKibble,
+                                activeColor: const Color(0xFF00E676),
+                                checkColor: Colors.black,
+                                contentPadding: EdgeInsets.zero,
+                                onChanged: (v) => setDialogState(() => isKibble = v ?? false),
+                             ),
+                             if (isNatural && isKibble)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Text('✅ Modo Híbrido Ativado', style: TextStyle(color: Colors.amberAccent, fontSize: 12, fontStyle: FontStyle.italic)),
+                                ),
+                             const SizedBox(height: 16),
+                             Text('Meta Nutricional', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 8),
+                             Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
+                                child: DropdownButtonHideUnderline(
+                                   child: DropdownButton<String>(
+                                      value: goal,
+                                      dropdownColor: Colors.grey[850],
+                                      isExpanded: true,
+                                      style: const TextStyle(color: Colors.white),
+                                      items: goals.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                                      onChanged: (v) => setDialogState(() => goal = v!),
+                                   ),
+                                ),
+                             ),
+                          ],
+                       ),
+                    ),
+                    actions: [
+                       TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+                       ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+                          onPressed: () {
+                             if (!isNatural && !isKibble) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione ao menos um regime.')));
+                                return;
+                             }
+                             if (selectedDateRange == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione as datas.')));
+                                return;
+                             }
+                             Navigator.pop(ctx, true);
+                          },
+                          child: const Text('Gerar Cardápio'),
+                       ),
+                    ],
+                 );
+              },
+           );
+        },
      );
 
-     if (confirm != true) return;
+     if (confirmed != true) return;
 
      showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => const Center(child: CircularProgressIndicator(color: Color(0xFF00E676))),
+        builder: (ctx) => Center(
+           child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                 mainAxisSize: MainAxisSize.min,
+                 children: const [
+                    CircularProgressIndicator(color: Color(0xFF00E676)),
+                    SizedBox(height: 16),
+                    Text('Nutricionista IA criando plano...', style: TextStyle(color: Colors.white)),
+                 ],
+              ),
+           ),
+        ),
      );
 
      try {
         final service = GeminiService();
-        final raw = await service.generateDietPlan(
-            petName: _nameController.text.trim(),
-            raca: _racaController.text.trim().isEmpty ? 'SRD' : _racaController.text,
-            idade: _idadeController.text.trim().isEmpty ? 'Desconhecida' : _idadeController.text,
-            peso: double.tryParse(_pesoController.text.trim()) ?? 10.0,
-            nivelAtividade: _nivelAtividade,
-            alergias: _alergiasConhecidas,
-        );
+        final existingPlan = _currentRawAnalysis?['plano_semanal'] as List?;
         
+        // Smart Merge Logic: Preserve history before 'Today' or selected start date
+        // Logic: Preserve ALL items where date is strictly BEFORE generation start.
+        List<Map<String, dynamic>> history = [];
+        if (existingPlan != null && existingPlan.isNotEmpty) {
+           history = existingPlan.map((e) => Map<String, dynamic>.from(e)).toList();
+        }
+        
+        String historyContext = "⚠️ PERFIL ESPECÍFICO DO PET:\n";
+        if (_alergiasConhecidas.isNotEmpty) historyContext += "- ALERGIAS (PROIBIDO): ${_alergiasConhecidas.join(', ')}\n";
+        if (_preferencias.isNotEmpty) historyContext += "- PREFERÊNCIAS: ${_preferencias.join(', ')}\n";
+        if (history.isNotEmpty) historyContext += "\n- ÚLTIMAS REFEIÇÕES (PARA VARIAÇÃO): ${history.take(5).toList()}\n";
+
+        final formatter = DateFormat('dd/MM/yyyy');
+        final startStr = formatter.format(selectedDateRange!.start);
+        final endStr = formatter.format(selectedDateRange!.end);
+        final duration = selectedDateRange!.end.difference(selectedDateRange!.start).inDays + 1;
+        
+        String dietType = 'Indefinido';
+        if (isNatural && isKibble) dietType = 'Híbrida (Ração + Natural)';
+        else if (isNatural) dietType = '100% Alimentação Natural';
+        else dietType = '100% Ração (Foco em Enriquecimento)';
+
+        final prompt = '''
+           ATUE COMO NUTRÓLOGO VETERINÁRIO ESPECIALISTA EXCLUSIVO (MÉTODO SCANNUT).
+           Gere um cardápio personalizado para: ${_nameController.text} (${_racaController.text}, ${_idadeController.text}, ${_pesoController.text}kg).
+           Meta Nutricional: $goal.
+           Regime Estabelecido: $dietType.
+           Período de Planejamento: $startStr até $endStr ($duration dias).
+           
+           $historyContext
+           
+           ⚠️ REGRAS INEGOCIÁVEIS (PROTOCOLOS SCANNUT):
+           1. Mantenha consistência biológica. Não sugira alimentos tóxicos (uva, cebola, chocolate, etc).
+           2. O plano deve ser diário e cobrir EXATAMENTE o período de $duration dias.
+           3. O campo 'refeicoes' deve ser preenchido para CADA dia.
+           4. Detalhamento Obrigatório nos 5 PILARES DE SAÚDE PET em TODAS as refeições:
+              - PROTEÍNA (Ex: Frango, Carne Bovina, Ovo, Peixe)
+              - GORDURA SAUDÁVEL (Ex: Azeite, Óleo de Peixe)
+              - FIBRAS (Ex: Abóbora, Chuchu, Cenoura)
+              - MINERAIS (Ex: Suplementação específica, casca de ovo processada)
+              - HIDRATAÇÃO (Ex: Água, caldos caseiros sem tempero)
+           
+           ESTRUTURA JSON OBRIGATÓRIA:
+           {
+             "plano_semanal": [
+               {
+                 "dia": "Dia da Semana - DD/MM", 
+                 "refeicoes": [
+                    {
+                      "hora": "HH:MM", 
+                      "titulo": "Nome Curto da Refeição", 
+                      "descricao": "Texto detalhado incluindo os 5 Pilares citados acima.", 
+                      "tipo_dieta": "$dietType"
+                    }
+                 ]
+               }
+             ],
+             "orientacoes_gerais": "Resumo estratégico focado na meta de $goal."
+           }
+           
+           NÃO ADICIONE TEXTO FORA DO JSON.
+        ''';
+
+        final rawResponse = await service.generateTextContent(prompt);
         Navigator.pop(context); // Hide loader
 
-        // Normalize keys (Busca inteligente pelo plano)
-        var plano = raw['plano_semanal'] ?? raw['planoSemanal'] ?? raw['weekly_plan'] ?? raw['cardapio'];
+        if (rawResponse['plano_semanal'] == null) throw Exception("Erro na resposta da IA.");
+
+        var generatedList = (rawResponse['plano_semanal'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
         
-        // Se ainda nulo, procura qualquer Lista de Maps no JSON
-        if (plano == null) {
-           for (var val in raw.values) {
-              if (val is List && val.isNotEmpty && val.first is Map) {
-                 plano = val;
-                 break;
-              }
-           }
-        }
+        final shortFormatter = DateFormat('dd/MM');
         
-        if (plano == null) {
-            throw Exception("Formato de cardápio inválido retornado pela IA.");
+        // CLIENT-SIDE DATE ENFORCEMENT
+        final List<Map<String, dynamic>> finalItems = [];
+        // Recalculate duration here or ensure it's available. It was defined above in try block.
+        // It is `duration` variable.
+        
+        for (int i = 0; i < duration; i++) {
+             if (i >= generatedList.length) break; 
+             
+             final item = Map<String, dynamic>.from(generatedList[i]);
+             final dateForDay = selectedDateRange!.start.add(Duration(days: i));
+             final dateStr = shortFormatter.format(dateForDay);
+             
+             // Get PT-BR Weekday
+             final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay); 
+             final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
+             
+             item['dia'] = "$weekDayCap - $dateStr";
+             finalItems.add(item);
         }
+
+        // Fetch current profile to get old plan (History)
+        final profileService = PetProfileService();
+        await profileService.init();
+        final currentProfile = await profileService.getProfile(_nameController.text.trim());
+        
+        List<Map<String, dynamic>> combinedPlan = [];
+        if (currentProfile != null && currentProfile['data'] != null && currentProfile['data']['plano_semanal'] != null) {
+             final oldPlan = List<Map<String, dynamic>>.from(
+                 (currentProfile['data']['plano_semanal'] as List).map((x) => Map<String, dynamic>.from(x))
+             );
+             combinedPlan = [...oldPlan, ...finalItems];
+        } else {
+             combinedPlan = finalItems;
+        }
+
+        // Direct Save (Authoritative)
+        await profileService.saveWeeklyMenu(
+             petName: _nameController.text.trim(),
+             menuPlan: combinedPlan,
+             guidelines: rawResponse['orientacoes_gerais'],
+             startDate: DateFormat('yyyy-MM-dd').format(selectedDateRange!.start),
+             endDate: DateFormat('yyyy-MM-dd').format(selectedDateRange!.end),
+        );
 
         setState(() {
             if (_currentRawAnalysis == null) _currentRawAnalysis = {};
-            _currentRawAnalysis!['plano_semanal'] = plano;
-            if (raw['orientacoes_gerais'] != null) {
-                _currentRawAnalysis!['orientacoes_gerais'] = raw['orientacoes_gerais'];
-            } else if (raw['orientacoes'] != null) {
-                _currentRawAnalysis!['orientacoes_gerais'] = raw['orientacoes'];
-            }
+            _currentRawAnalysis!['plano_semanal'] = combinedPlan;
+            _currentRawAnalysis!['data_inicio_semana'] = DateFormat('yyyy-MM-dd').format(selectedDateRange!.start);
+            _currentRawAnalysis!['data_fim_semana'] = DateFormat('yyyy-MM-dd').format(selectedDateRange!.end);
+            _currentRawAnalysis!['orientacoes_gerais'] = rawResponse['orientacoes_gerais'];
         });
 
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('✅ Cardápio gerado! Salvando alterações...'),
+            content: Text('✅ Cardápio Inteligente Planejado!'),
             backgroundColor: Color(0xFF00E676),
-            duration: Duration(seconds: 2),
         ));
-        
-        // Auto-save to ensure persistence
-        Future.delayed(const Duration(milliseconds: 1500), () {
-            if (mounted) _savePetProfile();
-        });
 
      } catch (e) {
-        Navigator.pop(context); // Hide loader
+        if (mounted && Navigator.canPop(context)) Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red));
      }
   }
@@ -1701,43 +2377,27 @@ class _EditPetFormState extends State<EditPetForm>
   }
 
    void _openFullAnalysis() {
-      final raw = _currentRawAnalysis;
-      if (raw == null) return;
-      
-      try {
-          var jsonForParse = Map<String, dynamic>.from(raw);
-          
-          // Map DTO keys back to AnalysisResult expected keys if needed
-          if (jsonForParse['perfil_comportamental'] == null && jsonForParse['temperamento'] != null) {
-              jsonForParse['perfil_comportamental'] = jsonForParse['temperamento'];
-          }
-          /* Ensure identificacao sub-keys match if needed. 
-             Factory: raca_predominante -> PetAnalysisResult expects raca_predominante? Yes.
-          */
-           
-          final analysis = PetAnalysisResult.fromJson(jsonForParse);
-          
-          Navigator.push(context, MaterialPageRoute(
-              builder: (_) => Scaffold(
-                  backgroundColor: Colors.black,
-                  appBar: AppBar(
-                      backgroundColor: Colors.transparent,
-                      iconTheme: const IconThemeData(color: Colors.white),
-                      elevation: 0,
-                      title: const Text('Análise Completa', style: TextStyle(color: Colors.white)),
-                  ),
-                  body: PetResultCard(
-                      analysis: analysis,
-                      imagePath: widget.existingProfile?.imagePath ?? _profileImage?.path ?? '', 
-                      petName: _nameController.text,
-                      onSave: () {}, 
-                  )
-              )
-          ));
-      } catch (e) {
-         debugPrint('Error parsing analysis: $e');
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Detalhes completos indisponíveis para este perfil.')));
+      if (_currentRawAnalysis == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Detalhes completos indisponíveis. Realize uma nova análise.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
       }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RaceAnalysisDetailScreen(
+            raceAnalysis: _currentRawAnalysis!,
+            petName: _nameController.text.trim().isEmpty 
+              ? 'Pet' 
+              : _nameController.text.trim(),
+          ),
+        ),
+      );
    }
 
   Widget _buildInfoRow(String label, String value) {
@@ -1757,7 +2417,6 @@ class _EditPetFormState extends State<EditPetForm>
   Widget _buildWeeklyPlanSection() {
     final raw = _currentRawAnalysis;
     if (raw == null || raw['plano_semanal'] == null) {
-        // If empty, show button to generate
       return Padding(
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Center(
@@ -1788,9 +2447,53 @@ class _EditPetFormState extends State<EditPetForm>
                 ),
             ],
         ),
+        const SizedBox(height: 8),
+        Text(
+          'Cada refeição foca nos 5 Pilares (Protéina, Gordura, Fibras, Minerais e Hidratação)',
+          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
+        ),
         const SizedBox(height: 16),
-        ...plano.map((dia) {
-          final d = dia as Map;
+        ...plano.asMap().entries.map((entry) {
+          final index = entry.key;
+          final d = entry.value as Map;
+          
+          String diaTitulo = d['dia']?.toString() ?? 'Dia';
+          
+          // FORÇAR FORMATO DINÂMICO SE TIVERMOS DATA DE INÍCIO
+          DateTime? startData = raw['data_inicio_semana'] != null ? DateTime.tryParse(raw['data_inicio_semana']) : null;
+          
+          if (startData == null) {
+              // FALLBACK: Se não tem data salva, assumimos a segunda-feira da semana em que foi atualizado (ou hoje)
+              final baseDate = widget.existingProfile?.lastUpdated ?? DateTime.now();
+              startData = DateTime(baseDate.year, baseDate.month, baseDate.day).subtract(Duration(days: baseDate.weekday - 1));
+          }
+
+          final dateForDay = startData.add(Duration(days: index));
+          final dateStr = DateFormat('dd/MM').format(dateForDay);
+          final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay);
+          final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
+          diaTitulo = "$weekDayCap - $dateStr";
+          
+          // Suporte a novo formato (refeicoes[]) ou legado (chaves soltas)
+          List<Map<String, dynamic>> refeicoes = [];
+          
+          if (d.containsKey('refeicoes') && d['refeicoes'] is List) {
+              refeicoes = (d['refeicoes'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+          } else {
+              // Migração/Legado: Tenta converter as chaves 'manha', 'tarde', 'noite' ou 'refeicao' para a lista
+              final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
+              for (var k in keysRaw) {
+                 if (d[k] != null) {
+                    refeicoes.add({
+                        'hora': k.toUpperCase(),
+                        'titulo': 'Principais Nutrientes',
+                        'descricao': d[k].toString(),
+                        'tipo_dieta': 'Histórico'
+                    });
+                 }
+              }
+          }
+
           return Card(
             color: Colors.white.withValues(alpha: 0.05),
             margin: const EdgeInsets.only(bottom: 12),
@@ -1801,22 +2504,17 @@ class _EditPetFormState extends State<EditPetForm>
             child: Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
-                title: Text(d['dia'] ?? 'Dia', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-                leading: const Icon(Icons.calendar_today, color: Color(0xFF00E676), size: 20),
+                title: Text(diaTitulo, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                leading: const Icon(Icons.calendar_month, color: Color(0xFF00E676), size: 22),
                 iconColor: const Color(0xFF00E676),
                 collapsedIconColor: Colors.white54,
                 children: [
-                  _buildFlexibleMealRow(d, ['manha', 'manhã', 'morning', 'café', 'breakfast'], '🌅 Manhã'),
-                  _buildFlexibleMealRow(d, ['tarde', 'almoço', 'almoco', 'afternoon', 'lanche', 'lunch'], '☀️ Tarde'),
-                  _buildFlexibleMealRow(d, ['noite', 'jantar', 'night', 'ceia', 'dinner'], '🌙 Noite'),
-                  
-                  // Render extra keys fallback (Robustez total)
-                  ...d.entries.where((e) {
-                      final k = e.key.toString().toLowerCase();
-                      const stdKeys = ['dia', 'manha', 'manhã', 'morning', 'café', 'breakfast', 'tarde', 'almoço', 'almoco', 'afternoon', 'lanche', 'lunch', 'noite', 'jantar', 'night', 'ceia', 'dinner'];
-                      return !stdKeys.contains(k);
-                  }).map((e) => _buildMealRow(e.key.toString(), e.value.toString())),
-
+                  ...refeicoes.map((r) => _buildMealDetailItem(r)).toList(),
+                  if (refeicoes.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text('Nenhuma refeição detalhada para este dia.', style: TextStyle(color: Colors.white30, fontSize: 12)),
+                    ),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -1827,37 +2525,46 @@ class _EditPetFormState extends State<EditPetForm>
     );
   }
 
-  Widget _buildFlexibleMealRow(Map rawData, List<String> keys, String label) {
-    // Ensure data handles String keys to avoid runtime type errors
-    final data = rawData.map((k, v) => MapEntry(k.toString(), v));
-    
-    String? content;
-    for (var key in keys) {
-       final entry = data.entries.firstWhere(
-         (e) => e.key.toLowerCase() == key.toLowerCase(),
-         orElse: () => const MapEntry('', null),
-       );
-       if (entry.value != null) {
-         content = entry.value.toString();
-         break;
-       }
-    }
-    
-    if (content == null || content.isEmpty) return const SizedBox.shrink();
-    return _buildMealRow(label, content);
-  }
+  Widget _buildMealDetailItem(Map<String, dynamic> meal) {
+      final hora = meal['hora'] ?? '??:??';
+      final titulo = meal['titulo'] ?? 'Refeição';
+      final desc = meal['descricao'] ?? '';
+      final tipo = meal['tipo_dieta'] ?? '';
 
-  Widget _buildMealRow(String label, String content) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: 70, child: Text(label, style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12))),
-          Expanded(child: Text(content, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13))),
-        ],
-      ),
-    );
+      return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                  Row(
+                      children: [
+                          Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(color: const Color(0xFF00E676).withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                              child: Text(hora, style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11)),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(titulo, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14))),
+                          if (tipo.isNotEmpty && tipo != 'Histórico')
+                             Container(
+                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                 decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                 child: Text(tipo, style: const TextStyle(color: Colors.blueAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+                             ),
+                      ],
+                  ),
+                  const SizedBox(height: 6),
+                  Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Text(
+                          desc, 
+                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, height: 1.4)
+                      ),
+                  ),
+                  const Divider(color: Colors.white10),
+              ],
+          ),
+      );
   }
 
   Future<bool> _onWillPop() async {
@@ -2284,6 +2991,15 @@ class _EditPetFormState extends State<EditPetForm>
 
   Future<void> _generatePetReport() async {
     try {
+        // Show section filter dialog
+        final selectedSections = await showDialog<Map<String, bool>>(
+          context: context,
+          builder: (context) => const PdfSectionFilterDialog(),
+        );
+        
+        // User cancelled the dialog
+        if (selectedSections == null) return;
+        
         final exportService = ExportService();
         
         // Construct current profile from screen data
@@ -2303,7 +3019,13 @@ class _EditPetFormState extends State<EditPetForm>
             linkedPartnerIds: _linkedPartnerIds,
             partnerNotes: _partnerNotes,
             weightHistory: _weightHistory,
+            woundAnalysisHistory: _woundHistory, // HISTÓRICO DE FERIDAS ADICIONADO
             labExams: _labExams.map((e) => e.toJson()).toList(),
+            observacoesIdentidade: _observacoesIdentidade,
+            observacoesSaude: _observacoesSaude,
+            observacoesNutricao: _observacoesNutricao,
+            observacoesGaleria: _observacoesGaleria,
+            observacoesPrac: _observacoesPrac,
             lastUpdated: DateTime.now(),
             imagePath: _profileImage?.path,
             rawAnalysis: _currentRawAnalysis,
@@ -2315,7 +3037,10 @@ class _EditPetFormState extends State<EditPetForm>
             builder: (context) => PdfPreviewScreen(
               title: 'Prontuário de ${profile.petName}',
               buildPdf: (format) async {
-                final pdf = await ExportService().generatePetProfileReport(profile: profile);
+                final pdf = await ExportService().generatePetProfileReport(
+                  profile: profile,
+                  selectedSections: selectedSections,
+                );
                 return pdf.save();
               },
             ),
@@ -2952,16 +3677,6 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                          onTap: widget.onOpenAgenda,
                          isHighlighted: true,
                      ),
-                     if (widget.partner.whatsapp != null && widget.partner.whatsapp!.isNotEmpty || widget.partner.phone.isNotEmpty)
-                         _ActionIcon(
-                             icon: Icons.chat, // WhatsApp
-                             color: const Color(0xFF25D366),
-                             label: 'Zap',
-                             onTap: () => WhatsAppService.abrirChat(
-                               telefone: widget.partner.whatsapp ?? widget.partner.phone, 
-                               mensagem: 'Olá ${widget.partner.name}! Venho através do app ScanNut.'
-                             )
-                         ),
                  ],
              )
           ],

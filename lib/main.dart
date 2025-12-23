@@ -15,6 +15,7 @@ import 'features/pet/models/vaccine_status.dart';
 import 'features/pet/services/vaccine_status_service.dart';
 import 'features/pet/services/pet_profile_service.dart';
 import 'features/pet/services/pet_health_service.dart';
+import 'features/pet/services/meal_plan_service.dart'; // Import New Service
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -48,6 +49,7 @@ void main() async {
   // Initialize new unified pet data services
   await PetProfileService().init();
   await PetHealthService().init();
+  await MealPlanService().init(); // Initialize Meal Plan Service
   
   // Debug: Show loaded environment variables
   debugPrint('🔑 === ENVIRONMENT VARIABLES LOADED ===');

@@ -8,18 +8,20 @@ import 'package:printing/printing.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
-import '../../../../core/services/gemini_service.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
+import '../../services/pet_profile_service.dart';
+import '../../services/meal_plan_service.dart';
+import 'edit_pet_form.dart'; // Import to link back
 
 class WeeklyMenuScreen extends StatefulWidget {
-  final List<Map<String, String>> currentWeekPlan;
+  final List<Map<String, dynamic>> currentWeekPlan;
   final String? generalGuidelines;
   final String petName;
   final String raceName;
 
-    const WeeklyMenuScreen({Key? key, required this.currentWeekPlan, this.generalGuidelines, required this.petName, required this.raceName}) : super(key: key);
+  const WeeklyMenuScreen({Key? key, required this.currentWeekPlan, this.generalGuidelines, required this.petName, required this.raceName}) : super(key: key);
 
   @override
   State<WeeklyMenuScreen> createState() => _WeeklyMenuScreenState();
@@ -27,13 +29,178 @@ class WeeklyMenuScreen extends StatefulWidget {
 
 class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<Map<String, String>> _nextWeekPlan = [];
-  String? _nextWeekGuidelines;
+  
+  // Buckets
+  List<Map<String, dynamic>> _pastPlan = [];
+  List<Map<String, dynamic>> _currentPlan = [];
+  List<Map<String, dynamic>> _nextPlan = [];
+  String? _guidelines;
+  String? _dietType;
+  String? _kcalTarget;
+
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 1); // Start at Current
+    _loadMenuFromService();
+  }
+
+  DateTime? _savedStartDate;
+  DateTime? _savedEndDate;
+
+  Future<void> _loadMenuFromService() async {
+      setState(() => _isLoading = true);
+      try {
+          final service = PetProfileService();
+          await service.init();
+          final profile = await service.getProfile(widget.petName.trim());
+          
+          List<Map<String, dynamic>> allItems = [];
+          
+          if (profile != null && profile['data'] != null) {
+              final pData = profile['data'];
+              _dietType = pData['tipo_dieta']?.toString() ?? 'Não informado';
+              
+              if (pData['nutricao'] != null && pData['nutricao']['metaCalorica'] != null) {
+                  final meta = pData['nutricao']['metaCalorica'];
+                  // Pega a meta de adulto como padrão ou a primeira disponível
+                  _kcalTarget = meta['kcal_adulto'] ?? meta['kcal_filhote'] ?? meta['kcal_senior'];
+              }
+
+              if (pData['plano_semanal'] != null) {
+                  final rawPlan = pData['plano_semanal'] as List;
+                  _guidelines = pData['orientacoes_gerais'] as String?;
+                  
+                  // Contextual dates
+                  if (pData['data_inicio_semana'] != null) _savedStartDate = DateTime.tryParse(pData['data_inicio_semana']);
+                  if (pData['data_fim_semana'] != null) _savedEndDate = DateTime.tryParse(pData['data_fim_semana']);
+
+                  allItems = rawPlan.map((e) => Map<String, dynamic>.from(e)).toList();
+              }
+          }
+          
+          if (allItems.isEmpty && widget.currentWeekPlan.isNotEmpty) {
+             allItems = widget.currentWeekPlan.map((e) => Map<String, dynamic>.from(e)).toList();
+             _guidelines ??= widget.generalGuidelines;
+          }
+
+          // AGORA: Suplementar com dados do MealPlanService (Usando petId = petName norm)
+          try {
+              final mealPlanService = MealPlanService();
+              await mealPlanService.init();
+              final historicalPlans = await mealPlanService.getPlansForPet(widget.petName.trim().toLowerCase());
+              
+              for (var plan in historicalPlans) {
+                  // Converter model para o formato Map esperado pela UI/Export
+                  for (var m in plan.meals) {
+                      final itemDate = plan.startDate.add(Duration(days: m.dayOfWeek - 1));
+                      final dayKey = DateFormat('dd/MM').format(itemDate);
+                      
+                      // Só adicionar se ainda não tivermos esse dia no allItems ou for de semana diferente
+                      // Simplificação: vamos adicionar todos os históricos que não conflitem exatamente
+                      allItems.add({
+                          'dia': "${DateFormat('EEEE', 'pt_BR').format(itemDate)} - $dayKey",
+                          'refeicoes': [
+                              {'hora': m.time, 'titulo': m.title, 'descricao': m.description}
+                          ],
+                          'beneficio': m.benefit,
+                      });
+                  }
+              }
+          } catch (e) {
+              debugPrint('Error loading historical plans: $e');
+          }
+
+          _splitPlanByWeeks(allItems);
+
+      } catch (e) {
+          debugPrint('Error loading menu: $e');
+      } finally {
+          if (mounted) setState(() => _isLoading = false);
+      }
+  }
+
+  void _splitPlanByWeeks(List<Map<String, dynamic>> allItems) {
+      _pastPlan = [];
+      _currentPlan = [];
+      _nextPlan = [];
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      
+      // Calculate Current Week boundaries (Monday to Sunday)
+      final currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
+      
+      // FALLBACK: Se não temos data salva no perfil, assumimos que o cardápio atual começa na segunda desta semana
+      _savedStartDate ??= currentWeekStart;
+      
+      final currentWeekEnd = currentWeekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+      
+      final List<Map<String, dynamic>> sortedItems = [];
+      
+      for (int i = 0; i < allItems.length; i++) {
+          final item = Map<String, dynamic>.from(allItems[i]);
+          String diaOriginal = item['dia']?.toString() ?? '';
+          
+          DateTime? itemDate;
+          
+          // 1. Tentar extrair de DD/MM no campo 'dia'
+          final regex = RegExp(r'(\d{1,2})\s*/\s*(\d{1,2})');
+          final match = regex.firstMatch(diaOriginal);
+          
+          if (match != null) {
+              final day = int.parse(match.group(1)!);
+              final month = int.parse(match.group(2)!);
+              int year = today.year;
+              
+              if (_savedStartDate != null) {
+                  year = _savedStartDate!.year;
+                  if (month < _savedStartDate!.month && (_savedStartDate!.month - month) > 6) year++;
+                  if (month > _savedStartDate!.month && (month - _savedStartDate!.month) > 6) year--;
+              } else {
+                  if (today.month == 12 && month == 1) year++;
+                  if (today.month == 1 && month == 12) year--;
+              }
+              itemDate = DateTime(year, month, day);
+          } 
+          // 2. Se não encontrou, mas temos data_inicio_semana e o item é novo
+          else if (_savedStartDate != null) {
+              itemDate = _savedStartDate!.add(Duration(days: i));
+              // Corrigir o label se estiver faltando a data
+              if (!diaOriginal.contains('/')) {
+                  final weekDayName = DateFormat('EEEE', 'pt_BR').format(itemDate);
+                  final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
+                  item['dia'] = "$weekDayCap - ${DateFormat('dd/MM').format(itemDate)}";
+              }
+          } else {
+              itemDate = today; // Fallback
+          }
+
+          if (itemDate.isBefore(currentWeekStart)) {
+              _pastPlan.add(item);
+          } else if (itemDate.isAfter(currentWeekEnd)) {
+              _nextPlan.add(item);
+          } else {
+              _currentPlan.add(item);
+          }
+      }
+      
+      // Ordenar cada balde por data
+      _pastPlan.sort((a,b) => _extractDate(a).compareTo(_extractDate(b)));
+      _currentPlan.sort((a,b) => _extractDate(a).compareTo(_extractDate(b)));
+      _nextPlan.sort((a,b) => _extractDate(a).compareTo(_extractDate(b)));
+  }
+
+  DateTime _extractDate(Map<String, dynamic> item) {
+      final dia = item['dia']?.toString() ?? '';
+      final regex = RegExp(r'(\d{1,2})\s*/\s*(\d{1,2})');
+      final match = regex.firstMatch(dia);
+      if (match != null) {
+          return DateTime(DateTime.now().year, int.parse(match.group(2)!), int.parse(match.group(1)!));
+      }
+      return DateTime.now();
   }
 
   @override
@@ -66,17 +233,12 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
             ),
             Text(
               widget.raceName,
-              style: GoogleFonts.poppins(
-                color: Colors.white54,
-                fontSize: 12,
-              ),
+              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
             ),
           ],
         ),
         actions: [
-          PdfActionButton(
-            onPressed: _generateMenuPDF,
-          ),
+          PdfActionButton(onPressed: () => _generateMenuPDF()),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -85,36 +247,296 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
           unselectedLabelColor: Colors.white54,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
           tabs: const [
-            Tab(text: 'Semana Anterior'),
+            Tab(text: 'Semana Passada'),
             Tab(text: 'Semana Atual'),
             Tab(text: 'Próxima Semana'),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildWeekView('previous'),
-          _buildWeekView('current'),
-          _buildWeekView('next'),
-        ],
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
+        : TabBarView(
+            controller: _tabController,
+            children: [
+               _buildPeriodView(_pastPlan, "Nenhum histórico recente."),
+               _buildPeriodView(_currentPlan, "Nenhum cardápio para esta semana."),
+               _buildPeriodView(_nextPlan, "Nenhum planejamento futuro."),
+            ],
+        ),
+    );
+  }
+
+  Widget _buildPeriodView(List<Map<String, dynamic>> plan, String emptyMsg) {
+      if (plan.isEmpty) {
+          return Center(
+             child: Padding(
+               padding: const EdgeInsets.all(32.0),
+               child: Column(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   Icon(Icons.event_busy, size: 64, color: Colors.white.withOpacity(0.2)),
+                   const SizedBox(height: 24),
+                   Text(
+                     emptyMsg,
+                     style: GoogleFonts.poppins(color: Colors.white70, fontSize: 16),
+                     textAlign: TextAlign.center,
+                   ),
+                   const SizedBox(height: 16),
+                   if (emptyMsg.contains("futuro") || emptyMsg.contains("semana"))
+                   ElevatedButton.icon(
+                      onPressed: () async {
+                          final service = PetProfileService();
+                          await service.init();
+                          final pData = await service.getProfile(widget.petName);
+                          if (pData != null && pData['data'] != null && mounted) {
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => EditPetForm(
+                                  petData: pData['data'],
+                                  onSave: (p) async {
+                                      await service.saveOrUpdateProfile(p.petName, {'data': p.toJson()});
+                                      Navigator.pop(context);
+                                      _loadMenuFromService();
+                                  }
+                              )));
+                          }
+                      },
+                      icon: const Icon(Icons.edit_calendar, color: Colors.black),
+                      label: const Text('Gerar/Editar no Perfil'),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+                   ),
+                 ],
+               ),
+             ),
+          );
+      }
+
+      return SingleChildScrollView(
+         padding: const EdgeInsets.all(16),
+         child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+                if (_guidelines != null)
+                   Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withOpacity(0.3))),
+                      child: Row(
+                         children: [
+                            const Icon(Icons.lightbulb, color: Colors.orange, size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(_guidelines!, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))),
+                         ],
+                      ),
+                   ),
+                ...plan.asMap().entries.map((entry) => _buildMealCard(entry.value, entry.key, plan == _pastPlan ? -1 : (plan == _currentPlan ? 0 : 1))).toList(),
+                const SizedBox(height: 40),
+            ],
+         ),
+      );
+  }
+
+  Widget _buildMealCard(Map<String, dynamic> item, int index, int periodType) {
+      String dia = item['dia']?.toString() ?? '??';
+      
+      // FORÇAR DATA DINÂMICA SE TIVERMOS DATA DE INÍCIO
+      if (_savedStartDate != null) {
+          // Precisamos calcular o offset baseado no tipo de período (-1, 0, 1)
+          final dateForDay = _savedStartDate!.add(Duration(days: index + (periodType * 7))); 
+          final dateStr = DateFormat('dd/MM').format(dateForDay);
+          final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay);
+          final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
+          dia = "$weekDayCap - $dateStr";
+      }
+      
+      List<Map<String, dynamic>> refeicoes = [];
+      if (item.containsKey('refeicoes') && item['refeicoes'] is List) {
+          refeicoes = (item['refeicoes'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
+      } else {
+          final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
+          for (var k in keysRaw) {
+             if (item[k] != null) {
+                refeicoes.add({'hora': k.toUpperCase(), 'titulo': 'Refeição', 'descricao': item[k].toString()});
+             }
+          }
+      }
+
+      return Card(
+        color: Colors.white.withOpacity(0.05),
+        margin: const EdgeInsets.only(bottom: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.white.withOpacity(0.1))),
+        child: Padding(
+           padding: const EdgeInsets.all(16),
+           child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                 Row(
+                    children: [
+                       Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: const Color(0xFF00E676).withOpacity(0.2), shape: BoxShape.circle),
+                          child: const Icon(Icons.restaurant, color: Color(0xFF00E676), size: 16),
+                       ),
+                       const SizedBox(width: 12),
+                       Text(dia, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ],
+                 ),
+                 const SizedBox(height: 12),
+                 ...refeicoes.map((r) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                          Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                             children: [
+                                Row(
+                                   children: [
+                                      Text('${r['hora'] ?? '--:--'}', style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12)),
+                                      const SizedBox(width: 8),
+                                      Text(r['titulo'] ?? 'Refeição', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                   ],
+                                ),
+                                if (_kcalTarget != null)
+                                   Text('$_kcalTarget', style: GoogleFonts.poppins(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                             ],
+                          ),
+                          // New Requirement: Principais Nutrientes Row
+                          if (_kcalTarget != null) ...[
+                             const SizedBox(height: 4),
+                             Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                   Text('Principais Nutrientes', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
+                                   Text('$_kcalTarget', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w600, fontSize: 12)),
+                                ],
+                             ),
+                          ],
+                          Padding(
+                             padding: const EdgeInsets.only(left: 4, top: 4),
+                             child: Text(r['descricao'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3)),
+                          ),
+                          if (refeicoes.indexOf(r) < refeicoes.length - 1)
+                             const Padding(padding: EdgeInsets.symmetric(vertical: 4), child: Divider(color: Colors.white10, height: 1)),
+                       ],
+                    ),
+                 )).toList(),
+                 if (refeicoes.isEmpty)
+                   const Text('Sem detalhes registrados.', style: TextStyle(color: Colors.white24, fontSize: 12)),
+              ],
+           ),
+        ),
+      );
+  }
+
+  Future<void> _generateMenuPDF() async {
+    // 1. Mostrar Modal de Filtro
+    bool includePast = false;
+    bool includeCurrent = true;
+    bool includeNext = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => AlertDialog(
+          backgroundColor: Colors.grey[900],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xFF00E676))),
+          title: Text('Exportar Cardápio', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Selecione os períodos para incluir no PDF:', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+              const SizedBox(height: 16),
+              Theme(
+                data: ThemeData.dark(),
+                child: Column(
+                  children: [
+                    CheckboxListTile(
+                      title: const Text('Semana Anterior'),
+                      activeColor: const Color(0xFF00E676),
+                      value: includePast,
+                      onChanged: (v) => setModalState(() => includePast = v!),
+                    ),
+                    CheckboxListTile(
+                      title: const Text('Semana Atual'),
+                      activeColor: const Color(0xFF00E676),
+                      value: includeCurrent,
+                      onChanged: (v) => setModalState(() => includeCurrent = v!),
+                    ),
+                    CheckboxListTile(
+                      title: const Text('Próxima Semana'),
+                      activeColor: const Color(0xFF00E676),
+                      value: includeNext,
+                      onChanged: (v) => setModalState(() => includeNext = v!),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _proceedWithPDF(includePast, includeCurrent, includeNext);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+              child: const Text('Gerar Relatório'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Future<void> _generateMenuPDF() async {
+  void _proceedWithPDF(bool past, bool current, bool next) {
     try {
+        final List<Map<String, dynamic>> finalPlan = [];
+        if (past) finalPlan.addAll(_pastPlan);
+        if (current) finalPlan.addAll(_currentPlan);
+        if (next) finalPlan.addAll(_nextPlan);
+
+        if (finalPlan.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nenhum período selecionado.')));
+            return;
+        }
+
+        // NORMALIZATION: Ensure 'refeicoes' list exists for the PDF service
+        final List<Map<String, dynamic>> normalizedPlan = finalPlan.map((day) {
+            final Map<String, dynamic> d = Map<String, dynamic>.from(day);
+            if (!d.containsKey('refeicoes') || d['refeicoes'] is! List) {
+                final List<Map<String, dynamic>> refs = [];
+                final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
+                for (var k in keysRaw) {
+                    if (d[k] != null) {
+                        refs.add({'hora': k.toUpperCase(), 'titulo': 'Refeição', 'descricao': d[k].toString()});
+                    }
+                }
+                d['refeicoes'] = refs;
+            }
+            return d;
+        }).toList();
+
+        // Calculate period for header
+        String periodDesc = 'Personalizado';
+        if (past && !current && !next) periodDesc = 'Semana Passada';
+        else if (!past && current && !next) periodDesc = 'Semana Atual';
+        else if (!past && !current && next) periodDesc = 'Próxima Semana';
+        else if (past && current && next) periodDesc = 'Plano Completo';
+
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => PdfPreviewScreen(
-              title: 'Cardápio Semanal: ${widget.petName}',
+              title: 'Cardápio: ${widget.petName}',
               buildPdf: (format) async {
                 final pdf = await ExportService().generateWeeklyMenuReport(
                   petName: widget.petName,
                   raceName: widget.raceName,
-                  plan: widget.currentWeekPlan,
-                  guidelines: widget.generalGuidelines,
+                  dietType: _dietType ?? 'Não Informado',
+                  plan: normalizedPlan,
+                  guidelines: _guidelines,
+                  dailyKcal: _kcalTarget,
+                  period: periodDesc,
                 );
                 return pdf.save();
               },
@@ -123,350 +545,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
         );
     } catch (e) {
       debugPrint('Erro ao gerar PDF: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao gerar PDF: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
-  }
-
-  Widget _buildWeekView(String weekType) {
-    if (weekType == 'current' && widget.currentWeekPlan.isEmpty) {
-      return _buildEmptyState('Nenhum cardápio gerado ainda.');
-    }
-
-    if (weekType == 'previous') {
-      return _buildEmptyState('Histórico da semana anterior não disponível.');
-    }
-
-    if (weekType == 'next') {
-      // Show generated next week plan if available
-      if (_nextWeekPlan.isNotEmpty) {
-        return _buildWeekPlanView(_nextWeekPlan, _nextWeekGuidelines);
-      }
-      return _buildGenerateNextWeek();
-    }
-
-    return _buildWeekPlanView(widget.currentWeekPlan, widget.generalGuidelines);
-  }
-
-  Widget _buildWeekPlanView(List<Map<String, String>> weekPlan, String? guidelines) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        if (guidelines != null) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.tips_and_updates, color: Colors.orangeAccent),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    guidelines,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-        ...weekPlan.map((day) {
-          final dia = day['dia'] ?? 'Dia';
-          final refeicao = day['refeicao'] ?? '';
-          final beneficio = day['beneficio'] ?? '';
-          final initial = dia.isNotEmpty ? dia[0].toUpperCase() : '?';
-
-          return Card(
-            color: Colors.white.withValues(alpha: 0.05),
-            elevation: 0,
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16),
-              leading: CircleAvatar(
-                backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.2),
-                child: Text(
-                  initial,
-                  style: GoogleFonts.poppins(
-                    color: const Color(0xFF00E676),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              title: Text(
-                dia,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 8),
-                  Text(
-                    refeicao,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.star, color: Colors.amberAccent, size: 14),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          "Por que: $beneficio",
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.white54,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState(String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.restaurant_menu,
-            size: 80,
-            color: Colors.white.withValues(alpha: 0.2),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: GoogleFonts.poppins(
-              color: Colors.white54,
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGenerateNextWeek() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.auto_awesome,
-            size: 80,
-            color: const Color(0xFF00E676).withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Gerar Cardápio da Próxima Semana',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              'O sistema irá criar um novo cardápio evitando os ingredientes da semana atual para garantir rotação nutricional.',
-              style: GoogleFonts.poppins(
-                color: Colors.white54,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: () async {
-              // Show loading dialog
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.black87,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E676)),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Gerando novo cardápio...',
-                          style: GoogleFonts.poppins(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-
-              try {
-                // Get excluded ingredients from current week
-                final currentIngredients = <String>{};
-                for (var day in widget.currentWeekPlan) {
-                  final meal = day['refeicao'] ?? '';
-                  final parts = meal.split(RegExp(r'[,;e]'));
-                  for (var part in parts) {
-                    final cleaned = part.trim().toLowerCase();
-                    if (cleaned.isNotEmpty) {
-                      final firstWord = cleaned.split(' ').first;
-                      if (firstWord.length > 3) currentIngredients.add(firstWord);
-                    }
-                  }
-                }
-
-                // Build prompt for new meal plan
-                final exclusionText = currentIngredients.isEmpty
-                    ? 'Nenhuma restrição.'
-                    : 'EVITE os seguintes ingredientes usados recentemente: ${currentIngredients.join(", ")}.';
-
-                final prompt = '''
-Atue como Nutrólogo Pet especializado em Alimentação Natural (AN).
-Gere um novo plano semanal de 7 dias para a raça: ${widget.raceName}.
-
-$exclusionText
-
-⚠️ REGRAS CRÍTICAS:
-- É TERMINANTEMENTE PROIBIDO sugerir ração ou alimentos processados
-- Use APENAS: Proteínas (carnes, ovos), Vísceras, Vegetais, Carboidratos saudáveis
-- Varie os ingredientes para garantir rotação nutricional
-- Cada refeição deve conter: Proteína + Víscera + Vegetal + Carboidrato
-
-Responda APENAS em JSON (sem markdown):
-{
-  "plano_semanal": [
-    {"dia": "Segunda-feira", "refeicao": "string", "beneficio": "string"},
-    {"dia": "Terça-feira", "refeicao": "string", "beneficio": "string"},
-    {"dia": "Quarta-feira", "refeicao": "string", "beneficio": "string"},
-    {"dia": "Quinta-feira", "refeicao": "string", "beneficio": "string"},
-    {"dia": "Sexta-feira", "refeicao": "string", "beneficio": "string"},
-    {"dia": "Sábado", "refeicao": "string", "beneficio": "string"},
-    {"dia": "Domingo", "refeicao": "string", "beneficio": "string"}
-  ],
-  "orientacoes_gerais": "string"
-}
-''';
-
-                // Call Gemini
-                final geminiService = GeminiService();
-                final response = await geminiService.generateTextContent(prompt);
-
-                // Close loading dialog
-                if (mounted) Navigator.pop(context);
-
-                // Validate response
-                if (response['plano_semanal'] == null) {
-                  throw Exception('Resposta inválida da IA');
-                }
-
-                // Show success and navigate back with new plan
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Novo cardápio gerado com sucesso! 🎉',
-                        style: GoogleFonts.poppins(),
-                      ),
-                      backgroundColor: const Color(0xFF00E676),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-
-                  // Update state with new plan
-                  final newPlan = response['plano_semanal'] as List;
-                  final newGuidelines = response['orientacoes_gerais'] as String?;
-                  
-                  setState(() {
-                    _nextWeekPlan = newPlan.map((day) => Map<String, String>.from(day as Map)).toList();
-                    _nextWeekGuidelines = newGuidelines;
-                  });
-
-                  // Wait a bit for snackbar to show, then switch tab
-                  await Future.delayed(const Duration(milliseconds: 500));
-                  
-                  // Stay on "Próxima Semana" tab to show the generated plan
-                  // User can see it immediately
-                }
-              } catch (e) {
-                // Close loading dialog
-                if (mounted) Navigator.pop(context);
-                
-                // Show error
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Erro ao gerar cardápio: ${e.toString()}',
-                        style: GoogleFonts.poppins(),
-                      ),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 4),
-                    ),
-                  );
-                }
-              }
-            },
-            icon: const Icon(Icons.refresh, color: Colors.black),
-            label: Text(
-              'Gerar Novo Cardápio',
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E676),
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
+

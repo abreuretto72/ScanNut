@@ -8,7 +8,8 @@ class AnalysisIdle extends AnalysisState {}
 
 class AnalysisLoading extends AnalysisState {
   final String message;
-  AnalysisLoading({this.message = 'Analisando...'});
+  final String? imagePath;
+  AnalysisLoading({this.message = 'Analisando...', this.imagePath});
 }
 
 class AnalysisSuccess<T> extends AnalysisState {

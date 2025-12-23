@@ -33,7 +33,10 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     String? petName,
     List<String> excludedBases = const [],
   }) async {
-    state = AnalysisLoading(message: _getLoadingMessage(mode));
+    state = AnalysisLoading(
+      message: _getLoadingMessage(mode),
+      imagePath: imageFile.path,
+    );
 
     try {
       Map<String, dynamic> jsonResponse;

@@ -1,5 +1,4 @@
 import 'pet_analysis_result.dart';
-import 'lab_exam.dart';
 
 /// Extended Pet Profile Model with bio-information
 class PetProfileExtended {
@@ -26,6 +25,14 @@ class PetProfileExtended {
   final Map<String, List<Map<String, dynamic>>> partnerNotes; // PartnerID -> List of notes {id, content, date}
   final List<Map<String, dynamic>> weightHistory; // [{date: iso, weight: 10.5, status: 'normal'}]
   final List<Map<String, dynamic>> labExams; // Lab exams with OCR and AI analysis
+  final List<Map<String, dynamic>> woundAnalysisHistory; // Wound/injury analysis history [{date, imagePath, diagnosis, severity, recommendations}]
+  
+  // Observações Cumulativas por Seção (com timestamps)
+  final String observacoesIdentidade;
+  final String observacoesSaude;
+  final String observacoesNutricao;
+  final String observacoesGaleria;
+  final String observacoesPrac;
   
   // Metadata
   final DateTime lastUpdated;
@@ -49,6 +56,12 @@ class PetProfileExtended {
     this.partnerNotes = const {},
     this.weightHistory = const [],
     this.labExams = const [],
+    this.woundAnalysisHistory = const [],
+    this.observacoesIdentidade = '',
+    this.observacoesSaude = '',
+    this.observacoesNutricao = '',
+    this.observacoesGaleria = '',
+    this.observacoesPrac = '',
     required this.lastUpdated,
     this.imagePath,
     this.rawAnalysis,
@@ -78,6 +91,12 @@ class PetProfileExtended {
           ) ?? {},
       weightHistory: (json['weight_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
       labExams: (json['lab_exams'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
+      woundAnalysisHistory: (json['wound_analysis_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
+      observacoesIdentidade: (json['observacoes_identidade'] ?? '') as String,
+      observacoesSaude: (json['observacoes_saude'] ?? '') as String,
+      observacoesNutricao: (json['observacoes_nutricao'] ?? '') as String,
+      observacoesGaleria: (json['observacoes_galeria'] ?? '') as String,
+      observacoesPrac: (json['observacoes_prac'] ?? '') as String,
       lastUpdated: json['last_updated'] != null
           ? DateTime.parse(json['last_updated'] as String)
           : DateTime.now(),
@@ -164,6 +183,12 @@ class PetProfileExtended {
       'partner_notes': partnerNotes,
       'weight_history': weightHistory,
       'lab_exams': labExams,
+      'wound_analysis_history': woundAnalysisHistory,
+      'observacoes_identidade': observacoesIdentidade,
+      'observacoes_saude': observacoesSaude,
+      'observacoes_nutricao': observacoesNutricao,
+      'observacoes_galeria': observacoesGaleria,
+      'observacoes_prac': observacoesPrac,
       'last_updated': lastUpdated.toIso8601String(),
       if (imagePath != null) 'image_path': imagePath,
       if (rawAnalysis != null) 'raw_analysis': rawAnalysis,
@@ -209,6 +234,7 @@ class PetProfileExtended {
     Map<String, List<Map<String, dynamic>>>? partnerNotes,
     List<Map<String, dynamic>>? weightHistory,
     List<Map<String, dynamic>>? labExams,
+    List<Map<String, dynamic>>? woundAnalysisHistory,
     DateTime? lastUpdated,
     String? imagePath,
   }) {
@@ -229,6 +255,7 @@ class PetProfileExtended {
       partnerNotes: partnerNotes ?? this.partnerNotes,
       weightHistory: weightHistory ?? this.weightHistory,
       labExams: labExams ?? this.labExams,
+      woundAnalysisHistory: woundAnalysisHistory ?? this.woundAnalysisHistory,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       imagePath: imagePath ?? this.imagePath,
     );

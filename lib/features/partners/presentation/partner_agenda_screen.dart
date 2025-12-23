@@ -11,7 +11,10 @@ import 'dart:io';
 import '../../../core/models/partner_model.dart';
 import '../models/agenda_event.dart';
 import '../../pet/services/pet_event_service.dart';
+import '../../pet/services/pet_event_service.dart';
 import '../../pet/models/pet_event.dart';
+import '../../../core/services/export_service.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
 import './widgets/add_event_modal.dart';
 
 class PartnerAgendaScreen extends StatefulWidget {
@@ -50,6 +53,68 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
     _events = List.from(widget.initialEvents);
     _selectedDay = _focusedDay;
     _speech = stt.SpeechToText();
+    _loadEventsFromService();
+  }
+
+  Future<void> _loadEventsFromService() async {
+    if (widget.petId == null) return;
+    
+    try {
+        final service = PetEventService();
+        await service.init();
+        final serviceEvents = service.getEventsByPet(widget.petId!);
+        
+        if (serviceEvents.isEmpty) return;
+
+        setState(() {
+            // Create a map of existing event IDs to avoid duplicates
+            final existingIds = _events.map((e) => e['id']).toSet();
+            
+            for (var pEvent in serviceEvents) {
+                if (!existingIds.contains(pEvent.id)) {
+                    // Map PetEvent to AgendaEvent JSON format
+                    // Map EventType to EventCategory string
+                    String category = 'extras';
+                    final typeStr = pEvent.type.toString().split('.').last.toLowerCase();
+                    
+                    if (typeStr == 'vaccine') category = 'vacina';
+                    else if (typeStr == 'medication') category = 'remedios';
+                    else if (typeStr == 'veterinary') category = 'consulta';
+                    else if (typeStr == 'grooming') category = 'estetica';
+                    else if (typeStr == 'bath') category = 'banho';
+                    else if (typeStr == 'other') category = 'extras';
+                    
+                    final newEventMap = {
+                        'id': pEvent.id,
+                        'partnerId': widget.partner.id, // Assuming same partner or we preserve it
+                        'petId': pEvent.petName,
+                        'category': category,
+                        'title': pEvent.title,
+                        'description': pEvent.notes,
+                        'dateTime': pEvent.dateTime.toIso8601String(),
+                        'attendant': pEvent.attendant,
+                        'createdAt': pEvent.createdAt.toIso8601String(),
+                        // Compatibility keys
+                        'content': pEvent.notes,
+                        'date': pEvent.dateTime.toIso8601String(),
+                        'type': 'event',
+                    };
+                    
+                    _events.add(newEventMap);
+                    existingIds.add(pEvent.id);
+                }
+            }
+            
+            // Re-sort
+            _events.sort((a, b) {
+                final dateA = DateTime.parse(a['date']);
+                final dateB = DateTime.parse(b['date']);
+                return dateA.compareTo(dateB);
+            });
+        });
+    } catch (e) {
+        debugPrint('Error loading events from service: $e');
+    }
   }
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
@@ -70,6 +135,44 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
     });
     // Immediate Save (callback)
     widget.onSave(_events); 
+
+    // Also persist to Service immediately
+    if (widget.petId != null) {
+        _persistToService(newEvent);
+    }
+  }
+
+  Future<void> _persistToService(Map<String, dynamic> eventMap) async {
+      final service = PetEventService();
+      await service.init();
+      
+      final agendaEvent = AgendaEvent.fromJson(eventMap);
+      
+      // Map back to PetEvent
+      EventType pType = EventType.other;
+      if (agendaEvent.category == EventCategory.vacina) pType = EventType.vaccine;
+      else if (agendaEvent.category == EventCategory.banho) pType = EventType.bath;
+      else if (agendaEvent.category == EventCategory.tosa) pType = EventType.grooming;
+      else if (agendaEvent.category == EventCategory.remedios) pType = EventType.medication;
+      else if (agendaEvent.category == EventCategory.consulta || 
+         agendaEvent.category == EventCategory.emergencia ||
+         agendaEvent.category == EventCategory.saude ||
+         agendaEvent.category == EventCategory.exame ||
+         agendaEvent.category == EventCategory.cirurgia) pType = EventType.veterinary;
+
+      final pEvent = PetEvent(
+          id: agendaEvent.id,
+          petName: widget.petId!,
+          title: agendaEvent.title,
+          type: pType,
+          dateTime: agendaEvent.dateTime,
+          notes: agendaEvent.description,
+          createdAt: agendaEvent.createdAt,
+          attendant: widget.partner.name,
+          completed: false,
+      );
+      
+      await service.addEvent(pEvent);
   }
 
   void _showAddEventModal() {
@@ -148,6 +251,90 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
     );
   }
 
+  void _showExportDialog() {
+    String reportType = 'Detalhamento';
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: const Text('Exportar Agenda', style: TextStyle(color: Colors.white)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Tipo de Relatório:', style: TextStyle(color: Colors.white70)),
+                RadioListTile<String>(
+                  title: const Text('Resumo', style: TextStyle(color: Colors.white)),
+                  value: 'Resumo',
+                  groupValue: reportType,
+                  onChanged: (val) => setDialogState(() => reportType = val!),
+                  activeColor: const Color(0xFF00E676),
+                ),
+                RadioListTile<String>(
+                  title: const Text('Detalhamento', style: TextStyle(color: Colors.white)),
+                  value: 'Detalhamento',
+                  groupValue: reportType,
+                  onChanged: (val) => setDialogState(() => reportType = val!),
+                  activeColor: const Color(0xFF00E676),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                
+                // Convert Map events to PetEvent objects for the report
+                final petEvents = _events.map((e) {
+                   return PetEvent(
+                      id: e['id'] ?? '',
+                      petName: widget.petId ?? 'N/A',
+                      title: e['title'] ?? '',
+                      type: EventType.other,
+                      dateTime: DateTime.parse(e['date']),
+                      notes: e['content'],
+                      completed: false, // Default
+                      attendant: widget.partner.name,
+                   );
+                }).toList();
+                
+                // Sort by date desc
+                petEvents.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+
+                final service = ExportService();
+                final pdf = await service.generateAgendaReport(
+                  events: petEvents,
+                  start: DateTime(2000), // Coverage
+                  end: DateTime(2100),
+                  reportType: reportType
+                );
+                
+                if (mounted) {
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (_) => PdfPreviewScreen(
+                      title: 'Relatório de Agenda',
+                      buildPdf: (format) async => pdf.save(),
+                    ))
+                  );
+                }
+              },
+              child: const Text('Gerar PDF', style: TextStyle(color: Color(0xFF00E676))),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Current events for selected day
@@ -168,100 +355,112 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            tooltip: 'Exportar PDF',
+            onPressed: _showExportDialog,
+          ),
+        ],
       ),
-      body: Column(
-        children: [
-          // 1. Calendar
-          Container(
-            color: Colors.white.withOpacity(0.05),
-            padding: const EdgeInsets.only(bottom: 8),
-            child: TableCalendar(
-              firstDay: DateTime.utc(2020, 10, 16),
-              lastDay: DateTime.utc(2030, 3, 14),
-              focusedDay: _focusedDay,
-              calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // 1. Calendar
+            Container(
+              color: Colors.white.withOpacity(0.05),
+              padding: const EdgeInsets.only(bottom: 8),
+              child: TableCalendar(
+                firstDay: DateTime.utc(2020, 10, 16),
+                lastDay: DateTime.utc(2030, 3, 14),
+                focusedDay: _focusedDay,
+                calendarFormat: _calendarFormat,
+                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onFormatChanged: (format) {
+                  if (_calendarFormat != format) setState(() => _calendarFormat = format);
+                },
+                onPageChanged: (focusedDay) {
                   _focusedDay = focusedDay;
-                });
-              },
-              onFormatChanged: (format) {
-                if (_calendarFormat != format) setState(() => _calendarFormat = format);
-              },
-              onPageChanged: (focusedDay) {
-                _focusedDay = focusedDay;
-              },
-              eventLoader: _getEventsForDay, // Shows dots
-              
-              // Styles
-              headerStyle: HeaderStyle(
-                titleCentered: true,
-                formatButtonVisible: false,
-                titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                leftChevronIcon: const Icon(Icons.chevron_left, color: Color(0xFF00E676)),
-                rightChevronIcon: const Icon(Icons.chevron_right, color: Color(0xFF00E676)),
-              ),
-              daysOfWeekStyle: const DaysOfWeekStyle(
-                weekendStyle: TextStyle(color: Colors.white30),
-                weekdayStyle: TextStyle(color: Colors.white70),
-              ),
-              calendarStyle: CalendarStyle(
-                defaultTextStyle: GoogleFonts.poppins(color: Colors.white),
-                weekendTextStyle: GoogleFonts.poppins(color: Colors.white54),
-                todayTextStyle: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
-                todayDecoration: const BoxDecoration(
-                  color: Color(0xFF00E676),
-                  shape: BoxShape.circle,
+                },
+                eventLoader: _getEventsForDay, // Shows dots
+                
+                // Styles
+                headerStyle: HeaderStyle(
+                  titleCentered: true,
+                  formatButtonVisible: false,
+                  titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  leftChevronIcon: const Icon(Icons.chevron_left, color: Color(0xFF00E676)),
+                  rightChevronIcon: const Icon(Icons.chevron_right, color: Color(0xFF00E676)),
                 ),
-                selectedTextStyle: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
-                selectedDecoration: const BoxDecoration(
-                  color: Colors.blueAccent,
-                  shape: BoxShape.circle,
+                daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekendStyle: TextStyle(color: Colors.white30),
+                  weekdayStyle: TextStyle(color: Colors.white70),
                 ),
-                markerDecoration: const BoxDecoration(
-                  color: Colors.amber,
-                  shape: BoxShape.circle,
+                calendarStyle: CalendarStyle(
+                  defaultTextStyle: GoogleFonts.poppins(color: Colors.white),
+                  weekendTextStyle: GoogleFonts.poppins(color: Colors.white54),
+                  todayTextStyle: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
+                  todayDecoration: const BoxDecoration(
+                    color: Color(0xFF00E676),
+                    shape: BoxShape.circle,
+                  ),
+                  selectedTextStyle: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+                  selectedDecoration: const BoxDecoration(
+                    color: Colors.blueAccent,
+                    shape: BoxShape.circle,
+                  ),
+                  markerDecoration: const BoxDecoration(
+                    color: Colors.amber,
+                    shape: BoxShape.circle,
+                  ),
+                  outsideDaysVisible: false,
                 ),
-                outsideDaysVisible: false,
               ),
             ),
-          ),
 
-          const SizedBox(height: 10),
-          
-          // Header for Timeline
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _selectedDay != null 
-                    ? DateFormat('d ' 'de' ' MMMM', 'pt_BR').format(_selectedDay!)
-                    : 'Hoje',
-                  style: GoogleFonts.poppins(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Text('${dailyEvents.length} eventos', style: const TextStyle(color: Colors.white24, fontSize: 12)),
-              ],
+            const SizedBox(height: 10),
+            
+            // Header for Timeline
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _selectedDay != null 
+                      ? DateFormat('d ' 'de' ' MMMM', 'pt_BR').format(_selectedDay!)
+                      : 'Hoje',
+                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  Text('${dailyEvents.length} eventos', style: const TextStyle(color: Colors.white24, fontSize: 12)),
+                ],
+              ),
             ),
-          ),
 
-          // 2. Event List (Timeline)
-          Expanded(
-            child: dailyEvents.isEmpty
+            // 2. Event List (Timeline)
+            dailyEvents.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: dailyEvents.length,
                     itemBuilder: (context, index) {
                       final event = dailyEvents[index];
                       return _buildTimelineItem(event, isLast: index == dailyEvents.length - 1);
                     },
             ),
-          ),
-        ],
+            
+            // Padding for FAB
+            const SizedBox(height: 80),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddEventModal,

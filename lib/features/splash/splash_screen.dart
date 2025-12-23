@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../home/presentation/home_view.dart';
 
@@ -19,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     
     _controller = AnimationController(
       vsync: this,
@@ -57,6 +59,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   void dispose() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _controller.dispose();
     super.dispose();
   }
@@ -64,7 +67,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black, // Safety background
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -81,139 +87,138 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             // Animated background particles
             ...List.generate(20, (index) => _buildParticle(index)),
             
-            // Main content
+            // Main content - Centered
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min, // Keep it compact in center
                 children: [
-                  // Logo/Icon
-                  ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: FadeTransition(
+                   // Logo/Icon
+                   ScaleTransition(
+                     scale: _scaleAnimation,
+                     child: FadeTransition(
+                       opacity: _fadeAnimation,
+                       child: Container(
+                         width: 120,
+                         height: 120,
+                         decoration: BoxDecoration(
+                           shape: BoxShape.circle,
+                           gradient: LinearGradient(
+                             colors: [
+                               const Color(0xFF00E676),
+                               const Color(0xFF00E676).withValues(alpha: 0.6),
+                             ],
+                           ),
+                           boxShadow: [
+                             BoxShadow(
+                               color: const Color(0xFF00E676).withValues(alpha: 0.5),
+                               blurRadius: 40,
+                               spreadRadius: 10,
+                             ),
+                           ],
+                         ),
+                         child: const Icon(
+                           Icons.camera_alt_rounded,
+                           size: 60,
+                           color: Colors.black,
+                         ),
+                       ),
+                     ),
+                   ),
+                   
+                   const SizedBox(height: 30),
+                   
+                   // App Name
+                   AnimatedBuilder(
+                     animation: _slideAnimation,
+                     builder: (context, child) {
+                       return Transform.translate(
+                         offset: Offset(0, _slideAnimation.value),
+                         child: FadeTransition(
+                           opacity: _fadeAnimation,
+                           child: child,
+                         ),
+                       );
+                     },
+                     child: Text(
+                       'ScanNut',
+                       style: GoogleFonts.poppins(
+                         fontSize: 48,
+                         fontWeight: FontWeight.bold,
+                         color: Colors.white,
+                         letterSpacing: 2,
+                       ),
+                     ),
+                   ),
+                   
+                   const SizedBox(height: 12),
+                   
+                   // Tagline
+                   AnimatedBuilder(
+                     animation: _slideAnimation,
+                     builder: (context, child) {
+                       return Transform.translate(
+                         offset: Offset(0, _slideAnimation.value + 20),
+                         child: FadeTransition(
+                           opacity: _fadeAnimation,
+                           child: child,
+                         ),
+                       );
+                     },
+                     child: Row(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                       children: [
+                         _buildTag('🍎', 'Food'),
+                         const SizedBox(width: 8),
+                         Container(
+                           width: 4,
+                           height: 4,
+                           decoration: const BoxDecoration(
+                             color: Color(0xFF00E676),
+                             shape: BoxShape.circle,
+                           ),
+                         ),
+                         const SizedBox(width: 8),
+                         _buildTag('🌿', 'Plants'),
+                         const SizedBox(width: 8),
+                         Container(
+                           width: 4,
+                           height: 4,
+                           decoration: const BoxDecoration(
+                             color: Color(0xFF00E676),
+                             shape: BoxShape.circle,
+                           ),
+                         ),
+                         const SizedBox(width: 8),
+                         _buildTag('🐾', 'Pets'),
+                       ],
+                     ),
+                   ),
+                   
+                   const SizedBox(height: 60),
+
+                   // Loading indicator (linked to main content)
+                    FadeTransition(
                       opacity: _fadeAnimation,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              const Color(0xFF00E676),
-                              const Color(0xFF00E676).withValues(alpha: 0.6),
-                            ],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF00E676).withValues(alpha: 0.5),
-                              blurRadius: 40,
-                              spreadRadius: 10,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt_rounded,
-                          size: 60,
-                          color: Colors.black,
+                      child: const SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E676)),
                         ),
                       ),
                     ),
-                  ),
-                  
-                  const SizedBox(height: 30),
-                  
-                  // App Name
-                  AnimatedBuilder(
-                    animation: _slideAnimation,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, _slideAnimation.value),
-                        child: FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'ScanNut',
-                      style: GoogleFonts.poppins(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // Tagline
-                  AnimatedBuilder(
-                    animation: _slideAnimation,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, _slideAnimation.value + 20),
-                        child: FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildTag('🍎', 'Food'),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF00E676),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildTag('🌿', 'Plants'),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF00E676),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildTag('🐾', 'Pets'),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 60),
-                  
-                  // Loading indicator
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: const SizedBox(
-                      width: 30,
-                      height: 30,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E676)),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             
-            // Powered by AI badge
-            Positioned(
-              bottom: 40,
-              left: 0,
-              right: 0,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Center(
+            // Footer - Bottom Pinned
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 40.0),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
@@ -244,6 +249,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
   }
+
 
   Widget _buildTag(String emoji, String label) {
     return Row(
