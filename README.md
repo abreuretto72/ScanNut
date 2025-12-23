@@ -43,7 +43,6 @@ flutter run
 ```
 
 ## Documentation
-- [Premissas de Desenvolvimento](PREMISSAS_DEV.md): Guidelines for development standards.
 - [Architecture](PET_DATA_ARCHITECTURE.md): Data structure details.
 
 ## Contributing
