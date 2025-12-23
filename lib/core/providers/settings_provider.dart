@@ -10,6 +10,8 @@ class AppSettings {
   final bool showPlantButton;
   final bool showPetButton;
   final double partnerSearchRadius;
+  final String? languageCode; // null = System Default
+  final String weightUnit; // 'kg' or 'lbs'
 
   const AppSettings({
     this.dailyCalorieGoal = 2000,
@@ -19,6 +21,8 @@ class AppSettings {
     this.showPlantButton = true,
     this.showPetButton = true,
     this.partnerSearchRadius = 10.0,
+    this.languageCode,
+    this.weightUnit = 'kg',
   });
 
   AppSettings copyWith({
@@ -29,6 +33,8 @@ class AppSettings {
     bool? showPlantButton,
     bool? showPetButton,
     double? partnerSearchRadius,
+    String? languageCode,
+    String? weightUnit,
   }) {
     return AppSettings(
       dailyCalorieGoal: dailyCalorieGoal ?? this.dailyCalorieGoal,
@@ -38,11 +44,12 @@ class AppSettings {
       showPlantButton: showPlantButton ?? this.showPlantButton,
       showPetButton: showPetButton ?? this.showPetButton,
       partnerSearchRadius: partnerSearchRadius ?? this.partnerSearchRadius,
+      languageCode: languageCode ?? this.languageCode,
+      weightUnit: weightUnit ?? this.weightUnit,
     );
   }
 }
 
-/// Settings notifier
 class SettingsNotifier extends StateNotifier<AppSettings> {
   SettingsNotifier() : super(const AppSettings()) {
     _loadSettings();
@@ -58,8 +65,40 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       showPlantButton: prefs.getBool('showPlantButton') ?? true,
       showPetButton: prefs.getBool('showPetButton') ?? true,
       partnerSearchRadius: (prefs.getDouble('partnerSearchRadius') ?? 10.0).clamp(1.0, 20.0),
+      languageCode: prefs.getString('languageCode'),
+      weightUnit: prefs.getString('weightUnit') ?? 'kg',
     );
   }
+  
+  Future<void> setWeightUnit(String unit) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('weightUnit', unit);
+    state = state.copyWith(weightUnit: unit);
+  }
+
+  // ... rest of methods ...
+
+  Future<void> setLanguage(String? code) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (code == null) {
+      await prefs.remove('languageCode');
+    } else {
+      await prefs.setString('languageCode', code);
+    }
+    // Rebuild state manually to allow null assignment if copyWith fails to handle it
+    state = AppSettings(
+      dailyCalorieGoal: state.dailyCalorieGoal,
+      userName: state.userName,
+      showTips: state.showTips,
+      showFoodButton: state.showFoodButton,
+      showPlantButton: state.showPlantButton,
+      showPetButton: state.showPetButton,
+      partnerSearchRadius: state.partnerSearchRadius,
+      languageCode: code,
+      weightUnit: state.weightUnit,
+    );
+  }
+// ... rest of class
 
   Future<void> setDailyCalorieGoal(int goal) async {
     final prefs = await SharedPreferences.getInstance();

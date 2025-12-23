@@ -11,6 +11,7 @@
 *.p12
 *.jks
 google-services.json
+client_secret*.json
 GoogleService-Info.plist
 
 # Build outputs
@@ -64,11 +65,12 @@ coverage/
 # Documentação temporária
 *.tmp
 *.temp
+*.log
+*.txt
+!**/CMakeLists.txt
 
 # Documentation Restrictions
 *.md
 !README.md
-!MAINTENANCE_PROTOCOL.md
-!CHANGELOG.md
-!UI_UX_DOCS.md
+
 

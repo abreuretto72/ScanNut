@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../partners/presentation/partner_agenda_screen.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
@@ -2007,7 +2008,7 @@ class _EditPetFormState extends State<EditPetForm>
                        children: [
                           Icon(Icons.auto_awesome, color: const Color(0xFF00E676)),
                           const SizedBox(width: 10),
-                          const Text('Planejar Cardápio Inteligente', style: TextStyle(color: Colors.white, fontSize: 16)),
+                          Text(AppLocalizations.of(context)!.menuPlanTitle, style: const TextStyle(color: Colors.white, fontSize: 16)),
                        ],
                     ),
                     content: SingleChildScrollView(
@@ -2015,7 +2016,7 @@ class _EditPetFormState extends State<EditPetForm>
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                             Text('Período do Cardápio', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                             Text(AppLocalizations.of(context)!.menuPeriod, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
                              const SizedBox(height: 8),
                              InkWell(
                                 onTap: () async {
@@ -2041,8 +2042,8 @@ class _EditPetFormState extends State<EditPetForm>
                                       children: [
                                          Text(
                                             selectedDateRange != null 
-                                            ? '${DateFormat('dd/MM').format(selectedDateRange!.start)} até ${DateFormat('dd/MM').format(selectedDateRange!.end)}'
-                                            : 'Selecionar Datas',
+                                            ? '${DateFormat.yMd(Localizations.localeOf(context).toString()).format(selectedDateRange!.start)} - ${DateFormat.yMd(Localizations.localeOf(context).toString()).format(selectedDateRange!.end)}'
+                                            : AppLocalizations.of(context)!.selectDates,
                                             style: const TextStyle(color: Colors.white),
                                          ),
                                          const Icon(Icons.calendar_today, color: Color(0xFF00E676), size: 16),
@@ -2051,9 +2052,9 @@ class _EditPetFormState extends State<EditPetForm>
                                 ),
                              ),
                              const SizedBox(height: 16),
-                             Text('Regime Alimentar', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                             Text(AppLocalizations.of(context)!.dietType, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
                              CheckboxListTile(
-                                title: const Text('Alimentação Natural', style: TextStyle(color: Colors.white, fontSize: 14)),
+                                title: Text(AppLocalizations.of(context)!.dietNatural, style: const TextStyle(color: Colors.white, fontSize: 14)),
                                 value: isNatural,
                                 activeColor: const Color(0xFF00E676),
                                 checkColor: Colors.black,
@@ -2061,7 +2062,7 @@ class _EditPetFormState extends State<EditPetForm>
                                 onChanged: (v) => setDialogState(() => isNatural = v ?? false),
                              ),
                              CheckboxListTile(
-                                title: const Text('Ração Comercial', style: TextStyle(color: Colors.white, fontSize: 14)),
+                                title: Text(AppLocalizations.of(context)!.dietKibble, style: const TextStyle(color: Colors.white, fontSize: 14)),
                                 value: isKibble,
                                 activeColor: const Color(0xFF00E676),
                                 checkColor: Colors.black,
@@ -2071,10 +2072,10 @@ class _EditPetFormState extends State<EditPetForm>
                              if (isNatural && isKibble)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 8),
-                                  child: Text('✅ Modo Híbrido Ativado', style: TextStyle(color: Colors.amberAccent, fontSize: 12, fontStyle: FontStyle.italic)),
+                                  child: Text('✅ ${AppLocalizations.of(context)!.dietHybrid}', style: const TextStyle(color: Colors.amberAccent, fontSize: 12, fontStyle: FontStyle.italic)),
                                 ),
                              const SizedBox(height: 16),
-                             Text('Meta Nutricional', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
+                             Text(AppLocalizations.of(context)!.nutritionalGoal, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
                              const SizedBox(height: 8),
                              Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -2108,7 +2109,7 @@ class _EditPetFormState extends State<EditPetForm>
                              }
                              Navigator.pop(ctx, true);
                           },
-                          child: const Text('Gerar Cardápio'),
+                          child: Text(AppLocalizations.of(context)!.generateMenu),
                        ),
                     ],
                  );
@@ -2160,9 +2161,9 @@ class _EditPetFormState extends State<EditPetForm>
         final duration = selectedDateRange!.end.difference(selectedDateRange!.start).inDays + 1;
         
         String dietType = 'Indefinido';
-        if (isNatural && isKibble) dietType = 'Híbrida (Ração + Natural)';
-        else if (isNatural) dietType = '100% Alimentação Natural';
-        else dietType = '100% Ração (Foco em Enriquecimento)';
+        if (isNatural && isKibble) dietType = 'Hybrid (${AppLocalizations.of(context)!.dietKibble} + ${AppLocalizations.of(context)!.dietNatural})';
+        else if (isNatural) dietType = '100% ${AppLocalizations.of(context)!.dietNatural}';
+        else dietType = '100% ${AppLocalizations.of(context)!.dietKibble}';
 
         final prompt = '''
            ATUE COMO NUTRÓLOGO VETERINÁRIO ESPECIALISTA EXCLUSIVO (MÉTODO SCANNUT).
@@ -2224,10 +2225,10 @@ class _EditPetFormState extends State<EditPetForm>
              
              final item = Map<String, dynamic>.from(generatedList[i]);
              final dateForDay = selectedDateRange!.start.add(Duration(days: i));
-             final dateStr = shortFormatter.format(dateForDay);
+             final dateStr = DateFormat.yMd(Localizations.localeOf(context).toString()).format(dateForDay);
              
-             // Get PT-BR Weekday
-             final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay); 
+             // Get Locale-aware Weekday
+             final weekDayName = DateFormat('EEEE', Localizations.localeOf(context).toString()).format(dateForDay); 
              final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
              
              item['dia'] = "$weekDayCap - $dateStr";
@@ -2469,8 +2470,8 @@ class _EditPetFormState extends State<EditPetForm>
           }
 
           final dateForDay = startData.add(Duration(days: index));
-          final dateStr = DateFormat('dd/MM').format(dateForDay);
-          final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay);
+          final dateStr = DateFormat.yMd(Localizations.localeOf(context).toString()).format(dateForDay);
+          final weekDayName = DateFormat('EEEE', Localizations.localeOf(context).toString()).format(dateForDay);
           final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
           diaTitulo = "$weekDayCap - $dateStr";
           
@@ -3039,6 +3040,7 @@ class _EditPetFormState extends State<EditPetForm>
               buildPdf: (format) async {
                 final pdf = await ExportService().generatePetProfileReport(
                   profile: profile,
+                  strings: AppLocalizations.of(context)!,
                   selectedSections: selectedSections,
                 );
                 return pdf.save();

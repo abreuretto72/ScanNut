@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
@@ -532,6 +533,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                 final pdf = await ExportService().generateWeeklyMenuReport(
                   petName: widget.petName,
                   raceName: widget.raceName,
+                  strings: AppLocalizations.of(context)!,
                   dietType: _dietType ?? 'Não Informado',
                   plan: normalizedPlan,
                   guidelines: _guidelines,

@@ -17,7 +17,7 @@ class FileUploadService {
 
       final XFile? photo = await _imagePicker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85,
+        imageQuality: 80,
       );
 
       if (photo != null) {
@@ -34,7 +34,7 @@ class FileUploadService {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 85,
+        imageQuality: 80,
       );
 
       if (image != null) {

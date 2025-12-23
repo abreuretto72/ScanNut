@@ -1,0 +1,63 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class DataManagementService {
+  /// Completely wipes all user data and local files
+  Future<void> deleteAllData() async {
+    try {
+      // 1. Clear SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      debugPrint('✅ SharedPreferences cleared');
+
+      // 2. Clear all Hive Boxes
+      // Define all boxes used in the app
+      final boxes = [
+        'scannut_history',
+        'pet_profiles',
+        'pet_health',
+        'meal_plans',
+        'pet_events',
+        'vaccine_status',
+        'partners',
+        'partner_reminders',
+      ];
+
+      for (var boxName in boxes) {
+        if (Hive.isBoxOpen(boxName)) {
+          await Hive.box(boxName).clear();
+        } else {
+          try {
+            var box = await Hive.openBox(boxName);
+            await box.clear();
+          } catch (e) {
+            debugPrint('⚠️ Error clearing box $boxName: $e');
+          }
+        }
+      }
+      debugPrint('✅ Hive boxes cleared');
+
+      // 3. Delete Physical Files (Medical Docs, captured images)
+      final appDir = await getApplicationDocumentsDirectory();
+      
+      // Delete medical_docs
+      final medicalDocsDir = Directory('${appDir.path}/medical_docs');
+      if (await medicalDocsDir.exists()) {
+        await medicalDocsDir.delete(recursive: true);
+        debugPrint('✅ Medical documents folder deleted');
+      }
+
+      // 4. Delete app metadata folder (Hive files)
+      // Note: We avoid deleting the root application directory to prevent system errors,
+      // but we cleared the content. Hive will recreate boxes as needed.
+
+      debugPrint('🎉 ALL DATA REMOVED SUCCESSFULLY');
+    } catch (e) {
+      debugPrint('❌ Error during data deletion: $e');
+      rethrow;
+    }
+  }
+}

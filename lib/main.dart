@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'core/widgets/custom_error_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/splash/splash_screen.dart';
+import 'core/providers/settings_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -20,56 +23,80 @@ import 'features/pet/services/meal_plan_service.dart'; // Import New Service
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await dotenv.load(fileName: ".env");
-  
-  // Initialize Hive
-  await Hive.initFlutter();
-  
-  // Register Hive adapters for PetEvent
-  if (!Hive.isAdapterRegistered(4)) {
-    Hive.registerAdapter(EventTypeAdapter());
-  }
-  if (!Hive.isAdapterRegistered(5)) {
-    Hive.registerAdapter(RecurrenceTypeAdapter());
-  }
-  if (!Hive.isAdapterRegistered(6)) {
-    Hive.registerAdapter(PetEventAdapter());
-  }
-  if (!Hive.isAdapterRegistered(7)) {
-    Hive.registerAdapter(VaccineStatusAdapter());
-  }
-  
-  await HistoryService().init();
-  await MealHistoryService().init();
-  await PetEventService().init();
-  await VaccineStatusService().init();
-  
-  // Initialize new unified pet data services
-  await PetProfileService().init();
-  await PetHealthService().init();
-  await MealPlanService().init(); // Initialize Meal Plan Service
-  
-  // Debug: Show loaded environment variables
-  debugPrint('🔑 === ENVIRONMENT VARIABLES LOADED ===');
-  debugPrint('GROQ_API_KEY: ${dotenv.env['GROQ_API_KEY']?.substring(0, 10) ?? 'NOT FOUND'}...');
-  debugPrint('GEMINI_API_KEY: ${dotenv.env['GEMINI_API_KEY']?.substring(0, 10) ?? 'NOT FOUND'}...');
-  debugPrint('BASE_URL: ${dotenv.env['BASE_URL'] ?? 'NOT FOUND'}');
-  debugPrint('🔑 =====================================');
-  
-  runApp(const ProviderScope(child: ScannutApp()));
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Configuração Global de Erros de UI
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      // Retorna nossa tela customizada em vez da tela vermelha
+      return CustomErrorScreen(details: details);
+    };
+
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await dotenv.load(fileName: ".env");
+    
+    // Initialize Hive
+    await Hive.initFlutter();
+    
+    // Register Hive adapters for PetEvent
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(EventTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(5)) {
+      Hive.registerAdapter(RecurrenceTypeAdapter());
+    }
+    if (!Hive.isAdapterRegistered(6)) {
+      Hive.registerAdapter(PetEventAdapter());
+    }
+    if (!Hive.isAdapterRegistered(7)) {
+      Hive.registerAdapter(VaccineStatusAdapter());
+    }
+    
+    await HistoryService().init();
+    await MealHistoryService().init();
+    await PetEventService().init();
+    await VaccineStatusService().init();
+    
+    // Initialize new unified pet data services
+    await PetProfileService().init();
+    await PetHealthService().init();
+    await MealPlanService().init(); 
+    
+    // Debug: Show loaded environment variables
+    debugPrint('🔑 === ENVIRONMENT VARIABLES LOADED ===');
+    debugPrint('GROQ_API_KEY: ${dotenv.env['GROQ_API_KEY']?.substring(0, 10) ?? 'NOT FOUND'}...');
+    debugPrint('GEMINI_API_KEY: ${dotenv.env['GEMINI_API_KEY']?.substring(0, 10) ?? 'NOT FOUND'}...');
+    debugPrint('BASE_URL: ${dotenv.env['BASE_URL'] ?? 'NOT FOUND'}');
+    debugPrint('🔑 =====================================');
+    
+    runApp(const ProviderScope(child: ScannutApp()));
+  }, (error, stack) {
+    // Zona de Captura de Erros Não Tratados (Assíncronos)
+    debugPrint('🔴 ERRO CRÍTICO CAPTURADO (runZoned): $error');
+    debugPrint('Stacktrace: $stack');
+    // Aqui você conectaria Crashlytics/Sentry no futuro
+  });
 }
 
 class ScannutApp extends ConsumerWidget {
   const ScannutApp({Key? key}) : super(key: key);
 
+  Locale? _resolveLocale(String? code) {
+    if (code == null) return null;
+    final parts = code.split('_');
+    if (parts.length == 2) return Locale(parts[0], parts[1]);
+    return Locale(parts[0]);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    
     return MaterialApp(
       title: 'Scannut',
       scaffoldMessengerKey: scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
+      locale: _resolveLocale(settings.languageCode),
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
@@ -87,11 +114,12 @@ class ScannutApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [
-        Locale('pt'), // Default
         Locale('en'),
-        Locale('es'),
+        Locale('pt', 'BR'), // Portuguese Brazil
+        Locale('pt', 'PT'), // Portuguese Portugal
+        Locale('es'),       // Spanish
       ],
       home: const SplashScreen(),
     );
   }
-}    
+}

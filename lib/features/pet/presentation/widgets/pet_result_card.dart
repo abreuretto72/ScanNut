@@ -13,6 +13,7 @@ import 'package:printing/printing.dart';
 
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import '../../models/pet_analysis_result.dart';
 import '../../../../core/utils/color_helper.dart';
 import '../../../../core/utils/color_helper.dart';
@@ -102,6 +103,14 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
   Color get _urgencyColor => ColorHelper.getPetThemeColor(widget.analysis.urgenciaNivel);
   bool get _isEmergency => widget.analysis.urgenciaNivel.toLowerCase() == 'vermelho';
+  
+  String get _localizedRaca {
+    final raca = widget.analysis.raca;
+    if (raca.toLowerCase() == 'vira-lata' || raca.toLowerCase() == 'srd' || raca.toLowerCase().contains('sem raça')) {
+       return AppLocalizations.of(context)!.breedMixed;
+    }
+    return raca;
+  }
 
   Future<void> _generatePDF() async {
     final pdf = pw.Document();
@@ -115,7 +124,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     }
 
     final now = DateTime.now();
-    final dateStr = "${now.day}/${now.month}/${now.year} - ${now.hour}:${now.minute}";
+    final dateStr = DateFormat.yMd(Localizations.localeOf(context).toString()).add_Hm().format(now);
 
     pdf.addPage(
       pw.MultiPage(
@@ -275,7 +284,19 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             pw.Text("Adestramento: ${pet.lifestyle.treinamento['dificuldade_adestramento'] ?? 'N/A'}"),
             pw.Text("Ambiente Ideal: ${pet.lifestyle.ambienteIdeal['necessidade_de_espaco_aberto'] ?? 'N/A'}"),
             
-            pw.Footer(title: pw.Text("ScanNut App - Inteligência Animal", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey))),
+            pw.Footer(
+              title: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                   pw.Text("ScanNut App - Inteligência Animal", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey)),
+                   pw.SizedBox(height: 4),
+                   pw.Text(
+                     AppLocalizations.of(context)!.aiDisclaimer,
+                     style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic),
+                   ),
+                ],
+              ),
+            ),
           ];
         },
       ),
@@ -339,6 +360,31 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                        child: _buildTabContent(scrollController),
                      ),
                    ],
+                   // LEGAL DISCLAIMER FOOTER (AI LABELING)
+                   Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                     decoration: BoxDecoration(
+                       color: Colors.red.withValues(alpha: 0.1),
+                       border: const Border(top: BorderSide(color: Colors.white10)),
+                     ),
+                     child: Row(
+                       children: [
+                         const Icon(Icons.info_outline, color: Colors.orangeAccent, size: 16),
+                         const SizedBox(width: 12),
+                         Expanded(
+                           child: Text(
+                             AppLocalizations.of(context)!.aiDisclaimer,
+                             style: GoogleFonts.poppins(
+                               color: Colors.white60,
+                               fontSize: 10,
+                               fontStyle: FontStyle.italic,
+                               height: 1.4,
+                             ),
+                           ),
+                         ),
+                       ],
+                     ),
+                   ),
                 ],
               ),
             ),
@@ -363,12 +409,12 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.petName ?? widget.analysis.raca,
+                      widget.petName ?? _localizedRaca,
                       style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      widget.petName != null ? widget.analysis.raca : widget.analysis.especie,
+                      widget.petName != null ? _localizedRaca : widget.analysis.especie,
                       style: GoogleFonts.poppins(fontSize: 14, color: Colors.white54),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -497,12 +543,12 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         indicatorColor: _themeColor,
         labelColor: _themeColor,
         unselectedLabelColor: Colors.white54,
-        tabs: const [
-          Tab(text: "IDENTIDADE"),
-          Tab(text: "NUTRIÇÃO"),
-          Tab(text: "GROOMING"),
-          Tab(text: "SAÚDE"),
-          Tab(text: "LIFESTYLE"),
+        tabs: [
+          Tab(text: AppLocalizations.of(context)!.tabIdentity),
+          Tab(text: AppLocalizations.of(context)!.tabNutrition),
+          Tab(text: AppLocalizations.of(context)!.tabGrooming),
+          Tab(text: AppLocalizations.of(context)!.tabHealth),
+          Tab(text: AppLocalizations.of(context)!.tabLifestyle),
         ],
       ),
     );

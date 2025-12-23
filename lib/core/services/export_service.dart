@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import '../../features/pet/models/pet_event.dart';
 import '../../features/pet/models/pet_profile_extended.dart';
 import '../../features/food/models/food_analysis_model.dart';
@@ -17,6 +18,22 @@ class ExportService {
   static final ExportService _instance = ExportService._internal();
   factory ExportService() => _instance;
   ExportService._internal();
+
+  // --- SAFETY HELPERS ---
+  Future<pw.ImageProvider?> _safeLoadImage(String? path) async {
+    if (path == null || path.isEmpty) return null;
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+         final bytes = await file.readAsBytes();
+         // Validação básica de header se necessário, mas o try-catch captura erros de decodificação do pdf package
+         return pw.MemoryImage(bytes);
+      }
+    } catch (e) {
+      print('⚠️ [ExportService] Skipped corrupted/missing image: $path | Error: $e');
+    }
+    return null;
+  }
 
   pw.Widget _buildSectionHeader(String title) {
     return pw.Container(
@@ -280,6 +297,7 @@ class ExportService {
     required String raceName,
     required String dietType,
     required List<Map<String, dynamic>> plan, 
+    required AppLocalizations strings,
     String? guidelines,
     String? dailyKcal,
     String? period, // Added period
@@ -291,7 +309,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Plano Alimentar Nutricional', timestampStr),
+        header: (context) => _buildHeader(strings.pdfNutritionSection, timestampStr),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           // Header Info Card
@@ -477,6 +495,7 @@ class ExportService {
   /// 5. COMPREHENSIVE PET PROFILE REPORT - COMPLETE VETERINARY DOSSIER
    Future<pw.Document> generatePetProfileReport({
      required PetProfileExtended profile,
+     required AppLocalizations strings,
      Map<String, bool>? selectedSections,
    }) async {
     final pdf = pw.Document();
@@ -523,16 +542,17 @@ class ExportService {
             for (var file in allDocs) {
                 final ext = path.extension(file.path).toLowerCase();
                 if (['.jpg', '.jpeg', '.png', '.webp'].contains(ext)) {
-                    final bytes = await file.readAsBytes();
-                    final memImg = pw.MemoryImage(bytes);
-                    final name = path.basename(file.path);
-                    String caption = name;
-                    if (name.contains('_')) caption = name.split('_').first.toUpperCase();
-                    
-                    galleryImages.add({
-                        'image': memImg,
-                        'caption': caption,
-                    });
+                    final memImg = await _safeLoadImage(file.path);
+                    if (memImg != null) {
+                        final name = path.basename(file.path);
+                        String caption = name;
+                        if (name.contains('_')) caption = name.split('_').first.toUpperCase();
+                        
+                        galleryImages.add({
+                            'image': memImg,
+                            'caption': caption,
+                        });
+                    }
                 } else {
                     otherDocNames.add(path.basename(file.path));
                 }
@@ -542,18 +562,7 @@ class ExportService {
     // ----------------------------
     
     // Load pet profile image if available
-    pw.ImageProvider? profileImage;
-    if (profile.imagePath != null && profile.imagePath!.isNotEmpty) {
-      try {
-        final imageFile = File(profile.imagePath!);
-        if (await imageFile.exists()) {
-          final imageBytes = await imageFile.readAsBytes();
-          profileImage = pw.MemoryImage(imageBytes);
-        }
-      } catch (e) {
-        print('Error loading profile image: $e');
-      }
-    }
+    pw.ImageProvider? profileImage = await _safeLoadImage(profile.imagePath);
     
     // Calcular data base para o cardápio (Segunda-feira)
     final DateTime? savedStart = profile.rawAnalysis?['data_inicio_semana'] != null 
@@ -575,17 +584,7 @@ class ExportService {
              ..sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
         
         for (var w in sortedWounds) {
-            pw.ImageProvider? img;
-            if (w['imagePath'] != null && w['imagePath'].toString().isNotEmpty) {
-                 try {
-                     final f = File(w['imagePath']);
-                     if (await f.exists()) {
-                         img = pw.MemoryImage(await f.readAsBytes());
-                     }
-                 } catch(e) { 
-                    print('Error loading wound image: $e');
-                 }
-            }
+            final img = await _safeLoadImage(w['imagePath']?.toString());
             woundsWithImages.add({
                 ...w,
                 'pdfImage': img
@@ -636,6 +635,7 @@ class ExportService {
                 pw.SizedBox(height: 30),
                 // Pet Name
                 pw.Text(
+                  // profile.petName.toUpperCase(), // Name is universal
                   profile.petName.toUpperCase(),
                   style: pw.TextStyle(
                     fontSize: 42,
@@ -646,7 +646,7 @@ class ExportService {
                 pw.SizedBox(height: 10),
                 // Subtitle
                 pw.Text(
-                  'PRONTUÁRIO VETERINÁRIO COMPLETO',
+                  strings.pdfReportTitle,
                   style: pw.TextStyle(
                     fontSize: 16,
                     color: PdfColors.grey700,
@@ -709,7 +709,7 @@ class ExportService {
         build: (context) => [
           // ========== IDENTITY SECTION ==========
           if (sections['identity'] == true) ...[
-            _buildSectionHeader('Identidade e Perfil Biológico'),
+            _buildSectionHeader(strings.pdfIdentitySection),
             
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.grey700, width: 0.5),
@@ -795,7 +795,7 @@ class ExportService {
           
           // ========== HEALTH SECTION ==========
           if (sections['health'] == true) ...[
-            _buildSectionHeader('Saúde e Histórico Médico'),
+            _buildSectionHeader(strings.pdfHealthSection),
             
             // Controle de Peso
             pw.Text('Controle de Peso:', 
@@ -1084,7 +1084,7 @@ class ExportService {
           
           // ========== NUTRITION SECTION ==========
           if (sections['nutrition'] == true) ...[
-             _buildSectionHeader('Nutrição e Plano Alimentar'),
+             _buildSectionHeader(strings.pdfNutritionSection),
             
             // Meta Nutricional
             if (profile.rawAnalysis != null) ...[
@@ -1251,7 +1251,7 @@ class ExportService {
           
           // ========== GALLERY SECTION ==========
           if (sections['gallery'] == true) ...[
-             _buildSectionHeader('Galeria e Documentos'),
+             _buildSectionHeader(strings.pdfGallerySection),
 
              if (galleryImages.isNotEmpty) ...[
                 pw.GridView(
@@ -1317,7 +1317,7 @@ class ExportService {
           
           // ========== PARC (PARTNERS/BEHAVIOR) SECTION ==========
           if (sections['parc'] == true) ...[
-             _buildSectionHeader('Rede de Apoio e Comportamento'),
+             _buildSectionHeader(strings.pdfParcSection),
             
             // Parceiros Vinculados
             if (profile.linkedPartnerIds.isNotEmpty) ...[
@@ -1413,7 +1413,7 @@ class ExportService {
             child: pw.Column(
               children: [
                 pw.Text(
-                  '⚠️ AVISO LEGAL IMPORTANTE',
+                  strings.pdfDisclaimerTitle,
                   style: pw.TextStyle(
                     fontSize: 10,
                     fontWeight: pw.FontWeight.bold,
@@ -1422,9 +1422,7 @@ class ExportService {
                 ),
                 pw.SizedBox(height: 4),
                 pw.Text(
-                  'Este relatório é uma ferramenta de apoio e organização de informações. '
-                  'NÃO substitui consultas, diagnósticos ou tratamentos veterinários profissionais. '
-                  'Sempre consulte um médico veterinário qualificado para questões de saúde do seu pet.',
+                  strings.pdfDisclaimerBody,
                   style: pw.TextStyle(
                     fontSize: 8,
                     color: PdfColors.grey800,

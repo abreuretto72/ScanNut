@@ -6,12 +6,16 @@ import '../../../../core/providers/settings_provider.dart';
 import '../../../settings/settings_screen.dart';
 import '../../../pet/presentation/nutritional_pillars_screen.dart';
 
+import '../../../l10n/app_localizations.dart';
+import '../../../core/services/data_management_service.dart';
+
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Drawer(
       backgroundColor: Colors.grey.shade900,
@@ -119,6 +123,26 @@ class AppDrawer extends ConsumerWidget {
                   const Divider(color: Colors.white24, height: 32),
                   _buildMenuItem(
                     context,
+                    icon: Icons.privacy_tip_outlined,
+                    title: l10n.privacyPolicy,
+                    subtitle: 'Consultar termos e dados',
+                    onTap: () {
+                      // Navigator.push(context, MaterialPageRoute(builder: (ctx) => const PrivacyPolicyScreen()));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Redirecionando para Política de Privacidade...')),
+                      );
+                    },
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.delete_forever_outlined,
+                    title: l10n.deleteAccount,
+                    subtitle: 'Remover todos os registros',
+                    onTap: () => _showDeleteAccountDialog(context),
+                    isDestructive: true,
+                  ),
+                  _buildMenuItem(
+                    context,
                     icon: Icons.exit_to_app,
                     title: 'Sair',
                     subtitle: 'Fechar o aplicativo',
@@ -183,6 +207,68 @@ class AppDrawer extends ConsumerWidget {
         ),
       ),
       onTap: onTap,
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Colors.red, width: 1)),
+        title: Text(
+          l10n.deleteAccountConfirmTitle,
+          style: GoogleFonts.poppins(color: Colors.red, fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          l10n.deleteAccountConfirmBody,
+          style: GoogleFonts.poppins(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              l10n.petNamePromptCancel,
+              style: GoogleFonts.poppins(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            onPressed: () async {
+              try {
+                final dataService = DataManagementService();
+                await dataService.deleteAllData();
+                if (context.mounted) {
+                  Navigator.pop(context); // Close dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Todos os dados foram removidos. Fechando...')),
+                  );
+                  Future.delayed(const Duration(seconds: 2), () {
+                    SystemNavigator.pop();
+                  });
+                }
+              } catch (e) {
+                if (context.mounted) {
+                   ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro ao excluir dados: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: Text(
+              l10n.deleteAccountButton,
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -6,6 +6,7 @@ import '../../core/providers/settings_provider.dart';
 import '../../core/services/history_service.dart';
 import '../../core/utils/snackbar_helper.dart';
 import '../../core/providers/partner_provider.dart';
+import 'widgets/backup_optimize_dialog.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -181,6 +182,88 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           const SizedBox(height: 32),
 
+          // Language Section
+          Text(
+            'Idioma / Language',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Container(
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+             decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+             ),
+             child: DropdownButtonHideUnderline(
+                child: DropdownButton<String?>(
+                   value: settings.languageCode, // Now protected by provider update
+                   dropdownColor: Colors.grey[900],
+                   style: GoogleFonts.poppins(color: Colors.white),
+                   isExpanded: true,
+                   icon: const Icon(Icons.language, color: Color(0xFF00E676)),
+                   items: [
+                      DropdownMenuItem(value: null, child: Text('Automático (Padrão do Sistema)')),
+                      DropdownMenuItem(value: 'en', child: Text('🇺🇸 English')),
+                      DropdownMenuItem(value: 'pt_BR', child: Text('🇧🇷 Português (Brasil)')),
+                      DropdownMenuItem(value: 'pt_PT', child: Text('🇵🇹 Português (Portugal)')),
+                      DropdownMenuItem(value: 'es', child: Text('🇪🇸 Español')),
+                   ],
+                   onChanged: (val) {
+                      ref.read(settingsProvider.notifier).setLanguage(val);
+                      // Force App Refresh logic handles automatically via Riverpod and Main.dart
+                   },
+                ),
+             ),
+          ),
+          
+          const SizedBox(height: 32),
+
+          // Weight Unit Section
+          Text(
+            'Unidade de Peso / Weight Unit',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Container(
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+             decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+             ),
+             child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                   value: settings.weightUnit,
+                   dropdownColor: Colors.grey[900],
+                   style: GoogleFonts.poppins(color: Colors.white),
+                   isExpanded: true,
+                   icon: const Icon(Icons.scale, color: Color(0xFF00E676)),
+                   items: const [
+                      DropdownMenuItem(value: 'kg', child: Text('Kilogramas (kg)')),
+                      DropdownMenuItem(value: 'lbs', child: Text('Libras (lbs)')),
+                   ],
+                   onChanged: (val) {
+                      if (val != null) {
+                        ref.read(settingsProvider.notifier).setWeightUnit(val);
+                      }
+                   },
+                ),
+             ),
+          ),
+
+          const SizedBox(height: 32),
+
           // Preferences Section
           Text(
             'Preferências',
@@ -217,6 +300,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 16),
           
           _buildRadiusSlider(settings.partnerSearchRadius),
+
+          const SizedBox(height: 32),
+
+          // Backup & Optimization
+          Text(
+            'Manutenção do Sistema',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          ListTile(
+            onTap: () {
+               showDialog(context: context, builder: (_) => const BackupOptimizeDialog());
+            },
+            tileColor: Colors.white.withOpacity(0.05),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.amber.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.security, color: Colors.amber),
+            ),
+            title: Text('Gerar Backup e Otimizar', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
+            subtitle: Text('Gera PDF completo e libera espaço antigo.', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+          ),
 
           const SizedBox(height: 32),
 

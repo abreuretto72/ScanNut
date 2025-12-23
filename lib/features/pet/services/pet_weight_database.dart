@@ -115,13 +115,15 @@ class PetWeightDatabase {
   static WeightStatus calculateWeightStatus({
     required double currentWeight,
     required double idealWeight,
+    required dynamic strings, // AppLocalizations
   }) {
     final ratio = currentWeight / idealWeight;
+    final suffix = 'kg'; // Fallback ou passar via settings
     
     if (ratio < 0.90) {
       return WeightStatus(
         status: WeightStatusType.underweight,
-        message: 'Abaixo do ideal: O peso sugerido para este porte é ${idealWeight.toStringAsFixed(1)} kg.',
+        message: '${strings.weightStatusUnderweight}: ${idealWeight.toStringAsFixed(1)} $suffix.',
         color: Colors.blue,
         icon: Icons.trending_down,
         percentage: (ratio * 100).toInt(),
@@ -129,7 +131,7 @@ class PetWeightDatabase {
     } else if (ratio > 1.10) {
       return WeightStatus(
         status: WeightStatusType.overweight,
-        message: 'Acima do ideal: O peso sugerido para este porte é ${idealWeight.toStringAsFixed(1)} kg.',
+        message: '${strings.weightStatusOverweight}: ${idealWeight.toStringAsFixed(1)} $suffix.',
         color: Colors.orange,
         icon: Icons.trending_up,
         percentage: (ratio * 100).toInt(),
@@ -137,7 +139,7 @@ class PetWeightDatabase {
     } else {
       return WeightStatus(
         status: WeightStatusType.normal,
-        message: 'Peso Normal: Excelente! O pet está na faixa ideal.',
+        message: strings.weightStatusNormal,
         color: const Color(0xFF00E676),
         icon: Icons.check_circle,
         percentage: (ratio * 100).toInt(),
@@ -176,14 +178,14 @@ class WeightStatus {
   });
 
   /// Retorna recomendação baseada no status
-  String get recommendation {
+  String getRecommendation(dynamic strings) {
     switch (status) {
       case WeightStatusType.underweight:
-        return 'Considere consultar o veterinário para avaliar a nutrição e saúde geral do pet.';
+        return strings.weightRecUnderweight;
       case WeightStatusType.overweight:
-        return 'Agende uma consulta com o veterinário na aba "Parc." para ajustar a dieta e exercícios.';
+        return strings.weightRecOverweight;
       case WeightStatusType.normal:
-        return 'Continue com os cuidados atuais! Mantenha a rotina de alimentação e exercícios.';
+        return strings.weightRecNormal;
     }
   }
 }

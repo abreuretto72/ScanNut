@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/utils/permission_helper.dart';
 
 // Core
 import '../../../core/providers/analysis_provider.dart';
@@ -141,9 +142,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   }
 
   Future<void> _initCamera() async {
-    // Permission request removed
-    // final status = await Permission.camera.request();
-    // if (status.isGranted) {
+    final granted = await PermissionHelper.requestCameraPermission(context);
+    if (granted) {
       try {
         _cameras = await availableCameras();
         if (_cameras != null && _cameras!.isNotEmpty) {
@@ -162,8 +162,18 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         }
       } catch (e) {
         debugPrint('Camera initialization error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erro ao iniciar câmera: $e'), backgroundColor: Colors.red),
+          );
+        }
       }
-    // }
+    } else {
+       // Reset current index if permission denied
+       setState(() {
+         _currentIndex = -1;
+       });
+    }
   }
 
   Future<void> _disposeCamera() async {
@@ -448,8 +458,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       );
     }
 
-    return Scaffold(
-      backgroundColor: Colors.black,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+        _showExitDialog(context);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
       drawer: const AppDrawer(),
       body: Stack(
         fit: StackFit.expand,
@@ -1111,6 +1127,42 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     } else {
       return 'Baixa';
     }
+  }
+
+  void _showExitDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Sair do App',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+        content: Text(
+          'Deseja realmente sair do Scannut?',
+          style: GoogleFonts.poppins(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancelar',
+              style: GoogleFonts.poppins(color: Colors.white70),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              SystemNavigator.pop();
+            },
+            child: Text(
+              'Sair',
+              style: GoogleFonts.poppins(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
 }

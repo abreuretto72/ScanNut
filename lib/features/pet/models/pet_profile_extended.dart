@@ -235,8 +235,14 @@ class PetProfileExtended {
     List<Map<String, dynamic>>? weightHistory,
     List<Map<String, dynamic>>? labExams,
     List<Map<String, dynamic>>? woundAnalysisHistory,
+    String? observacoesIdentidade,
+    String? observacoesSaude,
+    String? observacoesNutricao,
+    String? observacoesGaleria,
+    String? observacoesPrac,
     DateTime? lastUpdated,
     String? imagePath,
+    Map<String, dynamic>? rawAnalysis,
   }) {
     return PetProfileExtended(
       petName: petName ?? this.petName,
@@ -256,8 +262,14 @@ class PetProfileExtended {
       weightHistory: weightHistory ?? this.weightHistory,
       labExams: labExams ?? this.labExams,
       woundAnalysisHistory: woundAnalysisHistory ?? this.woundAnalysisHistory,
+      observacoesIdentidade: observacoesIdentidade ?? this.observacoesIdentidade,
+      observacoesSaude: observacoesSaude ?? this.observacoesSaude,
+      observacoesNutricao: observacoesNutricao ?? this.observacoesNutricao,
+      observacoesGaleria: observacoesGaleria ?? this.observacoesGaleria,
+      observacoesPrac: observacoesPrac ?? this.observacoesPrac,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       imagePath: imagePath ?? this.imagePath,
+      rawAnalysis: rawAnalysis ?? this.rawAnalysis,
     );
   }
 }
