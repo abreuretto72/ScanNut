@@ -69,17 +69,8 @@ class HiveDebugPanel extends StatelessWidget {
   }
 
   List<Widget> _getOpenBoxes() {
-    final boxes = Hive.box.keys.toList();
     return [
-      _buildInfoRow('Total de boxes abertos', '${boxes.length}'),
-      const Divider(color: Colors.white24),
-      ...boxes.map((name) {
-        final box = Hive.box(name);
-        return _buildInfoRow(
-          name.toString(),
-          'Aberto: ${box.isOpen}, Keys: ${box.length}',
-        );
-      }).toList(),
+      _buildInfoRow('Hive inicializado', Hive.isBoxOpen('nutrition_weekly_plans') ? '✅ SIM' : '❌ NÃO'),
     ];
   }
 
@@ -141,7 +132,7 @@ class HiveDebugPanel extends StatelessWidget {
           _buildInfoRow('Dias no plano', '${plan.days.length}'),
           _buildInfoRow(
             'Total de refeições',
-            '${plan.days.fold(0, (sum, day) => sum + day.meals.length)}',
+            '${plan.days.fold<int>(0, (sum, day) => sum + day.meals.length)}',
           ),
           _buildInfoRow('Criado em', plan.criadoEm.toString().split('.')[0]),
           _buildInfoRow('Atualizado em', plan.atualizadoEm.toString().split('.')[0]),
@@ -169,7 +160,7 @@ class HiveDebugPanel extends StatelessWidget {
       }
       
       return allPlans.map((plan) {
-        final totalMeals = plan.days.fold(0, (sum, day) => sum + day.meals.length);
+        final totalMeals = plan.days.fold<int>(0, (sum, day) => sum + day.meals.length);
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(12),
