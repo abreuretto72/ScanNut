@@ -4,71 +4,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - ScanNut</title>
+    <title>Privacidade e Termos - ScanNut</title>
     <style>
+        :root {
+            --primary: #1a3a5f;
+            --secondary: #3498db;
+            --bg: #f4f7f9;
+            --text: #333;
+        }
+
         body {
-            font-family: sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f7f9;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
         }
 
         .container {
+            max-width: 1000px;
+            margin: 40px auto;
             background: #fff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav {
+            text-align: center;
+            margin-bottom: 50px;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .nav button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .nav button:hover {
+            background: var(--primary);
         }
 
         h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
+            color: var(--primary);
+            font-size: 2.2em;
+            text-align: center;
+            margin-bottom: 10px;
         }
 
         h2 {
-            color: #2980b9;
-            margin-top: 30px;
+            color: var(--primary);
+            border-left: 5px solid var(--secondary);
+            padding-left: 15px;
+            margin-top: 40px;
+            font-size: 1.5em;
         }
 
-        .language-nav {
-            margin-bottom: 30px;
+        p,
+        li {
+            font-size: 1.05em;
+            text-align: justify;
+            color: #444;
+        }
+
+        .highlight-box {
+            background: #eef7ff;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 1px solid #d1e9ff;
+        }
+
+        .footer {
             text-align: center;
-            background: #eee;
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        .language-nav button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .language-nav button:hover {
-            background: #2980b9;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #7f8c8d;
         }
 
         .lang-section {
             display: none;
+            animation: fadeIn 0.4s ease-in;
         }
 
         .lang-section.active {
             display: block;
         }
 
-        .footer {
-            margin-top: 50px;
-            font-size: 0.8em;
-            color: #7f8c8d;
-            text-align: center;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
         }
     </style>
 </head>
@@ -76,102 +130,110 @@
 <body>
 
     <div class="container">
-        <div class="language-nav">
-            <button onclick="showLang('pt-br')">Português (BR)</button>
-            <button onclick="showLang('pt-pt')">Português (PT)</button>
+        <div class="nav">
+            <button onclick="showLang('pt')">Português</button>
             <button onclick="showLang('en')">English</button>
             <button onclick="showLang('es')">Español</button>
         </div>
 
-        <div id="pt-br" class="lang-section active">
-            <h1>Política de Privacidade - ScanNut</h1>
-            <p><em>Última atualização: 23 de Dezembro de 2025</em></p>
-            <h2>1. Coleta de Dados</h2>
-            <p>O ScanNut coleta informações fornecidas pelo usuário para a gestão da saúde animal, incluindo nome do
-                pet, raça, histórico de saúde e nutrição.</p>
-            <h2>2. Câmera e Microfone</h2>
-            <p>O acesso à câmera é utilizado exclusivamente para capturar fotos de feridas para análise e galeria. O
-                microfone é utilizado apenas para a funcionalidade de "Voz para Texto" nas observações. Nenhuma mídia é
-                coletada sem a ação explícita do usuário.</p>
-            <h2>3. Inteligência Artificial</h2>
-            <p>As imagens de feridas são processadas por IA para fins informativos. Estes dados são tratados de forma
-                anônima para melhorar a precisão do modelo.</p>
-            <h2>4. Armazenamento e Exclusão</h2>
-            <p>Os dados são armazenados de forma segura no Firebase (Google Cloud). O usuário tem o direito de excluir
-                sua conta e todos os dados associados a qualquer momento através das configurações do app.</p>
-            <h2>5. Isenção de Responsabilidade</h2>
-            <p>O ScanNut não substitui o diagnóstico de um médico veterinário.</p>
-        </div>
+        <div id="pt" class="lang-section active">
+            <h1>Política de Privacidade e Termos de Uso</h1>
+            <p style="text-align: center;"><strong>Desenvolvedor:</strong> Multiverso Digital |
+                <strong>Contato:</strong> contato@multiverssodigital.com.br</p>
+            <p style="text-align: center;"><em>Última atualização: 23 de dezembro de 2025</em></p>
 
-        <div id="pt-pt" class="lang-section">
-            <h1>Política de Privacidade - ScanNut</h1>
-            <p><em>Última atualização: 23 de Dezembro de 2025</em></p>
-            <h2>1. Recolha de Dados</h2>
-            <p>O ScanNut recolhe informações fornecidas pelo utilizador para a gestão da saúde animal, incluindo nome do
-                animal, raça, histórico de saúde e nutrição.</p>
-            <h2>2. Câmara e Microfone</h2>
-            <p>O acesso à câmara é utilizado exclusivamente para capturar fotos de feridas para análise e galeria. O
-                microfone é utilizado apenas para a funcionalidade de "Voz para Texto" nas observações. Nenhuma média é
-                recolhida sem a ação explícita do utilizador.</p>
-            <h2>3. Inteligência Artificial</h2>
-            <p>As imagens de feridas são processadas por IA para fins informativos. Estes dados são tratados de forma
-                anónima para melhorar a precisão do modelo.</p>
-            <h2>4. Armazenamento e Eliminação</h2>
-            <p>Os dados são armazenados de forma segura no Firebase. O utilizador tem o direito de eliminar a sua conta
-                e todos os dados associados a qualquer momento através das definições da aplicação.</p>
-            <h2>5. Isenção de Responsabilidade</h2>
-            <p>O ScanNut não substitui o diagnóstico de um médico veterinário.</p>
+            <div class="highlight-box">
+                <strong>Resumo de Privacidade:</strong> O ScanNut adota a política de "Dados Locais Primeiros". Todas as
+                informações de saúde, nutrição e biohacking são armazenadas exclusivamente no seu dispositivo utilizando
+                a tecnologia Hive. Não realizamos coleta centralizada de dados em nuvem.
+            </div>
+
+            <h2>1. Coleta e Tratamento de Dados</h2>
+            <p>O ScanNut processa informações para fornecer funcionalidades de Biohacking, Botânica e Gestão Pet. Os
+                dados processados incluem:</p>
+            <ul>
+                <li><strong>Dados de Saúde Humana:</strong> Peso, altura e registros de treino para cálculos de
+                    performance.</li>
+                <li><strong>Dados de Saúde Animal:</strong> Prontuário clínico, fotos de lesões e histórico de
+                    vacinação.</li>
+                <li><strong>Dados Biofílicos:</strong> Fotos de plantas e diagnósticos de ecossistemas.</li>
+            </ul>
+
+            <h2>2. Uso de Sensores e Permissões</h2>
+            <p>Em conformidade com as políticas da Google Play, declaramos o uso de:</p>
+            <ul>
+                <li><strong>Câmera:</strong> Utilizada exclusivamente para a captura de imagens de alimentos, plantas e
+                    pele de pets para processamento via Inteligência Artificial.</li>
+                <li><strong>Microfone:</strong> Utilizado para a funcionalidade de transcrição de voz para texto (diário
+                    clínico). O áudio é processado em tempo real e não é armazenado como arquivo sonoro.</li>
+            </ul>
+
+            <h2>3. Inteligência Artificial e Segurança</h2>
+            <p>As análises visuais do ScanNut são realizadas por modelos de IA. As imagens são enviadas de forma
+                transiente para processamento e o resultado é devolvido ao armazenamento local do usuário. Nenhuma
+                imagem é utilizada para identificação facial ou fins publicitários.</p>
+
+            <h2>4. Direitos do Titular (LGPD/GDPR)</h2>
+            <p>Visto que o armazenamento é local, o usuário possui controle total:</p>
+            <ul>
+                <li><strong>Exclusão:</strong> A exclusão dos dados é feita instantaneamente ao desinstalar o app ou
+                    limpar o cache do sistema.</li>
+                <li><strong>Portabilidade:</strong> O usuário pode exportar seus dados a qualquer momento via relatórios
+                    PDF gerados pelo app.</li>
+            </ul>
+
+            <h2>5. Isenção de Responsabilidade (Termos de Uso)</h2>
+            <p>O ScanNut é uma ferramenta de apoio informativo. <strong>NÃO SUBSTITUI DIAGNÓSTICOS MÉDICOS OU
+                    VETERINÁRIOS.</strong> A Multiverso Digital não se responsabiliza por decisões tomadas com base nas
+                sugestões de biohacking, planos de recuperação botânica ou análises de IA. Consulte sempre um
+                profissional qualificado.</p>
         </div>
 
         <div id="en" class="lang-section">
-            <h1>Privacy Policy - ScanNut</h1>
-            <p><em>Last Updated: December 23, 2025</em></p>
-            <h2>1. Data Collection</h2>
-            <p>ScanNut collects information provided by the user for pet health management, including pet name, breed,
-                health history, and nutrition.</p>
-            <h2>2. Camera and Microphone</h2>
-            <p>Camera access is used exclusively for capturing wound photos for analysis and gallery. The microphone is
-                used only for the "Voice-to-Text" feature in notes. No media is collected without explicit user action.
-            </p>
-            <h2>3. Artificial Intelligence</h2>
-            <p>Wound images are processed by AI for informational purposes. This data is handled anonymously to improve
-                model accuracy.</p>
-            <h2>4. Storage and Deletion</h2>
-            <p>Data is securely stored in Firebase (Google Cloud). Users have the right to delete their account and all
-                associated data at any time via the app settings.</p>
-            <h2>5. Disclaimer</h2>
-            <p>ScanNut is not a substitute for professional veterinary diagnosis.</p>
+            <h1>Privacy Policy & Terms of Service</h1>
+            <p style="text-align: center;"><strong>Developer:</strong> Multiverso Digital | <strong>Contact:</strong>
+                contato@multiverssodigital.com.br</p>
+
+            <div class="highlight-box">
+                <strong>Privacy Summary:</strong> ScanNut follows a "Local-First Data" policy. All health, nutrition,
+                and biohacking information is stored exclusively on your device using Hive technology. We do not perform
+                centralized cloud data collection.
+            </div>
+
+            <h2>1. Data Storage</h2>
+            <p>All user-generated content, including pet health records, food analysis, and workout logs, stays on your
+                device. We do not have access to your private data.</p>
+
+            <h2>2. AI Processing Disclaimer</h2>
+            <p>ScanNut uses AI for image analysis. This process is for informational purposes only and does not
+                constitute professional medical or veterinary advice.</p>
         </div>
 
         <div id="es" class="lang-section">
-            <h1>Política de Privacidad - ScanNut</h1>
-            <p><em>Última actualización: 23 de Diciembre de 2025</em></p>
-            <h2>1. Recopilación de Datos</h2>
-            <p>ScanNut recopila información proporcionada por el usuario para la gestión de la salud animal, incluyendo
-                nombre de la mascota, raza, historial de salud y nutrición.</p>
-            <h2>2. Cámara y Micrófono</h2>
-            <p>El acceso a la cámara se utiliza exclusivamente para capturar fotos de heridas para análisis y galería.
-                El micrófono se utiliza solo para la función de "Voz a Texto" en las observaciones.</p>
-            <h2>3. Inteligencia Artificial</h2>
-            <p>Las imágenes de heridas son procesadas por IA con fines informativos. Estos datos se tratan de forma
-                anónima para mejorar la precisión del modelo.</p>
-            <h2>4. Almacenamiento y Eliminación</h2>
-            <p>Los datos se almacenan de forma segura en Firebase. El usuario tiene derecho a eliminar su cuenta y todos
-                sus datos en cualquier momento a través de los ajustes de la aplicación.</p>
-            <h2>5. Descargo de Responsabilidad</h2>
-            <p>ScanNut no sustituye el diagnóstico de un médico veterinario.</p>
+            <h1>Política de Privacidad y Términos</h1>
+            <p style="text-align: center;"><strong>Desarrollador:</strong> Multiverso Digital |
+                <strong>Contacto:</strong> contato@multiverssodigital.com.br</p>
+
+            <h2>1. Almacenamiento Local</h2>
+            <p>ScanNut almacena todos los datos de salud y biohacking localmente en su dispositivo. No compartimos su
+                información con servidores externos.</p>
+
+            <h2>2. Exclusão de Responsabilidad</h2>
+            <p>El uso de esta aplicación es informativo. No reemplaza la consulta con un médico o veterinario
+                profesional.</p>
         </div>
 
         <div class="footer">
-            &copy; 2025 ScanNut App. All rights reserved.
+            &copy; 2025 Multiverso Digital. Todos os direitos reservados.<br>
+            ScanNut App - Inteligência para uma vida melhor.
         </div>
     </div>
 
     <script>
         function showLang(lang) {
-            const sections = document.querySelectorAll('.lang-section');
-            sections.forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
             document.getElementById(lang).classList.add('active');
+            window.scrollTo(0, 0);
         }
     </script>
 
