@@ -248,29 +248,36 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este análisis es informativo y se basa en IA. No sustituye el diagnóstico de un veterinario.';
 
   @override
-  String get onboardingTitle1 => 'Su Expediente Inteligente';
+  String get onboardingTitle1 => 'Transforme su Nutrición';
 
   @override
   String get onboardingBody1 =>
-      '¡Bienvenido a ScanNut! Aquí gestionas toda la vida de tu mascota en un solo lugar: Identidad, Salud, Nutrición y Comportamiento.';
+      'Utilice nuestra IA para analizar alimentos en segundos. Descubra calorías, macronutrientes y reciba consejos de biohacking y recetas rápidas de 15 minutos para su alto rendimiento.';
 
   @override
-  String get onboardingTitle2 => 'Diario por Voz e Historial';
+  String get onboardingTitle2 => 'Domine su Ecosistema';
 
   @override
   String get onboardingBody2 =>
-      '¡Ahorra tiempo! Utiliza el icono del micrófono en cualquier sección para dictar las rutinas de tu mascota. ScanNut lo organiza todo por fecha y hora automáticamente.';
+      'Identifique plantas, diagnostique enfermedades y aprenda sobre propagación. Sepa instantáneamente si una planta es segura para humanos a través de nuestro Semáforo de Supervivencia.';
 
   @override
-  String get onboardingTitle3 => 'IA y Salud';
+  String get onboardingTitle3 => 'El Expediente Clínico Definitivo';
 
   @override
   String get onboardingBody3 =>
-      'Analiza la salud de la piel de tu mascota con fotos. Importante: Nuestros análisis por IA son informativos y no sustituyen al médico veterinário.';
+      'Siga la salud de su mascota con análisis de piel por IA, historial de vacunas y exámenes de laboratorio explicados. Todo organizado y listo para exportar en PDF para su veterinario.';
+
+  @override
+  String get onboardingTitle4 => 'Sus datos son suyos';
+
+  @override
+  String get onboardingBody4 =>
+      'En ScanNut, su privacidad es prioridad. Todos sus registros se guardan localmente en su teléfono (Hive) y no en nubes externas.';
 
   @override
   String get onboardingAcceptTerms =>
-      'He leído y acepto los Términos de Uso y la Política de Privacidad';
+      'He leído y acepto los Términos de Uso y la Política de Privacidad de Multiverso Digital';
 
   @override
   String get onboardingGetStarted => 'Comenzar';

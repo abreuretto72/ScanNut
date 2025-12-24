@@ -247,29 +247,36 @@ class AppLocalizationsEn extends AppLocalizations {
       'This analysis is informative and based on AI. It does not replace a veterinary diagnosis.';
 
   @override
-  String get onboardingTitle1 => 'Your Smart Record';
+  String get onboardingTitle1 => 'Transform Your Nutrition';
 
   @override
   String get onboardingBody1 =>
-      'Welcome to ScanNut! Here you manage all your pet\'s life in one place: Identity, Health, Nutrition, and Behavior.';
+      'Use our AI to analyze food in seconds. Discover calories, macronutrients, and receive biohacking tips and quick 15-minute recipes for your high performance.';
 
   @override
-  String get onboardingTitle2 => 'Voice Diary and History';
+  String get onboardingTitle2 => 'Master Your Ecosystem';
 
   @override
   String get onboardingBody2 =>
-      'Save time! Use the microphone icon in any section to dictate your pet\'s routines. ScanNut organizes everything by date and time automatically.';
+      'Identify plants, diagnose diseases, and learn about propagation. Instantly know if a plant is safe for humans through our Survival Traffic Light.';
 
   @override
-  String get onboardingTitle3 => 'AI and Health';
+  String get onboardingTitle3 => 'The Definitive Clinical Record';
 
   @override
   String get onboardingBody3 =>
-      'Analyze your pet\'s skin health with photos. Important: Our AI analyses are informative and do not replace a veterinarian.';
+      'Track your pet\'s health with AI skin analysis, vaccination history, and explained lab tests. Everything organized and ready to export as PDF for your veterinarian.';
+
+  @override
+  String get onboardingTitle4 => 'Your data is yours';
+
+  @override
+  String get onboardingBody4 =>
+      'At ScanNut, your privacy is a priority. All your records are stored locally on your phone (Hive) and not in external clouds.';
 
   @override
   String get onboardingAcceptTerms =>
-      'I have read and accept the Terms of Use and Privacy Policy';
+      'I have read and accept the Terms of Use and Privacy Policy of Multiverso Digital';
 
   @override
   String get onboardingGetStarted => 'Get Started';

@@ -560,43 +560,55 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingTitle1.
   ///
   /// In pt, this message translates to:
-  /// **'O Seu Prontuário Inteligente'**
+  /// **'Transforme a sua Nutrição'**
   String get onboardingTitle1;
 
   /// No description provided for @onboardingBody1.
   ///
   /// In pt, this message translates to:
-  /// **'Bem-vindo ao ScanNut! Aqui você gere toda a vida do seu pet em um só lugar: Identidade, Saúde, Nutrição e Comportamento.'**
+  /// **'Utilize a nossa IA para analisar alimentos em segundos. Descubra calorias, macronutrientes e receba dicas de biohacking e receitas rápidas de 15 minutos para a sua alta performance.'**
   String get onboardingBody1;
 
   /// No description provided for @onboardingTitle2.
   ///
   /// In pt, this message translates to:
-  /// **'Diário por Voz e Histórico'**
+  /// **'Domine o seu Ecossistema'**
   String get onboardingTitle2;
 
   /// No description provided for @onboardingBody2.
   ///
   /// In pt, this message translates to:
-  /// **'Poupe tempo! Use o ícone de microfone em qualquer seção para ditar as rotinas do seu pet. O ScanNut organiza tudo por data e hora automaticamente.'**
+  /// **'Identifique plantas, diagnostique doenças e aprenda sobre propagação. Saiba instantaneamente se uma planta é segura para humanos através do nosso Semáforo de Sobrevivência.'**
   String get onboardingBody2;
 
   /// No description provided for @onboardingTitle3.
   ///
   /// In pt, this message translates to:
-  /// **'IA e Saúde'**
+  /// **'O Prontuário Clínico Definitivo'**
   String get onboardingTitle3;
 
   /// No description provided for @onboardingBody3.
   ///
   /// In pt, this message translates to:
-  /// **'Analise a saúde da pele do seu pet com fotos. Importante: Nossas análises por IA são informativas e não substituem o médico veterinário.'**
+  /// **'Acompanhe a saúde do seu pet com análise de pele por IA, histórico de vacinas e exames laboratoriais explicados. Tudo organizado e pronto para exportar em PDF para o seu veterinário.'**
   String get onboardingBody3;
+
+  /// No description provided for @onboardingTitle4.
+  ///
+  /// In pt, this message translates to:
+  /// **'Os seus dados são seus'**
+  String get onboardingTitle4;
+
+  /// No description provided for @onboardingBody4.
+  ///
+  /// In pt, this message translates to:
+  /// **'No ScanNut, a sua privacidade é prioridade. Todos os seus registos são guardados localmente no seu telemóvel (Hive) e não em nuvens externas.'**
+  String get onboardingBody4;
 
   /// No description provided for @onboardingAcceptTerms.
   ///
   /// In pt, this message translates to:
-  /// **'Li e aceito os Termos de Uso e Política de Privacidade'**
+  /// **'Li e aceito os Termos de Uso e Política de Privacidade da Multiverso Digital'**
   String get onboardingAcceptTerms;
 
   /// No description provided for @onboardingGetStarted.

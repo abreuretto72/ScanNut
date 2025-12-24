@@ -17,23 +17,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool _termsAccepted = false;
 
   final List<OnboardingData> _onboardingPages = [
+    // Ecrã 1: Biohacking & Performance Humana
     OnboardingData(
       titleKey: 'onboardingTitle1',
       bodyKey: 'onboardingBody1',
-      icon: Icons.pets_rounded,
-      color: const Color(0xFF00E676),
+      icon: Icons.restaurant_menu_rounded,
+      color: const Color(0xFFFF6B35), // Laranja vibrante para comida
     ),
+    // Ecrã 2: Engenharia Botânica & Sobrevivência
     OnboardingData(
       titleKey: 'onboardingTitle2',
       bodyKey: 'onboardingBody2',
-      icon: Icons.mic_rounded,
-      color: Colors.blueAccent,
+      icon: Icons.eco_rounded,
+      color: const Color(0xFF00E676), // Verde para plantas
     ),
+    // Ecrã 3: Gestão Digital de Pets
     OnboardingData(
       titleKey: 'onboardingTitle3',
       bodyKey: 'onboardingBody3',
-      icon: Icons.auto_awesome,
-      color: Colors.purpleAccent,
+      icon: Icons.pets_rounded,
+      color: const Color(0xFF9C27B0), // Roxo para pets
+    ),
+    // Ecrã 4: Privacidade & Compromisso Local
+    OnboardingData(
+      titleKey: 'onboardingTitle4',
+      bodyKey: 'onboardingBody4',
+      icon: Icons.shield_rounded,
+      color: const Color(0xFF2196F3), // Azul para segurança
     ),
   ];
 
@@ -195,12 +205,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       case 'onboardingTitle1': title = l10n.onboardingTitle1; break;
       case 'onboardingTitle2': title = l10n.onboardingTitle2; break;
       case 'onboardingTitle3': title = l10n.onboardingTitle3; break;
+      case 'onboardingTitle4': title = l10n.onboardingTitle4; break;
     }
     
     switch (data.bodyKey) {
       case 'onboardingBody1': body = l10n.onboardingBody1; break;
       case 'onboardingBody2': body = l10n.onboardingBody2; break;
       case 'onboardingBody3': body = l10n.onboardingBody3; break;
+      case 'onboardingBody4': body = l10n.onboardingBody4; break;
     }
 
     return Padding(

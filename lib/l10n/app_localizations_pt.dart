@@ -248,29 +248,36 @@ class AppLocalizationsPt extends AppLocalizations {
       'Esta análise é informativa e baseada em IA. Não substitui o diagnóstico de um médico veterinário.';
 
   @override
-  String get onboardingTitle1 => 'O Seu Prontuário Inteligente';
+  String get onboardingTitle1 => 'Transforme a sua Nutrição';
 
   @override
   String get onboardingBody1 =>
-      'Bem-vindo ao ScanNut! Aqui você gere toda a vida do seu pet em um só lugar: Identidade, Saúde, Nutrição e Comportamento.';
+      'Utilize a nossa IA para analisar alimentos em segundos. Descubra calorias, macronutrientes e receba dicas de biohacking e receitas rápidas de 15 minutos para a sua alta performance.';
 
   @override
-  String get onboardingTitle2 => 'Diário por Voz e Histórico';
+  String get onboardingTitle2 => 'Domine o seu Ecossistema';
 
   @override
   String get onboardingBody2 =>
-      'Poupe tempo! Use o ícone de microfone em qualquer seção para ditar as rotinas do seu pet. O ScanNut organiza tudo por data e hora automaticamente.';
+      'Identifique plantas, diagnostique doenças e aprenda sobre propagação. Saiba instantaneamente se uma planta é segura para humanos através do nosso Semáforo de Sobrevivência.';
 
   @override
-  String get onboardingTitle3 => 'IA e Saúde';
+  String get onboardingTitle3 => 'O Prontuário Clínico Definitivo';
 
   @override
   String get onboardingBody3 =>
-      'Analise a saúde da pele do seu pet com fotos. Importante: Nossas análises por IA são informativas e não substituem o médico veterinário.';
+      'Acompanhe a saúde do seu pet com análise de pele por IA, histórico de vacinas e exames laboratoriais explicados. Tudo organizado e pronto para exportar em PDF para o seu veterinário.';
+
+  @override
+  String get onboardingTitle4 => 'Os seus dados são seus';
+
+  @override
+  String get onboardingBody4 =>
+      'No ScanNut, a sua privacidade é prioridade. Todos os seus registos são guardados localmente no seu telemóvel (Hive) e não em nuvens externas.';
 
   @override
   String get onboardingAcceptTerms =>
-      'Li e aceito os Termos de Uso e Política de Privacidade';
+      'Li e aceito os Termos de Uso e Política de Privacidade da Multiverso Digital';
 
   @override
   String get onboardingGetStarted => 'Começar';
@@ -520,29 +527,36 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
       'Esta análise é informativa e baseada em IA. Não substitui o diagnóstico de um médico veterinário.';
 
   @override
-  String get onboardingTitle1 => 'O Seu Prontuário Inteligente';
+  String get onboardingTitle1 => 'Transforme a sua Nutrição';
 
   @override
   String get onboardingBody1 =>
-      'Bem-vindo ao ScanNut! Aqui você gere toda a vida do seu animal em um só lugar: Identidade, Saúde, Nutrição e Comportamento.';
+      'Utilize a nossa IA para analisar alimentos em segundos. Descubra calorias, macronutrientes e receba dicas de biohacking e receitas rápidas de 15 minutos para a sua alta performance.';
 
   @override
-  String get onboardingTitle2 => 'Diário por Voz e Histórico';
+  String get onboardingTitle2 => 'Domine o seu Ecossistema';
 
   @override
   String get onboardingBody2 =>
-      'Poupe tempo! Use o ícone de microfone em qualquer secção para ditar as rotinas do seu animal. O ScanNut organiza tudo por data e hora automaticamente.';
+      'Identifique plantas, diagnostique doenças e aprenda sobre propagação. Saiba instantaneamente se uma planta é segura para humanos através do nosso Semáforo de Sobrevivência.';
 
   @override
-  String get onboardingTitle3 => 'IA e Saúde';
+  String get onboardingTitle3 => 'O Prontuário Clínico Definitivo';
 
   @override
   String get onboardingBody3 =>
-      'Analise a saúde da pele do seu animal com fotos. Importante: As nossas análises por IA são informativas e não substituem o médico veterinário.';
+      'Acompanhe a saúde do seu animal com análise de pele por IA, histórico de vacinas e exames laboratoriais explicados. Tudo organizado e pronto para exportar em PDF para o seu veterinário.';
+
+  @override
+  String get onboardingTitle4 => 'Os seus dados são seus';
+
+  @override
+  String get onboardingBody4 =>
+      'No ScanNut, a sua privacidade é prioridade. Todos os seus registos são guardados localmente no seu telemóvel (Hive) e não em nuvens externas.';
 
   @override
   String get onboardingAcceptTerms =>
-      'Li e aceito os Termos de Uso e Política de Privacidade';
+      'Li e aceito os Termos de Uso e Política de Privacidade da Multiverso Digital';
 
   @override
   String get onboardingGetStarted => 'Começar';
