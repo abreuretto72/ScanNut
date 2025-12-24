@@ -6,12 +6,12 @@ import '../../../../core/providers/settings_provider.dart';
 import '../../../settings/settings_screen.dart';
 import '../../../pet/presentation/nutritional_pillars_screen.dart';
 
-import '../../../l10n/app_localizations.dart';
-import '../../../core/services/data_management_service.dart';
-import '../../food/presentation/nutrition_history_screen.dart';
-import '../../plant/presentation/botany_history_screen.dart';
-import '../../food/presentation/fitness_dashboard_screen.dart';
-import '../../pet/presentation/pet_history_screen.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../core/services/data_management_service.dart';
+import '../../../food/presentation/nutrition_history_screen.dart';
+import '../../../plant/presentation/botany_history_screen.dart';
+import '../../../food/presentation/fitness_dashboard_screen.dart';
+import '../../../pet/presentation/pet_history_screen.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -137,7 +137,7 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: 'Dossiês e Exames',
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PetHistoryScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => PetHistoryScreen()));
                     },
                   ),
                   _buildMenuItem(

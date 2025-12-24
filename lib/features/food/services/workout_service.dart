@@ -23,8 +23,6 @@ class WorkoutService {
     }
   }
 
-  ValueListenable<Box<WorkoutItem>>? get listenable => _box?.listenable();
-
   Future<void> saveWorkout(WorkoutItem workout) async {
     await init();
     await _box?.add(workout);
@@ -44,6 +42,6 @@ class WorkoutService {
         w.timestamp.month == date.month &&
         w.timestamp.day == date.day);
 
-    return dayWorkouts.fold(0, (sum, w) => sum + w.caloriesBurned);
+    return dayWorkouts.fold<int>(0, (sum, w) => sum + w.caloriesBurned);
   }
 }

@@ -32,6 +32,4 @@ class UserProfileService {
     await init();
     return _box?.get('current_user');
   }
-
-  ValueListenable<Box<UserProfile>>? get listenable => _box?.listenable();
 }

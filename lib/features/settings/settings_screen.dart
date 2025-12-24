@@ -737,6 +737,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  }
+
   Future<void> _saveUserProfileOnChange() async {
     final settings = ref.read(settingsProvider);
     final profile = UserProfile(

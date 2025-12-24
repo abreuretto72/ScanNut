@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../services/nutrition_service.dart';
 import '../services/workout_service.dart';
+import '../models/workout_item.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -52,49 +53,27 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
-          : ValueListenableBuilder(
-              valueListenable: NutritionService().listenable!,
-              builder: (context, box, _) {
-                return ValueListenableBuilder(
-                  valueListenable: WorkoutService().listenable!,
-                  builder: (context, wBox, __) {
-                    // Re-calculate values on any change
-                    return FutureBuilder(
-                      future: _calculateDailyTotals(),
-                      builder: (context, snapshot) {
-                        final data = snapshot.data ?? {'consumed': 0.0, 'burned': 0};
-                        final consumed = data['consumed'] as double;
-                        final burned = data['burned'] as int;
-                        final balance = consumed - burned;
-                        final percent = (consumed / _goal).clamp(0.0, 1.0);
-
-                        return RefreshIndicator(
-                          onRefresh: _loadDailyData,
-                          color: const Color(0xFF00E676),
-                          child: ListView(
-                            padding: const EdgeInsets.all(20),
-                            children: [
-                              _buildCalorieCard(balance, percent),
-                              const SizedBox(height: 24),
-                              Row(
-                                children: [
-                                  Expanded(child: _buildInfoCard('Consumido', '${consumed.toInt()} kcal', Icons.restaurant, Colors.orangeAccent)),
-                                  const SizedBox(width: 16),
-                                  Expanded(child: _buildInfoCard('Queimado', '$burned kcal', Icons.directions_run, Colors.blueAccent)),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
-                              _buildPerformanceSection(),
-                              const SizedBox(height: 24),
-                              _buildQuickActionSection(),
-                            ],
-                          ),
-                        );
-                      }
-                    );
-                  }
-                );
-              }
+          : RefreshIndicator(
+              onRefresh: _loadDailyData,
+              color: const Color(0xFF00E676),
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  _buildCalorieCard(balance, percent),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: _buildInfoCard('Consumido', '${_consumed.toInt()} kcal', Icons.restaurant, Colors.orangeAccent)),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildInfoCard('Queimado', '$_burned kcal', Icons.directions_run, Colors.blueAccent)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildPerformanceSection(),
+                  const SizedBox(height: 24),
+                  _buildQuickActionSection(),
+                ],
+              ),
             ),
     );
   }

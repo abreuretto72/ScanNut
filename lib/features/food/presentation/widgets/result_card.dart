@@ -1689,7 +1689,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                 ),
                               ),
                               title: Text(
-                                recipe.name,
+                                recipe.nome,
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -1702,14 +1702,14 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                   children: [
                                     _buildRecipeBadge(
                                       Icons.timer,
-                                      recipe.prepTime,
+                                      recipe.tempoPreparo,
                                       Colors.blue,
                                     ),
                                     const SizedBox(width: 8),
                                     _buildRecipeBadge(
                                       Icons.speed,
-                                      recipe.difficulty,
-                                      recipe.difficulty == 'Fácil'
+                                      'Rápido',
+                                      'Rápido' == 'Fácil'
                                           ? Colors.green
                                           : Colors.orange,
                                     ),
@@ -1717,87 +1717,18 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                 ),
                               ),
                               children: [
-                                // Extra Ingredients
-                                if (recipe.extraIngredients.isNotEmpty) ...[
-                                  Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '🛒 Ingredientes Extras:',
-                                      style: GoogleFonts.poppins(
-                                        color: _themeColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: recipe.extraIngredients
-                                        .map((ingredient) => Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white10,
-                                                borderRadius: BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                ingredient,
-                                                style: GoogleFonts.poppins(
-                                                  color: Colors.white70,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ))
-                                        .toList(),
-                                  ),
-                                  const SizedBox(height: 16),
-                                ],
-
                                 // Instructions
-                                Align(
-                                  alignment: Alignment.centerLeft,
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
                                   child: Text(
-                                    '👨‍🍳 Modo de Preparo:',
+                                    recipe.instrucoes,
                                     style: GoogleFonts.poppins(
-                                      color: _themeColor,
-                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white70,
                                       fontSize: 14,
+                                      height: 1.5,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                ...recipe.instructions.asMap().entries.map(
-                                      (entry) => Padding(
-                                        padding: const EdgeInsets.only(bottom: 8),
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '${entry.key + 1}.',
-                                              style: GoogleFonts.poppins(
-                                                color: _themeColor,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                entry.value,
-                                                style: GoogleFonts.poppins(
-                                                  color: Colors.white70,
-                                                  fontSize: 14,
-                                                  height: 1.5,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
                               ],
                             ),
                           ),

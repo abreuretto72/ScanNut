@@ -291,7 +291,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                    pw.Text("ScanNut App - Inteligência Animal", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey)),
                    pw.SizedBox(height: 4),
                    pw.Text(
-                     AppLocalizations.of(context)!.aiDisclaimer,
+                     "Aviso: Este relatório foi gerado por IA e não substitui consulta veterinária profissional.",
                      style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic),
                    ),
                 ],

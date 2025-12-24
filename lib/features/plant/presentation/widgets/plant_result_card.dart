@@ -469,7 +469,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               Text(saude.detalhes, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
               if (!widget.analysis.isHealthy) ...[
                 const SizedBox(height: 16),
-                _buildProgressBar("Nível de Urgência", widget.analysis.urgencyValue, _statusColor),
+                _buildInfoLabel("Urgência:", widget.analysis.urgency),
               ],
             ],
           ),

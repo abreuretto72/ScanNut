@@ -2630,7 +2630,7 @@ class _EditPetFormState extends State<EditPetForm>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                              weightStatus.recommendation,
+                              weightStatus.getRecommendation(AppLocalizations.of(context)!),
                               style: GoogleFonts.poppins(
                                   color: Colors.white70,
                                   fontSize: 11,
@@ -2663,6 +2663,7 @@ class _EditPetFormState extends State<EditPetForm>
       return PetWeightDatabase.calculateWeightStatus(
           currentWeight: currentWeight,
           idealWeight: idealWeight,
+          strings: AppLocalizations.of(context)!,
       );
   }
 
