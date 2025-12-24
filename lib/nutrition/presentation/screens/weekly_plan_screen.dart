@@ -6,6 +6,7 @@ import '../../data/models/weekly_plan.dart';
 import '../../data/models/plan_day.dart';
 import '../../data/models/meal.dart';
 import '../controllers/nutrition_providers.dart';
+import '../widgets/create_menu_dialog.dart';
 
 /// Tela do Plano Semanal - MVP Completo
 class WeeklyPlanScreen extends ConsumerStatefulWidget {
