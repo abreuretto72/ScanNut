@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/models/user_nutrition_profile.dart';
-import '../data/models/weekly_plan.dart';
-import '../data/models/meal_log.dart';
-import '../data/models/shopping_list_item.dart';
-import '../data/datasources/nutrition_profile_service.dart';
-import '../data/datasources/weekly_plan_service.dart';
-import '../data/datasources/meal_log_service.dart';
-import '../data/datasources/shopping_list_service.dart';
-import '../data/datasources/nutrition_data_service.dart';
-import '../domain/usecases/weekly_plan_generator.dart';
-import '../domain/usecases/shopping_list_generator.dart';
+import '../../data/models/user_nutrition_profile.dart';
+import '../../data/models/weekly_plan.dart';
+import '../../data/models/meal_log.dart';
+import '../../data/models/shopping_list_item.dart';
+import '../../data/datasources/nutrition_profile_service.dart';
+import '../../data/datasources/weekly_plan_service.dart';
+import '../../data/datasources/meal_log_service.dart';
+import '../../data/datasources/shopping_list_service.dart';
+import '../../data/datasources/nutrition_data_service.dart';
+import '../../domain/usecases/weekly_plan_generator.dart';
+import '../../domain/usecases/shopping_list_generator.dart';
 
 /// Provider para o perfil nutricional
 final nutritionProfileProvider = StateNotifierProvider<NutritionProfileNotifier, UserNutritionProfile?>((ref) {

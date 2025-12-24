@@ -1,10 +1,10 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import '../data/models/weekly_plan.dart';
-import '../data/models/plan_day.dart';
-import '../data/models/meal.dart';
-import '../data/models/user_nutrition_profile.dart';
-import '../data/datasources/nutrition_data_service.dart';
+import '../../data/models/weekly_plan.dart';
+import '../../data/models/plan_day.dart';
+import '../../data/models/meal.dart';
+import '../../data/models/user_nutrition_profile.dart';
+import '../../data/datasources/nutrition_data_service.dart';
 
 /// Gerador de plano semanal automático
 class WeeklyPlanGenerator {

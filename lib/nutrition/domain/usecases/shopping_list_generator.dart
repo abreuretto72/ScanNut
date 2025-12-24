@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import '../data/models/weekly_plan.dart';
-import '../data/models/shopping_list_item.dart';
+import '../../data/models/weekly_plan.dart';
+import '../../data/models/shopping_list_item.dart';
 
 /// Gerador de lista de compras a partir do plano semanal
 class ShoppingListGenerator {
