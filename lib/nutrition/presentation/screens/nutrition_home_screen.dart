@@ -16,24 +16,19 @@ class _NutritionHomeScreenState extends State<NutritionHomeScreen> {
 
   final List<_NavigationItem> _navItems = [
     _NavigationItem(
-      icon: Icons.calendar_today,
-      label: 'Plano Semanal',
+      icon: Icons.restaurant_menu,
+      label: 'Vou comer',
       color: const Color(0xFF00E676),
     ),
     _NavigationItem(
-      icon: Icons.book_outlined,
-      label: 'Diário',
+      icon: Icons.check_circle_outline,
+      label: 'Comi',
       color: const Color(0xFF2196F3),
     ),
     _NavigationItem(
       icon: Icons.shopping_cart_outlined,
       label: 'Compras',
       color: const Color(0xFFFF6B35),
-    ),
-    _NavigationItem(
-      icon: Icons.insights_outlined,
-      label: 'Progresso',
-      color: const Color(0xFF9C27B0),
     ),
   ];
 
@@ -75,24 +70,17 @@ class _NutritionHomeScreenState extends State<NutritionHomeScreen> {
           return const WeeklyPlanScreen();
         case 1:
           return _buildPlaceholder(
-            'Diário Alimentar',
-            Icons.book_outlined,
-            'Registre suas refeições diárias',
+            'Comi',
+            Icons.check_circle_outline,
+            'O que você já comeu hoje',
             _navItems[1].color,
           );
         case 2:
           return _buildPlaceholder(
             'Lista de Compras',
             Icons.shopping_cart_outlined,
-            'Itens necessários para seu plano semanal',
+            'Ingredientes para o que você vai comer',
             _navItems[2].color,
-          );
-        case 3:
-          return _buildPlaceholder(
-            'Progresso',
-            Icons.insights_outlined,
-            'Acompanhe sua aderência e evolução',
-            _navItems[3].color,
           );
         default:
           return const Center(child: Text('Erro'));

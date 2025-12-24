@@ -64,9 +64,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Regerar Semana?', style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text('Refazer a semana?', style: GoogleFonts.poppins(color: Colors.white)),
         content: Text(
-          'Isso criará um novo plano semanal. O plano atual será substituído.',
+          'Isso vai criar um novo cardápio para a semana. O atual será substituído.',
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
@@ -77,7 +77,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)),
-            child: Text('Regerar', style: GoogleFonts.poppins(color: Colors.black)),
+            child: Text('Refazer', style: GoogleFonts.poppins(color: Colors.black)),
           ),
         ],
       ),
@@ -91,7 +91,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('✅ Plano semanal regerado!'),
+                content: Text('✅ Cardápio da semana refeito!'),
                 backgroundColor: Colors.green,
               ),
             );
@@ -126,7 +126,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             const Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
-              'Erro ao carregar plano',
+              'Erro ao carregar o cardápio',
               style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
             ),
             const SizedBox(height: 8),
@@ -156,14 +156,14 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             const Icon(Icons.calendar_today, size: 64, color: Colors.white54),
             const SizedBox(height: 16),
             Text(
-              'Nenhum plano encontrado',
+              'Você ainda não tem um cardápio',
               style: GoogleFonts.poppins(color: Colors.white),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _loadPlan,
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)),
-              child: Text('Criar Plano', style: GoogleFonts.poppins(color: Colors.black)),
+              child: Text('Criar Cardápio', style: GoogleFonts.poppins(color: Colors.black)),
             ),
           ],
         ),
@@ -191,7 +191,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                       ),
                     ),
                     Text(
-                      '${plan.days.length} dias planejados',
+                      'O que você vai comer nos próximos ${plan.days.length} dias',
                       style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
                     ),
                   ],
@@ -199,7 +199,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.refresh, color: Color(0xFF00E676)),
-                tooltip: 'Regerar semana',
+                tooltip: 'Refazer cardápio da semana',
                 onPressed: _regeneratePlan,
               ),
             ],
