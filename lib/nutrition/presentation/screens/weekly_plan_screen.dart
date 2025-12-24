@@ -128,12 +128,16 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       }
 
       final profile = ref.read(nutritionProfileProvider);
+      debugPrint('[CriarCardapio] Perfil lido');
+      
+      debugPrint('[CriarCardapio] Abrindo showDialog...');
       final params = await showDialog<MenuCreationParams>(
         context: context,
         builder: (context) => CreateMenuDialog(
           userRestrictions: profile?.restricoes ?? [],
         ),
       );
+      debugPrint('[CriarCardapio] showDialog retornou');
 
       if (params != null && mounted) {
         setState(() => _isLoading = true);
