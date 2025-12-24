@@ -39,6 +39,7 @@ import '../../pet/services/pet_profile_service.dart';
 import '../../partners/presentation/partners_hub_screen.dart';
 import '../../partners/presentation/global_agenda_screen.dart';
 import 'widgets/app_drawer.dart';
+import '../../../nutrition/presentation/screens/nutrition_home_screen.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -680,6 +681,42 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               ),
             ),
           ),
+
+          // 3.5 Nutrition Button (Top Right) - Only for Food Mode
+          if (_currentIndex == 0)
+            Positioned(
+              top: 50,
+              right: 20,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.restaurant_menu, color: Color(0xFFFF6B35), size: 28),
+                  tooltip: 'Gestão da Nutrição',
+                  onPressed: () {
+                    try {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NutritionHomeScreen(),
+                        ),
+                      );
+                    } catch (e) {
+                      debugPrint('❌ Error opening Nutrition module: $e');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Erro ao abrir módulo de nutrição: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ),
 
           // 3.5 Action Buttons (Top Right) - Only for Pet Mode
           if (_currentIndex == 2)

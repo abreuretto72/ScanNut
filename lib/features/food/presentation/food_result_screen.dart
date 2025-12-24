@@ -12,7 +12,6 @@ import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import '../models/food_analysis_model.dart';
-import '../../../core/widgets/result_card.dart';
 import 'widgets/result_card.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/widgets/pdf_action_button.dart';
@@ -723,5 +722,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
   TextStyle get _sectionTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
 }

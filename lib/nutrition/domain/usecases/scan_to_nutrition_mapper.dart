@@ -1,6 +1,6 @@
 import '../../../features/food/models/food_analysis_model.dart';
-import '../data/models/meal.dart';
-import '../data/models/meal_log.dart';
+import '../../data/models/meal.dart';
+import '../../data/models/meal_log.dart';
 
 /// Mapper para converter FoodAnalysisModel (do scan) em MealItem/MealLog
 class ScanToNutritionMapper {
@@ -8,18 +8,17 @@ class ScanToNutritionMapper {
   static MealItem toMealItem(FoodAnalysisModel analysis) {
     try {
       final nome = analysis.identidade.nome;
-      final porcao = analysis.identidade.porcao ?? '1 porção';
       
       // Criar observações com macros
       final macros = analysis.macros;
       final observacoes = '${macros.calorias100g} kcal | '
-          'P: ${macros.proteinas100g}g | '
-          'C: ${macros.carboidratos100g}g | '
-          'G: ${macros.gorduras100g}g';
+          'P: ${macros.proteinas} | '
+          'C: ${macros.carboidratosLiquidos} | '
+          'G: ${macros.gordurasPerfil}';
       
       return MealItem(
         nome: nome,
-        quantidadeTexto: porcao,
+        quantidadeTexto: '100g',
         observacoes: observacoes,
       );
     } catch (e) {

@@ -113,16 +113,6 @@ class AppDrawer extends ConsumerWidget {
                   ),
                   _buildMenuItem(
                     context,
-                    icon: Icons.restaurant_menu,
-                    title: 'Gestão de Nutrição',
-                    subtitle: 'Plano Semanal & Diário Alimentar',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const NutritionHomeScreen()));
-                    },
-                  ),
-                  _buildMenuItem(
-                    context,
                     icon: Icons.history,
                     title: 'Histórico de Nutrição',
                     subtitle: 'Análises de Alimentos',
