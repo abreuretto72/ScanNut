@@ -111,6 +111,76 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     }
   }
 
+  Future<void> _showCreateMenuDialog() async {
+    try {
+      debugPrint('[CriarCardapio] Botão tocado');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Abrindo configuração...'),
+            duration: Duration(seconds: 1),
+            backgroundColor: Color(0xFF00E676),
+          ),
+        );
+      }
+
+      final profile = ref.read(nutritionProfileProvider);
+      final params = await showDialog<MenuCreationParams>(
+        context: context,
+        builder: (context) => CreateMenuDialog(
+          userRestrictions: profile?.restricoes ?? [],
+        ),
+      );
+
+      if (params != null && mounted) {
+        setState(() => _isLoading = true);
+        
+        try {
+          final dataService = ref.read(nutritionDataProvider);
+          if (!dataService.isLoaded) {
+            await dataService.loadData();
+          }
+
+          if (profile != null) {
+            await ref.read(currentWeekPlanProvider.notifier).generateNewPlan(profile);
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('✅ Cardápio criado!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          }
+        } catch (e) {
+          debugPrint('[CriarCardapio] Erro: $e');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Erro: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
+      }
+    } catch (e) {
+      debugPrint('[CriarCardapio] Erro crítico: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -162,9 +232,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _loadPlan,
+              onPressed: _showCreateMenuDialog,
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)),
-              child: Text('Criar Cardápio', style: GoogleFonts.poppins(color: Colors.black)),
+              child: Text('Criar Cardápio', style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
