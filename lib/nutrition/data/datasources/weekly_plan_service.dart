@@ -4,14 +4,24 @@ import '../models/weekly_plan.dart';
 
 /// Serviço para gerenciar planos semanais
 /// Box: nutrition_weekly_plans
+/// SINGLETON - sempre retorna a mesma instância
 class WeeklyPlanService {
   static const String _boxName = 'nutrition_weekly_plans';
+  
+  // SINGLETON PATTERN
+  static final WeeklyPlanService _instance = WeeklyPlanService._internal();
+  factory WeeklyPlanService() => _instance;
+  WeeklyPlanService._internal();
   
   Box<WeeklyPlan>? _box;
 
   /// Inicializa o box
   Future<void> init() async {
     try {
+      if (_box?.isOpen == true) {
+        debugPrint('✅ WeeklyPlanService already initialized');
+        return;
+      }
       _box = await Hive.openBox<WeeklyPlan>(_boxName);
       debugPrint('✅ WeeklyPlanService initialized. Box Open: ${_box?.isOpen}');
     } catch (e) {
