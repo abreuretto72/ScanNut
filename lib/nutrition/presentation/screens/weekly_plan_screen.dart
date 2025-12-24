@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +8,7 @@ import '../../data/models/plan_day.dart';
 import '../../data/models/meal.dart';
 import '../controllers/nutrition_providers.dart';
 import '../widgets/create_menu_dialog.dart';
+import '../widgets/hive_debug_panel.dart';
 
 /// Tela do Plano Semanal - MVP Completo
 class WeeklyPlanScreen extends ConsumerStatefulWidget {
@@ -268,6 +270,20 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                   ],
                 ),
               ),
+              // Botão Debug (apenas em DEBUG mode)
+              if (kDebugMode)
+                IconButton(
+                  icon: const Icon(Icons.bug_report, color: Colors.red),
+                  tooltip: 'Debug Hive',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HiveDebugPanel(),
+                      ),
+                    );
+                  },
+                ),
               IconButton(
                 icon: const Icon(Icons.refresh, color: Color(0xFF00E676)),
                 tooltip: 'Refazer cardápio da semana',
