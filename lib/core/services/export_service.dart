@@ -450,7 +450,7 @@ class ExportService {
   }
 
   /// 4. FOOD ANALYSIS REPORT (UNIFIED LAYOUT)
-  Future<pw.Document> generateFoodAnalysisReport({required FoodAnalysisModel analysis, File? imageFile}) async {
+   Future<pw.Document> generateFoodAnalysisReport({required FoodAnalysisModel analysis, File? imageFile}) async {
     final pdf = pw.Document();
     final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
     
@@ -458,34 +458,73 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Análise Nutricional IA', timestampStr),
+        header: (context) => _buildHeader('Análise Nutricional & Biohacking', timestampStr),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               _buildIndicator('Item:', analysis.identidade.nome, PdfColors.black),
-              _buildIndicator('Calorias:', '${analysis.macros.calorias} kcal', PdfColors.red700),
+              _buildIndicator('Calorias:', '${analysis.macros.calorias100g} kcal/100g', PdfColors.red700),
             ],
+          ),
+          pw.SizedBox(height: 10),
+          pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                _buildIndicator('Processamento:', analysis.identidade.statusProcessamento, PdfColors.black),
+                _buildIndicator('Semáforo Saúde:', analysis.identidade.semaforoSaude, 
+                  analysis.identidade.semaforoSaude.toLowerCase() == 'verde' ? PdfColors.green700 : 
+                  (analysis.identidade.semaforoSaude.toLowerCase() == 'amarelo' ? PdfColors.amber700 : PdfColors.red700)),
+              ]
           ),
           pw.SizedBox(height: 25),
+          
+          pw.Text('MACRONUTRIENTES:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          pw.SizedBox(height: 5),
           pw.Table.fromTextArray(
-            border: pw.TableBorder.all(color: PdfColors.black, width: 1.0),
-            headerDecoration: const pw.BoxDecoration(color: PdfColors.blue),
-            headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10),
-            cellStyle: const pw.TextStyle(fontSize: 9),
-            headers: ['Nutriente', 'Valor', 'Observação'],
+            border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey50),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+            cellStyle: const pw.TextStyle(fontSize: 8),
+            headers: ['Nutriente', 'Valor / Perfil'],
             data: [
-              ['Proteínas', analysis.macros.proteinas['valor'] ?? '', 'Essencial'],
-              ['Carboidratos', analysis.macros.carboidratos['total'] ?? '', 'Energia'],
-              ['Fibras', analysis.macros.fibras['total'] ?? '', 'Digestão'],
-              ['Gorduras', analysis.macros.gorduras['total'] ?? '', 'Saudável'],
+              ['Proteínas', analysis.macros.proteinas],
+              ['Carbs Líquidos', analysis.macros.carboidratosLiquidos],
+              ['Gorduras', analysis.macros.gordurasPerfil],
+              ['Índice Glicemico', analysis.macros.indiceGlicemico],
             ],
           ),
+          
           pw.SizedBox(height: 20),
-          pw.Text('Veredito da IA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+          pw.Text('BIOHACKING & PERFORMANCE:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
           pw.SizedBox(height: 5),
-          pw.Text(analysis.analise.vereditoIa, style: const pw.TextStyle(fontSize: 10)),
+          pw.Bullet(text: 'Impacto Foco/Energia: ${analysis.performance.impactoFocoEnergia}', style: const pw.TextStyle(fontSize: 8)),
+          pw.Bullet(text: 'Momento Ideal: ${analysis.performance.momentoIdealConsumo}', style: const pw.TextStyle(fontSize: 8)),
+          pw.Bullet(text: 'Saciedade: ${analysis.performance.indiceSaciedade}/5', style: const pw.TextStyle(fontSize: 8)),
+          
+          if (analysis.receitas.isNotEmpty) ...[
+              pw.SizedBox(height: 20),
+              pw.Text('RECEITAS RÁPIDAS (ATÉ 15 MIN):', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+              pw.SizedBox(height: 5),
+              ...analysis.receitas.map((r) => pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 8),
+                  padding: const pw.EdgeInsets.all(5),
+                  decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3))),
+                  child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                          pw.Text(r.nome, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                          pw.Text(r.instrucoes, style: const pw.TextStyle(fontSize: 7)),
+                      ]
+                  )
+              )).toList(),
+          ],
+
+          pw.SizedBox(height: 20),
+          pw.Text('VEREDITO IA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          pw.SizedBox(height: 5),
+          pw.Text(analysis.analise.vereditoIa, style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic)),
         ],
       ),
     );

@@ -24,6 +24,8 @@ import '../../plant/models/plant_analysis_model.dart';
 import '../../pet/models/pet_analysis_result.dart';
 import '../../pet/models/pet_profile_extended.dart';
 import '../../pet/services/pet_profile_service.dart';
+import '../../food/services/nutrition_service.dart';
+import '../../plant/services/botany_service.dart';
 import '../../pet/presentation/widgets/edit_pet_form.dart';
 
 // Widgets
@@ -430,12 +432,39 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           const SnackBar(content: Text('Erro: Nome do pet não encontrado.')),
         );
       }
-    } else {
-        // Default behavior for others
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$type salvo com sucesso!')),
-        );
+    } else if (state is AnalysisSuccess) {
+        // Handle saving for Food or Plant
+        try {
+            if (state.data is FoodAnalysisModel) {
+                await NutritionService().saveFoodAnalysis(
+                    state.data as FoodAnalysisModel,
+                    _capturedImage
+                );
+            } else if (state.data is PlantAnalysisModel) {
+                await BotanyService().savePlantAnalysis(
+                    state.data as PlantAnalysisModel,
+                    _capturedImage
+                );
+            }
+            
+            // Still save to main history for backward compatibility and unified view
+            final data = (state.data is FoodAnalysisModel) 
+                ? (state.data as FoodAnalysisModel).toJson()
+                : (state.data as dynamic).toJson();
+            
+            await ref.read(historyServiceProvider).saveAnalysis(
+                data, 
+                type, 
+                imagePath: _capturedImage?.path
+            );
+
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$type salvo nas boxes especializadas!')),
+            );
+        } catch (e) {
+            debugPrint('Save error for $type: $e');
+        }
     }
     
     // Reset state after saving
@@ -844,8 +873,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
    Widget _buildShutterButton() {
     return GestureDetector(

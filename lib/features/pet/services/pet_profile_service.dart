@@ -8,7 +8,7 @@ class PetProfileService {
   factory PetProfileService() => _instance;
   PetProfileService._internal();
 
-  static const String _profileBoxName = 'pet_profiles';
+  static const String _profileBoxName = 'box_pets_master';
   Box? _profileBox;
 
   Future<void> init() async {
@@ -26,6 +26,8 @@ class PetProfileService {
         debugPrint('❌ CRITICAL: Failed to open Pet Profile Box: $e\n$stack');
     }
   }
+
+  ValueListenable<Box>? get listenable => _profileBox?.listenable();
 
   String _normalizeKey(String petName) {
     return petName.trim().toLowerCase();

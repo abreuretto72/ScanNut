@@ -10,6 +10,7 @@ import 'l10n/app_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/services/history_service.dart';
+import 'core/services/file_upload_service.dart';
 
 import 'core/services/meal_history_service.dart';
 import 'features/pet/models/pet_event.dart';
@@ -18,7 +19,11 @@ import 'features/pet/models/vaccine_status.dart';
 import 'features/pet/services/vaccine_status_service.dart';
 import 'features/pet/services/pet_profile_service.dart';
 import 'features/pet/services/pet_health_service.dart';
-import 'features/pet/services/meal_plan_service.dart'; // Import New Service
+import 'features/pet/services/meal_plan_service.dart';
+import 'features/food/services/nutrition_service.dart';
+import 'features/plant/services/botany_service.dart';
+import 'features/food/services/workout_service.dart';
+import 'core/services/user_profile_service.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -61,6 +66,15 @@ void main() async {
     await PetProfileService().init();
     await PetHealthService().init();
     await MealPlanService().init(); 
+    
+    // Cleanup temporary files
+    await FileUploadService().cleanupTemporaryCache();
+    
+    // Initialize Nutrition, Botany, Workout and UserProfile services
+    await NutritionService().init();
+    await BotanyService().init();
+    await WorkoutService().init();
+    await UserProfileService().init();
     
     // Debug: Show loaded environment variables
     debugPrint('🔑 === ENVIRONMENT VARIABLES LOADED ===');

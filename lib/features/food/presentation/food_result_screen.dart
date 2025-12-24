@@ -219,8 +219,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           Icon(Icons.local_fire_department_rounded, color: _themeColor, size: 16),
           const SizedBox(width: 6),
           Text(
-            "${widget.analysis.macros.calorias} kcal",
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+            "${widget.analysis.macros.calorias100g} kcal / 100g",
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ],
       ),
@@ -229,16 +229,17 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   // --- TAB 1: RESUMO ---
   Widget _buildResumoTab() {
+    final statusColor = _getSemaforoColor(widget.analysis.identidade.semaforoSaude);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildVitalityHeader(),
+          _buildVitalityHeader(statusColor),
           const SizedBox(height: 24),
           Text("Veredito da IA", style: _sectionTitleStyle),
           const SizedBox(height: 8),
-          Text(widget.analysis.analise.vereditoIa, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 15)),
+          Text(widget.analysis.analise.vereditoIa, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 15, fontStyle: FontStyle.italic)),
           const SizedBox(height: 24),
           Text("Pontos Positivos", style: _sectionTitleStyle),
           const SizedBox(height: 12),
@@ -262,30 +263,38 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildGlassCard(
-            title: "Segurança Alimentar",
-            icon: Icons.security,
-            color: Colors.blueAccent,
+            title: "Performance Biohacking",
+            icon: Icons.bolt,
+            color: Colors.purpleAccent,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow("Alertas:", widget.analysis.identidade.alertaCritico),
-                const Divider(color: Colors.white10),
-                _buildInfoRow("Bioquímica:", widget.analysis.identidade.bioquimicaAlert),
+                _buildProgressRow("Índice de Saciedade", performance.indiceSaciedade / 5.0, Colors.tealAccent),
+                const SizedBox(height: 20),
+                Text("Benefícios para o Corpo:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                ...performance.pontosPositivosCorpo.map((p) => _buildPointRow(p, Icons.trending_up, Colors.tealAccent)),
+                const SizedBox(height: 12),
+                Text("Atenção:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                ...performance.pontosAtencaoCorpo.map((p) => _buildPointRow(p, Icons.priority_high, Colors.orangeAccent)),
+                const Divider(color: Colors.white10, height: 24),
+                _buildInfoRow("Foco e Energia:", performance.impactoFocoEnergia),
+                _buildInfoRow("Momento Ideal:", performance.momentoIdealConsumo),
               ],
             ),
           ),
           const SizedBox(height: 20),
           _buildGlassCard(
-            title: "Biohacking & Performance",
-            icon: Icons.bolt,
-            color: Colors.purpleAccent,
+            title: "Segurança & Bioquímica",
+            icon: Icons.security,
+            color: Colors.blueAccent,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildProgressRow("Índice de Saciedade", performance.indiceSaciedade / 5.0, Colors.tealAccent),
-                const SizedBox(height: 16),
-                _buildInfoRow("Impacto no Foco:", performance.impactoNoFoco),
-                const SizedBox(height: 12),
-                _buildInfoRow("Momento Ideal:", performance.momentoIdeal),
+                _buildInfoRow("Alertas Críticos:", widget.analysis.identidade.alertaCritico),
+                const SizedBox(height: 10),
+                _buildInfoRow("Bioquímica e Neutralização:", widget.analysis.identidade.bioquimicaAlert),
               ],
             ),
           ),
@@ -305,10 +314,9 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         children: [
           Text("Macronutrientes Avançados", style: _sectionTitleStyle),
           const SizedBox(height: 16),
-          _buildMacroDetailRow("Proteínas", macros.proteinas['valor']!, macros.proteinas['aminoacidos']!, Colors.blue),
-          _buildMacroDetailRow("Carboidratos", macros.carboidratos['total']!, "Líquidos: ${macros.carboidratos['liquidos']}", Colors.amber),
-          _buildMacroDetailRow("Fibras", macros.fibras['total']!, macros.fibras['tipo']!, Colors.green),
-          _buildMacroDetailRow("Gorduras", macros.gorduras['total']!, macros.gorduras['perfil']!, Colors.red),
+          _buildMacroDetailRow("Proteínas", macros.proteinas, "Perfil de Aminoácidos", Colors.blue),
+          _buildMacroDetailRow("Carboidratos", macros.carboidratosLiquidos, "Impacto Glicêmico: ${macros.indiceGlicemico}", Colors.amber),
+          _buildMacroDetailRow("Gorduras", macros.gordurasPerfil, "Ácidos Graxos", Colors.red),
           const SizedBox(height: 24),
           
           Text("Minerais e Vitaminas", style: _sectionTitleStyle),
@@ -339,6 +347,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text("Receitas Rápidas (até 15 min)", style: _sectionTitleStyle),
+          const SizedBox(height: 16),
+          ...widget.analysis.receitas.map((r) => _buildRecipeCard(r)),
+          const SizedBox(height: 24),
           _buildGlassCard(
             title: "Inteligência Culinária",
             icon: Icons.restaurant_menu,
@@ -357,7 +369,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             title: "Dica do Especialista",
             icon: Icons.lightbulb,
             color: Colors.amberAccent,
-            child: Text(widget.analysis.dicaEspecialista, style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+            child: Text(widget.analysis.gastronomia.dicaEspecialista, style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
           ),
           const SizedBox(height: 80),
         ],
@@ -367,33 +379,78 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   // --- HELPERS ---
 
-  Widget _buildVitalityHeader() {
+  // --- HELPERS ---
+
+  Color _getSemaforoColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'verde': return Colors.greenAccent;
+      case 'amarelo': return Colors.amberAccent;
+      case 'vermelho': return Colors.redAccent;
+      default: return Colors.greenAccent;
+    }
+  }
+
+  Widget _buildVitalityHeader(Color statusColor) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         color: Colors.white10,
-        border: Border.all(color: _themeColor.withValues(alpha: 0.2)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           CircularPercentIndicator(
             radius: 35,
             lineWidth: 6,
-            percent: 0.85, // Mock score
-            progressColor: _themeColor,
-            center: Text("A+", style: TextStyle(color: _themeColor, fontWeight: FontWeight.bold)),
+            percent: widget.analysis.identidade.semaforoSaude.toLowerCase() == 'verde' ? 0.95 : (widget.analysis.identidade.semaforoSaude.toLowerCase() == 'amarelo' ? 0.6 : 0.3),
+            progressColor: statusColor,
+            center: Icon(Icons.shield_rounded, color: statusColor, size: 30),
+            animation: true,
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.analysis.identidade.categoria, style: GoogleFonts.poppins(color: _themeColor, fontSize: 12, fontWeight: FontWeight.bold)),
-                Text("Análise de Processamento", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                Text(
+                  widget.analysis.identidade.statusProcessamento.toUpperCase(), 
+                  style: GoogleFonts.poppins(color: statusColor, fontSize: 13, fontWeight: FontWeight.bold)
+                ),
+                Text("Semáforo: ${widget.analysis.identidade.semaforoSaude}", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecipeCard(ReceitaRapida recipe) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text(recipe.nome, style: GoogleFonts.poppins(color: _themeColor, fontWeight: FontWeight.bold, fontSize: 15))),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: _themeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
+                child: Text(recipe.tempoPreparo, style: GoogleFonts.poppins(color: _themeColor, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(recipe.instrucoes, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, height: 1.4)),
         ],
       ),
     );

@@ -165,4 +165,63 @@ class FileUploadService {
     }
     return false;
   }
+
+  /// Save image for food or plant analysis
+  Future<String?> saveAnalysisImage({
+    required File file,
+    required String type, // 'food' or 'plant'
+    required String name,
+  }) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final subDir = type == 'food' ? 'nutrition_images' : 'botany_images';
+      final dir = Directory('${appDir.path}/$subDir');
+      
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = path.extension(file.path);
+      final fileName = '${name.replaceAll(' ', '_')}_$timestamp$extension';
+      final newPath = '${dir.path}/$fileName';
+
+      final savedFile = await file.copy(newPath);
+      debugPrint('✅ Analysis image saved: $newPath');
+      
+      return savedFile.path;
+    } catch (e) {
+      debugPrint('❌ Error saving analysis image: $e');
+      return null;
+    }
+  }
+
+  /// Cleanup temporary images from picker that were not saved
+  Future<void> cleanupTemporaryCache() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      if (await tempDir.exists()) {
+        final List<FileSystemEntity> entities = tempDir.listSync();
+        int deletedCount = 0;
+        
+        for (var entity in entities) {
+          if (entity is File) {
+            final fileName = path.basename(entity.path);
+            // image_picker files usually start with 'image_picker' or 'scaled_'
+            if (fileName.contains('image_picker') || fileName.contains('scaled_') || fileName.endsWith('.jpg') || fileName.endsWith('.png')) {
+              // Only delete if older than 30 minutes to avoid deleting a currently being processed image
+              final stat = await entity.stat();
+              if (DateTime.now().difference(stat.modified).inMinutes > 30) {
+                await entity.delete();
+                deletedCount++;
+              }
+            }
+          }
+        }
+        debugPrint('🧹 Cache Cleanup: $deletedCount temporary files removed.');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Cache Cleanup Warning: $e');
+    }
+  }
 }

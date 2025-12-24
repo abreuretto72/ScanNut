@@ -8,6 +8,10 @@ import '../../../pet/presentation/nutritional_pillars_screen.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../core/services/data_management_service.dart';
+import '../../food/presentation/nutrition_history_screen.dart';
+import '../../plant/presentation/botany_history_screen.dart';
+import '../../food/presentation/fitness_dashboard_screen.dart';
+import '../../pet/presentation/pet_history_screen.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -87,17 +91,53 @@ class AppDrawer extends ConsumerWidget {
                   ),
                   _buildMenuItem(
                     context,
-                    icon: Icons.temple_buddhist, // Or local_library or spa
+                    icon: Icons.temple_buddhist,
                     title: 'Pilares da Nutrição',
                     subtitle: 'Conceitos do ScanNut',
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const NutritionalPillarsScreen(),
-                        ),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const NutritionalPillarsScreen()));
+                    },
+                  ),
+                  const Divider(color: Colors.white24, height: 16),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.dashboard_customize_outlined,
+                    title: 'Balanço Energético',
+                    subtitle: 'Dashboard Fitness & Biohacking',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const FitnessDashboardScreen()));
+                    },
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.history,
+                    title: 'Histórico de Nutrição',
+                    subtitle: 'Análises de Alimentos',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const NutritionHistoryScreen()));
+                    },
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.local_florist_outlined,
+                    title: 'Histórico Botânico',
+                    subtitle: 'Saúde e Guia de Cultivo',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const BotanyHistoryScreen()));
+                    },
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.pets_outlined,
+                    title: 'Histórico de Pets',
+                    subtitle: 'Dossiês e Exames',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const PetHistoryScreen()));
                     },
                   ),
                   _buildMenuItem(

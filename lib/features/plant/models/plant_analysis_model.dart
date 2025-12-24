@@ -30,13 +30,18 @@ class PlantAnalysisModel {
 
   bool get isHealthy => saude.condicao.toLowerCase().contains('saudável');
   
-  double get urgencyValue {
-    switch (saude.urgencia.toLowerCase()) {
-      case 'high': return 0.9;
-      case 'medium': return 0.5;
-      case 'low': 
-      default: return 0.1;
-    }
+  Map<String, dynamic> toJson() {
+    return {
+      'identificacao': identificacao.toJson(),
+      'estetica_viva': estetica.toJson(),
+      'diagnostico_saude': saude.toJson(),
+      'guia_sobrevivencia': sobrevivencia.toJson(),
+      'seguranca_e_biofilia': segurancaBiofilia.toJson(),
+      'engenharia_propagacao': propagacao.toJson(),
+      'inteligencia_ecossistema': ecossistema.toJson(),
+      'lifestyle_e_feng_shui': lifestyle.toJson(),
+      'alertas_sazonais': alertasSazonais.toJson(),
+    };
   }
 
   factory PlantAnalysisModel.fromJson(Map<String, dynamic> json) {
@@ -67,6 +72,13 @@ class Identificacao {
     required this.origemGeografica,
   });
 
+  Map<String, dynamic> toJson() => {
+    'nome_cientifico': nomeCientifico,
+    'nomes_populares': nomesPopulares,
+    'familia': familia,
+    'origem_geografica': origemGeografica,
+  };
+
   factory Identificacao.fromJson(Map<String, dynamic> json) {
     return Identificacao(
       nomeCientifico: json['nome_cientifico']?.toString() ?? 'N/A',
@@ -89,6 +101,13 @@ class EsteticaViva {
     required this.tamanhoMaximo,
     required this.velocidadeCrescimento,
   });
+
+  Map<String, dynamic> toJson() => {
+    'epoca_floracao': epocaFloracao,
+    'cor_das_flores': corDasFlores,
+    'tamanho_maximo_estimado': tamanhoMaximo,
+    'velocidade_crescimento': velocidadeCrescimento,
+  };
 
   factory EsteticaViva.fromJson(Map<String, dynamic> json) {
     return EsteticaViva(
@@ -113,6 +132,13 @@ class DiagnosticoSaude {
     required this.planoRecuperacao,
   });
 
+  Map<String, dynamic> toJson() => {
+    'condicao': condicao,
+    'detalhes': detalhes,
+    'urgencia': urgencia,
+    'plano_recuperacao': planoRecuperacao,
+  };
+
   factory DiagnosticoSaude.fromJson(Map<String, dynamic> json) {
     return DiagnosticoSaude(
       condicao: json['condicao']?.toString() ?? 'Saudável',
@@ -134,6 +160,12 @@ class GuiaSobrevivencia {
     required this.soloENutricao,
   });
 
+  Map<String, dynamic> toJson() => {
+    'luminosidade': luminosidade,
+    'regime_hidrico': regimeHidrico,
+    'solo_e_nutricao': soloENutricao,
+  };
+
   factory GuiaSobrevivencia.fromJson(Map<String, dynamic> json) {
     return GuiaSobrevivencia(
       luminosidade: Map<String, dynamic>.from(json['luminosidade'] ?? {}),
@@ -151,6 +183,11 @@ class SegurancaEBiofilia {
     required this.segurancaDomestica,
     required this.poderesBiofilicos,
   });
+
+  Map<String, dynamic> toJson() => {
+    'seguranca_domestica': segurancaDomestica,
+    'poderes_biofilicos': poderesBiofilicos,
+  };
 
   factory SegurancaEBiofilia.fromJson(Map<String, dynamic> json) {
     return SegurancaEBiofilia(
@@ -170,6 +207,12 @@ class EngenhariaPropagacao {
     required this.passoAPasso,
     required this.dificuldade,
   });
+
+  Map<String, dynamic> toJson() => {
+    'metodo': metodo,
+    'passo_a_passo': passoAPasso,
+    'dificuldade_reproducao': dificuldade,
+  };
 
   factory EngenhariaPropagacao.fromJson(Map<String, dynamic> json) {
     return EngenhariaPropagacao(
@@ -191,6 +234,14 @@ class InteligenciaEcossistema {
     required this.repelenteNatural,
   });
 
+  Map<String, dynamic> toJson() => {
+    'companion_planting': {
+      'plantas_parceiras': plantasParceiras,
+      'plantas_conflitantes': plantasConflitantes,
+    },
+    'repelente_natural': repelenteNatural,
+  };
+
   factory InteligenciaEcossistema.fromJson(Map<String, dynamic> json) {
     final companion = json['companion_planting'] ?? {};
     return InteligenciaEcossistema(
@@ -210,6 +261,11 @@ class LifestyleEFengShui {
     required this.simbolismo,
   });
 
+  Map<String, dynamic> toJson() => {
+    'posicionamento_ideal': posicionamentoIdeal,
+    'simbolismo': simbolismo,
+  };
+
   factory LifestyleEFengShui.fromJson(Map<String, dynamic> json) {
     return LifestyleEFengShui(
       posicionamentoIdeal: json['posicionamento_ideal']?.toString() ?? 'N/A',
@@ -226,6 +282,11 @@ class AlertasSazonais {
     required this.inverno,
     required this.verao,
   });
+
+  Map<String, dynamic> toJson() => {
+    'inverno': inverno,
+    'verao': verao,
+  };
 
   factory AlertasSazonais.fromJson(Map<String, dynamic> json) {
     return AlertasSazonais(

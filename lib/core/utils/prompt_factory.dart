@@ -481,26 +481,30 @@ Mantenha as chaves JSON em inglês.
     switch (mode) {
       case ScannutMode.food:
         return '''
-Atue como um PhD em Nutrição Clínica, Engenheiro de Alimentos e Biohacker. Ao realizar o scan de um alimento, gere um JSON estruturado com profundidade técnica e utilidade prática.
+Atue como um PhD em Nutrição Clínica, Engenheiro de Alimentos e Biohacker de ELITE. Ao realizar o scan de um alimento, gere um JSON estruturado com profundidade técnica em Biohacking e praticidade culinária.
+
+Regras de Negócio:
+1. FOCO EM TEMPO: As receitas sugeridas DEVEM ter preparo de ATÉ 15 minutos.
+2. BIOHACKING: Analise como o alimento afeta a performance humana (foco, energia, saciedade).
+3. SEMÁFORO DE SAÚDE: Identifique o processamento (Sistema NOVA) e atribua Verde, Amarelo ou Vermelho.
 
 Responda EXCLUSIVAMENTE em JSON (sem markdown). Use Português do Brasil (PT-BR).
-Transforme scores/notas em números de 1 a 5.
 
 Estrutura Obrigatória:
 {
   "identidade_e_seguranca": {
     "nome": "string",
-    "categoria": "string (Sistema NOVA)",
-    "alerta_critico": "string (Glúten, Lactose, etc)",
-    "bioquimica_alert": "string (Antinutrientes e neutralização)"
+    "status_processamento": "In Natura | Processado | Ultraprocessado",
+    "semaforo_saude": "Verde | Amarelo | Vermelho",
+    "alerta_critico": "string (Glúten, Lactose, Alérgenos)",
+    "bioquimica_alert": "string (Antinutrientes e como neutralizá-los)"
   },
   "macronutrientes_pro": {
-    "calorias": integer,
-    "proteinas": { "valor": "string", "aminoacidos": "string" },
-    "carboidratos": { "total": "string", "liquidos": "string" },
-    "fibras": { "total": "string", "tipo": "string" },
-    "gorduras": { "total": "string", "perfil": "string" },
-    "indice_glicemico": { "valor": integer, "classificacao": "Baixo|Médio|Alto" }
+    "calorias_100g": integer,
+    "proteinas": "string",
+    "carboidratos_liquidos": "string",
+    "gorduras_perfil": "string",
+    "indice_glicemico": "string (Baixo|Médio|Alto)"
   },
   "mapa_de_vitaminas_e_minerais": {
     "lista": [
@@ -511,16 +515,23 @@ Estrutura Obrigatória:
   "analise_pros_e_contras": {
     "pontos_positivos": ["string"],
     "pontos_negativos": ["string"],
-    "veredito_ia": "string (1 frase)"
+    "veredito_ia": "string (1 frase de impacto)"
   },
   "biohacking_e_performance": {
+    "pontos_positivos_corpo": ["string (ex: Melhora cognição, Cardio-protetor)"],
+    "pontos_atencao_corpo": ["string (ex: Pico de insulina, Inflamatório)"],
     "indice_saciedade": integer (1-5),
-    "impacto_no_foco": "string",
-    "momento_ideal": "string"
+    "impacto_foco_energia": "string",
+    "momento_ideal_consumo": "string (ex: Pré-treino, Noite, Quebra de Jejum)"
   },
+  "receitas_rapidas_15min": [
+    { "nome": "string", "instrucoes": "string (curto e direto)", "tempo_preparo": "string" },
+    { "nome": "string", "instrucoes": "string (curto e direto)", "tempo_preparo": "string" }
+  ],
   "inteligencia_culinaria": {
     "preservacao_nutrientes": "string",
-    "smart_swap": "string"
+    "smart_swap": "string (Troca inteligente)",
+    "dica_especialista": "string"
   },
   "dica_do_especialista": "string"
 }

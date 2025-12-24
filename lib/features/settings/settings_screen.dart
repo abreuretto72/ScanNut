@@ -7,6 +7,8 @@ import '../../core/services/history_service.dart';
 import '../../core/utils/snackbar_helper.dart';
 import '../../core/providers/partner_provider.dart';
 import 'widgets/backup_optimize_dialog.dart';
+import '../../core/models/user_profile.dart';
+import '../../core/services/user_profile_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -18,21 +20,33 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _nameController = TextEditingController();
   final _calorieController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _heightController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settings = ref.read(settingsProvider);
-      _nameController.text = settings.userName;
-      _calorieController.text = settings.dailyCalorieGoal.toString();
-    });
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    final settings = ref.read(settingsProvider);
+    _nameController.text = settings.userName;
+    _calorieController.text = settings.dailyCalorieGoal.toString();
+    
+    final profile = await UserProfileService().getProfile();
+    if (profile != null) {
+      _weightController.text = profile.weight.toString();
+      _heightController.text = profile.height.toString();
+    }
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _calorieController.dispose();
+    _weightController.dispose();
+    _heightController.dispose();
     super.dispose();
   }
 
@@ -96,6 +110,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           const SizedBox(height: 16),
 
           // Calorie Goal Field
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _weightController,
+                  label: 'Peso',
+                  hint: '0.0',
+                  icon: Icons.monitor_weight_outlined,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  suffix: settings.weightUnit,
+                  onChanged: (_) => _saveUserProfileOnChange(),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildTextField(
+                  controller: _heightController,
+                  label: 'Altura',
+                  hint: '0.0',
+                  icon: Icons.height,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  suffix: 'cm',
+                  onChanged: (_) => _saveUserProfileOnChange(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           _buildTextField(
             controller: _calorieController,
             label: 'Meta Diária de Calorias',
@@ -695,5 +737,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  Future<void> _saveUserProfileOnChange() async {
+    final settings = ref.read(settingsProvider);
+    final profile = UserProfile(
+      userName: settings.userName,
+      dailyCalorieGoal: settings.dailyCalorieGoal,
+      weight: double.tryParse(_weightController.text) ?? 0.0,
+      height: double.tryParse(_heightController.text) ?? 0.0,
+      preferences: {
+        'showTips': settings.showTips,
+        'weightUnit': settings.weightUnit,
+      },
+    );
+    await UserProfileService().saveProfile(profile);
   }
 }
