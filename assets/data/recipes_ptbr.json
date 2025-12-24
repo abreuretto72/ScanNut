@@ -1,0 +1,221 @@
+{
+    "receitas": [
+        {
+            "id": "omelete_simples",
+            "nome": "Omelete Simples",
+            "tempoPreparo": "10 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "2 ovos",
+                "1 tomate picado",
+                "Sal e pimenta a gosto",
+                "1 colher de azeite"
+            ],
+            "modoPreparo": "Bata os ovos, tempere, adicione o tomate e frite em fogo médio até dourar.",
+            "calorias": 220,
+            "proteinas": 14,
+            "carboidratos": 4,
+            "gorduras": 16,
+            "restricoes": []
+        },
+        {
+            "id": "frango_legumes",
+            "nome": "Frango com Legumes",
+            "tempoPreparo": "15 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "120g peito de frango",
+                "1 cenoura",
+                "1 abobrinha",
+                "Alho e cebola",
+                "Azeite"
+            ],
+            "modoPreparo": "Refogue o frango com alho e cebola, adicione os legumes picados e cozinhe por 10 minutos.",
+            "calorias": 280,
+            "proteinas": 35,
+            "carboidratos": 12,
+            "gorduras": 10,
+            "restricoes": [
+                "sem_lactose",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "salada_completa",
+            "nome": "Salada Completa",
+            "tempoPreparo": "10 minutos",
+            "dificuldade": "muito_facil",
+            "porcoes": 1,
+            "ingredientes": [
+                "Alface",
+                "Tomate",
+                "Cenoura ralada",
+                "1 ovo cozido",
+                "Azeite e limão"
+            ],
+            "modoPreparo": "Monte a salada com todos os ingredientes e tempere com azeite e limão.",
+            "calorias": 150,
+            "proteinas": 8,
+            "carboidratos": 10,
+            "gorduras": 9,
+            "restricoes": [
+                "vegetariano",
+                "sem_lactose",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "arroz_feijao",
+            "nome": "Arroz com Feijão",
+            "tempoPreparo": "15 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 xícara arroz cozido",
+                "1 concha feijão",
+                "Alho e cebola",
+                "Sal"
+            ],
+            "modoPreparo": "Refogue o arroz com alho e cebola, sirva com feijão temperado.",
+            "calorias": 282,
+            "proteinas": 8.8,
+            "carboidratos": 59,
+            "gorduras": 0.9,
+            "restricoes": [
+                "vegano",
+                "sem_lactose",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "vitamina_banana",
+            "nome": "Vitamina de Banana",
+            "tempoPreparo": "5 minutos",
+            "dificuldade": "muito_facil",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 banana",
+                "200ml leite",
+                "1 colher aveia",
+                "Mel a gosto"
+            ],
+            "modoPreparo": "Bata todos os ingredientes no liquidificador até ficar homogêneo.",
+            "calorias": 280,
+            "proteinas": 9,
+            "carboidratos": 48,
+            "gorduras": 7,
+            "restricoes": [
+                "vegetariano"
+            ]
+        },
+        {
+            "id": "tapioca_queijo",
+            "nome": "Tapioca com Queijo",
+            "tempoPreparo": "10 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "50g goma de tapioca",
+                "30g queijo minas",
+                "Sal a gosto"
+            ],
+            "modoPreparo": "Espalhe a goma na frigideira quente, adicione o queijo, dobre e sirva.",
+            "calorias": 149,
+            "proteinas": 5.5,
+            "carboidratos": 18.2,
+            "gorduras": 6.1,
+            "restricoes": [
+                "vegetariano",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "batata_doce_ovo",
+            "nome": "Batata Doce com Ovo",
+            "tempoPreparo": "15 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 batata doce média",
+                "2 ovos",
+                "Sal e pimenta"
+            ],
+            "modoPreparo": "Cozinhe a batata doce, frite os ovos e sirva junto.",
+            "calorias": 284,
+            "proteinas": 14.6,
+            "carboidratos": 30.6,
+            "gorduras": 10.8,
+            "restricoes": [
+                "vegetariano",
+                "sem_lactose",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "iogurte_granola",
+            "nome": "Iogurte com Granola",
+            "tempoPreparo": "5 minutos",
+            "dificuldade": "muito_facil",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 pote iogurte natural",
+                "3 colheres granola",
+                "1 banana fatiada",
+                "Mel"
+            ],
+            "modoPreparo": "Monte em camadas: iogurte, granola, banana e mel.",
+            "calorias": 336,
+            "proteinas": 10.5,
+            "carboidratos": 52.9,
+            "gorduras": 10.1,
+            "restricoes": [
+                "vegetariano"
+            ]
+        },
+        {
+            "id": "sopa_legumes",
+            "nome": "Sopa de Legumes",
+            "tempoPreparo": "15 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "Cenoura",
+                "Batata",
+                "Chuchu",
+                "Cebola e alho",
+                "Sal e temperos"
+            ],
+            "modoPreparo": "Cozinhe todos os legumes picados em água com temperos até ficarem macios.",
+            "calorias": 120,
+            "proteinas": 3,
+            "carboidratos": 26,
+            "gorduras": 0.5,
+            "restricoes": [
+                "vegano",
+                "sem_lactose",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "wrap_frango",
+            "nome": "Wrap de Frango",
+            "tempoPreparo": "15 minutos",
+            "dificuldade": "média",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 tortilha integral",
+                "100g frango desfiado",
+                "Alface e tomate",
+                "Molho de iogurte"
+            ],
+            "modoPreparo": "Recheie a tortilha com frango, vegetais e molho. Enrole e sirva.",
+            "calorias": 320,
+            "proteinas": 28,
+            "carboidratos": 35,
+            "gorduras": 8,
+            "restricoes": []
+        }
+    ]
+}

@@ -24,6 +24,11 @@ import 'features/food/services/nutrition_service.dart';
 import 'features/plant/services/botany_service.dart';
 import 'features/food/services/workout_service.dart';
 import 'core/services/user_profile_service.dart';
+import 'nutrition/nutrition_hive_adapters.dart';
+import 'nutrition/data/datasources/nutrition_profile_service.dart';
+import 'nutrition/data/datasources/weekly_plan_service.dart';
+import 'nutrition/data/datasources/meal_log_service.dart';
+import 'nutrition/data/datasources/shopping_list_service.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -57,6 +62,9 @@ void main() async {
       Hive.registerAdapter(VaccineStatusAdapter());
     }
     
+    // Register Nutrition module adapters (TypeIds 24-30)
+    NutritionHiveAdapters.registerAdapters();
+    
     await HistoryService().init();
     await MealHistoryService().init();
     await PetEventService().init();
@@ -75,6 +83,12 @@ void main() async {
     await BotanyService().init();
     await WorkoutService().init();
     await UserProfileService().init();
+    
+    // Initialize Nutrition Management module services
+    await NutritionProfileService().init();
+    await WeeklyPlanService().init();
+    await MealLogService().init();
+    await ShoppingListService().init();
     
     // Debug: Show loaded environment variables
     debugPrint('🔑 === ENVIRONMENT VARIABLES LOADED ===');

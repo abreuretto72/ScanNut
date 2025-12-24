@@ -12,6 +12,7 @@ import '../../../food/presentation/nutrition_history_screen.dart';
 import '../../../plant/presentation/botany_history_screen.dart';
 import '../../../food/presentation/fitness_dashboard_screen.dart';
 import '../../../pet/presentation/pet_history_screen.dart';
+import '../../../../nutrition/presentation/screens/nutrition_home_screen.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -108,6 +109,16 @@ class AppDrawer extends ConsumerWidget {
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const FitnessDashboardScreen()));
+                    },
+                  ),
+                  _buildMenuItem(
+                    context,
+                    icon: Icons.restaurant_menu,
+                    title: 'Gestão de Nutrição',
+                    subtitle: 'Plano Semanal & Diário Alimentar',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const NutritionHomeScreen()));
                     },
                   ),
                   _buildMenuItem(
