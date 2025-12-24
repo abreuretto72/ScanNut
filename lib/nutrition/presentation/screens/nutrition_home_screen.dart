@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'weekly_plan_screen.dart';
 
 /// Tela principal do módulo de Gestão de Nutrição
 /// MVP - Offline-First com Hive
@@ -71,12 +72,7 @@ class _NutritionHomeScreenState extends State<NutritionHomeScreen> {
     try {
       switch (_selectedIndex) {
         case 0:
-          return _buildPlaceholder(
-            'Plano Semanal',
-            Icons.calendar_today,
-            'Seu plano de refeições para os próximos 7 dias',
-            _navItems[0].color,
-          );
+          return const WeeklyPlanScreen();
         case 1:
           return _buildPlaceholder(
             'Diário Alimentar',
