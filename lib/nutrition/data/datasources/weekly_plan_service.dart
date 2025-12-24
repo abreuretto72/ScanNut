@@ -25,8 +25,17 @@ class WeeklyPlanService {
     try {
       final key = _getWeekKey(plan.weekStartDate);
       plan.atualizadoEm = DateTime.now();
+      
+      debugPrint('[WeeklyMenu] SAVE key=$key days=${plan.days.length}');
       await _box?.put(key, plan);
-      debugPrint('✅ Weekly plan saved for week: $key');
+      
+      // READBACK para validar
+      final saved = _box?.get(key);
+      debugPrint('[WeeklyMenu] READBACK savedNull=${saved == null} days=${saved?.days.length}');
+      
+      if (saved == null) {
+        throw Exception('Hive readback failed for key: $key');
+      }
     } catch (e) {
       debugPrint('❌ Error saving weekly plan: $e');
       rethrow;
@@ -39,7 +48,9 @@ class WeeklyPlanService {
       final now = DateTime.now();
       final monday = _getMonday(now);
       final key = _getWeekKey(monday);
-      return _box?.get(key);
+      final menu = _box?.get(key);
+      debugPrint('[WeeklyMenu] LOAD key=$key menuNull=${menu == null} days=${menu?.days.length}');
+      return menu;
     } catch (e) {
       debugPrint('❌ Error getting current week plan: $e');
       return null;
@@ -91,10 +102,12 @@ class WeeklyPlanService {
     }
   }
 
-  /// Retorna a segunda-feira da semana
+  /// Retorna a segunda-feira da semana às 00:00 (NORMALIZADO)
   DateTime _getMonday(DateTime date) {
     final weekday = date.weekday; // 1 = Monday, 7 = Sunday
-    return date.subtract(Duration(days: weekday - 1));
+    final monday = date.subtract(Duration(days: weekday - 1));
+    // NORMALIZAR para 00:00:00
+    return DateTime(monday.year, monday.month, monday.day);
   }
 
   /// Gera chave única para a semana (formato: YYYY-MM-DD)
