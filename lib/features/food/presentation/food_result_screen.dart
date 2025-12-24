@@ -12,10 +12,16 @@ import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import '../models/food_analysis_model.dart';
+import '../../../core/widgets/result_card.dart';
+import 'widgets/result_card.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
+import '../../../nutrition/domain/usecases/scan_to_nutrition_mapper.dart';
+import '../../../nutrition/presentation/controllers/nutrition_providers.dart';
+import '../../../nutrition/data/models/meal_log.dart';
+import '../../../nutrition/data/models/plan_day.dart';
 
 class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -193,15 +199,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: widget.onSave,
-        backgroundColor: _themeColor,
-        icon: const Icon(Icons.save, color: Colors.black),
-        label: Text(
-          "Salvar Diário",
-          style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-      ),
+      floatingActionButton: _buildNutritionButtons(context),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -578,5 +577,151 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     );
   }
 
+  /// Adiciona ao diário alimentar
+  Future<void> _addToDiary() async {
+    try {
+      final tipo = await _showMealTypeDialog();
+      if (tipo == null) return;
+
+      final mealLog = ScanToNutritionMapper.createMealLogFromScan(
+        analysis: widget.analysis,
+        tipo: tipo,
+      );
+
+      await ref.read(mealLogsProvider.notifier).addLog(mealLog);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Adicionado ao diário ($tipo)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  /// Adiciona ao plano de hoje
+  Future<void> _addToTodayPlan() async {
+    try {
+      final tipo = await _showMealTypeDialog();
+      if (tipo == null) return;
+
+      final currentPlan = ref.read(currentWeekPlanProvider);
+      
+      if (currentPlan == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('⚠️ Crie um plano semanal primeiro'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      final todayPlan = currentPlan.getDayByDate(DateTime.now());
+      if (todayPlan == null) return;
+
+      final meal = ScanToNutritionMapper.createMealFromScan(
+        analysis: widget.analysis,
+        tipo: tipo,
+      );
+
+      todayPlan.meals.add(meal);
+      await todayPlan.save();
+      ref.read(currentWeekPlanProvider.notifier).refresh();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Adicionado ao plano ($tipo)'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('❌ Error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<String?> _showMealTypeDialog() async {
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        title: Text('Tipo de Refeição', style: GoogleFonts.poppins(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.free_breakfast, color: Color(0xFF00E676)),
+              title: Text('Café da Manhã', style: GoogleFonts.poppins(color: Colors.white)),
+              onTap: () => Navigator.pop(context, 'cafe'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.lunch_dining, color: Color(0xFF00E676)),
+              title: Text('Almoço', style: GoogleFonts.poppins(color: Colors.white)),
+              onTap: () => Navigator.pop(context, 'almoco'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.cookie, color: Color(0xFF00E676)),
+              title: Text('Lanche', style: GoogleFonts.poppins(color: Colors.white)),
+              onTap: () => Navigator.pop(context, 'lanche'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.dinner_dining, color: Color(0xFF00E676)),
+              title: Text('Jantar', style: GoogleFonts.poppins(color: Colors.white)),
+              onTap: () => Navigator.pop(context, 'jantar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNutritionButtons(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: FloatingActionButton.extended(
+              onPressed: _addToDiary,
+              backgroundColor: const Color(0xFF2196F3),
+              heroTag: 'diary',
+              icon: const Icon(Icons.book, color: Colors.white),
+              label: Text(
+                'Diário',
+                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: FloatingActionButton.extended(
+              onPressed: _addToTodayPlan,
+              backgroundColor: const Color(0xFF00E676),
+              heroTag: 'plan',
+              icon: const Icon(Icons.calendar_today, color: Colors.black),
+              label: Text(
+                'Plano',
+                style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
   TextStyle get _sectionTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
 }
