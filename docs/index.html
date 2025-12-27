@@ -1,128 +1,92 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacidade e Termos - ScanNut</title>
+    <title>Privacy Policy - ScanNut AI</title>
     <style>
-        :root {
-            --primary: #1a3a5f;
-            --secondary: #3498db;
-            --bg: #f4f7f9;
-            --text: #333;
-        }
-
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.7;
-            color: var(--text);
-            background-color: var(--bg);
-            margin: 0;
-            padding: 0;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f7f6;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            background: #fff;
-            padding: 60px;
+            background: #ffffff;
+            padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
-        .nav {
-            text-align: center;
-            margin-bottom: 50px;
-            position: sticky;
-            top: 0;
+        .language-switcher {
+            text-align: right;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #3498db;
             background: #fff;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .nav button {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            margin: 5px;
+            color: #3498db;
+            font-weight: bold;
             cursor: pointer;
-            border-radius: 30px;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .nav button:hover {
-            background: var(--primary);
+            outline: none;
         }
 
         h1 {
-            color: var(--primary);
-            font-size: 2.2em;
-            text-align: center;
-            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 15px;
         }
 
         h2 {
-            color: var(--primary);
-            border-left: 5px solid var(--secondary);
-            padding-left: 15px;
-            margin-top: 40px;
-            font-size: 1.5em;
+            color: #2980b9;
+            font-size: 20px;
+            margin-top: 30px;
         }
 
-        p,
-        li {
-            font-size: 1.05em;
-            text-align: justify;
-            color: #444;
-        }
-
-        .highlight-box {
-            background: #eef7ff;
+        .disclaimer {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            padding: 20px;
             border-radius: 8px;
-            padding: 25px;
-            margin: 30px 0;
-            border: 1px solid #d1e9ff;
+            margin: 20px 0;
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 60px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            font-size: 0.9em;
-            color: #7f8c8d;
+        .disclaimer strong {
+            color: #f57c00;
         }
 
-        .lang-section {
+        .lang-content {
             display: none;
-            animation: fadeIn 0.4s ease-in;
         }
 
-        .lang-section.active {
+        .active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
+        ul {
+            margin-bottom: 20px;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
+        li {
+            margin-bottom: 8px;
+        }
 
-            h1 {
-                font-size: 1.8em;
-            }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #95a5a6;
+            font-size: 0.85em;
         }
     </style>
 </head>
@@ -130,110 +94,108 @@
 <body>
 
     <div class="container">
-        <div class="nav">
-            <button onclick="showLang('pt')">Português</button>
-            <button onclick="showLang('en')">English</button>
-            <button onclick="showLang('es')">Español</button>
+        <div class="language-switcher">
+            <label for="lang">Language / Idioma: </label>
+            <select id="lang" onchange="switchLang()">
+                <option value="en">English (US)</option>
+                <option value="pt-br">Português (Brasil)</option>
+                <option value="pt-pt">Português (Portugal)</option>
+                <option value="es">Español</option>
+            </select>
         </div>
 
-        <div id="pt" class="lang-section active">
-            <h1>Política de Privacidade e Termos de Uso</h1>
-            <p style="text-align: center;"><strong>Desenvolvedor:</strong> Multiverso Digital |
-                <strong>Contato:</strong> contato@multiverssodigital.com.br</p>
-            <p style="text-align: center;"><em>Última atualização: 23 de dezembro de 2025</em></p>
-
-            <div class="highlight-box">
-                <strong>Resumo de Privacidade:</strong> O ScanNut adota a política de "Dados Locais Primeiros". Todas as
-                informações de saúde, nutrição e biohacking são armazenadas exclusivamente no seu dispositivo utilizando
-                a tecnologia Hive. Não realizamos coleta centralizada de dados em nuvem.
+        <div id="en" class="lang-content active">
+            <h1>Privacy Policy</h1>
+            <p><strong>Last Updated: December 2025</strong></p>
+            <div class="disclaimer">
+                <strong>NOTICE:</strong> ScanNut uses Artificial Intelligence. Generated results for Plants, Pets, Food,
+                and Vehicles are for informational purposes only and do not replace professional advice.
             </div>
-
-            <h2>1. Coleta e Tratamento de Dados</h2>
-            <p>O ScanNut processa informações para fornecer funcionalidades de Biohacking, Botânica e Gestão Pet. Os
-                dados processados incluem:</p>
+            <h2>1. Information Collection</h2>
+            <p>ScanNut requests access to your camera and photo gallery strictly to process the images you choose to
+                analyze. We do not collect personally identifiable information (PII) unless voluntarily provided.</p>
+            <h2>2. Data Processing and AI</h2>
+            <p>Images are securely transmitted via HTTPS to AI service providers (such as Google Gemini) for analysis.
+                We do not store your images on our permanent servers or sell them to third parties.</p>
+            <h2>3. Local Storage</h2>
+            <p>Your scan history is stored locally on your device using Hive technology. You can delete all your records
+                at any time through the "Clear History" option in the app.</p>
+            <h2>4. Permissions</h2>
             <ul>
-                <li><strong>Dados de Saúde Humana:</strong> Peso, altura e registros de treino para cálculos de
-                    performance.</li>
-                <li><strong>Dados de Saúde Animal:</strong> Prontuário clínico, fotos de lesões e histórico de
-                    vacinação.</li>
-                <li><strong>Dados Biofílicos:</strong> Fotos de plantas e diagnósticos de ecossistemas.</li>
+                <li><strong>Camera:</strong> Used to capture photos of plants, pets, food, and vehicles.</li>
+                <li><strong>Gallery:</strong> Used to upload existing images for analysis.</li>
             </ul>
-
-            <h2>2. Uso de Sensores e Permissões</h2>
-            <p>Em conformidade com as políticas da Google Play, declaramos o uso de:</p>
-            <ul>
-                <li><strong>Câmera:</strong> Utilizada exclusivamente para a captura de imagens de alimentos, plantas e
-                    pele de pets para processamento via Inteligência Artificial.</li>
-                <li><strong>Microfone:</strong> Utilizado para a funcionalidade de transcrição de voz para texto (diário
-                    clínico). O áudio é processado em tempo real e não é armazenado como arquivo sonoro.</li>
-            </ul>
-
-            <h2>3. Inteligência Artificial e Segurança</h2>
-            <p>As análises visuais do ScanNut são realizadas por modelos de IA. As imagens são enviadas de forma
-                transiente para processamento e o resultado é devolvido ao armazenamento local do usuário. Nenhuma
-                imagem é utilizada para identificação facial ou fins publicitários.</p>
-
-            <h2>4. Direitos do Titular (LGPD/GDPR)</h2>
-            <p>Visto que o armazenamento é local, o usuário possui controle total:</p>
-            <ul>
-                <li><strong>Exclusão:</strong> A exclusão dos dados é feita instantaneamente ao desinstalar o app ou
-                    limpar o cache do sistema.</li>
-                <li><strong>Portabilidade:</strong> O usuário pode exportar seus dados a qualquer momento via relatórios
-                    PDF gerados pelo app.</li>
-            </ul>
-
-            <h2>5. Isenção de Responsabilidade (Termos de Uso)</h2>
-            <p>O ScanNut é uma ferramenta de apoio informativo. <strong>NÃO SUBSTITUI DIAGNÓSTICOS MÉDICOS OU
-                    VETERINÁRIOS.</strong> A Multiverso Digital não se responsabiliza por decisões tomadas com base nas
-                sugestões de biohacking, planos de recuperação botânica ou análises de IA. Consulte sempre um
-                profissional qualificado.</p>
         </div>
 
-        <div id="en" class="lang-section">
-            <h1>Privacy Policy & Terms of Service</h1>
-            <p style="text-align: center;"><strong>Developer:</strong> Multiverso Digital | <strong>Contact:</strong>
-                contato@multiverssodigital.com.br</p>
-
-            <div class="highlight-box">
-                <strong>Privacy Summary:</strong> ScanNut follows a "Local-First Data" policy. All health, nutrition,
-                and biohacking information is stored exclusively on your device using Hive technology. We do not perform
-                centralized cloud data collection.
+        <div id="pt-br" class="lang-content">
+            <h1>Política de Privacidade</h1>
+            <p><strong>Última Atualização: Dezembro de 2025</strong></p>
+            <div class="disclaimer">
+                <strong>AVISO:</strong> O ScanNut utiliza Inteligência Artificial. Os resultados gerados para Plantas,
+                Pets, Alimentos e Veículos são informativos e não substituem o conselho de profissionais.
             </div>
-
-            <h2>1. Data Storage</h2>
-            <p>All user-generated content, including pet health records, food analysis, and workout logs, stays on your
-                device. We do not have access to your private data.</p>
-
-            <h2>2. AI Processing Disclaimer</h2>
-            <p>ScanNut uses AI for image analysis. This process is for informational purposes only and does not
-                constitute professional medical or veterinary advice.</p>
+            <h2>1. Coleta de Informações</h2>
+            <p>O ScanNut solicita acesso à sua câmera e galeria de fotos exclusivamente para processar as imagens que
+                você deseja analisar. Não coletamos dados de identificação pessoal sem o seu consentimento.</p>
+            <h2>2. Processamento e IA</h2>
+            <p>As imagens são enviadas de forma segura via HTTPS para provedores de IA (como Google Gemini). Não
+                armazenamos suas fotos permanentemente em nossos servidores nem as vendemos a terceiros.</p>
+            <h2>3. Armazenamento Local</h2>
+            <p>Seu histórico é armazenado apenas no seu dispositivo. Você pode apagar todos os registros a qualquer
+                momento através da opção "Limpar Histórico" no aplicativo.</p>
         </div>
 
-        <div id="es" class="lang-section">
-            <h1>Política de Privacidad y Términos</h1>
-            <p style="text-align: center;"><strong>Desarrollador:</strong> Multiverso Digital |
-                <strong>Contacto:</strong> contato@multiverssodigital.com.br</p>
-
-            <h2>1. Almacenamiento Local</h2>
-            <p>ScanNut almacena todos los datos de salud y biohacking localmente en su dispositivo. No compartimos su
-                información con servidores externos.</p>
-
-            <h2>2. Exclusão de Responsabilidad</h2>
-            <p>El uso de esta aplicación es informativo. No reemplaza la consulta con un médico o veterinario
-                profesional.</p>
+        <div id="pt-pt" class="lang-content">
+            <h1>Política de Privacidade</h1>
+            <p><strong>Última Atualização: Dezembro de 2025</strong></p>
+            <div class="disclaimer">
+                <strong>AVISO:</strong> O ScanNut utiliza Inteligência Artificial. Os resultados gerados para Plantas,
+                Animais, Alimentos e Veículos servem apenas como referência e não substituem o aconselhamento
+                profissional.
+            </div>
+            <h2>1. Recolha de Dados</h2>
+            <p>O ScanNut solicita acesso à câmara e galeria apenas para processar as imagens para análise. Não
+                recolhemos dados pessoais identificáveis sem o seu consentimento.</p>
+            <h2>2. Processamento de Imagens</h2>
+            <p>As imagens são transmitidas de forma segura para motores de IA. Não partilhamos as suas fotografias com
+                terceiros para fins publicitários.</p>
+            <h2>3. Gestão de Dados</h2>
+            <p>Os dados são guardados localmente no telemóvel. O utilizador tem total controlo para eliminar o histórico
+                nas definições da aplicação.</p>
         </div>
 
-        <div class="footer">
-            &copy; 2025 Multiverso Digital. Todos os direitos reservados.<br>
-            ScanNut App - Inteligência para uma vida melhor.
+        <div id="es" class="lang-content">
+            <h1>Política de Privacidad</h1>
+            <p><strong>Última actualización: Diciembre de 2025</strong></p>
+            <div class="disclaimer">
+                <strong>AVISO:</strong> ScanNut utiliza Inteligencia Artificial. Los resultados de Plantas, Mascotas,
+                Alimentos y Vehículos son informativos y no sustituyen el asesoramiento profesional.
+            </div>
+            <h2>1. Recopilación de Información</h2>
+            <p>ScanNut accede a su cámara y galería únicamente para procesar las imágenes que desea analizar. No
+                recopilamos datos personales sin su permiso.</p>
+            <h2>2. Procesamiento de IA</h2>
+            <p>Las imágenes se envían de forma segura a proveedores de IA. No almacenamos sus fotos permanentemente ni
+                las compartimos con terceros con fines de marketing.</p>
+            <h2>3. Almacenamiento Local</h2>
+            <p>Su historial se guarda solo en su dispositivo. Puede eliminar todos los datos en cualquier momento usando
+                la opción "Borrar Historial" en la aplicación.</p>
         </div>
+
+        <footer>
+            <p>&copy; 2025 ScanNut AI - All rights reserved / Todos os direitos reservados.</p>
+        </footer>
     </div>
 
     <script>
-        function showLang(lang) {
-            document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(lang).classList.add('active');
-            window.scrollTo(0, 0);
+        function switchLang() {
+            const selectedLang = document.getElementById('lang').value;
+            const sections = document.getElementsByClassName('lang-content');
+
+            for (let section of sections) {
+                section.classList.remove('active');
+            }
+            document.getElementById(selectedLang).classList.add('active');
         }
     </script>
 
