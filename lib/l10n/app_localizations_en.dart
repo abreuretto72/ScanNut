@@ -280,4 +280,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingGetStarted => 'Get Started';
+
+  @override
+  String get analysisErrorAiFailure => 'All AIs failed to analyze the image.';
+
+  @override
+  String get analysisErrorJsonFormat => 'Error processing AI data.';
+
+  @override
+  String get analysisErrorUnexpected => 'Unexpected error. Please try again.';
+
+  @override
+  String get loadingFood => 'Analyzing food...';
+
+  @override
+  String get loadingPlant => 'Diagnosing plant...';
+
+  @override
+  String get loadingPetBreed => 'Identifying breed...';
+
+  @override
+  String get loadingPetHealth => 'Analyzing health...';
+
+  @override
+  String get nutrientsAdvancedMacros => 'Advanced Macronutrients';
+
+  @override
+  String get nutrientsProteins => 'Proteins';
+
+  @override
+  String get nutrientsCarbs => 'Carbohydrates';
+
+  @override
+  String get nutrientsFats => 'Fats';
+
+  @override
+  String get nutrientsMinerals => 'Minerals & Vitamins';
+
+  @override
+  String get nutrientsSynergy => 'Synergy';
+
+  @override
+  String get recipesQuick => 'Quick Recipes (up to 15 min)';
+
+  @override
+  String get recipesCulinaryIntel => 'Culinary Intelligence';
+
+  @override
+  String get recipesExpertTip => 'Expert Tip';
+
+  @override
+  String get labelGlycemicImpact => 'Glycemic Impact';
+
+  @override
+  String get labelFattyAcids => 'Fatty Acids';
+
+  @override
+  String get labelAminoProfile => 'Amino Acid Profile';
+
+  @override
+  String get foodSafetyBio => 'Safety & Biochemistry';
+
+  @override
+  String get foodIdealMoment => 'Ideal Moment';
+
+  @override
+  String get foodCriticalAlerts => 'Critical Alerts';
+
+  @override
+  String get foodBioChem => 'Biochemistry & Neutralization';
+
+  @override
+  String get foodPreservation => 'Preservation';
+
+  @override
+  String get foodSmartSwap => 'Smart Swap';
+
+  @override
+  String get foodDisclaimer =>
+      'Note: Nutritional info is estimated. Consult a health professional.';
+
+  @override
+  String get foodVerdict => 'AI Verdict';
+
+  @override
+  String get foodPros => 'Pros';
+
+  @override
+  String get foodCons => 'Cons';
+
+  @override
+  String get foodBiohacking => 'Performance Biohacking';
+
+  @override
+  String get foodSatietyIndex => 'Satiety Index';
+
+  @override
+  String get foodBodyBenefits => 'Body Benefits';
+
+  @override
+  String get foodAttention => 'Attention';
+
+  @override
+  String get foodFocusEnergy => 'Focus & Energy';
 }

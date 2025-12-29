@@ -27,14 +27,21 @@ Domine o reino vegetal ao seu redor com ciência e estética.
 
 ### 3. Gestão Digital de Pets: O Prontuário Clínico Definitivo
 O cuidado que seu melhor amigo merece, organizado de forma profissional e inteligente.
-- **Análise de Pele com IA**: Monitore lesões e feridas cutâneas com histórico visual e evolução temporal.
+- **Análise de Pele com IA**: Monitore lesões e feridas cutâneas com histórico visual e evolução temporal (Recurso Pro).
 - **Inteligência Diagnóstica**: Explicação automática de exames de sangue item por item para fácil compreensão.
 - **Plano Alimentar Inteligente**: Sugestões semanais personalizadas (Natural, Ração ou Híbrida) com foco em preferências e alergias alimentares.
 - **Controle Biológico e Bioestatística**: Perfil biológico, análise da raça, controle de peso inteligente e galeria de fotos integrada.
-- **Organização Total**: Diário por voz para vacinas e sintomas, agenda do pet, histórico de higiene, anexos de receitas e carteira de vacinação digital.
-- **Ecossistema de Parceiros**: Conecte-se a serviços vinculados e profissionais de confiança diretamente pelo app.
-- **PDF Médico Profissional**: Gere relatórios completos com todas as informações, fotos de feridas e histórico clínico para compartilhar com seu veterinário.
+- **Hub de Parceiros**: Encontre veterinários, pet shops e adestradores próximos com geolocalização e adicione-os ao prontuário do seu pet.
+- **Organização Total**: Diário por voz, agenda global, histórico de higiene, anexos de receitas e carteira de vacinação digital.
+- **PDF Médico Profissional**: Gere relatórios completos (histórico, saúde, parceiros, galeria) para compartilhar com seu veterinário.
 - **Histórico de Pets**: Acesse dossiês completos e exames de todos os seus pets em um só lugar.
+
+### 4. ScanNut Pro: Potencialize Sua Experiência
+Desbloqueie o máximo potencial da IA com a assinatura Pro.
+- **Análises de Saúde Pet Ilimitadas**: Diagnósticos de pele e interpretação de exames sem limites.
+- **Sinergia Nutricional**: Entenda como vitaminas e minerais interagem no seu prato.
+- **Acesso Antecipado**: Seja o primeiro a usar novos recursos de IA.
+- **Sem Anúncios**: Experiência fluida e focada.
 
 ---
 
@@ -55,13 +62,15 @@ O ScanNut utiliza uma arquitetura **local-first** robusta com **Hive** para gara
 - `box_pet_events` - Eventos e histórico dos pets
 - `box_pet_health` - Dados de saúde e exames
 - `box_weekly_meal_plans` - Planos alimentares semanais
+- `box_partners` - Parceiros e profissionais vinculados
 
 ---
 
 ## ✨ Destaques do ScanNut
 - **Multilíngue**: Suporte total em Inglês, Português (BR/PT) e Espanhol.
 - **Segurança de Dados**: Criptografia de ponta para suas fotos e prontuários médicos.
-- **Exportação Inteligente**: Transforme meses de registros em um documento organizado com um clique.
+- **Exportação Inteligente**: Transforme meses de registros em um documento PDF organizado com um clique.
+- **Monetização Híbrida**: Modelo Freemium com RevenueCat para gestão de assinaturas.
 
 ---
 
@@ -94,31 +103,11 @@ flutter run
 
 Os seguintes módulos foram marcados como **estáveis e blindados** (Data: 29/12/2025). Nenhuma alteração em suas rotinas internas, lógicas de cálculo ou geração de dados deve ser realizada sem autorização explícita. Estes módulos estão protegidos por banners de "NÃO ALTERAR" em seus respectivos serviços:
 
-*   **Análise de Comida (Human/Pet):** Toda a lógica de análise de imagem e extração nutricional em `lib/features/food/`. Inclui cálculos de macronutrientes, semáforo de saúde e biohacking.
-*   **Análise de Plantas (Botânica):** Sistema completo de análise botânica com 7 camadas de inteligência em `lib/features/plant/`. Inclui diagnóstico de saúde, guia de sobrevivência (hardware), segurança doméstica (BIOS), propagação, ecossistema e lifestyle (Feng Shui). Geração de Dossiê Botânico Premium em PDF.
-*   **Gestão de Nutrição:** O gerador de planos semanais (`WeeklyPlanGenerator`), lógica de substituição de refeições e interface de gestão em `lib/nutrition/`.
-*   **Bases de Dados Estáticas:** Arquivos JSON de referência `assets/data/foods_ptbr.json` e `assets/data/recipes_ptbr.json`.
-*   **Visualização de PDF:** Componente `PdfPreviewScreen` com padrão visual Black Side e ações padronizadas (Imprimir, Abrir, Compartilhar) em `lib/core/widgets/`.
+*   **Análise de Comida (Human/Pet):** Toda a lógica de análise de imagem em `lib/features/food/`. Inclui cálculos de macronutrientes, semáforo de saúde e biohacking.
+*   **Análise de Plantas (Botânica):** Sistema completo em `lib/features/plant/`. Inclui diagnóstico, guia de sobrevivência, segurança (BIOS) e lifestyle.
+*   **Gestão de Pets (Completo):** Módulo finalizado com Prontuário, PDF Generator, Galeria, Agenda Global e Hub de Parceiros.
+*   **Gestão de Nutrição:** Gerador de planos semanais e logs em `lib/nutrition/`.
+*   **Infraestrutura:** RevenueCat (Assinaturas), Hive (Banco de Dados) e Serviços de Exportação PDF.
 
 ---
-
-## 🐾 Módulo em Refinamento Ativo: Gestão de Pets
-
-**Status:** Desbloqueado para melhorias e refinamentos (29/12/2025)
-
-O módulo de **Pets** está passando por um processo de refinamento para alcançar o mesmo nível de excelência dos módulos de Comida e Plantas. Funcionalidades atuais:
-
-*   **Prontuário Clínico Completo:** Gestão de dados vitais, raça, idade e análise comportamental
-*   **Histórico de Saúde:** Controle de vacinas, vermífugos, exames laboratoriais
-*   **Dermatologia:** Histórico de feridas com análise por IA
-*   **Biometria:** Acompanhamento de peso e evolução
-*   **Agenda:** Lembretes de consultas e procedimentos
-*   **Nutrição Pet:** Planejamento alimentar semanal
-*   **PRAC:** Prontuário de Acompanhamento Comportamental
-
-**Foco do Refinamento:**
-- Padronização visual com os módulos de Comida e Plantas
-- Melhorias na UX e fluxos de navegação
-- Otimização de exportação de dados
-- Aprimoramento de funcionalidades existentes
 

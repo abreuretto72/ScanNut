@@ -10,6 +10,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../core/widgets/pro_access_wrapper.dart';
+import '../../../l10n/app_localizations.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:printing/printing.dart';
 import '../services/nutrition_service.dart';
 import '../models/food_analysis_model.dart';
@@ -244,6 +247,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   // --- TAB 1: RESUMO ---
   Widget _buildResumoTab() {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _getSemaforoColor(widget.analysis.identidade.semaforoSaude);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -252,17 +256,24 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         children: [
           _buildVitalityHeader(statusColor),
           const SizedBox(height: 24),
-          Text("Veredito da IA", style: _sectionTitleStyle),
+          Text(l10n.foodVerdict, style: _sectionTitleStyle),
           const SizedBox(height: 8),
           Text(widget.analysis.analise.vereditoIa, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 15, fontStyle: FontStyle.italic)),
           const SizedBox(height: 24),
-          Text("Pontos Positivos", style: _sectionTitleStyle),
+          Text(l10n.foodPros, style: _sectionTitleStyle),
           const SizedBox(height: 12),
           ...widget.analysis.analise.pontosPositivos.map((p) => _buildPointRow(p, Icons.check_circle, Colors.green)),
           const SizedBox(height: 16),
-          Text("Pontos de Atenção", style: _sectionTitleStyle),
+          Text(l10n.foodCons, style: _sectionTitleStyle),
           const SizedBox(height: 12),
           ...widget.analysis.analise.pontosNegativos.map((p) => _buildPointRow(p, Icons.warning_rounded, Colors.orangeAccent)),
+          const SizedBox(height: 20),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(l10n.foodDisclaimer, textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
+            ),
+          ),
           const SizedBox(height: 80),
         ],
       ),
@@ -271,6 +282,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   // --- TAB 2: SAÚDE ---
   Widget _buildSaudeTab() {
+    final l10n = AppLocalizations.of(context)!;
     final performance = widget.analysis.performance;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -278,39 +290,46 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildGlassCard(
-            title: "Performance Biohacking",
+            title: l10n.foodBiohacking,
             icon: Icons.bolt,
             color: Colors.purpleAccent,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildProgressRow("Índice de Saciedade", performance.indiceSaciedade / 5.0, Colors.tealAccent),
+                _buildProgressRow(l10n.foodSatietyIndex, performance.indiceSaciedade / 5.0, Colors.tealAccent),
                 const SizedBox(height: 20),
-                Text("Benefícios para o Corpo:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text("${l10n.foodBodyBenefits}:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 ...performance.pontosPositivosCorpo.map((p) => _buildPointRow(p, Icons.trending_up, Colors.tealAccent)),
                 const SizedBox(height: 12),
-                Text("Atenção:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text("${l10n.foodAttention}:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 ...performance.pontosAtencaoCorpo.map((p) => _buildPointRow(p, Icons.priority_high, Colors.orangeAccent)),
                 const Divider(color: Colors.white10, height: 24),
-                _buildInfoRow("Foco e Energia:", performance.impactoFocoEnergia),
-                _buildInfoRow("Momento Ideal:", performance.momentoIdealConsumo),
+                _buildInfoRow("${l10n.foodFocusEnergy}:", performance.impactoFocoEnergia),
+                _buildInfoRow("${l10n.foodIdealMoment}:", performance.momentoIdealConsumo),
               ],
             ),
           ),
           const SizedBox(height: 20),
           _buildGlassCard(
-            title: "Segurança & Bioquímica",
+            title: l10n.foodSafetyBio,
             icon: Icons.security,
             color: Colors.blueAccent,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow("Alertas Críticos:", widget.analysis.identidade.alertaCritico),
+                _buildInfoRow("${l10n.foodCriticalAlerts}:", widget.analysis.identidade.alertaCritico),
                 const SizedBox(height: 10),
-                _buildInfoRow("Bioquímica e Neutralização:", widget.analysis.identidade.bioquimicaAlert),
+                _buildInfoRow("${l10n.foodBioChem}:", widget.analysis.identidade.bioquimicaAlert),
               ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(l10n.foodDisclaimer, textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
             ),
           ),
           const SizedBox(height: 80),
@@ -321,32 +340,62 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   // --- TAB 3: NUTRIENTES ---
   Widget _buildNutrientesTab() {
+    final l10n = AppLocalizations.of(context)!;
     final macros = widget.analysis.macros;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Macronutrientes Avançados", style: _sectionTitleStyle),
+          Text(l10n.nutrientsAdvancedMacros, style: _sectionTitleStyle),
           const SizedBox(height: 16),
-          _buildMacroDetailRow("Proteínas", macros.proteinas, "Perfil de Aminoácidos", Colors.blue),
-          _buildMacroDetailRow("Carboidratos", macros.carboidratosLiquidos, "Impacto Glicêmico: ${macros.indiceGlicemico}", Colors.amber),
-          _buildMacroDetailRow("Gorduras", macros.gordurasPerfil, "Ácidos Graxos", Colors.red),
+          _buildMacroDetailRow(l10n.nutrientsProteins, macros.proteinas, l10n.labelAminoProfile, Colors.blue),
+          _buildMacroDetailRow(l10n.nutrientsCarbs, macros.carboidratosLiquidos, "${l10n.labelGlycemicImpact}: ${macros.indiceGlicemico}", Colors.amber),
+          _buildMacroDetailRow(l10n.nutrientsFats, macros.gordurasPerfil, l10n.labelFattyAcids, Colors.red),
           const SizedBox(height: 24),
           
-          Text("Minerais e Vitaminas", style: _sectionTitleStyle),
-          const SizedBox(height: 16),
-          ...widget.analysis.micronutrientes.lista.map((n) => _buildNutrientLinear(n)),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
-            child: Row(
+          ProAccessWrapper(
+            featureName: 'Micronutrientes & Sinergia',
+            featureDescription: 'Obtenha análise completa de vitaminas, minerais e como eles interagem.',
+            featureIcon: FontAwesomeIcons.dna,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.auto_awesome, color: Colors.cyanAccent, size: 18),
-                const SizedBox(width: 8),
-                Expanded(child: Text("Sinergia: ${widget.analysis.micronutrientes.sinergiaNutricional}", style: GoogleFonts.poppins(fontSize: 12, color: Colors.cyanAccent))),
+                Text(l10n.nutrientsMinerals, style: _sectionTitleStyle),
+                const SizedBox(height: 16),
+                ...widget.analysis.micronutrientes.lista.map((n) => _buildNutrientLinear(n)),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.auto_awesome, color: Colors.cyanAccent, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "${l10n.nutrientsSynergy}: ${widget.analysis.micronutrientes.sinergiaNutricional}",
+                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.cyanAccent),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Disclaimer
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                l10n.foodDisclaimer,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10),
+              ),
             ),
           ),
           const SizedBox(height: 80),
@@ -357,34 +406,47 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   // --- TAB 4: GASTRONOMIA ---
   Widget _buildGastronomiaTab() {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Receitas Rápidas (até 15 min)", style: _sectionTitleStyle),
+          Text(l10n.recipesQuick, style: _sectionTitleStyle),
           const SizedBox(height: 16),
           ...widget.analysis.receitas.map((r) => _buildRecipeCard(r)),
           const SizedBox(height: 24),
           _buildGlassCard(
-            title: "Inteligência Culinária",
+            title: l10n.recipesCulinaryIntel,
             icon: Icons.restaurant_menu,
             color: Colors.orangeAccent,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow("Preservação:", widget.analysis.gastronomia.preservacaoNutrientes),
+                _buildInfoRow("${l10n.foodPreservation}:", widget.analysis.gastronomia.preservacaoNutrientes),
                 const SizedBox(height: 16),
-                _buildInfoRow("Smart Swap (Troca):", widget.analysis.gastronomia.smartSwap),
+                _buildInfoRow("${l10n.foodSmartSwap}:", widget.analysis.gastronomia.smartSwap),
               ],
             ),
           ),
           const SizedBox(height: 20),
           _buildGlassCard(
-            title: "Dica do Especialista",
+            title: l10n.recipesExpertTip,
             icon: Icons.lightbulb,
             color: Colors.amberAccent,
             child: Text(widget.analysis.gastronomia.dicaEspecialista, style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+          ),
+          const SizedBox(height: 20),
+          // Disclaimer
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                l10n.foodDisclaimer,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10),
+              ),
+            ),
           ),
           const SizedBox(height: 80),
         ],
@@ -553,9 +615,23 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 Text(label, style: GoogleFonts.poppins(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
                 Row(
                   children: [
-                    Text(value, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Flexible(
+                      flex: 2,
+                      child: Text(
+                        value,
+                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(detail, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12), overflow: TextOverflow.ellipsis)),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        detail,
+                        style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -574,8 +650,24 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(n.nome, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13), overflow: TextOverflow.ellipsis)),
-              Text("${n.quantidade.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')} (${n.percentualDv}%)", style: GoogleFonts.poppins(color: _themeColor, fontSize: 11, fontWeight: FontWeight.bold)),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  n.nome,
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                flex: 1,
+                child: Text(
+                  "${n.quantidade.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')} (${n.percentualDv}%)",
+                  style: GoogleFonts.poppins(color: _themeColor, fontSize: 11, fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 4),

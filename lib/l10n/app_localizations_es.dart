@@ -281,4 +281,108 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get onboardingGetStarted => 'Comenzar';
+
+  @override
+  String get analysisErrorAiFailure =>
+      'Todas las IA fallaron al analizar la imagen.';
+
+  @override
+  String get analysisErrorJsonFormat => 'Error al procesar datos de la IA.';
+
+  @override
+  String get analysisErrorUnexpected => 'Error inesperado. Intente de nuevo.';
+
+  @override
+  String get loadingFood => 'Analizando alimento...';
+
+  @override
+  String get loadingPlant => 'Diagnosticando planta...';
+
+  @override
+  String get loadingPetBreed => 'Identificando raza...';
+
+  @override
+  String get loadingPetHealth => 'Analizando salud...';
+
+  @override
+  String get nutrientsAdvancedMacros => 'Macronutrientes Avanzados';
+
+  @override
+  String get nutrientsProteins => 'Proteínas';
+
+  @override
+  String get nutrientsCarbs => 'Carbohidratos';
+
+  @override
+  String get nutrientsFats => 'Grasas';
+
+  @override
+  String get nutrientsMinerals => 'Minerales y Vitaminas';
+
+  @override
+  String get nutrientsSynergy => 'Sinergia';
+
+  @override
+  String get recipesQuick => 'Recetas Rápidas (hasta 15 min)';
+
+  @override
+  String get recipesCulinaryIntel => 'Inteligencia Culinaria';
+
+  @override
+  String get recipesExpertTip => 'Consejo del Experto';
+
+  @override
+  String get labelGlycemicImpact => 'Impacto Glucémico';
+
+  @override
+  String get labelFattyAcids => 'Ácidos Grasos';
+
+  @override
+  String get labelAminoProfile => 'Perfil de Aminoácidos';
+
+  @override
+  String get foodSafetyBio => 'Seguridad y Bioquímica';
+
+  @override
+  String get foodIdealMoment => 'Momento Ideal';
+
+  @override
+  String get foodCriticalAlerts => 'Alertas Críticas';
+
+  @override
+  String get foodBioChem => 'Bioquímica y Neutralización';
+
+  @override
+  String get foodPreservation => 'Preservación';
+
+  @override
+  String get foodSmartSwap => 'Smart Swap (Cambio)';
+
+  @override
+  String get foodDisclaimer =>
+      'Nota: Info nutricional estimada. Consulte a un profesional de salud.';
+
+  @override
+  String get foodVerdict => 'Veredicto de la IA';
+
+  @override
+  String get foodPros => 'Puntos Positivos';
+
+  @override
+  String get foodCons => 'Puntos de Atención';
+
+  @override
+  String get foodBiohacking => 'Performance Biohacking';
+
+  @override
+  String get foodSatietyIndex => 'Índice de Saciedad';
+
+  @override
+  String get foodBodyBenefits => 'Beneficios para el Cuerpo';
+
+  @override
+  String get foodAttention => 'Atención';
+
+  @override
+  String get foodFocusEnergy => 'Enfoque y Energía';
 }

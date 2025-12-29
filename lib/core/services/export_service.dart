@@ -34,7 +34,7 @@ class ExportService {
          return pw.MemoryImage(bytes);
       }
     } catch (e) {
-      print('⚠️ [ExportService] Skipped corrupted/missing image: $path | Error: $e');
+      debugPrint('⚠️ [ExportService] Skipped corrupted/missing image: $path | Error: $e');
     }
     return null;
   }

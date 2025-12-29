@@ -616,6 +616,210 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Começar'**
   String get onboardingGetStarted;
+
+  /// No description provided for @analysisErrorAiFailure.
+  ///
+  /// In pt, this message translates to:
+  /// **'Todas as IAs falharam em analisar a imagem.'**
+  String get analysisErrorAiFailure;
+
+  /// No description provided for @analysisErrorJsonFormat.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao processar dados da IA.'**
+  String get analysisErrorJsonFormat;
+
+  /// No description provided for @analysisErrorUnexpected.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro inesperado. Tente novamente.'**
+  String get analysisErrorUnexpected;
+
+  /// No description provided for @loadingFood.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando alimento...'**
+  String get loadingFood;
+
+  /// No description provided for @loadingPlant.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diagnosticando planta...'**
+  String get loadingPlant;
+
+  /// No description provided for @loadingPetBreed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificando raça...'**
+  String get loadingPetBreed;
+
+  /// No description provided for @loadingPetHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando saúde...'**
+  String get loadingPetHealth;
+
+  /// No description provided for @nutrientsAdvancedMacros.
+  ///
+  /// In pt, this message translates to:
+  /// **'Macronutrientes Avançados'**
+  String get nutrientsAdvancedMacros;
+
+  /// No description provided for @nutrientsProteins.
+  ///
+  /// In pt, this message translates to:
+  /// **'Proteínas'**
+  String get nutrientsProteins;
+
+  /// No description provided for @nutrientsCarbs.
+  ///
+  /// In pt, this message translates to:
+  /// **'Carboidratos'**
+  String get nutrientsCarbs;
+
+  /// No description provided for @nutrientsFats.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gorduras'**
+  String get nutrientsFats;
+
+  /// No description provided for @nutrientsMinerals.
+  ///
+  /// In pt, this message translates to:
+  /// **'Minerais e Vitaminas'**
+  String get nutrientsMinerals;
+
+  /// No description provided for @nutrientsSynergy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinergia'**
+  String get nutrientsSynergy;
+
+  /// No description provided for @recipesQuick.
+  ///
+  /// In pt, this message translates to:
+  /// **'Receitas Rápidas (até 15 min)'**
+  String get recipesQuick;
+
+  /// No description provided for @recipesCulinaryIntel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inteligência Culinária'**
+  String get recipesCulinaryIntel;
+
+  /// No description provided for @recipesExpertTip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dica do Especialista'**
+  String get recipesExpertTip;
+
+  /// No description provided for @labelGlycemicImpact.
+  ///
+  /// In pt, this message translates to:
+  /// **'Impacto Glicêmico'**
+  String get labelGlycemicImpact;
+
+  /// No description provided for @labelFattyAcids.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ácidos Graxos'**
+  String get labelFattyAcids;
+
+  /// No description provided for @labelAminoProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil de Aminoácidos'**
+  String get labelAminoProfile;
+
+  /// No description provided for @foodSafetyBio.
+  ///
+  /// In pt, this message translates to:
+  /// **'Segurança & Bioquímica'**
+  String get foodSafetyBio;
+
+  /// No description provided for @foodIdealMoment.
+  ///
+  /// In pt, this message translates to:
+  /// **'Momento Ideal'**
+  String get foodIdealMoment;
+
+  /// No description provided for @foodCriticalAlerts.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alertas Críticos'**
+  String get foodCriticalAlerts;
+
+  /// No description provided for @foodBioChem.
+  ///
+  /// In pt, this message translates to:
+  /// **'Bioquímica e Neutralização'**
+  String get foodBioChem;
+
+  /// No description provided for @foodPreservation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preservação'**
+  String get foodPreservation;
+
+  /// No description provided for @foodSmartSwap.
+  ///
+  /// In pt, this message translates to:
+  /// **'Smart Swap (Troca)'**
+  String get foodSmartSwap;
+
+  /// No description provided for @foodDisclaimer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nota: As informações nutricionais são estimadas. Consulte sempre um profissional de saúde.'**
+  String get foodDisclaimer;
+
+  /// No description provided for @foodVerdict.
+  ///
+  /// In pt, this message translates to:
+  /// **'Veredito da IA'**
+  String get foodVerdict;
+
+  /// No description provided for @foodPros.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pontos Positivos'**
+  String get foodPros;
+
+  /// No description provided for @foodCons.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pontos de Atenção'**
+  String get foodCons;
+
+  /// No description provided for @foodBiohacking.
+  ///
+  /// In pt, this message translates to:
+  /// **'Performance Biohacking'**
+  String get foodBiohacking;
+
+  /// No description provided for @foodSatietyIndex.
+  ///
+  /// In pt, this message translates to:
+  /// **'Índice de Saciedade'**
+  String get foodSatietyIndex;
+
+  /// No description provided for @foodBodyBenefits.
+  ///
+  /// In pt, this message translates to:
+  /// **'Benefícios para o Corpo'**
+  String get foodBodyBenefits;
+
+  /// No description provided for @foodAttention.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atenção'**
+  String get foodAttention;
+
+  /// No description provided for @foodFocusEnergy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Foco e Energia'**
+  String get foodFocusEnergy;
 }
 
 class _AppLocalizationsDelegate

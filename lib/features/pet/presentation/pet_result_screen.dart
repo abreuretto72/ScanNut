@@ -9,6 +9,8 @@ import '../models/pet_profile_extended.dart';
 import 'widgets/edit_pet_form.dart';
 import '../services/pet_profile_service.dart';
 import '../../../core/services/history_service.dart';
+import '../../../core/widgets/pro_access_wrapper.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 final petResultProvider = StateProvider<PetAnalysisResult?>((ref) => null);
 
@@ -101,11 +103,16 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                           content: result.descricaoVisual,
                           icon: Icons.visibility,
                         ),
-                        _buildInfoCard(
-                          title: 'Possíveis Causas',
-                          content: result.possiveisCausas.join('\n• '),
-                          icon: Icons.list,
-                          isList: true,
+                        ProAccessWrapper(
+                          featureName: 'Análise Profunda de Causas',
+                          featureDescription: 'Acesse listas detalhadas de possíveis causas médicas e diagnósticos diferenciais.',
+                          featureIcon: FontAwesomeIcons.stethoscope,
+                          child: _buildInfoCard(
+                            title: 'Possíveis Causas',
+                            content: result.possiveisCausas.join('\n• '),
+                            icon: Icons.list,
+                            isList: true,
+                          ),
                         ),
                         _buildInfoCard(
                           title: 'Identificação',

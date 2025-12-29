@@ -20,7 +20,7 @@ class AppSettings {
     this.showFoodButton = true,
     this.showPlantButton = true,
     this.showPetButton = true,
-    this.partnerSearchRadius = 10.0,
+    this.partnerSearchRadius = 20.0,
     this.languageCode,
     this.weightUnit = 'kg',
   });
@@ -64,7 +64,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       showFoodButton: prefs.getBool('showFoodButton') ?? true,
       showPlantButton: prefs.getBool('showPlantButton') ?? true,
       showPetButton: prefs.getBool('showPetButton') ?? true,
-      partnerSearchRadius: (prefs.getDouble('partnerSearchRadius') ?? 10.0).clamp(1.0, 20.0),
+      partnerSearchRadius: (prefs.getDouble('partnerSearchRadius') ?? 20.0).clamp(1.0, 100.0),
       languageCode: prefs.getString('languageCode'),
       weightUnit: prefs.getString('weightUnit') ?? 'kg',
     );
@@ -137,7 +137,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setPartnerSearchRadius(double radius) async {
-    final clampedRadius = radius.clamp(1.0, 20.0);
+    final clampedRadius = radius.clamp(1.0, 100.0);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('partnerSearchRadius', clampedRadius);
     state = state.copyWith(partnerSearchRadius: clampedRadius);

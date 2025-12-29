@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../settings/settings_screen.dart';
 import '../../../pet/presentation/nutritional_pillars_screen.dart';
@@ -151,14 +153,22 @@ class AppDrawer extends ConsumerWidget {
                       _showHelpDialog(context);
                     },
                   ),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.info_outline,
-                    title: 'Sobre',
-                    subtitle: 'Versão 1.0.0',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAboutDialog(context);
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      final version = snapshot.hasData 
+                          ? 'Versão ${snapshot.data!.version}'
+                          : 'Carregando...';
+                      return _buildMenuItem(
+                        context,
+                        icon: Icons.info_outline,
+                        title: 'Sobre',
+                        subtitle: version,
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showAboutDialog(context);
+                        },
+                      );
                     },
                   ),
                   const Divider(color: Colors.white24, height: 32),
@@ -167,11 +177,18 @@ class AppDrawer extends ConsumerWidget {
                     icon: Icons.privacy_tip_outlined,
                     title: l10n.privacyPolicy,
                     subtitle: 'Consultar termos e dados',
-                    onTap: () {
-                      // Navigator.push(context, MaterialPageRoute(builder: (ctx) => const PrivacyPolicyScreen()));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Redirecionando para Política de Privacidade...')),
-                      );
+                    onTap: () async {
+                      Navigator.pop(context);
+                      final url = Uri.parse('https://abreuretto72.github.io/ScanNut/');
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Não foi possível abrir o link')),
+                          );
+                        }
+                      }
                     },
                   ),
                   _buildMenuItem(
@@ -351,7 +368,14 @@ class AppDrawer extends ConsumerWidget {
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
+  void _showAboutDialog(BuildContext context) async {
+    // Load version info from pubspec.yaml
+    final packageInfo = await PackageInfo.fromPlatform();
+    final version = packageInfo.version;
+    final buildNumber = packageInfo.buildNumber;
+    
+    if (!context.mounted) return;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -373,7 +397,7 @@ class AppDrawer extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Versão: 1.0.0',
+              'Versão: $version (Build $buildNumber)',
               style: GoogleFonts.poppins(color: Colors.white70),
             ),
             const SizedBox(height: 16),

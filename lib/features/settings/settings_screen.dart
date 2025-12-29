@@ -98,132 +98,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           const SizedBox(height: 32),
 
-          // Nutrition Section
-          Text(
-            'Metas Nutricionais Humanas',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Calorie Goal Field
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  controller: _weightController,
-                  label: 'Peso',
-                  hint: '0.0',
-                  icon: Icons.monitor_weight_outlined,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  suffix: settings.weightUnit,
-                  onChanged: (_) => _saveUserProfileOnChange(),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextField(
-                  controller: _heightController,
-                  label: 'Altura',
-                  hint: '0.0',
-                  icon: Icons.height,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  suffix: 'cm',
-                  onChanged: (_) => _saveUserProfileOnChange(),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            controller: _calorieController,
-            label: 'Meta Diária de Calorias',
-            hint: '2000',
-            icon: Icons.local_fire_department,
-            keyboardType: TextInputType.number,
-            suffix: 'kcal',
-            onChanged: (value) {
-              final calories = int.tryParse(value);
-              if (calories != null && calories > 0 && calories <= 10000) {
-                ref.read(settingsProvider.notifier).setDailyCalorieGoal(calories);
-              }
-            },
-          ),
-
-          const SizedBox(height: 16),
-
-          // Calorie Presets
-          Text(
-            'Presets Comuns',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.white70,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildPresetChip('1500 kcal', 1500),
-              _buildPresetChip('1800 kcal', 1800),
-              _buildPresetChip('2000 kcal', 2000),
-              _buildPresetChip('2200 kcal', 2200),
-              _buildPresetChip('2500 kcal', 2500),
-              _buildPresetChip('3000 kcal', 3000),
-            ],
-          ),
-
-
-          const SizedBox(height: 32),
-
-          // Button Visibility Section
-          Text(
-            'Visibilidade dos Botões',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          _buildSwitchTile(
-            title: 'Botão Comida',
-            subtitle: 'Exibir opção de análise de alimentos',
-            value: settings.showFoodButton,
-            onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowFoodButton(value);
-              HapticFeedback.selectionClick();
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildSwitchTile(
-            title: 'Botão Plantas',
-            subtitle: 'Exibir opção de análise de plantas',
-            value: settings.showPlantButton,
-            onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowPlantButton(value);
-              HapticFeedback.selectionClick();
-            },
-          ),
-          const SizedBox(height: 8),
-          _buildSwitchTile(
-            title: 'Botão Pets',
-            subtitle: 'Exibir opção de análise de pets',
-            value: settings.showPetButton,
-            onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowPetButton(value);
-              HapticFeedback.selectionClick();
-            },
-          ),
-
-          const SizedBox(height: 32),
-
           // Language Section
           Text(
             'Idioma / Language',
@@ -605,10 +479,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           Slider(
-            value: currentRadius.clamp(1, 20),
+            value: currentRadius.clamp(1, 100),
             min: 1,
-            max: 20,
-            divisions: 19,
+            max: 100,
+            divisions: 99,
             activeColor: const Color(0xFF00E676),
             inactiveColor: Colors.white24,
             onChanged: (value) {

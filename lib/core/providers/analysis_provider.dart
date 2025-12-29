@@ -55,7 +55,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         final groqResponse = await _groqService.analyzeImage(imageFile, prompt);
         
         if (groqResponse == null) {
-          throw Exception('Todas as IAs falharam em analisar a imagem.');
+          throw Exception('analysisErrorAiFailure');
         }
 
         // Clean up markdown code blocks if present in Groq response
@@ -120,14 +120,14 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           break;
       }
     } on GeminiException catch (e) {
-      // Use user-friendly message
-      state = AnalysisError(e.userMessage);
+      // Use user-friendly message key
+      state = AnalysisError('analysisErrorAiFailure');
     } on FormatException catch (e) {
       debugPrint('❌ Erro de formato no JSON: $e');
-      state = AnalysisError('Erro ao processar dados da IA. Tente tirar a foto novamente.');
+      state = AnalysisError('analysisErrorJsonFormat');
     } catch (e) {
       debugPrint('❌ Erro inesperado: $e');
-      state = AnalysisError('Erro inesperado. Tente novamente.');
+      state = AnalysisError('analysisErrorUnexpected');
     }
   }
 
@@ -139,13 +139,13 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
   String _getLoadingMessage(ScannutMode mode) {
     switch (mode) {
       case ScannutMode.food:
-        return 'Analisando alimento...';
+        return 'loadingFood';
       case ScannutMode.plant:
-        return 'Diagnosticando planta...';
+        return 'loadingPlant';
       case ScannutMode.petIdentification:
-        return 'Identificando raça...';
+        return 'loadingPetBreed';
       case ScannutMode.petDiagnosis:
-         return 'Analisando saúde...';
+         return 'loadingPetHealth';
     }
   }
 }

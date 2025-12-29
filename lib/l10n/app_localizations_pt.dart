@@ -281,6 +281,110 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get onboardingGetStarted => 'Começar';
+
+  @override
+  String get analysisErrorAiFailure =>
+      'Todas as IAs falharam em analisar a imagem.';
+
+  @override
+  String get analysisErrorJsonFormat => 'Erro ao processar dados da IA.';
+
+  @override
+  String get analysisErrorUnexpected => 'Erro inesperado. Tente novamente.';
+
+  @override
+  String get loadingFood => 'Analisando alimento...';
+
+  @override
+  String get loadingPlant => 'Diagnosticando planta...';
+
+  @override
+  String get loadingPetBreed => 'Identificando raça...';
+
+  @override
+  String get loadingPetHealth => 'Analisando saúde...';
+
+  @override
+  String get nutrientsAdvancedMacros => 'Macronutrientes Avançados';
+
+  @override
+  String get nutrientsProteins => 'Proteínas';
+
+  @override
+  String get nutrientsCarbs => 'Carboidratos';
+
+  @override
+  String get nutrientsFats => 'Gorduras';
+
+  @override
+  String get nutrientsMinerals => 'Minerais e Vitaminas';
+
+  @override
+  String get nutrientsSynergy => 'Sinergia';
+
+  @override
+  String get recipesQuick => 'Receitas Rápidas (até 15 min)';
+
+  @override
+  String get recipesCulinaryIntel => 'Inteligência Culinária';
+
+  @override
+  String get recipesExpertTip => 'Dica do Especialista';
+
+  @override
+  String get labelGlycemicImpact => 'Impacto Glicêmico';
+
+  @override
+  String get labelFattyAcids => 'Ácidos Graxos';
+
+  @override
+  String get labelAminoProfile => 'Perfil de Aminoácidos';
+
+  @override
+  String get foodSafetyBio => 'Segurança & Bioquímica';
+
+  @override
+  String get foodIdealMoment => 'Momento Ideal';
+
+  @override
+  String get foodCriticalAlerts => 'Alertas Críticos';
+
+  @override
+  String get foodBioChem => 'Bioquímica e Neutralização';
+
+  @override
+  String get foodPreservation => 'Preservação';
+
+  @override
+  String get foodSmartSwap => 'Smart Swap (Troca)';
+
+  @override
+  String get foodDisclaimer =>
+      'Nota: As informações nutricionais são estimadas. Consulte sempre um profissional de saúde.';
+
+  @override
+  String get foodVerdict => 'Veredito da IA';
+
+  @override
+  String get foodPros => 'Pontos Positivos';
+
+  @override
+  String get foodCons => 'Pontos de Atenção';
+
+  @override
+  String get foodBiohacking => 'Performance Biohacking';
+
+  @override
+  String get foodSatietyIndex => 'Índice de Saciedade';
+
+  @override
+  String get foodBodyBenefits => 'Benefícios para o Corpo';
+
+  @override
+  String get foodAttention => 'Atenção';
+
+  @override
+  String get foodFocusEnergy => 'Foco e Energia';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).
@@ -560,4 +664,108 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get onboardingGetStarted => 'Começar';
+
+  @override
+  String get analysisErrorAiFailure =>
+      'Todas as IAs falharam em analisar a imagem.';
+
+  @override
+  String get analysisErrorJsonFormat => 'Erro ao processar dados da IA.';
+
+  @override
+  String get analysisErrorUnexpected => 'Erro inesperado. Tente novamente.';
+
+  @override
+  String get loadingFood => 'Analisando alimento...';
+
+  @override
+  String get loadingPlant => 'Diagnosticando planta...';
+
+  @override
+  String get loadingPetBreed => 'Identificando raça...';
+
+  @override
+  String get loadingPetHealth => 'Analisando saúde...';
+
+  @override
+  String get nutrientsAdvancedMacros => 'Macronutrientes Avançados';
+
+  @override
+  String get nutrientsProteins => 'Proteínas';
+
+  @override
+  String get nutrientsCarbs => 'Carboidratos';
+
+  @override
+  String get nutrientsFats => 'Gorduras';
+
+  @override
+  String get nutrientsMinerals => 'Minerais e Vitaminas';
+
+  @override
+  String get nutrientsSynergy => 'Sinergia';
+
+  @override
+  String get recipesQuick => 'Receitas Rápidas (até 15 min)';
+
+  @override
+  String get recipesCulinaryIntel => 'Inteligência Culinária';
+
+  @override
+  String get recipesExpertTip => 'Dica do Especialista';
+
+  @override
+  String get labelGlycemicImpact => 'Impacto Glicêmico';
+
+  @override
+  String get labelFattyAcids => 'Ácidos Graxos';
+
+  @override
+  String get labelAminoProfile => 'Perfil de Aminoácidos';
+
+  @override
+  String get foodSafetyBio => 'Segurança & Bioquímica';
+
+  @override
+  String get foodIdealMoment => 'Momento Ideal';
+
+  @override
+  String get foodCriticalAlerts => 'Alertas Críticos';
+
+  @override
+  String get foodBioChem => 'Bioquímica e Neutralização';
+
+  @override
+  String get foodPreservation => 'Preservação';
+
+  @override
+  String get foodSmartSwap => 'Smart Swap (Troca)';
+
+  @override
+  String get foodDisclaimer =>
+      'Nota: As informações nutricionais são estimadas. Consulte sempre um profissional de saúde.';
+
+  @override
+  String get foodVerdict => 'Veredito da IA';
+
+  @override
+  String get foodPros => 'Pontos Positivos';
+
+  @override
+  String get foodCons => 'Pontos de Atenção';
+
+  @override
+  String get foodBiohacking => 'Performance Biohacking';
+
+  @override
+  String get foodSatietyIndex => 'Índice de Saciedade';
+
+  @override
+  String get foodBodyBenefits => 'Benefícios para o Corpo';
+
+  @override
+  String get foodAttention => 'Atenção';
+
+  @override
+  String get foodFocusEnergy => 'Foco e Energia';
 }

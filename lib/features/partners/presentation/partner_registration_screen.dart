@@ -675,7 +675,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
         throw 'GPS não retornou coordenadas válidas. Verifique as permissões.';
       }
 
-      print('📍 GPS Capturado: Lat=${pos.latitude}, Lng=${pos.longitude}');
+      // Log removed for privacy
 
       // 3. Step 1: Search in 10KM (Optimized Radius)
       debugPrint("Radar: Iniciando busca em 10km...");

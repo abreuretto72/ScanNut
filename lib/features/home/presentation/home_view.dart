@@ -175,6 +175,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       }
     } else {
        // Reset current index if permission denied
+       if (mounted) {
+         // Show localized permission error
+         final l10n = AppLocalizations.of(context)!;
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text(l10n.cameraPermission), backgroundColor: Colors.red),
+         );
+       }
        setState(() {
          _currentIndex = -1;
        });
@@ -352,9 +359,19 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         );
       }
     } else if (state is AnalysisError) {
+      final l10n = AppLocalizations.of(context)!;
+      String errorMessage;
+
+      switch (state.message) {
+        case 'analysisErrorAiFailure': errorMessage = l10n.analysisErrorAiFailure; break;
+        case 'analysisErrorJsonFormat': errorMessage = l10n.analysisErrorJsonFormat; break;
+        case 'analysisErrorUnexpected': errorMessage = l10n.analysisErrorUnexpected; break;
+        default: errorMessage = state.message;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(state.message),
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),
         ),
@@ -611,7 +628,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     children: [
                       // Toggle 1: Identification
                       GestureDetector(
-                        onTap: () => setState(() { _petMode = 0; _capturedImage = null; }),
+                        onTap: () { setState(() { _petMode = 0; }); _clearCapturedImage(); },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -633,7 +650,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       const SizedBox(width: 8),
                       // Toggle 2: Diagnosis
                       GestureDetector(
-                        onTap: () => setState(() { _petMode = 1; _capturedImage = null; }),
+                        onTap: () { setState(() { _petMode = 1; }); _clearCapturedImage(); },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -674,9 +691,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 child: IconButton(
                   icon: const Icon(Icons.menu, color: Colors.white, size: 28),
                   onPressed: () {
-                    setState(() {
-                      _capturedImage = null;
-                    });
+                    _clearCapturedImage();
                     Scaffold.of(context).openDrawer();
                   },
                 ),
@@ -1250,6 +1265,24 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       return 'Média';
     } else {
       return 'Baixa';
+    }
+  }
+
+  Future<void> _clearCapturedImage() async {
+    if (_capturedImage != null) {
+      try {
+        if (await _capturedImage!.exists()) {
+          await _capturedImage!.delete();
+          debugPrint('🗑️ Deleted temporary image file');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Failed to delete temp image: $e');
+      }
+      if (mounted) {
+        setState(() {
+          _capturedImage = null;
+        });
+      }
     }
   }
 
