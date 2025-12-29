@@ -1,3 +1,10 @@
+/// ============================================================================
+/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este módulo de Gestão de Pets foi concluído e validado.
+/// Nenhuma rotina ou lógica interna deve ser modificada.
+/// Data de Congelamento: 29/12/2025
+/// ============================================================================
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'pet_event_service.dart';

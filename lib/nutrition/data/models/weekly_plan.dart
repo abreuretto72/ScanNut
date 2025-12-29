@@ -22,21 +22,26 @@ class WeeklyPlan extends HiveObject {
   @HiveField(4)
   DateTime atualizadoEm;
 
+  @HiveField(5)
+  String? dicasPreparo;
+
   WeeklyPlan({
     required this.weekStartDate,
     required this.seed,
     required this.days,
     required this.criadoEm,
     required this.atualizadoEm,
+    this.dicasPreparo,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'weekStartDate': weekStartDate.toIso8601String(),
       'seed': seed,
-      'days': days.map((d) => d.toJson()).toList(),
+      'days': days.map((day) => day.toJson()).toList(),
       'criadoEm': criadoEm.toIso8601String(),
       'atualizadoEm': atualizadoEm.toIso8601String(),
+      'dicasPreparo': dicasPreparo,
     };
   }
 
@@ -44,9 +49,10 @@ class WeeklyPlan extends HiveObject {
     return WeeklyPlan(
       weekStartDate: DateTime.parse(json['weekStartDate']),
       seed: json['seed'] ?? 0,
-      days: (json['days'] as List?)?.map((d) => PlanDay.fromJson(d)).toList() ?? [],
+      days: (json['days'] as List).map((dayJson) => PlanDay.fromJson(dayJson)).toList(),
       criadoEm: DateTime.parse(json['criadoEm']),
       atualizadoEm: DateTime.parse(json['atualizadoEm']),
+      dicasPreparo: json['dicasPreparo'],
     );
   }
 

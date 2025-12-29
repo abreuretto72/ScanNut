@@ -4,11 +4,13 @@ import 'app_pdf_icon.dart';
 class PdfActionButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String tooltip;
+  final Color? color;
 
   const PdfActionButton({
     Key? key,
     required this.onPressed,
     this.tooltip = 'Gerar PDF',
+    this.color,
   }) : super(key: key);
 
   @override
@@ -16,7 +18,7 @@ class PdfActionButton extends StatelessWidget {
     return IconButton(
       onPressed: onPressed,
       tooltip: tooltip,
-      icon: const AppPdfIcon(),
+      icon: AppPdfIcon(color: color),
     );
   }
 }

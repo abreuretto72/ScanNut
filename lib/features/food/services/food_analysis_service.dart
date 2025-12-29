@@ -1,3 +1,10 @@
+/// ============================================================================
+/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este módulo de Análise de Comida foi concluído e validado.
+/// Nenhuma rotina ou lógica interna deve ser modificada.
+/// Data de Congelamento: 29/12/2025
+/// ============================================================================
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -19,6 +19,7 @@ class MealAdapter extends TypeAdapter<Meal> {
     return Meal(
       tipo: fields[0] as String,
       recipeId: fields[1] as String?,
+      nomePrato: fields[5] as String?,
       itens: (fields[2] as List).cast<MealItem>(),
       observacoes: fields[3] as String,
       criadoEm: fields[4] as DateTime,
@@ -28,7 +29,7 @@ class MealAdapter extends TypeAdapter<Meal> {
   @override
   void write(BinaryWriter writer, Meal obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.tipo)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class MealAdapter extends TypeAdapter<Meal> {
       ..writeByte(3)
       ..write(obj.observacoes)
       ..writeByte(4)
-      ..write(obj.criadoEm);
+      ..write(obj.criadoEm)
+      ..writeByte(5)
+      ..write(obj.nomePrato);
   }
 
   @override

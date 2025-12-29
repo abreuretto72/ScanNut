@@ -10,6 +10,9 @@ import '../../data/datasources/shopping_list_service.dart';
 import '../../data/datasources/nutrition_data_service.dart';
 import '../../domain/usecases/weekly_plan_generator.dart';
 import '../../domain/usecases/shopping_list_generator.dart';
+import '../../data/models/meal.dart';
+import '../../data/models/plan_day.dart';
+import '../../data/models/menu_creation_params.dart';
 
 /// Provider para o perfil nutricional
 final nutritionProfileProvider = StateNotifierProvider<NutritionProfileNotifier, UserNutritionProfile?>((ref) {
@@ -48,6 +51,13 @@ class NutritionProfileNotifier extends StateNotifier<UserNutritionProfile?> {
   }
 }
 
+/// Provider para histórico de planos semanais
+final weeklyPlanHistoryProvider = FutureProvider<List<WeeklyPlan>>((ref) async {
+  final service = WeeklyPlanService();
+  await service.init();
+  return service.getAllPlans()..sort((a,b) => b.weekStartDate.compareTo(a.weekStartDate)); // Newest first
+});
+
 /// Provider para o plano semanal atual
 final currentWeekPlanProvider = StateNotifierProvider<WeeklyPlanNotifier, WeeklyPlan?>((ref) {
   return WeeklyPlanNotifier();
@@ -65,11 +75,18 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     state = _service.getCurrentWeekPlan();
   }
 
-  Future<void> generateNewPlan(UserNutritionProfile profile) async {
-    final plan = await _generator.generateWeeklyPlan(profile: profile);
+  Future<void> generateNewPlan(UserNutritionProfile profile, {MenuCreationParams? params, DateTime? startDate}) async {
+    final plan = await _generator.generateWeeklyPlan(profile: profile, params: params, startDate: startDate);
     if (plan != null) {
       await _service.savePlan(plan);
-      state = plan;
+      state = plan; // If the generated plan is for current week, this updates UI. 
+      // If it's another week, we might need logic, but for now assuming 'current' means 'what we are viewing'.
+      // However, state is WeeklyPlan?. Ideally state should strictly be THIS week?
+      // Or state is "selected plan".
+      // Let's keep state as "Current Week" for now as per provider name.
+      if (_service.getCurrentWeekPlan()?.weekStartDate == plan.weekStartDate) {
+         state = plan;
+      }
     }
   }
 
@@ -79,6 +96,43 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     if (plan != null) {
       await _service.savePlan(plan);
       state = plan;
+    }
+  }
+
+  void setPlan(WeeklyPlan plan) {
+    state = plan;
+  }
+
+  Future<void> swapMeal(PlanDay day, Meal oldMeal, UserNutritionProfile profile) async {
+    final newMeal = await _generator.swapMeal(
+      tipo: oldMeal.tipo,
+      profile: profile,
+      excludedRecipeIds: oldMeal.recipeId != null ? [oldMeal.recipeId!] : [],
+    );
+
+    if (newMeal != null && state != null) {
+      final plan = state!;
+      final dayIndex = plan.days.indexWhere((d) => d.date == day.date);
+      if (dayIndex != -1) {
+        final meals = List<Meal>.from(plan.days[dayIndex].meals);
+        final mealIndex = meals.indexOf(oldMeal);
+        if (mealIndex != -1) {
+          meals[mealIndex] = newMeal;
+          plan.days[dayIndex].meals = meals;
+          await _service.savePlan(plan);
+          state = WeeklyPlan.fromJson(plan.toJson()); // Trigger rebuild
+        }
+      }
+    }
+  }
+
+  Future<void> deletePlan(WeeklyPlan plan) async {
+    await _service.deletePlan(plan.weekStartDate);
+    
+    // If we just deleted the plan being viewed, clear the view
+    // Note: Hive keys might be different instances, use weekStartDate comparison
+    if (state?.weekStartDate == plan.weekStartDate) {
+       state = null;
     }
   }
 
@@ -143,6 +197,16 @@ class ShoppingListNotifier extends StateNotifier<List<ShoppingListItem>> {
     await _service.clearAll();
     final items = _generator.generateFromWeeklyPlan(plan);
     await _service.addItems(items);
+    _loadList();
+  }
+
+  Future<void> addItem(String nome, String quantidade) async {
+    final item = ShoppingListItem(
+      nome: nome, 
+      quantidadeTexto: quantidade,
+      criadoEm: DateTime.now(),
+    );
+    await _service.addItem(item);
     _loadList();
   }
 

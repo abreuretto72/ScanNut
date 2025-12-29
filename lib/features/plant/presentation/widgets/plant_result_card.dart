@@ -13,14 +13,24 @@ import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
 import '../../models/plant_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
+import '../../../../core/services/export_service.dart';
+import '../../../../core/widgets/pdf_preview_screen.dart';
 
 class PlantResultCard extends StatefulWidget {
   final PlantAnalysisModel analysis;
   final String? imagePath;
   final VoidCallback onSave;
   final VoidCallback onShop;
+  final bool isReadOnly;
 
-    const PlantResultCard({Key? key, required this.analysis, this.imagePath, required this.onSave, required this.onShop}) : super(key: key);
+    const PlantResultCard({
+      Key? key, 
+      required this.analysis, 
+      this.imagePath, 
+      required this.onSave, 
+      required this.onShop,
+      this.isReadOnly = false,
+    }) : super(key: key);
 
   @override
   State<PlantResultCard> createState() => _PlantResultCardState();
@@ -34,6 +44,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   @override
   void initState() {
     super.initState();
+    _isSaved = widget.isReadOnly; // If viewing from history, already saved
     _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(_handleTabSelection);
     HapticFeedback.mediumImpact();
@@ -115,128 +126,33 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       : FontAwesomeIcons.circleExclamation;
 
   Future<void> _generatePDF() async {
-    final pdf = pw.Document();
-
-    pw.MemoryImage? image;
-    if (widget.imagePath != null) {
-      final imageBytes = await File(widget.imagePath!).readAsBytes();
-      image = pw.MemoryImage(imageBytes);
-    }
-
-    final now = DateTime.now();
-    final dateStr = "${now.day}/${now.month}/${now.year} - ${now.hour}:${now.minute}";
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          final plant = widget.analysis;
-          return [
-            pw.Header(
-              level: 0,
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                   pw.Text("ScanNut", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.green)),
-                   pw.Text("Dossiê Botânico Definitivo", style: pw.TextStyle(fontSize: 18)),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 10),
-            pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(color: PdfColors.grey)),
-            pw.SizedBox(height: 20),
-            
-            if (image != null) 
-              pw.Center(child: pw.Image(image, height: 200, fit: pw.BoxFit.contain)),
-            
-            pw.SizedBox(height: 20),
-            pw.Text("Identificação:", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            pw.Text("Nome Popular: ${plant.identificacao.nomesPopulares.join(', ')}"),
-            pw.Text("Nome Científico: ${plant.identificacao.nomeCientifico}"),
-            pw.Text("Família: ${plant.identificacao.familia}"),
-            pw.Text("Origem: ${plant.identificacao.origemGeografica}"),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Status de Saúde", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red)),
-            pw.Divider(),
-            pw.Text("Condição: ${plant.saude.condicao}"),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Guia de Sobrevivência (Hardware)", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            pw.Text("Luz: ${plant.sobrevivencia.luminosidade['tipo']} - ${plant.sobrevivencia.luminosidade['explicacao'].toString().replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}"),
-            pw.Text("Rega: ${plant.sobrevivencia.regimeHidrico['frequencia_ideal'].toString().replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')} | ${plant.sobrevivencia.regimeHidrico['sinais_sede']}"),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Segurança e Biofília", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            pw.Text("Tóxica Pets: ${plant.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true ? 'SIM' : 'NÃO'}"),
-            pw.Text("Tóxica Crianças: ${plant.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true ? 'SIM' : 'NÃO'}"),
-            pw.Text("Purificação Ar Score: ${plant.segurancaBiofilia.poderesBiofilicos['purificacao_ar_score']}/10"),
-            pw.SizedBox(height: 20),
-
-            pw.Text("Simbolismo e Lifestyle", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Divider(),
-            pw.Text("Onde colocar: ${plant.lifestyle.posicionamentoIdeal.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}"),
-            pw.Text("Simbolismo: ${plant.lifestyle.simbolismo.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}"),
-
-            pw.Footer(title: pw.Text("ScanNut App - Inteligência Botânica", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey))),
-          ];
-        },
-      ),
-    );
-
     try {
-      final pdfBytes = await pdf.save();
-      final output = await getTemporaryDirectory();
-      final file = File("${output.path}/plant_dossier_${DateTime.now().millisecondsSinceEpoch}.pdf");
-      await file.writeAsBytes(pdfBytes);
-      
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.grey[900],
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-          builder: (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.print, color: Colors.blueAccent),
-                  title: const Text("Imprimir Relatório", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Printing.layoutPdf(onLayout: (format) async => pdfBytes);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.share, color: Colors.greenAccent),
-                  title: const Text("Compartilhar PDF", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await Share.shareXFiles([XFile(file.path)], text: 'Dossiê Botânico ScanNut - ${widget.analysis.plantName}');
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.open_in_new, color: Colors.amberAccent),
-                  title: const Text("Abrir no Visualizador", style: TextStyle(color: Colors.white)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await OpenFilex.open(file.path);
-                  },
-                ),
-              ],
-            ),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfPreviewScreen(
+            title: 'Dossiê Botânico: ${widget.analysis.plantName}',
+            buildPdf: (format) async {
+              final pdf = await ExportService().generatePlantAnalysisReport(
+                analysis: widget.analysis,
+                imageFile: widget.imagePath != null ? File(widget.imagePath!) : null,
+              );
+              return pdf.save();
+            },
           ),
-        );
-      }
+        ),
+      );
     } catch (e) {
       debugPrint("Erro ao gerar PDF: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
-  Widget _buildActionButton(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(IconData icon, String? label, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -250,16 +166,19 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 16),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                color: color,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+            Icon(icon, color: color, size: 20),
+            if (label != null) ...[
+              const SizedBox(width: 6),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -319,16 +238,17 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          _buildActionButton(Icons.picture_as_pdf_rounded, "DOSSIÊ", Colors.redAccent, _generatePDF),
-                          const SizedBox(width: 8),
+                          _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.redAccent, _generatePDF),
+                          const SizedBox(width: 12),
                           _buildActionButton(
-                            _isSaved ? Icons.check : Icons.save, 
-                            _isSaved ? "Jardim" : "Salvar", 
+                            _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
+                            null, 
                             _themeColor, 
                             () {
                               if (!_isSaved) {
                                 setState(() => _isSaved = true);
                                 widget.onSave();
+                                HapticFeedback.heavyImpact();
                               }
                             }
                           ),
@@ -431,9 +351,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       children: [
         Text("Semáforo de Sobrevivência 🚦", style: _tabTitleStyle),
         const SizedBox(height: 16),
-        _buildSurvivorRow("☀️ LUZ", surv.luminosidade['tipo'], surv.luminosidade['explicacao'], Colors.amber),
-        _buildSurvivorRow("💧 ÁGUA", surv.regimeHidrico['frequencia_ideal'], surv.regimeHidrico['método_rega'] ?? "Rega direta no solo", Colors.blue),
-        _buildSurvivorRow("🪴 SOLO", surv.soloENutricao['adubo_recomendado'], surv.soloENutricao['frequencia_adubacao'], Colors.brown),
+        _buildSurvivorRow("☀️ LUZ", surv.luminosidade['tipo']?.toString() ?? 'N/A', surv.luminosidade['explicacao']?.toString() ?? 'Sem informação', Colors.amber),
+        _buildSurvivorRow("💧 ÁGUA", surv.regimeHidrico['frequencia_ideal']?.toString() ?? 'N/A', surv.regimeHidrico['método_rega']?.toString() ?? "Rega direta no solo", Colors.blue),
+        _buildSurvivorRow("🪴 SOLO", surv.soloENutricao['adubo_recomendado']?.toString() ?? 'N/A', surv.soloENutricao['frequencia_adubacao']?.toString() ?? 'Conforme necessário', Colors.brown),
         const SizedBox(height: 24),
         _buildSectionCard(
           title: "Ajustes de Estação",
@@ -510,7 +430,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               _buildToggleInfo("Perigo para Pets 🐾", bios.segurancaDomestica['toxica_para_pets'] == true),
               _buildToggleInfo("Perigo para Crianças 👶", bios.segurancaDomestica['toxica_para_criancas'] == true),
               const SizedBox(height: 12),
-              Text(bios.segurancaDomestica['sintomas_ingestao'] ?? "Sem alertas críticos.", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+              Text(bios.segurancaDomestica['sintomas_ingestao']?.toString() ?? "Sem alertas críticos.", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
             ],
           ),
         ),
@@ -522,10 +442,10 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildProgressBar("Escore de Purificação de Ar", (bios.poderesBiofilicos['purificacao_ar_score'] ?? 5) / 10.0, Colors.greenAccent),
+              _buildProgressBar("Escore de Purificação de Ar", ((bios.poderesBiofilicos['purificacao_ar_score'] ?? 5) as num).toDouble() / 10.0, Colors.greenAccent),
               const SizedBox(height: 16),
-              _buildInfoLabel("Umidificação:", bios.poderesBiofilicos['umidificacao_natural']),
-              _buildInfoLabel("Bem-estar:", bios.poderesBiofilicos['impacto_bem_estar']),
+              _buildInfoLabel("Umidificação:", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? 'N/A'),
+              _buildInfoLabel("Bem-estar:", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? 'N/A'),
             ],
           ),
         ),

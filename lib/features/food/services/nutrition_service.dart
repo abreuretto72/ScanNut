@@ -1,3 +1,10 @@
+/// ============================================================================
+/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este módulo de Serviço de Nutrição foi concluído e validado.
+/// Nenhuma rotina ou lógica interna deve ser modificada.
+/// Data de Congelamento: 29/12/2025
+/// ============================================================================
+
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -30,7 +37,10 @@ class NutritionService {
 
   Future<void> saveFoodAnalysis(FoodAnalysisModel analysis, File? image) async {
     await init();
-    if (_box == null) return;
+    if (_box == null) {
+      debugPrint('❌ [NutritionService] saveFoodAnalysis: Box is null, cannot save.');
+      return;
+    }
 
     String? savedPath;
     if (image != null) {
@@ -65,11 +75,26 @@ class NutritionService {
     );
 
     await _box!.add(item);
+    debugPrint('✅ [NutritionService] Saved item: ${item.foodName} to box $_box (Total items: ${_box!.length})');
   }
 
   Future<List<NutritionHistoryItem>> getHistory() async {
     await init();
-    return _box?.values.toList().reversed.toList() ?? [];
+    if (_box == null) {
+      debugPrint('⚠️ [NutritionService] getHistory: Box is null');
+      return [];
+    }
+    final items = _box!.values.toList();
+    debugPrint('📊 [NutritionService] getHistory: Retrieved ${items.length} items from box ${_box!.name}');
+    if (items.isNotEmpty) {
+       debugPrint('   Last item: ${items.last.foodName} (${items.last.timestamp})');
+    }
+    return _box!.values.toList().reversed.toList();
+  }
+
+  Future<void> deleteHistoryItem(NutritionHistoryItem item) async {
+    await item.delete();
+    debugPrint('🗑️ [NutritionService] Deleted item: ${item.foodName}');
   }
 
   /// Get daily sum of calories and macros

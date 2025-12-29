@@ -6,6 +6,7 @@ import '../services/workout_service.dart';
 import '../models/workout_item.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'nutrition_history_screen.dart';
 
 class FitnessDashboardScreen extends StatefulWidget {
   const FitnessDashboardScreen({Key? key}) : super(key: key);
@@ -50,6 +51,18 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
         title: Text('Dashboard Fitness', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history, color: Colors.white),
+            onPressed: () {
+               Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NutritionHistoryScreen()),
+              );
+            },
+            tooltip: 'Histórico Alimentar',
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))

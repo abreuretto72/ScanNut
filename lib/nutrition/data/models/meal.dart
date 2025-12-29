@@ -21,9 +21,13 @@ class Meal extends HiveObject {
   @HiveField(4)
   DateTime criadoEm;
 
+  @HiveField(5)
+  String? nomePrato;
+
   Meal({
     required this.tipo,
     this.recipeId,
+    this.nomePrato,
     required this.itens,
     this.observacoes = '',
     required this.criadoEm,
@@ -33,6 +37,7 @@ class Meal extends HiveObject {
     return {
       'tipo': tipo,
       'recipeId': recipeId,
+      'nomePrato': nomePrato,
       'itens': itens.map((i) => i.toJson()).toList(),
       'observacoes': observacoes,
       'criadoEm': criadoEm.toIso8601String(),
@@ -43,6 +48,7 @@ class Meal extends HiveObject {
     return Meal(
       tipo: json['tipo'] ?? '',
       recipeId: json['recipeId'],
+      nomePrato: json['nomePrato'],
       itens: (json['itens'] as List?)?.map((i) => MealItem.fromJson(i)).toList() ?? [],
       observacoes: json['observacoes'] ?? '',
       criadoEm: DateTime.parse(json['criadoEm']),

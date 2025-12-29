@@ -1,3 +1,10 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+// 🚫 MÓDULO BLINDADO E CONGELADO - NÃO ALTERAR SEM AUTORIZAÇÃO EXPLÍCITA
+// Data de Congelamento: 29/12/2025
+// Este serviço gerencia a persistência e histórico de análises botânicas.
+// Alterações podem causar perda de dados ou inconsistências no histórico.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';

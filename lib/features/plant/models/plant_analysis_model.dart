@@ -44,17 +44,17 @@ class PlantAnalysisModel {
     };
   }
 
-  factory PlantAnalysisModel.fromJson(Map<String, dynamic> json) {
+  factory PlantAnalysisModel.fromJson(Map<dynamic, dynamic> json) {
     return PlantAnalysisModel(
-      identificacao: Identificacao.fromJson(json['identificacao'] ?? {}),
-      estetica: EsteticaViva.fromJson(json['estetica_viva'] ?? {}),
-      saude: DiagnosticoSaude.fromJson(json['diagnostico_saude'] ?? {}),
-      sobrevivencia: GuiaSobrevivencia.fromJson(json['guia_sobrevivencia'] ?? {}),
-      segurancaBiofilia: SegurancaEBiofilia.fromJson(json['seguranca_e_biofilia'] ?? {}),
-      propagacao: EngenhariaPropagacao.fromJson(json['engenharia_propagacao'] ?? {}),
-      ecossistema: InteligenciaEcossistema.fromJson(json['inteligencia_ecossistema'] ?? {}),
-      lifestyle: LifestyleEFengShui.fromJson(json['lifestyle_e_feng_shui'] ?? {}),
-      alertasSazonais: AlertasSazonais.fromJson(json['alertas_sazonais'] ?? {}),
+      identificacao: Identificacao.fromJson(json['identificacao'] != null ? Map<dynamic, dynamic>.from(json['identificacao']) : {}),
+      estetica: EsteticaViva.fromJson(json['estetica_viva'] != null ? Map<dynamic, dynamic>.from(json['estetica_viva']) : {}),
+      saude: DiagnosticoSaude.fromJson(json['diagnostico_saude'] != null ? Map<dynamic, dynamic>.from(json['diagnostico_saude']) : {}),
+      sobrevivencia: GuiaSobrevivencia.fromJson(json['guia_sobrevivencia'] != null ? Map<dynamic, dynamic>.from(json['guia_sobrevivencia']) : {}),
+      segurancaBiofilia: SegurancaEBiofilia.fromJson(json['seguranca_e_biofilia'] != null ? Map<dynamic, dynamic>.from(json['seguranca_e_biofilia']) : {}),
+      propagacao: EngenhariaPropagacao.fromJson(json['engenharia_propagacao'] != null ? Map<dynamic, dynamic>.from(json['engenharia_propagacao']) : {}),
+      ecossistema: InteligenciaEcossistema.fromJson(json['inteligencia_ecossistema'] != null ? Map<dynamic, dynamic>.from(json['inteligencia_ecossistema']) : {}),
+      lifestyle: LifestyleEFengShui.fromJson(json['lifestyle_e_feng_shui'] != null ? Map<dynamic, dynamic>.from(json['lifestyle_e_feng_shui']) : {}),
+      alertasSazonais: AlertasSazonais.fromJson(json['alertas_sazonais'] != null ? Map<dynamic, dynamic>.from(json['alertas_sazonais']) : {}),
     );
   }
 }
@@ -79,7 +79,7 @@ class Identificacao {
     'origem_geografica': origemGeografica,
   };
 
-  factory Identificacao.fromJson(Map<String, dynamic> json) {
+  factory Identificacao.fromJson(Map<dynamic, dynamic> json) {
     return Identificacao(
       nomeCientifico: json['nome_cientifico']?.toString() ?? 'N/A',
       nomesPopulares: (json['nomes_populares'] as List? ?? []).map((e) => e.toString()).toList(),
@@ -109,7 +109,7 @@ class EsteticaViva {
     'velocidade_crescimento': velocidadeCrescimento,
   };
 
-  factory EsteticaViva.fromJson(Map<String, dynamic> json) {
+  factory EsteticaViva.fromJson(Map<dynamic, dynamic> json) {
     return EsteticaViva(
       epocaFloracao: json['epoca_floracao']?.toString() ?? 'N/A',
       corDasFlores: json['cor_das_flores']?.toString() ?? 'N/A',
@@ -139,7 +139,7 @@ class DiagnosticoSaude {
     'plano_recuperacao': planoRecuperacao,
   };
 
-  factory DiagnosticoSaude.fromJson(Map<String, dynamic> json) {
+  factory DiagnosticoSaude.fromJson(Map<dynamic, dynamic> json) {
     return DiagnosticoSaude(
       condicao: json['condicao']?.toString() ?? 'Saudável',
       detalhes: json['detalhes']?.toString() ?? 'Sem diagnóstico específico.',
@@ -166,7 +166,7 @@ class GuiaSobrevivencia {
     'solo_e_nutricao': soloENutricao,
   };
 
-  factory GuiaSobrevivencia.fromJson(Map<String, dynamic> json) {
+  factory GuiaSobrevivencia.fromJson(Map<dynamic, dynamic> json) {
     return GuiaSobrevivencia(
       luminosidade: Map<String, dynamic>.from(json['luminosidade'] ?? {}),
       regimeHidrico: Map<String, dynamic>.from(json['regime_hidrico'] ?? {}),
@@ -189,7 +189,7 @@ class SegurancaEBiofilia {
     'poderes_biofilicos': poderesBiofilicos,
   };
 
-  factory SegurancaEBiofilia.fromJson(Map<String, dynamic> json) {
+  factory SegurancaEBiofilia.fromJson(Map<dynamic, dynamic> json) {
     return SegurancaEBiofilia(
       segurancaDomestica: Map<String, dynamic>.from(json['seguranca_domestica'] ?? {}),
       poderesBiofilicos: Map<String, dynamic>.from(json['poderes_biofilicos'] ?? {}),
@@ -214,7 +214,7 @@ class EngenhariaPropagacao {
     'dificuldade_reproducao': dificuldade,
   };
 
-  factory EngenhariaPropagacao.fromJson(Map<String, dynamic> json) {
+  factory EngenhariaPropagacao.fromJson(Map<dynamic, dynamic> json) {
     return EngenhariaPropagacao(
       metodo: json['metodo']?.toString() ?? 'N/A',
       passoAPasso: json['passo_a_passo']?.toString() ?? 'N/A',
@@ -242,8 +242,8 @@ class InteligenciaEcossistema {
     'repelente_natural': repelenteNatural,
   };
 
-  factory InteligenciaEcossistema.fromJson(Map<String, dynamic> json) {
-    final companion = json['companion_planting'] ?? {};
+  factory InteligenciaEcossistema.fromJson(Map<dynamic, dynamic> json) {
+    final companion = json['companion_planting'] != null ? Map<dynamic, dynamic>.from(json['companion_planting']) : {};
     return InteligenciaEcossistema(
       plantasParceiras: (companion['plantas_parceiras'] as List? ?? []).map((e) => e.toString()).toList(),
       plantasConflitantes: (companion['plantas_conflitantes'] as List? ?? []).map((e) => e.toString()).toList(),
@@ -266,7 +266,7 @@ class LifestyleEFengShui {
     'simbolismo': simbolismo,
   };
 
-  factory LifestyleEFengShui.fromJson(Map<String, dynamic> json) {
+  factory LifestyleEFengShui.fromJson(Map<dynamic, dynamic> json) {
     return LifestyleEFengShui(
       posicionamentoIdeal: json['posicionamento_ideal']?.toString() ?? 'N/A',
       simbolismo: json['simbolismo']?.toString() ?? 'N/A',
@@ -288,7 +288,7 @@ class AlertasSazonais {
     'verao': verao,
   };
 
-  factory AlertasSazonais.fromJson(Map<String, dynamic> json) {
+  factory AlertasSazonais.fromJson(Map<dynamic, dynamic> json) {
     return AlertasSazonais(
       inverno: json['inverno']?.toString() ?? 'N/A',
       verao: json['verao']?.toString() ?? 'N/A',

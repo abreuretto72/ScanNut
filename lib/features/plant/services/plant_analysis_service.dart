@@ -1,3 +1,10 @@
+// ═══════════════════════════════════════════════════════════════════════════════
+// 🚫 MÓDULO BLINDADO E CONGELADO - NÃO ALTERAR SEM AUTORIZAÇÃO EXPLÍCITA
+// Data de Congelamento: 29/12/2025
+// Este serviço contém a lógica de análise botânica via IA com 7 camadas de inteligência.
+// Qualquer modificação pode comprometer a precisão dos diagnósticos e recomendações.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -81,9 +81,9 @@ class PetDataRouter {
     debugPrint('🍖 Saving CARDAPIO data for ${envelope.targetPet}');
     
     // Save menu to MealHistoryService
-    await _mealService.saveIngredients(
+    await _mealService.saveWeeklyIngredients(
       envelope.targetPet, 
-      envelope.dataPayload['plano_semanal'] ?? [],
+      List<String>.from(envelope.dataPayload['plano_semanal'] ?? []),
     );
     
     return true;

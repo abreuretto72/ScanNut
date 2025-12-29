@@ -571,6 +571,41 @@ class AppDrawer extends ConsumerWidget {
               ),
               
               const SizedBox(height: 20),
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 16),
+              
+              // Módulo de Plantas
+              Text(
+                '🌿 ANÁLISE DE PLANTAS',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFF00E676),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              _buildFeatureItem(
+                '🍃 Ícone de Folha (Verde)',
+                'Indica que a planta está SAUDÁVEL. Nenhuma intervenção urgente necessária.',
+              ),
+              
+              _buildFeatureItem(
+                '⚠️ Ícone de Alerta (Amarelo/Laranja)',
+                'Planta requer ATENÇÃO. Pode estar com deficiências nutricionais ou estresse hídrico.',
+              ),
+              
+              _buildFeatureItem(
+                '🚨 Ícone de Emergência (Vermelho)',
+                'Estado CRÍTICO. A planta necessita de tratamento imediato para sobreviver.',
+              ),
+              
+              _buildFeatureItem(
+                '📊 Semáforo de Sobrevivência',
+                'Verde = Ideal | Amarelo = Atenção | Vermelho = Urgente. Aparece nos cards de histórico.',
+              ),
+              
+              const SizedBox(height: 20),
               
               // Dica Final
               Container(

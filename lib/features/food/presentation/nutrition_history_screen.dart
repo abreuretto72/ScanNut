@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../models/nutrition_history_item.dart';
 import '../services/nutrition_service.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import '../models/food_analysis_model.dart';
+import 'food_result_screen.dart';
 
 class NutritionHistoryScreen extends StatefulWidget {
   const NutritionHistoryScreen({Key? key}) : super(key: key);
@@ -33,10 +35,11 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🖥️ [HistoryScreen] Building... isLoading: $_isLoading, Items: ${_items.length}');
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Histórico Fitness',
+        title: Text('Histórico de Alimentos',
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
@@ -78,6 +81,16 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
             'Nenhuma análise salva ainda.',
             style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
           ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: () {
+                setState(() { _isLoading = true; });
+                _loadHistory();
+            },
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            label: const Text("Recarregar"),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+          ),
         ],
       ),
     );
@@ -86,7 +99,9 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   Widget _buildFoodCard(NutritionHistoryItem item) {
     return GestureDetector(
       onTap: () => _showDetailModal(item),
+
       child: Container(
+        height: 140, // Fixed height to avoid layout issues
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Colors.grey.shade900.withValues(alpha: 0.8),
@@ -95,8 +110,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
             color: item.isUltraprocessed ? Colors.redAccent.withValues(alpha: 0.3) : Colors.greenAccent.withValues(alpha: 0.2),
           ),
         ),
-        child: IntrinsicHeight(
-          child: Row(
+        child: Row(
             children: [
               // Image Thumbnail
               ClipRRect(
@@ -109,6 +123,11 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                           width: 100,
                           height: double.infinity,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            width: 100,
+                            color: Colors.grey.shade800,
+                            child: const Icon(Icons.broken_image, color: Colors.white24),
+                          ),
                         )
                       : Container(
                           width: 100,
@@ -139,9 +158,21 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Text(
-                            DateFormat('dd/MM').format(item.timestamp),
-                            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                               Text(
+                                DateFormat('dd/MM').format(item.timestamp),
+                                style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10),
+                              ),
+                              GestureDetector(
+                                onTap: () => _confirmDelete(item),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -154,9 +185,9 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildMacroMini('P', item.proteins, Colors.blueAccent),
-                          _buildMacroMini('C', item.carbs, Colors.orangeAccent),
-                          _buildMacroMini('G', item.fats, Colors.greenAccent),
+                          _buildMacroMini('Prot.', item.proteins, Colors.blueAccent),
+                          _buildMacroMini('Carb.', item.carbs, Colors.orangeAccent),
+                          _buildMacroMini('Gord.', item.fats, Colors.greenAccent),
                         ],
                       ),
                     ],
@@ -166,7 +197,6 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 
@@ -182,92 +212,87 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
     );
   }
 
-  void _showDetailModal(NutritionHistoryItem item) {
-    showModalBottomSheet(
+  Future<void> _confirmDelete(NutritionHistoryItem item) async {
+    final confirm = await showDialog<bool>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.8,
-        maxChildSize: 0.95,
-        builder: (_, controller) => Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade900,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        title: Text('Excluir Análise?', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text('Esta ação não pode ser desfeita.', style: GoogleFonts.poppins(color: Colors.grey)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white)),
           ),
-          child: ListView(
-            controller: controller,
-            padding: const EdgeInsets.all(24),
-            children: [
-              Center(
-                child: Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(item.foodName, style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              
-              // Biohacking Tips
-              _buildSectionTitle('Performance & Biohacking', Icons.bolt),
-              const SizedBox(height: 8),
-              ...item.biohackingTips.map((tip) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.check_circle_outline, color: Color(0xFF00E676), size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(tip, style: GoogleFonts.poppins(color: Colors.white70))),
-                  ],
-                ),
-              )).toList(),
-
-              const SizedBox(height: 24),
-              
-              // Recipes
-              _buildSectionTitle('Receitas Inteligentes (15 min)', Icons.timer),
-              const SizedBox(height: 12),
-              ...item.recipesList.map((recipe) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(recipe['nome'] ?? '', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-                    const SizedBox(height: 4),
-                    Text(recipe['instrucoes'] ?? '', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.timer_outlined, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(recipe['tempo'] ?? '15 min', style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
-                      ],
-                    ),
-                  ],
-                ),
-              )).toList(),
-            ],
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Excluir', style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
-        ),
+        ],
       ),
     );
+
+    if (confirm == true) {
+      await NutritionService().deleteHistoryItem(item);
+      _loadHistory(); // Refresh list
+    }
   }
 
-  Widget _buildSectionTitle(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.orangeAccent, size: 20),
-        const SizedBox(width: 8),
-        Text(title, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-      ],
-    );
+  void _showDetailModal(NutritionHistoryItem item) {
+    debugPrint('🔍 [History] Opening details for: ${item.foodName}');
+    
+    if (item.rawMetadata != null) {
+       debugPrint('📄 [History] keys: ${item.rawMetadata!.keys.toList()}');
+       // debugPrint('📄Raw: ${item.rawMetadata}'); // Uncomment if needed, can be huge
+    } else {
+       debugPrint('⚠️ [History] rawMetadata is NULL');
+    }
+
+    if (item.rawMetadata == null || item.rawMetadata!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Detalhes antigos não suportados na visualização completa.')));
+        return;
+    }
+
+    try {
+      // Robust conversion from dynamic Hive maps to Map<String, dynamic>
+      final jsonMap = _convertToMapStringDynamic(item.rawMetadata);
+      final analysis = FoodAnalysisModel.fromJson(jsonMap);
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FoodResultScreen(
+            analysis: analysis,
+            imageFile: item.imagePath != null ? File(item.imagePath!) : null,
+            onSave: () {}, 
+            isReadOnly: true,
+          ),
+        ),
+      );
+    } catch (e, stack) {
+       debugPrint('❌ [History] Error parsing history item: $e');
+       debugPrint(stack.toString());
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao processar dados salvos.')));
+    }
+  }
+
+  // Helper to deep convert to Map<String, dynamic>
+  Map<String, dynamic> _convertToMapStringDynamic(dynamic input) {
+     final fixed = _deepFixMaps(input);
+     if (fixed is Map) {
+        return Map<String, dynamic>.from(fixed);
+     }
+     return {};
+  }
+  
+  // Better implementation of the helper inside the class
+  dynamic _deepFixMaps(dynamic value) {
+    if (value is Map) {
+      return value.map<String, dynamic>((k, v) => MapEntry(k.toString(), _deepFixMaps(v)));
+    }
+    if (value is List) {
+      return value.map((e) => _deepFixMaps(e)).toList();
+    }
+    return value;
   }
 }

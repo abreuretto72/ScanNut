@@ -22,13 +22,14 @@ class WeeklyPlanAdapter extends TypeAdapter<WeeklyPlan> {
       days: (fields[2] as List).cast<PlanDay>(),
       criadoEm: fields[3] as DateTime,
       atualizadoEm: fields[4] as DateTime,
+      dicasPreparo: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WeeklyPlan obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.weekStartDate)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class WeeklyPlanAdapter extends TypeAdapter<WeeklyPlan> {
       ..writeByte(3)
       ..write(obj.criadoEm)
       ..writeByte(4)
-      ..write(obj.atualizadoEm);
+      ..write(obj.atualizadoEm)
+      ..writeByte(5)
+      ..write(obj.dicasPreparo);
   }
 
   @override

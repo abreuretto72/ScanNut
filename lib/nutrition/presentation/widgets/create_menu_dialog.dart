@@ -1,34 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-/// Parâmetros para criação do cardápio semanal
-class MenuCreationParams {
-  final int mealsPerDay;
-  final String style; // simples, economico, rapido, saudavel
-  final List<String> restrictions;
-  final bool allowRepetition;
-
-  MenuCreationParams({
-    this.mealsPerDay = 4,
-    this.style = 'simples',
-    this.restrictions = const [],
-    this.allowRepetition = true,
-  });
-
-  MenuCreationParams copyWith({
-    int? mealsPerDay,
-    String? style,
-    List<String>? restrictions,
-    bool? allowRepetition,
-  }) {
-    return MenuCreationParams(
-      mealsPerDay: mealsPerDay ?? this.mealsPerDay,
-      style: style ?? this.style,
-      restrictions: restrictions ?? this.restrictions,
-      allowRepetition: allowRepetition ?? this.allowRepetition,
-    );
-  }
-}
+import '../../data/models/menu_creation_params.dart';
 
 /// Modal para configurar criação do cardápio
 class CreateMenuDialog extends StatefulWidget {

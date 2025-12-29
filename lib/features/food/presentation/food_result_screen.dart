@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
+import '../services/nutrition_service.dart';
 import '../models/food_analysis_model.dart';
 import 'widgets/result_card.dart';
 import '../../../core/providers/settings_provider.dart';
@@ -26,8 +27,15 @@ class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
   final File? imageFile;
   final VoidCallback onSave;
+  final bool isReadOnly;
 
-    const FoodResultScreen({Key? key, required this.analysis, this.imageFile, required this.onSave}) : super(key: key);
+  const FoodResultScreen({
+    Key? key, 
+    required this.analysis, 
+    this.imageFile, 
+    required this.onSave,
+    this.isReadOnly = false,
+  }) : super(key: key);
 
   @override
   ConsumerState<FoodResultScreen> createState() => _FoodResultScreenState();
@@ -38,11 +46,16 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   late ScrollController _scrollController;
   final Color _themeColor = const Color(0xFF00E676); // Green Accent
 
+  bool _isSaved = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _scrollController = ScrollController();
+    if (widget.isReadOnly) {
+      _isSaved = true;
+    }
   }
 
   @override
@@ -97,6 +110,12 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               actions: [
                 PdfActionButton(
                   onPressed: _generatePDF,
+                  color: Colors.white,
+                ),
+                IconButton(
+                  icon: Icon(_isSaved ? Icons.check : Icons.save, color: _isSaved ? const Color(0xFF00E676) : Colors.white),
+                  onPressed: _isSaved ? null : _saveToHistory,
+                  tooltip: _isSaved ? 'Salvo' : 'Salvar no Histórico',
                 ),
                 const SizedBox(width: 8),
               ],
@@ -198,8 +217,6 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           ],
         ),
       ),
-      floatingActionButton: _buildNutritionButtons(context),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -576,32 +593,31 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     );
   }
 
-  /// Adiciona ao diário alimentar
-  Future<void> _addToDiary() async {
+  /// Salva no histórico de alimentos
+  Future<void> _saveToHistory() async {
     try {
-      final tipo = await _showMealTypeDialog();
-      if (tipo == null) return;
-
-      final mealLog = ScanToNutritionMapper.createMealLogFromScan(
-        analysis: widget.analysis,
-        tipo: tipo,
+      await NutritionService().saveFoodAnalysis(
+        widget.analysis, 
+        widget.imageFile
       );
 
-      await ref.read(mealLogsProvider.notifier).addLog(mealLog);
-
       if (mounted) {
+        setState(() {
+          _isSaved = true;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ Adicionado ao diário ($tipo)'),
+          const SnackBar(
+            content: Text('✅ Análise salva no histórico!'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      debugPrint('❌ Error: $e');
+      debugPrint('❌ Error saving to history: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -692,40 +708,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     );
   }
 
-  Widget _buildNutritionButtons(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: FloatingActionButton.extended(
-              onPressed: _addToDiary,
-              backgroundColor: const Color(0xFF2196F3),
-              heroTag: 'diary',
-              icon: const Icon(Icons.book, color: Colors.white),
-              label: Text(
-                'Diário',
-                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: FloatingActionButton.extended(
-              onPressed: _addToTodayPlan,
-              backgroundColor: const Color(0xFF00E676),
-              heroTag: 'plan',
-              icon: const Icon(Icons.calendar_today, color: Colors.black),
-              label: Text(
-                'Plano',
-                style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   TextStyle get _sectionTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
 }

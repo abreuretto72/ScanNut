@@ -1,5 +1,12 @@
-import 'package:hive/hive.dart';
-import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+/// ============================================================================
+/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este módulo de Treinos e Exercícios foi concluído e validado.
+/// Nenhuma rotina ou lógica interna deve ser modificada.
+/// Data de Congelamento: 29/12/2025
+/// ============================================================================
+
+import 'package:flutter/material.dart';
 import '../models/workout_item.dart';
 
 class WorkoutService {

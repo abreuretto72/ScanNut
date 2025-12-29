@@ -1,221 +1,323 @@
 {
     "receitas": [
         {
-            "id": "omelete_simples",
-            "nome": "Omelete Simples",
-            "tempoPreparo": "10 minutos",
-            "dificuldade": "fácil",
-            "porcoes": 1,
-            "ingredientes": [
-                "2 ovos",
-                "1 tomate picado",
-                "Sal e pimenta a gosto",
-                "1 colher de azeite"
-            ],
-            "modoPreparo": "Bata os ovos, tempere, adicione o tomate e frite em fogo médio até dourar.",
-            "calorias": 220,
-            "proteinas": 14,
-            "carboidratos": 4,
-            "gorduras": 16,
-            "restricoes": []
-        },
-        {
-            "id": "frango_legumes",
-            "nome": "Frango com Legumes",
-            "tempoPreparo": "15 minutos",
-            "dificuldade": "fácil",
-            "porcoes": 1,
-            "ingredientes": [
-                "120g peito de frango",
-                "1 cenoura",
-                "1 abobrinha",
-                "Alho e cebola",
-                "Azeite"
-            ],
-            "modoPreparo": "Refogue o frango com alho e cebola, adicione os legumes picados e cozinhe por 10 minutos.",
-            "calorias": 280,
-            "proteinas": 35,
-            "carboidratos": 12,
-            "gorduras": 10,
-            "restricoes": [
-                "sem_lactose",
-                "sem_gluten"
-            ]
-        },
-        {
-            "id": "salada_completa",
-            "nome": "Salada Completa",
-            "tempoPreparo": "10 minutos",
+            "id": "cafe_pao_chapa",
+            "nome": "Café com leite e pão na chapa",
+            "tempoPreparo": "5 minutos",
             "dificuldade": "muito_facil",
             "porcoes": 1,
             "ingredientes": [
-                "Alface",
-                "Tomate",
-                "Cenoura ralada",
-                "1 ovo cozido",
-                "Azeite e limão"
+                "1 pão francês",
+                "1 colher de manteiga",
+                "200ml leite",
+                "1 dose café"
             ],
-            "modoPreparo": "Monte a salada com todos os ingredientes e tempere com azeite e limão.",
-            "calorias": 150,
-            "proteinas": 8,
-            "carboidratos": 10,
-            "gorduras": 9,
+            "modoPreparo": "Passe manteiga no pão e doure na frigideira. Misture o café com o leite quente.",
+            "calorias": 320,
+            "proteinas": 10,
+            "carboidratos": 45,
+            "gorduras": 12,
             "restricoes": [
-                "vegetariano",
-                "sem_lactose",
-                "sem_gluten"
+                "vegetariano"
             ]
         },
         {
-            "id": "arroz_feijao",
-            "nome": "Arroz com Feijão",
+            "id": "almoco_pf_omelete",
+            "nome": "Arroz, feijão e omelete com tomate",
             "tempoPreparo": "15 minutos",
             "dificuldade": "fácil",
             "porcoes": 1,
             "ingredientes": [
                 "1 xícara arroz cozido",
                 "1 concha feijão",
-                "Alho e cebola",
-                "Sal"
+                "2 ovos",
+                "1 tomate picado",
+                "Salada de alface e tomate"
             ],
-            "modoPreparo": "Refogue o arroz com alho e cebola, sirva com feijão temperado.",
-            "calorias": 282,
-            "proteinas": 8.8,
-            "carboidratos": 59,
-            "gorduras": 0.9,
+            "modoPreparo": "Prepare o omelete com o tomate. Sirva acompanhado de arroz, feijão e a salada fresca.",
+            "calorias": 450,
+            "proteinas": 22,
+            "carboidratos": 65,
+            "gorduras": 14,
             "restricoes": [
-                "vegano",
+                "vegetariano",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "feijoada_simples",
+            "nome": "Feijoada simples com couve e laranja",
+            "tempoPreparo": "40 minutos",
+            "dificuldade": "média",
+            "porcoes": 1,
+            "ingredientes": [
+                "1.5 xícara feijão preto com carnes (paio, charque)",
+                "1 xícara arroz branco",
+                "Couve refogada no alho",
+                "2 fatias de laranja",
+                "Farofa simples"
+            ],
+            "modoPreparo": "Sirva o feijão com arroz, couve fresca refogada e as fatias de laranja para ajudar na digestão.",
+            "calorias": 650,
+            "proteinas": 35,
+            "carboidratos": 85,
+            "gorduras": 22,
+            "restricoes": [
+                "sem_lactose"
+            ]
+        },
+        {
+            "id": "peixe_pure_doce",
+            "nome": "Peixe grelhado com purê de batata doce",
+            "tempoPreparo": "20 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "150g filé de peixe (tilápia ou merluza)",
+                "1 xícara purê de batata doce",
+                "Brócolis ao vapor",
+                "Azeite de oliva"
+            ],
+            "modoPreparo": "Grelhe o peixe com pouco azeite. Sirva com o purê cremoso e brócolis temperado.",
+            "calorias": 420,
+            "proteinas": 32,
+            "carboidratos": 48,
+            "gorduras": 12,
+            "restricoes": [
                 "sem_lactose",
                 "sem_gluten"
             ]
         },
         {
-            "id": "vitamina_banana",
-            "nome": "Vitamina de Banana",
-            "tempoPreparo": "5 minutos",
-            "dificuldade": "muito_facil",
+            "id": "estrogonofe_frango",
+            "nome": "Estrogonofe de frango com arroz e batata palha",
+            "tempoPreparo": "25 minutos",
+            "dificuldade": "fácil",
             "porcoes": 1,
             "ingredientes": [
-                "1 banana",
-                "200ml leite",
-                "1 colher aveia",
-                "Mel a gosto"
+                "120g peito de frango em cubos",
+                "Creme de leite ou iogurte natural",
+                "Molho de tomate e mostarda",
+                "1 xícara arroz branco",
+                "1 punhado batata palha"
             ],
-            "modoPreparo": "Bata todos os ingredientes no liquidificador até ficar homogêneo.",
-            "calorias": 280,
-            "proteinas": 9,
-            "carboidratos": 48,
-            "gorduras": 7,
+            "modoPreparo": "Refogue o frango, adicione os molhos e finalize com o creme. Sirva com arroz e batata palha.",
+            "calorias": 550,
+            "proteinas": 34,
+            "carboidratos": 60,
+            "gorduras": 18,
             "restricoes": [
-                "vegetariano"
+                "sem_gluten"
             ]
         },
         {
-            "id": "tapioca_queijo",
-            "nome": "Tapioca com Queijo",
+            "id": "carne_panela_mandioca",
+            "nome": "Carne de panela com mandioca e arroz",
+            "tempoPreparo": "35 minutos",
+            "dificuldade": "média",
+            "porcoes": 1,
+            "ingredientes": [
+                "120g acém ou músculo em cubos",
+                "2 pedaços pequenos de mandioca cozida",
+                "1 xícara arroz branco",
+                "Salada de tomate e cebola"
+            ],
+            "modoPreparo": "Cozinhe a carne até desfiar com a mandioca. Sirva bem quente com arroz.",
+            "calorias": 520,
+            "proteinas": 32,
+            "carboidratos": 65,
+            "gorduras": 15,
+            "restricoes": [
+                "sem_lactose",
+                "sem_gluten"
+            ]
+        },
+        {
+            "id": "bife_acebolado_completo",
+            "nome": "Bife acebolado com arroz, feijão e farofa",
+            "tempoPreparo": "20 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 bife de alcatra ou patinho",
+                "Cebola em rodelas",
+                "1 xícara arroz",
+                "1 concha feijão",
+                "2 colheres farofa de milho"
+            ],
+            "modoPreparo": "Frite o bife, refogue a cebola na mesma gordura. Monte o prato feito clássico.",
+            "calorias": 580,
+            "proteinas": 36,
+            "carboidratos": 70,
+            "gorduras": 16,
+            "restricoes": [
+                "sem_lactose"
+            ]
+        },
+        {
+            "id": "omelete_gourmet",
+            "nome": "Omelete de queijo, espinafre e tomate",
             "tempoPreparo": "10 minutos",
             "dificuldade": "fácil",
             "porcoes": 1,
             "ingredientes": [
-                "50g goma de tapioca",
-                "30g queijo minas",
-                "Sal a gosto"
+                "2 ovos grandes",
+                "1 fatia queijo minas ou mussarela",
+                "Folhas de espinafre fresco",
+                "Tomate cereja",
+                "1 fatia pão integral"
             ],
-            "modoPreparo": "Espalhe a goma na frigideira quente, adicione o queijo, dobre e sirva.",
-            "calorias": 149,
-            "proteinas": 5.5,
-            "carboidratos": 18.2,
-            "gorduras": 6.1,
+            "modoPreparo": "Bata os ovos com espinafre e tomate. Recheie com o queijo e sirva com o pão.",
+            "calorias": 310,
+            "proteinas": 18,
+            "carboidratos": 15,
+            "gorduras": 18,
             "restricoes": [
                 "vegetariano",
                 "sem_gluten"
             ]
         },
         {
-            "id": "batata_doce_ovo",
-            "nome": "Batata Doce com Ovo",
-            "tempoPreparo": "15 minutos",
-            "dificuldade": "fácil",
-            "porcoes": 1,
-            "ingredientes": [
-                "1 batata doce média",
-                "2 ovos",
-                "Sal e pimenta"
-            ],
-            "modoPreparo": "Cozinhe a batata doce, frite os ovos e sirva junto.",
-            "calorias": 284,
-            "proteinas": 14.6,
-            "carboidratos": 30.6,
-            "gorduras": 10.8,
-            "restricoes": [
-                "vegetariano",
-                "sem_lactose",
-                "sem_gluten"
-            ]
-        },
-        {
-            "id": "iogurte_granola",
-            "nome": "Iogurte com Granola",
+            "id": "vitamina_abacate_aveia",
+            "nome": "Vitamina de abacate com aveia e mel",
             "tempoPreparo": "5 minutos",
             "dificuldade": "muito_facil",
             "porcoes": 1,
             "ingredientes": [
-                "1 pote iogurte natural",
-                "3 colheres granola",
-                "1 banana fatiada",
-                "Mel"
+                "1/2 abacate pequeno",
+                "200ml leite ou leite vegetal",
+                "2 colheres aveia em flocos",
+                "1 colher mel ou melado"
             ],
-            "modoPreparo": "Monte em camadas: iogurte, granola, banana e mel.",
-            "calorias": 336,
-            "proteinas": 10.5,
-            "carboidratos": 52.9,
-            "gorduras": 10.1,
+            "modoPreparo": "Bata tudo no liquidificador até ficar cremoso. Beba gelado.",
+            "calorias": 340,
+            "proteinas": 8,
+            "carboidratos": 38,
+            "gorduras": 20,
             "restricoes": [
                 "vegetariano"
             ]
         },
         {
-            "id": "sopa_legumes",
-            "nome": "Sopa de Legumes",
-            "tempoPreparo": "15 minutos",
-            "dificuldade": "fácil",
-            "porcoes": 1,
-            "ingredientes": [
-                "Cenoura",
-                "Batata",
-                "Chuchu",
-                "Cebola e alho",
-                "Sal e temperos"
-            ],
-            "modoPreparo": "Cozinhe todos os legumes picados em água com temperos até ficarem macios.",
-            "calorias": 120,
-            "proteinas": 3,
-            "carboidratos": 26,
-            "gorduras": 0.5,
-            "restricoes": [
-                "vegano",
-                "sem_lactose",
-                "sem_gluten"
-            ]
-        },
-        {
-            "id": "wrap_frango",
-            "nome": "Wrap de Frango",
-            "tempoPreparo": "15 minutos",
+            "id": "panqueca_carne_molho",
+            "nome": "Panqueca de carne com molho e salada",
+            "tempoPreparo": "25 minutos",
             "dificuldade": "média",
             "porcoes": 1,
             "ingredientes": [
-                "1 tortilha integral",
-                "100g frango desfiado",
-                "Alface e tomate",
-                "Molho de iogurte"
+                "2 panquecas médias",
+                "100g carne moída temperada",
+                "Molho de tomate caseiro",
+                "Mix de folhas verdes"
             ],
-            "modoPreparo": "Recheie a tortilha com frango, vegetais e molho. Enrole e sirva.",
-            "calorias": 320,
+            "modoPreparo": "Recheie as panquecas com a carne, cubra com molho e aqueça. Sirva com folhas.",
+            "calorias": 460,
             "proteinas": 28,
-            "carboidratos": 35,
-            "gorduras": 8,
+            "carboidratos": 45,
+            "gorduras": 18,
             "restricoes": []
+        },
+        {
+            "id": "salpicao_frango_torrada",
+            "nome": "Salpicão de frango com torradas",
+            "tempoPreparo": "15 minutos",
+            "dificuldade": "muito_facil",
+            "porcoes": 1,
+            "ingredientes": [
+                "Frango desfiado",
+                "Maionese e creme de leite",
+                "Milho e ervilha",
+                "Maçã picada",
+                "4 torradas de pão"
+            ],
+            "modoPreparo": "Misture os ingredientes do salpicão e sirva sobre as torradas crocantes.",
+            "calorias": 380,
+            "proteinas": 22,
+            "carboidratos": 40,
+            "gorduras": 16,
+            "restricoes": []
+        },
+        {
+            "id": "arroz_lentilha_linguica",
+            "nome": "Arroz com lentilha, linguiça e salada",
+            "tempoPreparo": "25 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 xícara arroz com lentilha",
+                "1 gomo linguiça assada ou grelhada",
+                "Salada de pepino e tomate",
+                "Cebola caramelizada"
+            ],
+            "modoPreparo": "Cozinhe o arroz com a lentilha. Sirva com a linguiça fatiada e a salada.",
+            "calorias": 530,
+            "proteinas": 28,
+            "carboidratos": 68,
+            "gorduras": 14,
+            "restricoes": [
+                "sem_lactose"
+            ]
+        },
+        {
+            "id": "pizza_frigideira_rapida",
+            "nome": "Pizza caseira de frigideira",
+            "tempoPreparo": "10 minutos",
+            "dificuldade": "muito_facil",
+            "porcoes": 1,
+            "ingredientes": [
+                "1 massa de Rap10 ou similar",
+                "Molho de tomate",
+                "Queijo e orégano",
+                "Tomate e manjericão"
+            ],
+            "modoPreparo": "Monte a pizza na frigideira, tampe para o queijo derreter e a massa dourar.",
+            "calorias": 320,
+            "proteinas": 14,
+            "carboidratos": 30,
+            "gorduras": 14,
+            "restricoes": [
+                "vegetariano"
+            ]
+        },
+        {
+            "id": "sanduiche_atum_folhas",
+            "nome": "Sanduíche de atum cremoso com folhas",
+            "tempoPreparo": "5 minutos",
+            "dificuldade": "muito_facil",
+            "porcoes": 1,
+            "ingredientes": [
+                "2 fatias pão de fôrma",
+                "1/2 lata de atum",
+                "Ricota ou maionese",
+                "Folhas de rúcula ou alface"
+            ],
+            "modoPreparo": "Misture o atum com a ricota, espalhe no pão e adicione as folhas frescas.",
+            "calorias": 290,
+            "proteinas": 21,
+            "carboidratos": 28,
+            "gorduras": 10,
+            "restricoes": []
+        },
+        {
+            "id": "frango_xadrez_legumes",
+            "nome": "Frango xadrez com legumes e arroz",
+            "tempoPreparo": "20 minutos",
+            "dificuldade": "fácil",
+            "porcoes": 1,
+            "ingredientes": [
+                "120g frango em cubos",
+                "Pimentão, cebola e amendoim",
+                "Molho shoyu",
+                "1 xícara arroz branco"
+            ],
+            "modoPreparo": "Refogue o frango com legumes e shoyu. Finalize com amendoim e sirva com arroz.",
+            "calorias": 490,
+            "proteinas": 35,
+            "carboidratos": 55,
+            "gorduras": 14,
+            "restricoes": [
+                "sem_lactose"
+            ]
         }
     ]
 }

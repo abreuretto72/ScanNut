@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +7,12 @@ import '../../data/models/plan_day.dart';
 import '../../data/models/meal.dart';
 import '../controllers/nutrition_providers.dart';
 import '../widgets/create_menu_dialog.dart';
-import '../widgets/hive_debug_panel.dart';
+import '../../data/models/menu_creation_params.dart';
+import '../../data/models/user_nutrition_profile.dart';
+import '../../../core/services/export_service.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
+import '../../../core/widgets/pdf_action_button.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Tela do Plano Semanal - MVP Completo
 class WeeklyPlanScreen extends ConsumerStatefulWidget {
@@ -113,6 +117,29 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     }
   }
 
+  Future<void> _generatePDF(WeeklyPlan plan) async {
+    final profile = ref.read(nutritionProfileProvider);
+    final goal = profile?.objetivo ?? 'Saúde e Bem-estar';
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PdfPreviewScreen(
+          title: 'Plano Alimentar Semanal',
+          buildPdf: (format) async {
+            final pdf = await ExportService().generateHumanNutritionPlanReport(
+              goal: goal,
+              days: plan.days,
+              strings: AppLocalizations.of(context)!,
+              batchCookingTips: plan.dicasPreparo,
+            );
+            return pdf.save();
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _showCreateMenuDialog() async {
     try {
       debugPrint('[CriarCardapio] Botão tocado');
@@ -148,18 +175,36 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             await dataService.loadData();
           }
 
-          if (profile != null) {
-            await ref.read(currentWeekPlanProvider.notifier).generateNewPlan(profile);
+          var profile = ref.read(nutritionProfileProvider);
+          
+          // FALLBACK: Create default profile if missing
+          if (profile == null) {
+              debugPrint('⚠️ [WeeklyPlan] Profile is null. Creating default profile for generation...');
+              profile = UserNutritionProfile.padrao();
+              await ref.read(nutritionProfileProvider.notifier).updateProfile(profile);
+              
+              if (mounted) {
+                 ScaffoldMessenger.of(context).showSnackBar(
+                   const SnackBar(
+                     content: Text('Perfil básico criado automaticamente.'),
+                     backgroundColor: Colors.amber,
+                     duration: Duration(seconds: 2),
+                   ),
+                 );
+              }
+          }
+
+          // Gerar plano para a semana usando o perfil garantido
+          await ref.read(currentWeekPlanProvider.notifier).generateNewPlan(profile, params: params);
             
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('✅ Cardápio criado!'),
+                  content: Text('✅ Cardápio criado com sucesso!'),
                   backgroundColor: Colors.green,
                 ),
               );
             }
-          }
         } catch (e) {
           debugPrint('[CriarCardapio] Erro: $e');
           if (mounted) {
@@ -185,6 +230,82 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
         );
       }
     }
+  }
+
+  void _showHistory() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey.shade900,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text('Histórico de Cardápios', style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final historyAsync = ref.watch(weeklyPlanHistoryProvider);
+                  return historyAsync.when(
+                    data: (plans) {
+                        if (plans.isEmpty) return const Center(child: Text('Nenhum histórico', style: TextStyle(color: Colors.white)));
+                        return ListView.separated(
+                          itemCount: plans.length,
+                          separatorBuilder: (_,__) => const Divider(color: Colors.white12),
+                          itemBuilder: (context, index) {
+                            final plan = plans[index];
+                            // plan item design
+                            return ListTile(
+                                title: Text('Semana de ${DateFormat('dd/MM/yyyy').format(plan.weekStartDate)}', style: GoogleFonts.poppins(color: Colors.white)),
+                                subtitle: Text('${plan.days.length} dias planejados', style: GoogleFonts.poppins(color: Colors.grey)),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            backgroundColor: Colors.grey.shade900,
+                                            title: const Text('Excluir cardápio?', style: TextStyle(color: Colors.white)),
+                                            content: const Text('Esta ação não pode ser desfeita.', style: TextStyle(color: Colors.white70)),
+                                            actions: [
+                                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                                              TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Excluir', style: TextStyle(color: Colors.red))),
+                                            ],
+                                          ),
+                                        );
+                                        
+                                        if (confirm == true) {
+                                          await ref.read(currentWeekPlanProvider.notifier).deletePlan(plan);
+                                          ref.invalidate(weeklyPlanHistoryProvider); // Refresh list
+                                          if (context.mounted) Navigator.pop(context); // Close modal
+                                        }
+                                      },
+                                    ),
+                                    const Icon(Icons.chevron_right, color: Colors.white54),
+                                  ],
+                                ),
+                                onTap: () {
+                                    ref.read(currentWeekPlanProvider.notifier).setPlan(plan);
+                                    Navigator.pop(context);
+                                },
+                            );
+                          },
+                        );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, s) => Center(child: Text('Erro: $e', style: const TextStyle(color: Colors.red))),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -274,20 +395,12 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                   ],
                 ),
               ),
-              // Botão Debug (apenas em DEBUG mode)
-              if (kDebugMode)
-                IconButton(
-                  icon: const Icon(Icons.bug_report, color: Colors.red),
-                  tooltip: 'Debug Hive',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HiveDebugPanel(),
-                      ),
-                    );
-                  },
-                ),
+              IconButton(
+                icon: const Icon(Icons.history, color: Colors.white),
+                tooltip: 'Histórico de Cardápios',
+                onPressed: _showHistory,
+              ),
+              PdfActionButton(onPressed: () => _generatePDF(plan)),
               IconButton(
                 icon: const Icon(Icons.refresh, color: Color(0xFF00E676)),
                 tooltip: 'Refazer cardápio da semana',
@@ -296,6 +409,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             ],
           ),
         ),
+        // Seção de Dicas (Batch Cooking)
+        _buildTipsSection(plan),
+        
         // Lista de dias
         Expanded(
           child: ListView.builder(
@@ -309,6 +425,97 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildTipsSection(WeeklyPlan plan) {
+    if (plan.dicasPreparo == null || plan.dicasPreparo!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lightbulb_outline, color: Colors.orange, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Dicas de Preparo (Batch Cooking)',
+                style: GoogleFonts.poppins(
+                  color: Colors.orange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            plan.dicasPreparo!,
+            style: GoogleFonts.poppins(
+              color: Colors.white70,
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCaloriesSummary(PlanDay day) {
+    final cals = _calculateDayCalories(day);
+    if (cals == 0) return const SizedBox.shrink();
+
+    return Row(
+      children: [
+        Icon(Icons.local_fire_department, size: 14, color: Colors.orange.shade300),
+        const SizedBox(width: 4),
+        Text(
+          '$cals kcal estimados para o dia',
+          style: GoogleFonts.poppins(
+            color: Colors.white38,
+            fontSize: 11,
+          ),
+        ),
+        const Spacer(),
+        SizedBox(
+          width: 60,
+          child: LinearProgressIndicator(
+            value: (cals / 2000).clamp(0.0, 1.0),
+            backgroundColor: Colors.white10,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.withValues(alpha: 0.5)),
+            minHeight: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  int _calculateDayCalories(PlanDay day) {
+    int total = 0;
+    for (var meal in day.meals) {
+      final mealMatch = RegExp(r'(\d+)\s*kcal').firstMatch(meal.observacoes);
+      if (mealMatch != null) {
+        total += int.tryParse(mealMatch.group(1) ?? '0') ?? 0;
+      } else {
+        for (var item in meal.itens) {
+          final itemMatch = RegExp(r'(\d+)\s*kcal').firstMatch(item.observacoes ?? '');
+          if (itemMatch != null) {
+            total += int.tryParse(itemMatch.group(1) ?? '0') ?? 0;
+          }
+        }
+      }
+    }
+    return total;
   }
 
   Widget _buildDayCard(PlanDay day) {
@@ -369,6 +576,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              _buildCaloriesSummary(day),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -531,7 +740,7 @@ class DayPlanDetailsScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        meal.itens.isNotEmpty ? meal.itens.first.nome : 'Refeição',
+                        meal.nomePrato ?? (meal.itens.isNotEmpty ? meal.itens.first.nome : 'Refeição'),
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 16,
@@ -547,59 +756,43 @@ class DayPlanDetailsScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 meal.observacoes,
-                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontStyle: FontStyle.italic),
               ),
             ],
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _consumeMeal(context, ref, meal),
-                    icon: const Icon(Icons.check_circle_outline, size: 18),
-                    label: Text('Consumir', style: GoogleFonts.poppins(fontSize: 14)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF00E676),
-                      side: const BorderSide(color: Color(0xFF00E676)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _swapMeal(context, ref, meal),
-                    icon: const Icon(Icons.swap_horiz, size: 18),
-                    label: Text('Trocar', style: GoogleFonts.poppins(fontSize: 14)),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.orange,
-                      side: const BorderSide(color: Colors.orange),
-                    ),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 12),
+            const Divider(color: Colors.white10),
+            const SizedBox(height: 8),
+            Text(
+              'INGREDIENTES',
+              style: GoogleFonts.poppins(
+                color: Colors.white30,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
             ),
+            const SizedBox(height: 8),
+            ...meal.itens.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.circle, size: 6, color: _getMealColor(meal.tipo).withValues(alpha: 0.5)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      item.nome,
+                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+                    ),
+                  ),
+                  Text(
+                    item.quantidadeTexto,
+                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                  ),
+                ],
+              ),
+            )),
           ],
         ),
-      ),
-    );
-  }
-
-  void _consumeMeal(BuildContext context, WidgetRef ref, Meal meal) {
-    // TODO: Implementar consumo (criar MealLog)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('✅ ${_getMealLabel(meal.tipo)} registrado no diário!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
-  void _swapMeal(BuildContext context, WidgetRef ref, Meal meal) {
-    // TODO: Implementar troca de refeição
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Troca de refeição em desenvolvimento'),
-        backgroundColor: Colors.orange,
       ),
     );
   }

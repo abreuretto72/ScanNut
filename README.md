@@ -87,3 +87,38 @@ flutter run
 
 ---
 **Multiverso Digital** | contato@multiversodigital.com.br
+
+---
+
+## 🚫 Módulos Blindados e Congelados (Stable)
+
+Os seguintes módulos foram marcados como **estáveis e blindados** (Data: 29/12/2025). Nenhuma alteração em suas rotinas internas, lógicas de cálculo ou geração de dados deve ser realizada sem autorização explícita. Estes módulos estão protegidos por banners de "NÃO ALTERAR" em seus respectivos serviços:
+
+*   **Análise de Comida (Human/Pet):** Toda a lógica de análise de imagem e extração nutricional em `lib/features/food/`. Inclui cálculos de macronutrientes, semáforo de saúde e biohacking.
+*   **Análise de Plantas (Botânica):** Sistema completo de análise botânica com 7 camadas de inteligência em `lib/features/plant/`. Inclui diagnóstico de saúde, guia de sobrevivência (hardware), segurança doméstica (BIOS), propagação, ecossistema e lifestyle (Feng Shui). Geração de Dossiê Botânico Premium em PDF.
+*   **Gestão de Nutrição:** O gerador de planos semanais (`WeeklyPlanGenerator`), lógica de substituição de refeições e interface de gestão em `lib/nutrition/`.
+*   **Bases de Dados Estáticas:** Arquivos JSON de referência `assets/data/foods_ptbr.json` e `assets/data/recipes_ptbr.json`.
+*   **Visualização de PDF:** Componente `PdfPreviewScreen` com padrão visual Black Side e ações padronizadas (Imprimir, Abrir, Compartilhar) em `lib/core/widgets/`.
+
+---
+
+## 🐾 Módulo em Refinamento Ativo: Gestão de Pets
+
+**Status:** Desbloqueado para melhorias e refinamentos (29/12/2025)
+
+O módulo de **Pets** está passando por um processo de refinamento para alcançar o mesmo nível de excelência dos módulos de Comida e Plantas. Funcionalidades atuais:
+
+*   **Prontuário Clínico Completo:** Gestão de dados vitais, raça, idade e análise comportamental
+*   **Histórico de Saúde:** Controle de vacinas, vermífugos, exames laboratoriais
+*   **Dermatologia:** Histórico de feridas com análise por IA
+*   **Biometria:** Acompanhamento de peso e evolução
+*   **Agenda:** Lembretes de consultas e procedimentos
+*   **Nutrição Pet:** Planejamento alimentar semanal
+*   **PRAC:** Prontuário de Acompanhamento Comportamental
+
+**Foco do Refinamento:**
+- Padronização visual com os módulos de Comida e Plantas
+- Melhorias na UX e fluxos de navegação
+- Otimização de exportação de dados
+- Aprimoramento de funcionalidades existentes
+
