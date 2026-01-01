@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/menu_creation_params.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Modal para configurar criação do cardápio
 class CreateMenuDialog extends StatefulWidget {
@@ -38,6 +39,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Dialog(
       backgroundColor: Colors.grey.shade900,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -50,7 +52,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
             children: [
               // Título
               Text(
-                'Criar Cardápio da Semana',
+                l10n.menuCreationTitle,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 20,
@@ -59,19 +61,19 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Configure como você quer seu cardápio',
+                l10n.menuCreationSubtitle,
                 style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
               ),
               const SizedBox(height: 24),
 
               // Número de refeições
               _buildSection(
-                'Refeições por dia',
+                l10n.mealsPerDay,
                 Row(
                   children: [
-                    _buildMealOption(3),
+                    _buildMealOption(3, l10n),
                     const SizedBox(width: 12),
-                    _buildMealOption(4),
+                    _buildMealOption(4, l10n),
                   ],
                 ),
               ),
@@ -80,15 +82,15 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
 
               // Estilo
               _buildSection(
-                'Estilo do cardápio',
+                l10n.menuStyleTitle,
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildStyleChip('simples', 'Simples', Icons.restaurant),
-                    _buildStyleChip('economico', 'Econômico', Icons.attach_money),
-                    _buildStyleChip('rapido', 'Rápido', Icons.speed),
-                    _buildStyleChip('saudavel', 'Saudável', Icons.favorite),
+                    _buildStyleChip('simples', l10n.styleSimple, Icons.restaurant),
+                    _buildStyleChip('economico', l10n.styleBudget, Icons.attach_money),
+                    _buildStyleChip('rapido', l10n.styleQuick, Icons.speed),
+                    _buildStyleChip('saudavel', l10n.styleHealthy, Icons.favorite),
                   ],
                 ),
               ),
@@ -97,14 +99,14 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
 
               // Restrições
               _buildSection(
-                'Restrições alimentares',
+                l10n.dietaryRestrictions,
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: _availableRestrictions.map((r) {
                     final isSelected = _restrictions.contains(r);
                     return FilterChip(
-                      label: Text(_getRestrictionLabel(r)),
+                      label: Text(_getRestrictionLabel(r, l10n)),
                       selected: isSelected,
                       onSelected: (selected) {
                         setState(() {
@@ -134,11 +136,11 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                 value: _allowRepetition,
                 onChanged: (value) => setState(() => _allowRepetition = value ?? true),
                 title: Text(
-                  'Pode repetir receitas na semana',
+                  l10n.allowRepetition,
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
                 ),
                 subtitle: Text(
-                  'Se desligado, cada receita aparece apenas 1 vez',
+                  l10n.allowRepetitionSubtitle,
                   style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
                 ),
                 activeColor: const Color(0xFF00E676),
@@ -158,7 +160,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                         side: const BorderSide(color: Colors.white24),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: Text('Cancelar', style: GoogleFonts.poppins()),
+                      child: Text(l10n.cancel, style: GoogleFonts.poppins()),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -171,7 +173,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: Text(
-                        'Criar Cardápio',
+                        l10n.createPlanButton,
                         style: GoogleFonts.poppins(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
@@ -206,7 +208,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     );
   }
 
-  Widget _buildMealOption(int count) {
+  Widget _buildMealOption(int count, AppLocalizations l10n) {
     final isSelected = _mealsPerDay == count;
     return Expanded(
       child: InkWell(
@@ -235,7 +237,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                 ),
               ),
               Text(
-                'refeições',
+                l10n.mealsUnit,
                 style: GoogleFonts.poppins(
                   color: isSelected ? const Color(0xFF00E676) : Colors.white70,
                   fontSize: 12,
@@ -273,20 +275,20 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     );
   }
 
-  String _getRestrictionLabel(String restriction) {
+  String _getRestrictionLabel(String restriction, AppLocalizations l10n) {
     switch (restriction) {
       case 'vegetariano':
-        return 'Vegetariano';
+        return l10n.restVegetarian;
       case 'vegano':
-        return 'Vegano';
+        return l10n.restVegan;
       case 'sem_lactose':
-        return 'Sem Lactose';
+        return l10n.restLactoseFree;
       case 'sem_gluten':
-        return 'Sem Glúten';
+        return l10n.restGlutenFree;
       case 'diabetes':
-        return 'Diabetes';
+        return l10n.restDiabetes;
       case 'hipertensao':
-        return 'Hipertensão';
+        return l10n.restHypertension;
       default:
         return restriction;
     }

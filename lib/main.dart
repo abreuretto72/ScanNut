@@ -24,6 +24,7 @@ import 'features/food/services/nutrition_service.dart';
 import 'features/plant/services/botany_service.dart';
 import 'features/food/services/workout_service.dart';
 import 'core/services/user_profile_service.dart';
+import 'core/services/subscription_service.dart';
 import 'nutrition/nutrition_hive_adapters.dart';
 import 'nutrition/data/datasources/nutrition_profile_service.dart';
 import 'nutrition/data/datasources/weekly_plan_service.dart';
@@ -90,10 +91,14 @@ void main() async {
     await MealLogService().init();
     await ShoppingListService().init();
     
+    // Initialize Subscription Service (RevenueCat)
+    await SubscriptionService().init();
+    
     // Debug: Show loaded environment variables
     debugPrint('🔑 === ENVIRONMENT VARIABLES LOADED ===');
     debugPrint('GROQ_API_KEY: ${dotenv.env['GROQ_API_KEY']?.substring(0, 10) ?? 'NOT FOUND'}...');
     debugPrint('GEMINI_API_KEY: ${dotenv.env['GEMINI_API_KEY']?.substring(0, 10) ?? 'NOT FOUND'}...');
+    debugPrint('REVENUECAT_API_KEY: ${dotenv.env['REVENUECAT_API_KEY']?.substring(0, 10) ?? 'NOT FOUND'}...');
     debugPrint('BASE_URL: ${dotenv.env['BASE_URL'] ?? 'NOT FOUND'}');
     debugPrint('🔑 =====================================');
     

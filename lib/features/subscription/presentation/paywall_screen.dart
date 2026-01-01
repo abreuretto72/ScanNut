@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../../../core/providers/subscription_provider.dart';
 import '../../../core/services/subscription_service.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PaywallScreen extends ConsumerStatefulWidget {
   final bool showRestoreFirst;
@@ -62,14 +63,16 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
         // Refresh provider state
         await ref.read(subscriptionProvider.notifier).refresh();
         if (mounted) {
+           final l10n = AppLocalizations.of(context)!;
            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Assinatura ativada com sucesso! Bem-vindo ao Pro! 🚀')),
+            SnackBar(content: Text(l10n.paywallSuccess)),
           );
           Navigator.of(context).pop(); // Close paywall
         }
       } else {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('A compra não foi concluída. Tente novamente.')),
+          SnackBar(content: Text(l10n.paywallError)),
         );
       }
     }
@@ -83,13 +86,15 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compras restauradas com sucesso!')),
+          SnackBar(content: Text(l10n.paywallRestoreSuccess)),
         );
         Navigator.of(context).pop();
       } else {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nenhuma assinatura ativa encontrada para restaurar.')),
+          SnackBar(content: Text(l10n.paywallRestoreFail)),
         );
       }
     }
@@ -97,6 +102,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -147,8 +153,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    'Desbloqueie o Poder Total',
+                    Text(
+                    l10n.paywallTitle,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 28,
@@ -158,7 +164,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Obtenha acesso ilimitado a todas as ferramentas de IA e análises detalhadas.',
+                    l10n.paywallSubtitle,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 16,
@@ -178,10 +184,10 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                     if (_offerings!.current!.monthly != null)
                       _buildPackageOption(_offerings!.current!.monthly!),
                   ] else
-                    const Center(
+                    Center(
                       child: Text(
-                        'Não foi possível carregar as ofertas no momento.',
-                        style: TextStyle(color: Colors.white54),
+                        l10n.paywallLoadingOfferings,
+                        style: const TextStyle(color: Colors.white54),
                       ),
                     ),
                   
@@ -207,8 +213,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                         )
                       : Text(
                           _selectedPackage == null 
-                              ? 'Selecione um plano' 
-                              : 'Assinar Agora',
+                              ? l10n.paywallSelectPlan 
+                              : l10n.paywallSubscribeButton,
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -225,7 +231,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                       TextButton(
                         onPressed: _isLoading ? null : _restorePurchases,
                         child: Text(
-                          'Restaurar Compras',
+                          l10n.paywallRestore,
                           style: GoogleFonts.poppins(
                             color: Colors.white54,
                             fontSize: 12,
@@ -241,7 +247,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                            // Implement Terms & Conditions logic/link here if needed
                         },
                         child: Text(
-                          'Termos',
+                          l10n.paywallTerms,
                           style: GoogleFonts.poppins(
                             color: Colors.white54,
                             fontSize: 12,
@@ -261,6 +267,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   }
 
   Widget _buildPackageOption(Package package, {bool isBestValue = false}) {
+    final l10n = AppLocalizations.of(context)!;
     final isSelected = _selectedPackage == package;
     final product = package.storeProduct;
     
@@ -305,7 +312,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   Row(
                     children: [
                       Text(
-                        package.packageType == PackageType.annual ? 'Anual' : 'Mensal',
+                        package.packageType == PackageType.annual ? l10n.paywallYearly : l10n.paywallMonthly,
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -321,7 +328,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'MELHOR VALOR',
+                            l10n.paywallBestValue,
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 10,

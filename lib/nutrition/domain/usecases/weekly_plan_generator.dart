@@ -25,6 +25,7 @@ class WeeklyPlanGenerator {
     MenuCreationParams? params,
     int? seed,
     DateTime? startDate,
+    String? languageCode,
   }) async {
     try {
       // Garantir que os dados estão carregados
@@ -69,7 +70,8 @@ class WeeklyPlanGenerator {
             profile, 
             mealTypes, 
             params, 
-            usedRecipeIds
+            usedRecipeIds,
+            languageCode
         );
         
         days.add(PlanDay(
@@ -97,40 +99,41 @@ class WeeklyPlanGenerator {
   }
 
   /// Gera dicas de Batch Cooking e preparo baseadas nos ingredientes da semana
+  /// Gera dicas de Batch Cooking e preparo baseadas nos ingredientes da semana
   String _generatePreparationTips(List<PlanDay> days) {
     final tips = <String>[];
     final allItems = days.expand((d) => d.meals).expand((m) => m.itens).map((i) => i.nome.toLowerCase()).toList();
     
     if (allItems.any((i) => i.contains('feijão'))) {
-      tips.add('💡 Cozinhe uma panela grande de feijão logo no início da semana e congele porções para economizar gás e tempo.');
+      tips.add('tipBeans');
     }
     if (allItems.any((i) => i.contains('arroz'))) {
-      tips.add('💡 Mantenha uma base de arroz branco pronta na geladeira; ele é o acompanhamento coringa para quase todos os seus PFs.');
+      tips.add('tipRice');
     }
     if (allItems.any((i) => i.contains('frango'))) {
-      tips.add('💡 Cozinhe e desfie o frango de uma única vez. Use-o no sanduíche natural, no wrap e no mexidão de sexta.');
+      tips.add('tipChicken');
     }
     if (allItems.any((i) => i.contains('ovo'))) {
-      tips.add('💡 Ovos são sua proteína econômica e rápida. Mantenha-os sempre à mão para substituir carnes em dias corridos.');
+      tips.add('tipEggs');
     }
     if (allItems.any((i) => i.contains('legumes') || i.contains('vegetais') || i.contains('salada'))) {
-      tips.add('💡 Lave e pique todos os vegetais da estação assim que chegar do mercado. Guarde-os em potes herméticos para durarem mais.');
+      tips.add('tipVeggies');
     }
     if (allItems.any((i) => i.contains('mandioca') || i.contains('batata doce'))) {
-      tips.add('💡 Raízes como mandioca e batata doce podem ser cozidas em grande quantidade e guardadas na água na geladeira por 3 dias.');
+      tips.add('tipRoots');
     }
     if (allItems.any((i) => i.contains('carne moída'))) {
-      tips.add('💡 A carne moída é a base perfeita: use-a pura no almoço e no recheio da panqueca ou sanduíche no dia seguinte.');
+      tips.add('tipGroundMeat');
     }
     if (allItems.any((i) => i.contains('fruta') || i.contains('manga') || i.contains('banana'))) {
-      tips.add('💡 Frutas muito maduras? Congele-as em pedaços para turbinar suas vitaminas e smoothies matinais.');
+      tips.add('tipFruits');
     }
     
-    if (tips.isEmpty) return 'Planeje suas compras com foco em itens da estação para economizar e ganhar saúde.';
+    if (tips.isEmpty) return 'tipDefault';
     
     // Shuffle and pick 3 interesting tips
     tips.shuffle();
-    return tips.take(3).join('\n\n');
+    return tips.take(3).join('|');
   }
 
   /// Gera refeições para um dia
@@ -138,8 +141,10 @@ class WeeklyPlanGenerator {
       UserNutritionProfile profile, 
       List<String> mealTypes,
       MenuCreationParams? params,
-      Set<String> usedRecipeIds
+      Set<String> usedRecipeIds,
+      String? languageCode,
   ) {
+    final isEn = languageCode?.startsWith('en') == true;
     final meals = <Meal>[];
     
     // Merge restrictions
@@ -202,7 +207,7 @@ class WeeklyPlanGenerator {
 
         if (receitasDisponiveis.isEmpty) {
           // Fallback: criar refeição simples com alimentos
-          meals.add(_createSimpleMeal(tipo, effectiveRestrictions));
+          meals.add(_createSimpleMeal(tipo, effectiveRestrictions, languageCode));
         } else {
           // Escolher receita aleatória
           final receita = receitasDisponiveis[_random.nextInt(receitasDisponiveis.length)];
@@ -217,15 +222,15 @@ class WeeklyPlanGenerator {
             nomePrato: receita.nome,
             itens: receita.ingredientes.map((ing) => MealItem(
               nome: ing,
-              quantidadeTexto: '1 porção',
+              quantidadeTexto: isEn ? '1 serving' : '1 porção',
             )).toList(),
-            observacoes: '${receita.tempoPreparo} - ${receita.calorias} kcal',
+            observacoes: '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
             criadoEm: DateTime.now(),
           ));
         }
       } catch (e) {
         debugPrint('❌ Error generating meal for $tipo: $e');
-        meals.add(_createSimpleMeal(tipo, effectiveRestrictions));
+        meals.add(_createSimpleMeal(tipo, effectiveRestrictions, languageCode));
       }
     }
 
@@ -233,14 +238,16 @@ class WeeklyPlanGenerator {
   }
 
   /// Cria uma refeição simples com alimentos equilibrados (Fallback inteligente)
-  Meal _createSimpleMeal(String tipo, List<String> restricoes) {
+  Meal _createSimpleMeal(String tipo, List<String> restricoes, String? languageCode) {
     final foods = _dataService.foods;
+    final isEn = languageCode?.startsWith('en') == true;
+    final servingText = isEn ? '1 serving' : '1 porção';
     if (foods.isEmpty) {
       return Meal(
         tipo: tipo,
-        nomePrato: 'Refeição Livre',
-        itens: [MealItem(nome: 'Refeição livre', quantidadeTexto: '1 porção')],
-        observacoes: 'Planeje sua refeição',
+        nomePrato: isEn ? 'Free Meal' : 'Refeição Livre',
+        itens: [MealItem(nome: isEn ? 'Free meal choice' : 'Refeição livre', quantidadeTexto: servingText)],
+        observacoes: isEn ? 'Plan your meal' : 'Planeje sua refeição',
         criadoEm: DateTime.now(),
       );
     }
@@ -259,7 +266,9 @@ class WeeklyPlanGenerator {
 
     final selectedFoods = <MealItem>[];
     final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
-    String dishName = isBreakfastOrSnack ? 'Café Simples' : 'Prato Feito';
+    String dishName = isEn 
+        ? (isBreakfastOrSnack ? 'Simple Breakfast' : 'Balanced Meal') 
+        : (isBreakfastOrSnack ? 'Café Simples' : 'Prato Feito');
 
     if (isBreakfastOrSnack) {
       // Café/Lanche: 1 Fonte de Energia + 1 Acompanhamento
@@ -271,10 +280,10 @@ class WeeklyPlanGenerator {
       if (item2 != null && item2.nome != item1?.nome) selectedFoods.add(item2);
       
       // Infer Dish Name
-      if (selectedFoods.any((f) => f.nome.toLowerCase().contains('iogurte'))) dishName = 'Iogurte com Acompanhamento';
-      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('pão'))) dishName = 'Sanduíche';
-      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('fruta'))) dishName = 'Salada de Frutas';
-      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('café'))) dishName = 'Cafézinho';
+      if (selectedFoods.any((f) => f.nome.toLowerCase().contains('iogurte'))) dishName = isEn ? 'Yogurt with Side' : 'Iogurte com Acompanhamento';
+      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('pão'))) dishName = isEn ? 'Sandwich' : 'Sanduíche';
+      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('fruta'))) dishName = isEn ? 'Fruit Salad' : 'Salada de Frutas';
+      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('café'))) dishName = isEn ? 'Coffee' : 'Cafézinho';
 
       // Fallback if structured picking failed
       if (selectedFoods.isEmpty) {
@@ -293,7 +302,7 @@ class WeeklyPlanGenerator {
       if (carb != null) selectedFoods.add(carb);
       if (veg != null) selectedFoods.add(veg);
       
-      if (protein != null) dishName = '${protein.nome} com Acompanhamentos';
+      if (protein != null) dishName = isEn ? '${protein.nome} with Sides' : '${protein.nome} com Acompanhamentos';
 
       // If we couldn't build a full plate, fill with random to avoid empty meal
       if (selectedFoods.length < 2) {
@@ -308,7 +317,7 @@ class WeeklyPlanGenerator {
       tipo: tipo,
       nomePrato: dishName,
       itens: selectedFoods,
-      observacoes: 'Sugestão equilibrada',
+      observacoes: isEn ? 'Balanced suggestion' : 'Sugestão equilibrada',
       criadoEm: DateTime.now(),
     );
   }
@@ -318,7 +327,9 @@ class WeeklyPlanGenerator {
     required String tipo,
     required UserNutritionProfile profile,
     List<String>? excludedRecipeIds,
+    String? languageCode,
   }) async {
+    final isEn = languageCode?.startsWith('en') == true;
     try {
       if (!_dataService.isLoaded) {
         await _dataService.loadData();
@@ -362,7 +373,7 @@ class WeeklyPlanGenerator {
       }
 
       if (receitasDisponiveis.isEmpty) {
-        return _createSimpleMeal(tipo, profile.restricoes);
+        return _createSimpleMeal(tipo, profile.restricoes, languageCode);
       }
 
       final receita = receitasDisponiveis[_random.nextInt(receitasDisponiveis.length)];
@@ -373,14 +384,14 @@ class WeeklyPlanGenerator {
         nomePrato: receita.nome,
         itens: receita.ingredientes.map((ing) => MealItem(
           nome: ing,
-          quantidadeTexto: '1 porção',
+          quantidadeTexto: isEn ? '1 serving' : '1 porção',
         )).toList(),
-        observacoes: '${receita.tempoPreparo} - ${receita.calorias} kcal',
+        observacoes: '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
         criadoEm: DateTime.now(),
       );
     } catch (e) {
       debugPrint('❌ Error swapping meal: $e');
-      return _createSimpleMeal(tipo, profile.restricoes);
+      return _createSimpleMeal(tipo, profile.restricoes, languageCode);
     }
   }
 

@@ -41,6 +41,14 @@ class SubscriptionService {
 
       // Load initial customer info
       await refreshCustomerInfo();
+    } on PlatformException catch (e) {
+      if (e.code == 'UnknownBackendError') {
+        debugPrint('⚠️ CRITICAL: RevenueCat Secret Key detected or Backend Error. Disabling Pro features to prevent crash.');
+        // Do NOT rethrow. Just disable Pro.
+        _isInitialized = false; 
+      } else {
+        debugPrint('❌ PlatformException initializing RevenueCat: $e');
+      }
     } catch (e, stack) {
       debugPrint('❌ Error initializing RevenueCat: $e\n$stack');
     }

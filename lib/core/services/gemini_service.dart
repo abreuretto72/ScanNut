@@ -27,8 +27,8 @@ class GeminiService {
   Future<String?> _findWorkingModel() async {
     final modelsToTry = [
       'gemini-1.5-flash',
-      'gemini-1.5-pro',
       'gemini-2.0-flash-exp',
+      'gemini-1.5-pro',
     ];
 
     for (final model in modelsToTry) {
@@ -64,6 +64,7 @@ class GeminiService {
     required File imageFile,
     required ScannutMode mode,
     List<String> excludedBases = const [],
+    String locale = 'pt', // Default to Portuguese
   }) async {
     try {
       if (_apiKey.isEmpty) {
@@ -114,7 +115,7 @@ class GeminiService {
 
       // Encode image
       final base64Image = base64Encode(imageBytes);
-      String prompt = PromptFactory.getPrompt(mode);
+      String prompt = PromptFactory.getPrompt(mode, locale: locale);
       
       // Inject meal rotation restriction if applicable
       if (mode == ScannutMode.petIdentification && excludedBases.isNotEmpty) {
@@ -122,6 +123,11 @@ class GeminiService {
         prompt += restriction;
         debugPrint('🔄 Rotação ativada: ${excludedBases.length} ingredientes excluídos');
       }
+
+      // LOG 1: REQUEST PROMPT
+      debugPrint('\n================ [ LOG 1: REQUEST PROMPT ] ================\n');
+      debugPrint(prompt);
+      debugPrint('\n===========================================================\n');
 
       // Prepare request
       final requestData = {
@@ -138,6 +144,10 @@ class GeminiService {
             ]
           }
         ],
+        'generationConfig': {
+          'temperature': mode == ScannutMode.plant ? 0.0 : 0.4,
+          'maxOutputTokens': (mode == ScannutMode.petIdentification || mode == ScannutMode.petDiagnosis) ? 300 : 2048,
+        },
       };
 
       debugPrint('⏳ Enviando para Gemini...');
@@ -149,7 +159,10 @@ class GeminiService {
         queryParameters: {'key': _apiKey},
         data: requestData,
         options: Options(
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept-Language': locale,
+          },
         ),
       ).timeout(
         const Duration(seconds: 30),
@@ -171,6 +184,11 @@ class GeminiService {
 
       final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
       
+      // LOG 2: RAW RESPONSE
+      debugPrint('\n================ [ LOG 2: RESPONSE RAW ] ================\n');
+      debugPrint(text?.toString() ?? 'NULL RESPONSE');
+      debugPrint('\n===========================================================\n');
+      
       if (text == null || text.isEmpty) {
         throw GeminiException(
           'Resposta vazia da IA',
@@ -184,20 +202,14 @@ class GeminiService {
       try {
         String jsonString = text;
         
-        // Remove markdown
         if (jsonString.contains('```json')) {
-          final start = jsonString.indexOf('```json') + 7;
-          final end = jsonString.lastIndexOf('```');
-          if (end > start) {
-            jsonString = jsonString.substring(start, end).trim();
-          }
+          jsonString = jsonString.split('```json').last.split('```').first.trim();
         } else if (jsonString.contains('```')) {
-          final start = jsonString.indexOf('```') + 3;
-          final end = jsonString.lastIndexOf('```');
-          if (end > start) {
-            jsonString = jsonString.substring(start, end).trim();
-          }
+          jsonString = jsonString.split('```').last.split('```').first.trim();
+        } else {
+          jsonString = jsonString.trim();
         }
+
 
         final jsonResponse = jsonDecode(jsonString) as Map<String, dynamic>;
 
@@ -377,20 +389,14 @@ class GeminiService {
       try {
         String jsonString = text;
         
-        // Remove markdown
         if (jsonString.contains('```json')) {
-          final start = jsonString.indexOf('```json') + 7;
-          final end = jsonString.lastIndexOf('```');
-          if (end > start) {
-            jsonString = jsonString.substring(start, end).trim();
-          }
+          jsonString = jsonString.split('```json').last.split('```').first.trim();
         } else if (jsonString.contains('```')) {
-          final start = jsonString.indexOf('```') + 3;
-          final end = jsonString.lastIndexOf('```');
-          if (end > start) {
-            jsonString = jsonString.substring(start, end).trim();
-          }
+          jsonString = jsonString.split('```').last.split('```').first.trim();
+        } else {
+          jsonString = jsonString.trim();
         }
+
 
         final jsonResponse = jsonDecode(jsonString) as Map<String, dynamic>;
 
@@ -529,12 +535,14 @@ class GeminiService {
       
       var jsonStr = text.toString();
       if (jsonStr.contains('```json')) {
-        jsonStr = jsonStr.replaceAll('```json', '').replaceAll('```', '');
+        jsonStr = jsonStr.split('```json').last.split('```').first.trim();
+      } else if (jsonStr.contains('```')) {
+        jsonStr = jsonStr.split('```').last.split('```').first.trim();
       } else {
-         jsonStr = jsonStr.replaceAll('```', '');
+        jsonStr = jsonStr.trim();
       }
       
-      return jsonDecode(jsonStr.trim());
+      return jsonDecode(jsonStr);
     } catch (e) {
       debugPrint('Error generating diet: $e');
       throw GeminiException('Erro ao gerar dieta: $e', type: GeminiErrorType.serverError);

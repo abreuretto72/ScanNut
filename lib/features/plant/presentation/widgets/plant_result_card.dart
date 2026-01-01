@@ -11,10 +11,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import '../../../../core/widgets/pro_access_wrapper.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../models/plant_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
+import '../../services/botany_service.dart';
+import '../../models/botany_history_item.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class PlantResultCard extends StatefulWidget {
   final PlantAnalysisModel analysis;
@@ -41,6 +47,8 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   late TabController _tabController;
   final Color _themeColor = const Color(0xFF00E676);
 
+  bool _isToxic = false;
+  
   @override
   void initState() {
     super.initState();
@@ -49,13 +57,14 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     _tabController.addListener(_handleTabSelection);
     HapticFeedback.mediumImpact();
     
-    // Check for toxicity and show warning jump-scare
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true ||
-          widget.analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true) {
-        _showToxicityWarning();
-      }
-    });
+    // Check for toxicity status to enable the alert button
+    if (widget.analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true ||
+        widget.analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true ||
+        widget.analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true) {
+      _isToxic = true;
+    }
+    // TIMER REMOVED: Prevent conflict with manual tap
+    // Future.delayed(const Duration(milliseconds: 1500), () { ... });
   }
 
   @override
@@ -64,49 +73,27 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     super.dispose();
   }
 
-  void _showToxicityWarning() {
+  void _showToxicityWarning(BuildContext context, dynamic safety) {
     showDialog(
       context: context,
-      builder: (context) => BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: AlertDialog(
-          backgroundColor: Colors.red.shade900.withValues(alpha: 0.9),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25), side: const BorderSide(color: Colors.redAccent, width: 2)),
-          title: Row(
-            children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 32),
-              const SizedBox(width: 12),
-              Text("ALERTA CRÍTICO", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Esta planta possui componentes TÓXICOS!",
-                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              if (widget.analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true)
-                _buildToxicityBadge("TÓXICA PARA PETS 🐾"),
-              if (widget.analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true)
-                _buildToxicityBadge("TÓXICA PARA CRIANÇAS 👶"),
-              const SizedBox(height: 16),
-              Text(
-                widget.analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao'] ?? "Cuidado com a ingestão acidental.",
-                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("ENTENDI O RISCO", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+      useRootNavigator: true, 
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.safetyAlert),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: SingleChildScrollView(
+            child: Text(
+              safety['toxicity_details'] ?? AppLocalizations.of(context)!.noInformation,
+              style: const TextStyle(fontSize: 16),
             ),
-          ],
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.close),
+          ),
+        ],
       ),
     );
   }
@@ -135,6 +122,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
             buildPdf: (format) async {
               final pdf = await ExportService().generatePlantAnalysisReport(
                 analysis: widget.analysis,
+                strings: AppLocalizations.of(context)!,
                 imageFile: widget.imagePath != null ? File(widget.imagePath!) : null,
               );
               return pdf.save();
@@ -193,11 +181,15 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     }
   }
 
-  Widget _buildTabContent(ScrollController sc) {
+  Widget _buildTabContent(ScrollController? sc) {
     switch (_tabController.index) {
       case 0: return _buildHardwareTab(sc);
-      case 1: return _buildSaudeTab(sc);
-      case 2: return _buildBiosTab(sc);
+      case 1: 
+        // TEMPORARY DEBUG: Bypass Pro Lock
+        return _buildSaudeTab(sc);
+      case 2: 
+        // TEMPORARY DEBUG: Bypass Pro Lock
+        return _buildBiosTab(sc);
       case 3: return _buildPropagacaoTab(sc);
       case 4: return _buildLifestyleTab(sc);
       default: return const SizedBox.shrink();
@@ -206,135 +198,136 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.95,
-      minChildSize: 0.95,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return ClipRRect(
+    // We removed DraggableScrollableSheet here because it's already used in the parent/HomeView logic
+    return ValueListenableBuilder<Box<BotanyHistoryItem>>(
+      valueListenable: BotanyService().listenable!,
+      builder: (context, box, _) {
+        return Material(
+          color: const Color(0xFF121212),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.9),
-              child: Column(
-                children: [
-                   // Handle Bar
-                    Center(
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 12, bottom: 12),
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white30,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-
-                    // TOP ACTIONS ROW
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.redAccent, _generatePDF),
-                          const SizedBox(width: 12),
-                          _buildActionButton(
-                            _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
-                            null, 
-                            _themeColor, 
-                            () {
-                              if (!_isSaved) {
-                                setState(() => _isSaved = true);
-                                widget.onSave();
-                                HapticFeedback.heavyImpact();
-                              }
-                            }
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.analysis.plantName,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                                Text(
-                                  widget.analysis.identificacao.nomeCientifico,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    color: Colors.white54,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _statusColor.withValues(alpha: 0.2),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: _statusColor.withValues(alpha: 0.5)),
-                            ),
-                            child: Icon(_statusIcon, color: _statusColor, size: 24),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // TabBar
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                      ),
-                      child: TabBar(
-                        controller: _tabController,
-                        indicatorColor: _themeColor,
-                        labelColor: _themeColor,
-                        unselectedLabelColor: Colors.white54,
-                        isScrollable: true,
-                        tabs: const [
-                          Tab(text: "HARDWARE"),
-                          Tab(text: "SAÚDE"),
-                          Tab(text: "BIOS"),
-                          Tab(text: "PROPAGAÇÃO"),
-                          Tab(text: "LIFESTYLE"),
-                        ],
-                      ),
-                    ),
-
-                    // TabBarView
-                    Expanded(
-                      child: _buildTabContent(scrollController),
-                    ),
-                ],
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            children: [
+              // Handle Bar
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 12, bottom: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white30,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-            ),
+
+              // TOP ACTIONS ROW
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (_isToxic) ...[
+                      _buildActionButton(Icons.warning_amber_rounded, "ALERT", Colors.redAccent, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
+                      const SizedBox(width: 12),
+                    ],
+                    _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.redAccent, _generatePDF),
+                    const SizedBox(width: 12),
+                    _buildActionButton(
+                      _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
+                      null, 
+                      _themeColor, 
+                      () {
+                        if (!_isSaved) {
+                          setState(() => _isSaved = true);
+                          widget.onSave();
+                          HapticFeedback.heavyImpact();
+                        }
+                      }
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AutoSizeText(
+                            widget.analysis.plantName,
+                            style: GoogleFonts.poppins(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 16,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          AutoSizeText(
+                            widget.analysis.identificacao.nomeCientifico,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.white54,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 10,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _statusColor.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _statusColor.withValues(alpha: 0.5)),
+                      ),
+                      child: Icon(_statusIcon, color: _statusColor, size: 24),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // TabBar
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorColor: _themeColor,
+                  labelColor: _themeColor,
+                  unselectedLabelColor: Colors.white54,
+                  isScrollable: true,
+                  tabs: [
+                    Tab(text: AppLocalizations.of(context)!.tabHardware.toUpperCase()),
+                    Tab(text: AppLocalizations.of(context)!.tabHealth.toUpperCase()),
+                    Tab(text: AppLocalizations.of(context)!.tabBios.toUpperCase()),
+                    Tab(text: AppLocalizations.of(context)!.tabPropagation.toUpperCase()),
+                    Tab(text: AppLocalizations.of(context)!.tabLifestyle.toUpperCase()),
+                  ],
+                ),
+              ),
+
+              // TabBarView
+              Expanded(
+                child: _buildTabContent(null), // ScrollController is managed by ListView itself now
+              ),
+            ],
           ),
         );
       },
@@ -342,27 +335,43 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   }
 
   // --- TAB 1: HARDWARE (Survivor Guide) ---
-  Widget _buildHardwareTab(ScrollController sc) {
+  Widget _buildHardwareTab(ScrollController? sc) {
     final surv = widget.analysis.sobrevivencia;
     final alertS = widget.analysis.alertasSazonais;
     return ListView(
       controller: sc,
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: [
-        Text("Semáforo de Sobrevivência 🚦", style: _tabTitleStyle),
+        // Localized Strings
+        Text(AppLocalizations.of(context)!.labelTrafficLight, style: _tabTitleStyle),
         const SizedBox(height: 16),
-        _buildSurvivorRow("☀️ LUZ", surv.luminosidade['tipo']?.toString() ?? 'N/A', surv.luminosidade['explicacao']?.toString() ?? 'Sem informação', Colors.amber),
-        _buildSurvivorRow("💧 ÁGUA", surv.regimeHidrico['frequencia_ideal']?.toString() ?? 'N/A', surv.regimeHidrico['método_rega']?.toString() ?? "Rega direta no solo", Colors.blue),
-        _buildSurvivorRow("🪴 SOLO", surv.soloENutricao['adubo_recomendado']?.toString() ?? 'N/A', surv.soloENutricao['frequencia_adubacao']?.toString() ?? 'Conforme necessário', Colors.brown),
+        _buildSurvivorRow(
+          "☀️ " + AppLocalizations.of(context)!.plantNeedSun.toUpperCase(), 
+          surv.luminosidade['type']?.toString() ?? surv.luminosidade['tipo']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
+          surv.luminosidade['explanation']?.toString() ?? surv.luminosidade['explicacao']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
+          Colors.amber
+        ),
+        _buildSurvivorRow(
+          "💧 " + AppLocalizations.of(context)!.plantNeedWater.toUpperCase(), 
+          surv.regimeHidrico['frequency']?.toString() ?? surv.regimeHidrico['frequencia_ideal']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
+          surv.regimeHidrico['watering_method']?.toString() ?? surv.regimeHidrico['method']?.toString() ?? surv.regimeHidrico['método_rega']?.toString() ?? AppLocalizations.of(context)!.directSoilWatering, 
+          Colors.blue
+        ),
+        _buildSurvivorRow(
+          "🪴 " + AppLocalizations.of(context)!.plantNeedSoil.toUpperCase(), 
+          surv.soloENutricao['soil_type']?.toString() ?? surv.soloENutricao['tipo_solo']?.toString() ?? surv.soloENutricao['composition']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
+          surv.soloENutricao['fertilizer']?.toString() ?? surv.soloENutricao['adubo_recomendado']?.toString() ?? AppLocalizations.of(context)!.asNeeded, 
+          Colors.brown
+        ),
         const SizedBox(height: 24),
         _buildSectionCard(
-          title: "Ajustes de Estação",
+          title: AppLocalizations.of(context)!.plantSeasonAdjust,
           icon: Icons.calendar_month,
           color: Colors.cyanAccent,
           child: Column(
             children: [
-              _buildSeasonRow("Inverno (Dormência)", alertS.inverno),
-              _buildSeasonRow("Verão (Crescimento)", alertS.verao),
+              _buildSeasonRow(AppLocalizations.of(context)!.seasonWinter, alertS.inverno),
+              _buildSeasonRow(AppLocalizations.of(context)!.seasonSummer, alertS.verao),
             ],
           ),
         ),
@@ -371,14 +380,14 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   }
 
   // --- TAB 2: SAÚDE ---
-  Widget _buildSaudeTab(ScrollController sc) {
+  Widget _buildSaudeTab(ScrollController? sc) {
     final saude = widget.analysis.saude;
     return ListView(
       controller: sc,
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: [
         _buildSectionCard(
-          title: "Diagnóstico Clínico",
+          title: AppLocalizations.of(context)!.plantClinicalDiagnosis,
           icon: FontAwesomeIcons.stethoscope,
           color: _statusColor,
           child: Column(
@@ -389,24 +398,29 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               Text(saude.detalhes, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
               if (!widget.analysis.isHealthy) ...[
                 const SizedBox(height: 16),
-                _buildInfoLabel("Urgência:", widget.analysis.urgency),
+                _buildInfoLabel(AppLocalizations.of(context)!.plantUrgency + ":", widget.analysis.urgency),
               ],
             ],
           ),
         ),
         const SizedBox(height: 20),
         _buildSectionCard(
-          title: "Plano de Recuperação",
+          title: AppLocalizations.of(context)!.plantRecoveryPlan,
           icon: FontAwesomeIcons.kitMedical,
           color: Colors.redAccent,
-          child: Text(saude.planoRecuperacao, style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+          child: Container(
+            constraints: const BoxConstraints(maxHeight: 300),
+            child: SingleChildScrollView(
+              child: Text(saude.planoRecuperacao, style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+            ),
+          ),
         ),
         if (!widget.analysis.isHealthy) ...[
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: widget.onShop,
             icon: const Icon(Icons.shopping_cart, color: Colors.black),
-            label: const Text("COMPRAR TRATAMENTO SUGERIDO", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+            label: Text(AppLocalizations.of(context)!.plantBuyTreatment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
             style: ElevatedButton.styleFrom(backgroundColor: _themeColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           ),
         ],
@@ -415,37 +429,37 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   }
 
   // --- TAB 3: BIOS (Security & Well-being) ---
-  Widget _buildBiosTab(ScrollController sc) {
+  Widget _buildBiosTab(ScrollController? sc) {
     final bios = widget.analysis.segurancaBiofilia;
     return ListView(
       controller: sc,
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: [
         _buildSectionCard(
-          title: "Segurança Doméstica",
+          title: AppLocalizations.of(context)!.plantHomeSafety, // "Segurança Doméstica"
           icon: Icons.security,
           color: Colors.redAccent,
           child: Column(
             children: [
-              _buildToggleInfo("Perigo para Pets 🐾", bios.segurancaDomestica['toxica_para_pets'] == true),
-              _buildToggleInfo("Perigo para Crianças 👶", bios.segurancaDomestica['toxica_para_criancas'] == true),
+              _buildToggleInfo(AppLocalizations.of(context)!.plantDangerPets + " 🐾", (bios.segurancaDomestica['toxica_para_pets'] == true || bios.segurancaDomestica['is_toxic_to_pets'] == true)),
+              _buildToggleInfo(AppLocalizations.of(context)!.plantDangerKids + " 👶", (bios.segurancaDomestica['toxica_para_criancas'] == true || bios.segurancaDomestica['is_toxic_to_children'] == true)),
               const SizedBox(height: 12),
-              Text(bios.segurancaDomestica['sintomas_ingestao']?.toString() ?? "Sem alertas críticos.", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+              Text(bios.segurancaDomestica['sintomas_ingestao']?.toString() ?? bios.segurancaDomestica['toxicity_details']?.toString() ?? AppLocalizations.of(context)!.plantNoAlerts, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
             ],
           ),
         ),
         const SizedBox(height: 20),
         _buildSectionCard(
-          title: "Poderes Biofílicos",
+          title: AppLocalizations.of(context)!.plantBioPower, // "Poderes Biofílicos"
           icon: Icons.auto_awesome,
           color: Colors.pinkAccent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildProgressBar("Escore de Purificação de Ar", ((bios.poderesBiofilicos['purificacao_ar_score'] ?? 5) as num).toDouble() / 10.0, Colors.greenAccent),
+              _buildProgressBar(AppLocalizations.of(context)!.plantAirScore, ((bios.poderesBiofilicos['purificacao_ar_score'] ?? bios.poderesBiofilicos['air_purification_score'] ?? 5) as num).toDouble() / 10.0, Colors.greenAccent),
               const SizedBox(height: 16),
-              _buildInfoLabel("Umidificação:", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? 'N/A'),
-              _buildInfoLabel("Bem-estar:", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? 'N/A'),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantHumidification + ":", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? 'N/A'),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantWellness + ":", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? bios.poderesBiofilicos['wellness_impact']?.toString() ?? 'N/A'),
             ],
           ),
         ),
@@ -454,7 +468,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   }
 
   // --- TAB 4: PROPAGAÇÃO ---
-  Widget _buildPropagacaoTab(ScrollController sc) {
+  Widget _buildPropagacaoTab(ScrollController? sc) {
     final prop = widget.analysis.propagacao;
     final eco = widget.analysis.ecossistema;
     return ListView(
@@ -462,16 +476,16 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: [
          _buildSectionCard(
-           title: "Engenharia de Propagação",
+           title: AppLocalizations.of(context)!.plantPropagationEngine,
            icon: Icons.copy,
            color: Colors.purpleAccent,
            child: Column(
              crossAxisAlignment: CrossAxisAlignment.start,
              children: [
-               _buildInfoLabel("Método:", prop.metodo),
-               _buildInfoLabel("Dificuldade:", prop.dificuldade),
+               _buildInfoLabel(AppLocalizations.of(context)!.plantMethod + ":", prop.metodo),
+               _buildInfoLabel(AppLocalizations.of(context)!.plantDifficulty + ":", prop.dificuldade),
                const Divider(color: Colors.white10),
-               Text("Passo a Passo:", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.purpleAccent, fontSize: 12)),
+               Text(AppLocalizations.of(context)!.plantStepByStep + ":", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.purpleAccent, fontSize: 12)),
                const SizedBox(height: 8),
                Text(prop.passoAPasso, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, height: 1.5)),
              ],
@@ -479,15 +493,15 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
          ),
          const SizedBox(height: 20),
          _buildSectionCard(
-           title: "Inteligência de Ecossistema",
+           title: AppLocalizations.of(context)!.plantEcoIntel,
            icon: Icons.group,
            color: Colors.tealAccent,
            child: Column(
              crossAxisAlignment: CrossAxisAlignment.start,
              children: [
-               _buildInfoLabel("Companhias Ideais:", (eco.plantasParceiras as List? ?? []).join(', ')),
-               _buildInfoLabel("Evitar Perto de:", (eco.plantasConflitantes as List? ?? []).join(', ')),
-               _buildInfoLabel("Repelente Natural:", eco.repelenteNatural),
+               _buildInfoLabel(AppLocalizations.of(context)!.plantCompanions + ":", (eco.plantasParceiras as List? ?? []).join(', ')),
+               _buildInfoLabel(AppLocalizations.of(context)!.plantAvoid + ":", (eco.plantasConflitantes as List? ?? []).join(', ')),
+               _buildInfoLabel(AppLocalizations.of(context)!.plantRepellent + ":", eco.repelenteNatural),
              ],
            ),
          ),
@@ -496,7 +510,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   }
 
   // --- TAB 5: LIFESTYLE ---
-  Widget _buildLifestyleTab(ScrollController sc) {
+  Widget _buildLifestyleTab(ScrollController? sc) {
     final lifestyle = widget.analysis.lifestyle;
     final estetica = widget.analysis.estetica;
     return ListView(
@@ -504,29 +518,29 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
       children: [
         _buildSectionCard(
-          title: "Feng Shui Botânico",
+          title: AppLocalizations.of(context)!.plantFengShui,
           icon: Icons.home,
           color: Colors.amberAccent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoLabel("Onde Colocar:", lifestyle.posicionamentoIdeal),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantPlacement + ":", lifestyle.posicionamentoIdeal),
               const SizedBox(height: 8),
-              _buildInfoLabel("Simbolismo:", lifestyle.simbolismo),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantSymbolism + ":", lifestyle.simbolismo),
             ],
           ),
         ),
         const SizedBox(height: 20),
          _buildSectionCard(
-          title: "Estética Viva",
+          title: AppLocalizations.of(context)!.plantLivingAesthetic,
           icon: Icons.palette,
           color: Colors.orangeAccent,
           child: Column(
             children: [
-              _buildInfoLabel("Floração:", estetica.epocaFloracao),
-              _buildInfoLabel("Cor das Flores:", estetica.corDasFlores),
-              _buildInfoLabel("Crescimento:", estetica.velocidadeCrescimento),
-              _buildInfoLabel("Tamanho Máximo:", estetica.tamanhoMaximo),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantFlowering + ":", estetica.epocaFloracao),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantFlowerColor + ":", estetica.corDasFlores),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantGrowth + ":", estetica.velocidadeCrescimento),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantMaxSize + ":", estetica.tamanhoMaximo),
             ],
           ),
         ),
@@ -633,6 +647,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     );
   }
 
+
   Widget _buildSeasonRow(String season, String alert) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -645,6 +660,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       ),
     );
   }
+
 
   TextStyle get _tabTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
 }

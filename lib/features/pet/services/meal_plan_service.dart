@@ -18,7 +18,11 @@ class MealPlanService {
   Box<WeeklyMealPlan>? _box;
 
   Future<void> init() async {
-    if (_box != null && _box!.isOpen) return;
+    await _ensureBox();
+  }
+
+  Future<Box<WeeklyMealPlan>> _ensureBox() async {
+    if (_box != null && _box!.isOpen) return _box!;
     try {
       // Register Adapters if not already registered
       // We reserve IDs 8, 9, 10
@@ -33,30 +37,29 @@ class MealPlanService {
       }
 
       _box = await Hive.openBox<WeeklyMealPlan>(_boxName);
-      debugPrint('✅ MealPlanService initialized (Box: $_boxName)');
+      debugPrint('✅ MealPlanService initialized/re-opened (Box: $_boxName)');
+      return _box!;
     } catch (e, stack) {
       debugPrint('❌ MealPlanService init failed: $e\n$stack');
+      rethrow;
     }
   }
 
   // Save or Update Plan
   Future<void> savePlan(WeeklyMealPlan plan) async {
-    await init();
-    if (_box == null) return;
-    
-    await _box!.put(plan.id, plan);
+    final box = await _ensureBox();
+    await box.put(plan.id, plan);
     debugPrint('🍽️ Menu saved: ${plan.id} for ${plan.petId} (Week: ${plan.startDate})');
   }
 
   // Get Plan for a Specific Date (Finds the week covering this date)
   Future<WeeklyMealPlan?> getPlanForDate(String petId, DateTime date) async {
-    await init();
-    if (_box == null) return null;
+    final box = await _ensureBox();
 
     final normalizedDate = DateTime(date.year, date.month, date.day);
     
     try {
-      final plans = _box!.values.where((p) => p.petId == petId);
+      final plans = box.values.where((p) => p.petId == petId);
       
       for (var plan in plans) {
          // Check if date falls within start and end
@@ -75,10 +78,9 @@ class MealPlanService {
   
   // Get All Plans for Pet (History)
   Future<List<WeeklyMealPlan>> getPlansForPet(String petId) async {
-    await init();
-    if (_box == null) return [];
+    final box = await _ensureBox();
     
-    return _box!.values
+    return box.values
         .where((p) => p.petId == petId)
         .toList()
         ..sort((a, b) => b.startDate.compareTo(a.startDate)); // Newest first
@@ -86,14 +88,14 @@ class MealPlanService {
 
   // Delete Plan
   Future<void> deletePlan(String planId) async {
-    await init();
-    await _box?.delete(planId);
+    final box = await _ensureBox();
+    await box.delete(planId);
   }
 
   // Create a Copy for Next Week
   Future<WeeklyMealPlan?> copyPlanToNextWeek(String planId) async {
-    await init();
-    final original = _box?.get(planId);
+    final box = await _ensureBox();
+    final original = box.get(planId);
     if (original == null) return null;
 
     final newStartDate = original.endDate.add(const Duration(days: 1)); // Next Monday

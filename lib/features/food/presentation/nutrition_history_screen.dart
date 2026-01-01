@@ -7,6 +7,10 @@ import '../services/nutrition_service.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../models/food_analysis_model.dart';
 import 'food_result_screen.dart';
+import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../core/utils/translation_mapper.dart';
 
 class NutritionHistoryScreen extends StatefulWidget {
   const NutritionHistoryScreen({Key? key}) : super(key: key);
@@ -35,42 +39,68 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🖥️ [HistoryScreen] Building... isLoading: $_isLoading, Items: ${_items.length}');
+    debugPrint('🖥️ [HistoryScreen] Building...');
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Histórico de Alimentos',
+        title: Text(l10n.foodHistoryTitle,
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
-          : _items.isEmpty
-              ? _buildEmptyState()
-              : AnimationLimiter(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      return AnimationConfiguration.staggeredList(
-                        position: index,
-                        duration: const Duration(milliseconds: 375),
-                        child: SlideAnimation(
-                          verticalOffset: 50.0,
-                          child: FadeInAnimation(
-                            child: _buildFoodCard(item),
-                          ),
+      body: FutureBuilder(
+        future: NutritionService().init(), // Ensure init
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+             return const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)));
+          }
+          
+          final listenable = NutritionService().listenable as ValueListenable<Box<NutritionHistoryItem>>?;
+          if (listenable == null) {
+             debugPrint('⚠️ [HistoryScreen] Listenable is null');
+             return _buildEmptyState();
+          }
+
+          return ValueListenableBuilder<Box<NutritionHistoryItem>>(
+            valueListenable: listenable,
+            builder: (context, box, _) {
+              final items = box.values.whereType<NutritionHistoryItem>().toList().reversed.toList();
+              debugPrint('🔄 [HistoryScreen] Rebuilding List. Count: ${items.length}');
+              
+               if (items.isEmpty) {
+                return _buildEmptyState();
+              }
+
+              return AnimationLimiter(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return AnimationConfiguration.staggeredList(
+                      position: index,
+                      duration: const Duration(milliseconds: 375),
+                      child: SlideAnimation(
+                        verticalOffset: 50.0,
+                        child: FadeInAnimation(
+                          child: _buildFoodCard(item),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -78,7 +108,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           Icon(Icons.restaurant_menu, size: 80, color: Colors.grey.shade800),
           const SizedBox(height: 16),
           Text(
-            'Nenhuma análise salva ainda.',
+            l10n.foodHistoryEmpty,
             style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
           ),
           const SizedBox(height: 24),
@@ -88,7 +118,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                 _loadHistory();
             },
             icon: const Icon(Icons.refresh, color: Colors.black),
-            label: const Text("Recarregar"),
+            label: Text(l10n.foodReload),
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
           ),
         ],
@@ -97,11 +127,13 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   }
 
   Widget _buildFoodCard(NutritionHistoryItem item) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => _showDetailModal(item),
 
       child: Container(
-        height: 140, // Fixed height to avoid layout issues
+        // height: 140, // Removed fixed height to prevent overflow
+        constraints: const BoxConstraints(minHeight: 120),
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Colors.grey.shade900.withValues(alpha: 0.8),
@@ -110,7 +142,9 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
             color: item.isUltraprocessed ? Colors.redAccent.withValues(alpha: 0.3) : Colors.greenAccent.withValues(alpha: 0.2),
           ),
         ),
+        // Removed IntrinsicHeight to fix layout error
         child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start, // Align to top since heights differ
             children: [
               // Image Thumbnail
               ClipRRect(
@@ -121,16 +155,18 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                       ? Image.file(
                           File(item.imagePath!),
                           width: 100,
-                          height: double.infinity,
+                          height: 120, // Fixed height for image
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => Container(
                             width: 100,
+                            height: 120,
                             color: Colors.grey.shade800,
                             child: const Icon(Icons.broken_image, color: Colors.white24),
                           ),
                         )
                       : Container(
                           width: 100,
+                          height: 120,
                           color: Colors.grey.shade800,
                           child: const Icon(Icons.fastfood, color: Colors.white24),
                         ),
@@ -142,13 +178,14 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                   padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
                             child: Text(
-                              item.foodName,
+                                TranslationMapper.localizeFoodName(item.foodName, l10n),
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -162,7 +199,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                                Text(
-                                DateFormat('dd/MM').format(item.timestamp),
+                                DateFormat('dd/MM', Localizations.localeOf(context).toString()).format(item.timestamp),
                                 style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10),
                               ),
                               GestureDetector(
@@ -177,17 +214,22 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        '${item.calories} kcal / 100g',
-                        style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.w600),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          '${item.calories} ${l10n.foodKcalPer100g}',
+                          style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.w600),
+                        ),
                       ),
                       const Divider(color: Colors.white10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
-                          _buildMacroMini('Prot.', item.proteins, Colors.blueAccent),
-                          _buildMacroMini('Carb.', item.carbs, Colors.orangeAccent),
-                          _buildMacroMini('Gord.', item.fats, Colors.greenAccent),
+                          _buildMacroMini(l10n.foodProt, item.proteins, Colors.blueAccent),
+                          _buildMacroMini(l10n.foodCarb, item.carbs, Colors.orangeAccent),
+                          _buildMacroMini(l10n.foodFat, item.fats, Colors.greenAccent),
                         ],
                       ),
                     ],
@@ -196,37 +238,44 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
               ),
             ],
           ),
-        ),
+      ),
     );
   }
 
   Widget _buildMacroMini(String label, String value, Color color) {
-    return Column(
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 70), // Limit width to prevent overflow
+      child: Column(
       children: [
-        Text(label, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10)),
-        Text(
-          value.split(' ')[0], // Get just the number part
-          style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+        Text(label, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10), overflow: TextOverflow.ellipsis),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value.split(' ')[0], // Get just the number part
+            style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+          ),
         ),
       ],
+      ),
     );
   }
 
   Future<void> _confirmDelete(NutritionHistoryItem item) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Excluir Análise?', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('Esta ação não pode ser desfeita.', style: GoogleFonts.poppins(color: Colors.grey)),
+        title: Text(l10n.foodDeleteConfirmTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text(l10n.foodDeleteConfirmContent, style: GoogleFonts.poppins(color: Colors.grey)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white)),
+            child: Text(l10n.commonCancel, style: GoogleFonts.poppins(color: Colors.white)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Excluir', style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(l10n.commonDelete, style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

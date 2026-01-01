@@ -28,6 +28,7 @@ class BotanyHistoryItemAdapter extends TypeAdapter<BotanyHistoryItem> {
       fengShuiTips: fields[8] as String,
       imagePath: fields[9] as String?,
       toxicityStatus: fields[10] as String,
+      locale: fields[11] as String?,
       rawMetadata: (fields[12] as Map?)?.cast<String, dynamic>(),
     );
   }
@@ -35,7 +36,7 @@ class BotanyHistoryItemAdapter extends TypeAdapter<BotanyHistoryItem> {
   @override
   void write(BinaryWriter writer, BotanyHistoryItem obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -58,6 +59,8 @@ class BotanyHistoryItemAdapter extends TypeAdapter<BotanyHistoryItem> {
       ..write(obj.imagePath)
       ..writeByte(10)
       ..write(obj.toxicityStatus)
+      ..writeByte(11)
+      ..write(obj.locale)
       ..writeByte(12)
       ..write(obj.rawMetadata);
   }

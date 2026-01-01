@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../constants/nutrition_prompts.dart';
 import '../enums/scannut_mode.dart';
 import '../services/gemini_service.dart';
 import '../services/meal_history_service.dart';
@@ -38,24 +39,6 @@ class MealPlanGenerator {
         ? 'Nenhuma restrição.'
         : 'EVITE os seguintes ingredientes usados recentemente: ${excludedIngredients.join(", ")}.';
 
-    return '''
-Atue como Nutrólogo Pet especializado em Alimentação Natural (AN).
-Gere um novo plano semanal de 7 dias para a raça: $raceName.
-
-$exclusionText
-
-REGRAS:
-- PROIBIDO sugerir ração ou alimentos processados
-- Use apenas: Proteínas (carnes, ovos), Vísceras, Vegetais, Carboidratos saudáveis
-- Varie os ingredientes para garantir rotação nutricional
-
-Responda em JSON:
-{
-  "plano_semanal": [
-    {"dia": "Segunda-feira", "refeicao": "string", "beneficio": "string"}
-  ],
-  "orientacoes_gerais": "string"
-}
-''';
+    return NutritionPrompts.getPetMenuPlanPrompt(raceName, exclusionText);
   }
 }

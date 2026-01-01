@@ -1,3 +1,12 @@
+/// ============================================================================
+/// 🚫 MODELO BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este modelo representa a análise técnica de botânica.
+/// Chaves JSON compatíveis com o prompt em Inglês e exibição em Português.
+/// Data de Congelamento: 01/01/2026
+/// ============================================================================
+
+import 'package:flutter/foundation.dart';
+
 class PlantAnalysisModel {
   final Identificacao identificacao;
   final EsteticaViva estetica;
@@ -28,33 +37,97 @@ class PlantAnalysisModel {
   String get organicTreatment => saude.planoRecuperacao;
   String get urgency => saude.urgencia;
 
-  bool get isHealthy => saude.condicao.toLowerCase().contains('saudável');
+  bool get isHealthy => saude.condicao.toLowerCase().contains('saudável') || saude.condicao.toLowerCase().contains('healthy');
   
   Map<String, dynamic> toJson() {
     return {
-      'identificacao': identificacao.toJson(),
-      'estetica_viva': estetica.toJson(),
-      'diagnostico_saude': saude.toJson(),
-      'guia_sobrevivencia': sobrevivencia.toJson(),
-      'seguranca_e_biofilia': segurancaBiofilia.toJson(),
-      'engenharia_propagacao': propagacao.toJson(),
-      'inteligencia_ecossistema': ecossistema.toJson(),
-      'lifestyle_e_feng_shui': lifestyle.toJson(),
-      'alertas_sazonais': alertasSazonais.toJson(),
+      'identification': identificacao.toJson(),
+      'living_aesthetics': estetica.toJson(),
+      'health_analysis': saude.toJson(),
+      'survival_guide': sobrevivencia.toJson(),
+      'safety_and_biofillia': segurancaBiofilia.toJson(),
+      'propagation_engineering': propagacao.toJson(),
+      'ecosystem_intelligence': ecossistema.toJson(),
+      'lifestyle_and_feng_shui': lifestyle.toJson(),
+      'seasonal_alerts': alertasSazonais.toJson(),
     };
+  }
+
+  static String _translateFallback(dynamic value) {
+    if (value == null) return 'N/A';
+    String text = value.toString();
+    
+    // Simple mapper for common technical terms leaked from Portuguese
+    final Map<String, String> mapper = {
+      'Rega': 'Watering',
+      'Regar': 'Watering',
+      'Luz direta': 'Direct Light',
+      'Luz Indireta': 'Indirect Light',
+      'Meia sombra': 'Partial Shade',
+      'Sombra': 'Shade',
+      'Sol Pleno': 'Full Sun',
+      'Saudável': 'Healthy',
+      'Doente': 'Sick',
+      'Pragas': 'Pests',
+      'Deficiência Nutricional': 'Nutrient Deficiency',
+      'Baixa': 'low',
+      'Média': 'medium',
+      'Alta': 'high',
+      'Oídio': 'Powdery Mildew',
+      'Oidio': 'Powdery Mildew',
+      'Manchas': 'Spots',
+      'Mancha': 'Spot',
+      'Cochonilha': 'Mealybugs',
+      'Cochonilhas': 'Mealybugs',
+      'Pulgão': 'Aphids',
+      'Pulgões': 'Aphids',
+      'Tripes': 'Thrips',
+      'Ácaro': 'Spider Mites',
+      'Ácaros': 'Spider Mites',
+      'Fungo': 'Fungus',
+      'Fungos': 'Fungus',
+      'Podridão': 'Rot',
+      'Podridão Radicular': 'Root Rot',
+      'Folhas amarelas': 'Yellow leaves',
+      'Folhas secas': 'Dry leaves',
+      'Queimadura': 'Burn',
+    };
+
+    if (mapper.containsKey(text)) {
+      return mapper[text]!;
+    }
+    return text;
   }
 
   factory PlantAnalysisModel.fromJson(Map<dynamic, dynamic> json) {
     return PlantAnalysisModel(
-      identificacao: Identificacao.fromJson(json['identificacao'] != null ? Map<dynamic, dynamic>.from(json['identificacao']) : {}),
-      estetica: EsteticaViva.fromJson(json['estetica_viva'] != null ? Map<dynamic, dynamic>.from(json['estetica_viva']) : {}),
-      saude: DiagnosticoSaude.fromJson(json['diagnostico_saude'] != null ? Map<dynamic, dynamic>.from(json['diagnostico_saude']) : {}),
-      sobrevivencia: GuiaSobrevivencia.fromJson(json['guia_sobrevivencia'] != null ? Map<dynamic, dynamic>.from(json['guia_sobrevivencia']) : {}),
-      segurancaBiofilia: SegurancaEBiofilia.fromJson(json['seguranca_e_biofilia'] != null ? Map<dynamic, dynamic>.from(json['seguranca_e_biofilia']) : {}),
-      propagacao: EngenhariaPropagacao.fromJson(json['engenharia_propagacao'] != null ? Map<dynamic, dynamic>.from(json['engenharia_propagacao']) : {}),
-      ecossistema: InteligenciaEcossistema.fromJson(json['inteligencia_ecossistema'] != null ? Map<dynamic, dynamic>.from(json['inteligencia_ecossistema']) : {}),
-      lifestyle: LifestyleEFengShui.fromJson(json['lifestyle_e_feng_shui'] != null ? Map<dynamic, dynamic>.from(json['lifestyle_e_feng_shui']) : {}),
-      alertasSazonais: AlertasSazonais.fromJson(json['alertas_sazonais'] != null ? Map<dynamic, dynamic>.from(json['alertas_sazonais']) : {}),
+      identificacao: Identificacao.fromJson(
+        Map<dynamic, dynamic>.from(json['identification'] ?? json['identificacao'] ?? {})
+      ),
+      estetica: EsteticaViva.fromJson(
+        Map<dynamic, dynamic>.from(json['care_instructions']?['living_aesthetics'] ?? json['living_aesthetics'] ?? json['estetica_viva'] ?? {})
+      ),
+      saude: DiagnosticoSaude.fromJson(
+        Map<dynamic, dynamic>.from(json['health_analysis'] ?? json['diagnostico_saude'] ?? {})
+      ),
+      sobrevivencia: GuiaSobrevivencia.fromJson(
+        Map<dynamic, dynamic>.from(json['care_instructions'] ?? json['survival_guide'] ?? json['guia_sobrevivencia'] ?? {})
+      ),
+      segurancaBiofilia: SegurancaEBiofilia.fromJson(
+        Map<dynamic, dynamic>.from(json['safety_and_biofillia'] ?? json['seguranca_e_biofilia'] ?? {})
+      ),
+      propagacao: EngenhariaPropagacao.fromJson(
+        Map<dynamic, dynamic>.from(json['propagation_engineering'] ?? json['engenharia_propagacao'] ?? {})
+      ),
+      ecossistema: InteligenciaEcossistema.fromJson(
+        Map<dynamic, dynamic>.from(json['care_instructions']?['ecosystem_intelligence'] ?? json['ecosystem_intelligence'] ?? json['inteligencia_ecossistema'] ?? {})
+      ),
+      lifestyle: LifestyleEFengShui.fromJson(
+        Map<dynamic, dynamic>.from(json['care_instructions']?['lifestyle_and_feng_shui'] ?? json['lifestyle_and_feng_shui'] ?? json['lifestyle_e_feng_shui'] ?? {})
+      ),
+      alertasSazonais: AlertasSazonais.fromJson(
+        Map<dynamic, dynamic>.from(json['seasonal_alerts'] ?? json['alertas_sazonais'] ?? {})
+      ),
     );
   }
 }
@@ -73,18 +146,28 @@ class Identificacao {
   });
 
   Map<String, dynamic> toJson() => {
-    'nome_cientifico': nomeCientifico,
-    'nomes_populares': nomesPopulares,
-    'familia': familia,
-    'origem_geografica': origemGeografica,
+    'scientific_name': nomeCientifico,
+    'common_name': nomesPopulares.isNotEmpty ? nomesPopulares.first : 'N/A',
+    'common_names': nomesPopulares,
+    'family': familia,
+    'origin': origemGeografica,
   };
 
   factory Identificacao.fromJson(Map<dynamic, dynamic> json) {
+    List<String> pops = [];
+    if (json['common_names'] != null) {
+      pops = (json['common_names'] as List).map((e) => e.toString()).toList();
+    } else if (json['nomes_populares'] != null) {
+      pops = (json['nomes_populares'] as List).map((e) => e.toString()).toList();
+    } else if (json['common_name'] != null) {
+      pops = [json['common_name'].toString()];
+    }
+
     return Identificacao(
-      nomeCientifico: json['nome_cientifico']?.toString() ?? 'N/A',
-      nomesPopulares: (json['nomes_populares'] as List? ?? []).map((e) => e.toString()).toList(),
-      familia: json['familia']?.toString() ?? 'N/A',
-      origemGeografica: json['origem_geografica']?.toString() ?? 'N/A',
+      nomeCientifico: json['scientific_name']?.toString() ?? json['nome_cientifico']?.toString() ?? 'N/A',
+      nomesPopulares: pops,
+      familia: json['family']?.toString() ?? json['familia']?.toString() ?? 'N/A',
+      origemGeografica: json['origin']?.toString() ?? json['origem_geografica']?.toString() ?? 'N/A',
     );
   }
 }
@@ -103,18 +186,18 @@ class EsteticaViva {
   });
 
   Map<String, dynamic> toJson() => {
-    'epoca_floracao': epocaFloracao,
-    'cor_das_flores': corDasFlores,
-    'tamanho_maximo_estimado': tamanhoMaximo,
-    'velocidade_crescimento': velocidadeCrescimento,
+    'flowering_season': epocaFloracao,
+    'flower_colors': corDasFlores,
+    'max_size': tamanhoMaximo,
+    'growth_speed': velocidadeCrescimento,
   };
 
   factory EsteticaViva.fromJson(Map<dynamic, dynamic> json) {
     return EsteticaViva(
-      epocaFloracao: json['epoca_floracao']?.toString() ?? 'N/A',
-      corDasFlores: json['cor_das_flores']?.toString() ?? 'N/A',
-      tamanhoMaximo: json['tamanho_maximo_estimado']?.toString() ?? 'N/A',
-      velocidadeCrescimento: json['velocidade_crescimento']?.toString() ?? 'N/A',
+      epocaFloracao: json['flowering_season']?.toString() ?? json['epoca_floracao']?.toString() ?? 'N/A',
+      corDasFlores: json['flower_colors']?.toString() ?? json['cor_das_flores']?.toString() ?? 'N/A',
+      tamanhoMaximo: json['max_size']?.toString() ?? json['tamanho_maximo_estimado']?.toString() ?? 'N/A',
+      velocidadeCrescimento: json['growth_speed']?.toString() ?? json['velocidade_crescimento']?.toString() ?? 'N/A',
     );
   }
 }
@@ -133,18 +216,18 @@ class DiagnosticoSaude {
   });
 
   Map<String, dynamic> toJson() => {
-    'condicao': condicao,
-    'detalhes': detalhes,
-    'urgencia': urgencia,
-    'plano_recuperacao': planoRecuperacao,
+    'health_status': condicao,
+    'clinical_details': detalhes,
+    'urgency_level': urgencia,
+    'recovery_guide': planoRecuperacao,
   };
 
   factory DiagnosticoSaude.fromJson(Map<dynamic, dynamic> json) {
     return DiagnosticoSaude(
-      condicao: json['condicao']?.toString() ?? 'Saudável',
-      detalhes: json['detalhes']?.toString() ?? 'Sem diagnóstico específico.',
-      urgencia: json['urgencia']?.toString() ?? 'low',
-      planoRecuperacao: json['plano_recuperacao']?.toString() ?? 'Nenhum tratamento necessário.',
+      condicao: PlantAnalysisModel._translateFallback(json['health_status'] ?? json['condicao'] ?? 'Saudável'),
+      detalhes: json['clinical_details']?.toString() ?? json['detalhes']?.toString() ?? 'Sem diagnóstico específico.',
+      urgencia: PlantAnalysisModel._translateFallback(json['urgency_level'] ?? json['urgencia'] ?? 'low'),
+      planoRecuperacao: json['recovery_guide']?.toString() ?? json['plano_recuperacao']?.toString() ?? 'Nenhum tratamento necessário.',
     );
   }
 }
@@ -161,16 +244,27 @@ class GuiaSobrevivencia {
   });
 
   Map<String, dynamic> toJson() => {
-    'luminosidade': luminosidade,
-    'regime_hidrico': regimeHidrico,
-    'solo_e_nutricao': soloENutricao,
+    'light_needs': luminosidade,
+    'watering_regime': regimeHidrico,
+    'soil_and_nutrition': soloENutricao,
   };
 
   factory GuiaSobrevivencia.fromJson(Map<dynamic, dynamic> json) {
+    final light = Map<String, dynamic>.from(json['light_needs'] ?? json['luminosidade'] ?? {});
+    if (light.containsKey('type')) light['type'] = PlantAnalysisModel._translateFallback(light['type']);
+    if (light.containsKey('details')) light['explanation'] = light['details'];
+    
+    final water = Map<String, dynamic>.from(json['watering_regime'] ?? json['regime_hidrico'] ?? {});
+    if (water.containsKey('frequency')) water['frequency'] = PlantAnalysisModel._translateFallback(water['frequency']);
+    
+    final soil = Map<String, dynamic>.from(json['soil_and_nutrition'] ?? json['solo_e_nutricao'] ?? {});
+    if (soil.containsKey('soil_composition')) soil['soil_type'] = soil['soil_composition'];
+    if (soil.containsKey('fertilizer_recommendation')) soil['fertilizer'] = soil['fertilizer_recommendation'];
+
     return GuiaSobrevivencia(
-      luminosidade: Map<String, dynamic>.from(json['luminosidade'] ?? {}),
-      regimeHidrico: Map<String, dynamic>.from(json['regime_hidrico'] ?? {}),
-      soloENutricao: Map<String, dynamic>.from(json['solo_e_nutricao'] ?? {}),
+      luminosidade: light,
+      regimeHidrico: water,
+      soloENutricao: soil,
     );
   }
 }
@@ -185,14 +279,14 @@ class SegurancaEBiofilia {
   });
 
   Map<String, dynamic> toJson() => {
-    'seguranca_domestica': segurancaDomestica,
-    'poderes_biofilicos': poderesBiofilicos,
+    'home_safety': segurancaDomestica,
+    'biofillic_benefits': poderesBiofilicos,
   };
 
   factory SegurancaEBiofilia.fromJson(Map<dynamic, dynamic> json) {
     return SegurancaEBiofilia(
-      segurancaDomestica: Map<String, dynamic>.from(json['seguranca_domestica'] ?? {}),
-      poderesBiofilicos: Map<String, dynamic>.from(json['poderes_biofilicos'] ?? {}),
+      segurancaDomestica: Map<String, dynamic>.from(json['home_safety'] ?? json['seguranca_domestica'] ?? {}),
+      poderesBiofilicos: Map<String, dynamic>.from(json['biofillic_benefits'] ?? json['poderes_biofilicos'] ?? {}),
     );
   }
 }
@@ -209,16 +303,16 @@ class EngenhariaPropagacao {
   });
 
   Map<String, dynamic> toJson() => {
-    'metodo': metodo,
-    'passo_a_passo': passoAPasso,
-    'dificuldade_reproducao': dificuldade,
+    'method': metodo,
+    'step_by_step': passoAPasso,
+    'difficulty': dificuldade,
   };
 
   factory EngenhariaPropagacao.fromJson(Map<dynamic, dynamic> json) {
     return EngenhariaPropagacao(
-      metodo: json['metodo']?.toString() ?? 'N/A',
-      passoAPasso: json['passo_a_passo']?.toString() ?? 'N/A',
-      dificuldade: json['dificuldade_reproducao']?.toString() ?? 'N/A',
+      metodo: json['method']?.toString() ?? json['metodo']?.toString() ?? 'N/A',
+      passoAPasso: json['step_by_step']?.toString() ?? json['passo_a_passo']?.toString() ?? 'N/A',
+      dificuldade: PlantAnalysisModel._translateFallback(json['difficulty'] ?? json['dificuldade_reproducao'] ?? 'N/A'),
     );
   }
 }
@@ -235,19 +329,15 @@ class InteligenciaEcossistema {
   });
 
   Map<String, dynamic> toJson() => {
-    'companion_planting': {
-      'plantas_parceiras': plantasParceiras,
-      'plantas_conflitantes': plantasConflitantes,
-    },
-    'repelente_natural': repelenteNatural,
+    'companion_planting': plantasParceiras,
+    'natural_repellent': repelenteNatural,
   };
 
   factory InteligenciaEcossistema.fromJson(Map<dynamic, dynamic> json) {
-    final companion = json['companion_planting'] != null ? Map<dynamic, dynamic>.from(json['companion_planting']) : {};
     return InteligenciaEcossistema(
-      plantasParceiras: (companion['plantas_parceiras'] as List? ?? []).map((e) => e.toString()).toList(),
-      plantasConflitantes: (companion['plantas_conflitantes'] as List? ?? []).map((e) => e.toString()).toList(),
-      repelenteNatural: json['repelente_natural']?.toString() ?? 'N/A',
+      plantasParceiras: (json['companion_planting'] as List? ?? json['plantas_parceiras'] as List? ?? []).map((e) => e.toString()).toList(),
+      plantasConflitantes: (json['plantas_conflitantes'] as List? ?? []).map((e) => e.toString()).toList(),
+      repelenteNatural: json['natural_repellent']?.toString() ?? json['repelente_natural']?.toString() ?? 'N/A',
     );
   }
 }
@@ -262,14 +352,14 @@ class LifestyleEFengShui {
   });
 
   Map<String, dynamic> toJson() => {
-    'posicionamento_ideal': posicionamentoIdeal,
-    'simbolismo': simbolismo,
+    'ideal_positioning': posicionamentoIdeal,
+    'symbolism': simbolismo,
   };
 
   factory LifestyleEFengShui.fromJson(Map<dynamic, dynamic> json) {
     return LifestyleEFengShui(
-      posicionamentoIdeal: json['posicionamento_ideal']?.toString() ?? 'N/A',
-      simbolismo: json['simbolismo']?.toString() ?? 'N/A',
+      posicionamentoIdeal: json['ideal_positioning']?.toString() ?? json['posicionamento_ideal']?.toString() ?? 'N/A',
+      simbolismo: json['symbolism']?.toString() ?? json['simbolismo']?.toString() ?? 'N/A',
     );
   }
 }
@@ -284,14 +374,14 @@ class AlertasSazonais {
   });
 
   Map<String, dynamic> toJson() => {
-    'inverno': inverno,
-    'verao': verao,
+    'winter': inverno,
+    'summer': verao,
   };
 
   factory AlertasSazonais.fromJson(Map<dynamic, dynamic> json) {
     return AlertasSazonais(
-      inverno: json['inverno']?.toString() ?? 'N/A',
-      verao: json['verao']?.toString() ?? 'N/A',
+      inverno: json['winter']?.toString() ?? json['inverno']?.toString() ?? 'N/A',
+      verao: json['summer']?.toString() ?? json['verao']?.toString() ?? 'N/A',
     );
   }
 }

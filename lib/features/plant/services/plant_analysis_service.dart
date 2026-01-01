@@ -23,30 +23,53 @@ class PlantAnalysisService {
 
   PlantAnalysisService(this._groqService);
 
-  Future<PlantAnalysisModel> analyzePlant(File image) async {
-    final prompt = PromptFactory.getPrompt(ScannutMode.plant);
-
-    try {
-      final jsonString = await _groqService.analyzeImage(image, prompt);
-      
-      if (jsonString == null) {
-        throw Exception("Não foi possível analisar a planta.");
-      }
-
-      final cleanJson = jsonString
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
-
-      final Map<String, dynamic> data = jsonDecode(cleanJson);
-      
-      if (data.containsKey('error')) {
-        throw Exception("Erro da IA: ${data['error']}");
-      }
-
-      return PlantAnalysisModel.fromJson(data);
-    } catch (e) {
-      rethrow;
+  Future<PlantAnalysisModel> analyzePlant(File image, {String locale = 'pt_BR'}) async {
+    // 3. Alinhamento de Idioma (Locale)
+    String normalizedLocale = locale;
+    if (locale.toLowerCase().startsWith('en')) {
+      normalizedLocale = 'en'; 
     }
+
+    final prompt = PromptFactory.getPrompt(ScannutMode.plant, locale: normalizedLocale);
+    
+    int retries = 1;
+    while (retries >= 0) {
+      try {
+        final jsonString = await _groqService.analyzeImage(image, prompt);
+        
+        if (jsonString == null) {
+          throw Exception("Não foi possível analisar a planta.");
+        }
+
+        // 2. Validação do JSON (Sanitização)
+        String cleanJson = jsonString;
+        if (cleanJson.contains('```json')) {
+          cleanJson = cleanJson.split('```json').last.split('```').first.trim();
+        } else if (cleanJson.contains('```')) {
+          cleanJson = cleanJson.split('```').last.split('```').first.trim();
+        } else {
+          cleanJson = cleanJson.trim();
+        }
+
+        final Map<String, dynamic> data = jsonDecode(cleanJson);
+        
+        if (data.containsKey('error')) {
+          throw Exception("Erro da IA: ${data['error']}");
+        }
+
+        return PlantAnalysisModel.fromJson(data);
+      } catch (e) {
+        // 5. Logs de Debug
+        debugPrint('Plant Analysis Error (Retries left: $retries): $e');
+        
+        if (retries == 0) {
+          rethrow;
+        }
+        retries--;
+        // Small delay before retry
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+    throw Exception("Erro desconhecido na análise.");
   }
 }

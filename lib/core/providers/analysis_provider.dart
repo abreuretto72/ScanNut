@@ -32,6 +32,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     required ScannutMode mode,
     String? petName,
     List<String> excludedBases = const [],
+    String locale = 'pt', // Default to Portuguese
   }) async {
     state = AnalysisLoading(
       message: _getLoadingMessage(mode),
@@ -40,31 +41,60 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 
     try {
       Map<String, dynamic> jsonResponse;
-      
+      // 3. Alinhamento de Idioma (Locale)
+      String normalizedLocale = locale;
+      if (locale.toLowerCase().startsWith('en')) {
+        normalizedLocale = 'en';
+      }
+
       try {
         jsonResponse = await _geminiService.analyzeImage(
           imageFile: imageFile,
           mode: mode,
-          excludedBases: excludedBases, // Pass restriction
+          excludedBases: excludedBases, 
+          locale: normalizedLocale,
         );
-      } catch (geminiError) {
+      } on GeminiException catch (geminiError) { // Changed catch type to GeminiException for clarity
         debugPrint('⚠️ Gemini falhou, tentando Groq: $geminiError');
         
-        // Use Groq as fallback
-        final prompt = PromptFactory.getPrompt(mode);
-        final groqResponse = await _groqService.analyzeImage(imageFile, prompt);
+        // 1. Aumento de Timeout e Retry no Fallback
+        int retries = 1;
+        String? groqResponse;
+        
+        while (retries >= 0) {
+          try {
+            final prompt = PromptFactory.getPrompt(mode, locale: normalizedLocale);
+            groqResponse = await _groqService.analyzeImage(imageFile, prompt);
+            if (groqResponse != null) break;
+          } catch (e) {
+            debugPrint('⚠️ Groq attempt failed (Retries left: $retries): $e');
+            if (retries == 0) rethrow;
+          }
+          retries--;
+          if (retries >= 0) await Future.delayed(const Duration(seconds: 2));
+        }
         
         if (groqResponse == null) {
           throw Exception('analysisErrorAiFailure');
         }
 
-        // Clean up markdown code blocks if present in Groq response
-        final cleanJson = groqResponse
-            .replaceAll('```json', '')
-            .replaceAll('```', '')
-            .trim();
+        // 2. Validação do JSON (Sanitização Robusta)
+        String cleanJson = groqResponse;
+        if (cleanJson.contains('```json')) {
+          cleanJson = cleanJson.split('```json').last.split('```').first.trim();
+        } else if (cleanJson.contains('```')) {
+          cleanJson = cleanJson.split('```').last.split('```').first.trim();
+        } else {
+          cleanJson = cleanJson.trim();
+        }
         
-        jsonResponse = jsonDecode(cleanJson);
+        try {
+          jsonResponse = jsonDecode(cleanJson);
+        } catch (e) {
+          debugPrint('❌ Critical JSON Parse Error on fallback: $e');
+          debugPrint('Raw Content: $cleanJson');
+          throw const FormatException('Invalid JSON format from fallback');
+        }
       }
       
       // Save to history
@@ -125,9 +155,15 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     } on FormatException catch (e) {
       debugPrint('❌ Erro de formato no JSON: $e');
       state = AnalysisError('analysisErrorJsonFormat');
-    } catch (e) {
-      debugPrint('❌ Erro inesperado: $e');
-      state = AnalysisError('analysisErrorUnexpected');
+    } catch (e, stack) {
+      if (mode == ScannutMode.plant) {
+        debugPrint('Plant Analysis Error: $e');
+      }
+      debugPrint('DEBUG ERROR: $e');
+      debugPrint('STACKTRACE: $stack');
+      final msg = e.toString();
+      final displayMsg = msg.length > 100 ? msg.substring(0, 100) : msg;
+      state = AnalysisError('ERRO TÉCNICO: $displayMsg');
     }
   }
 

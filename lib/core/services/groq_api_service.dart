@@ -19,8 +19,8 @@ class GroqApiService {
 
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 20),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       headers: {
         'Authorization': 'Bearer $apiKey',
         'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ class GroqApiService {
               ],
             }
           ],
-          'temperature': 0.5,
+          'temperature': 0.1,
           'max_tokens': 1024,
         },
       );

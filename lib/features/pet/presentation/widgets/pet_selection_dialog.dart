@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../l10n/app_localizations.dart';
 
 /// Dialog for selecting a pet from registered pets or creating a new analysis
 class PetSelectionDialog extends StatelessWidget {
@@ -12,6 +13,7 @@ class PetSelectionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Dialog(
       backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(
@@ -53,7 +55,7 @@ class PetSelectionDialog extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'De qual pet é esta análise?',
+                      l10n.petSelectionTitle,
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -75,6 +77,7 @@ class PetSelectionDialog extends StatelessWidget {
                   _buildPetOption(
                     context: context,
                     petName: '<NOVO>',
+                    displayName: l10n.petNew,
                     isNew: true,
                   ),
                   
@@ -97,7 +100,7 @@ class PetSelectionDialog extends StatelessWidget {
               child: TextButton(
                 onPressed: () => Navigator.of(context).pop(null),
                 child: Text(
-                  'Cancelar',
+                  l10n.cancel,
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     color: Colors.white70,
@@ -115,6 +118,7 @@ class PetSelectionDialog extends StatelessWidget {
   Widget _buildPetOption({
     required BuildContext context,
     required String petName,
+    String? displayName,
     required bool isNew,
   }) {
     return InkWell(
@@ -161,7 +165,7 @@ class PetSelectionDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    petName,
+                    displayName ?? petName,
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: isNew ? FontWeight.w600 : FontWeight.w500,
@@ -170,7 +174,7 @@ class PetSelectionDialog extends StatelessWidget {
                   ),
                   if (isNew)
                     Text(
-                      'Análise rápida sem salvar',
+                      AppLocalizations.of(context)!.petQuickAnalysis,
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white60, // Subtítulo em branco translúcido

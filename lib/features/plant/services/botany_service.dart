@@ -1,9 +1,9 @@
-// ═══════════════════════════════════════════════════════════════════════════════
-// 🚫 MÓDULO BLINDADO E CONGELADO - NÃO ALTERAR SEM AUTORIZAÇÃO EXPLÍCITA
-// Data de Congelamento: 29/12/2025
-// Este serviço gerencia a persistência e histórico de análises botânicas.
-// Alterações podem causar perda de dados ou inconsistências no histórico.
-// ═══════════════════════════════════════════════════════════════════════════════
+/// ============================================================================
+/// 🚫 SERVIÇO BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este serviço gerencia a persistência e histórico de análises botânicas.
+/// Box: box_plants_history (Registros de plantas e diagnósticos)
+/// Data de Congelamento: 01/01/2026
+/// ============================================================================
 
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -17,27 +17,33 @@ class BotanyService {
   factory BotanyService() => _instance;
   BotanyService._internal();
 
-  static const String boxName = 'box_botany_intel';
+  static const String boxName = 'box_plants_history';
   Box<BotanyHistoryItem>? _box;
 
-  Future<void> init() async {
-    if (_box != null && _box!.isOpen) return;
+  /// Guaranteed Opening Pattern
+  Future<Box<BotanyHistoryItem>> _ensureBox() async {
+    if (_box != null && _box!.isOpen) return _box!;
     try {
       if (!Hive.isAdapterRegistered(21)) {
         Hive.registerAdapter(BotanyHistoryItemAdapter());
       }
       _box = await Hive.openBox<BotanyHistoryItem>(boxName);
-      debugPrint('✅ BotanyService initialized.');
+      debugPrint('✅ BotanyService: box_plants_history initialized.');
+      return _box!;
     } catch (e) {
       debugPrint('❌ Error initializing BotanyService: $e');
+      rethrow;
     }
+  }
+
+  Future<void> init() async {
+    await _ensureBox();
   }
 
   ValueListenable<Box<BotanyHistoryItem>>? get listenable => _box?.listenable();
 
-  Future<void> savePlantAnalysis(PlantAnalysisModel analysis, File? image) async {
-    await init();
-    if (_box == null) return;
+  Future<void> savePlantAnalysis(PlantAnalysisModel analysis, File? image, {String? locale}) async {
+    final box = await _ensureBox();
 
     String? savedPath;
     if (image != null) {
@@ -51,17 +57,26 @@ class BotanyService {
     // Determine toxicity status from analysis keywords
     String tox = 'safe';
     final toxInfo = analysis.segurancaBiofilia.segurancaDomestica.toString().toLowerCase();
-    if (toxInfo.contains('toxic') || toxInfo.contains('tóxica') || toxInfo.contains('perigo')) {
+    if (toxInfo.contains('toxic') || toxInfo.contains('tóxica') || toxInfo.contains('perigo') || toxInfo.contains('poisonous')) {
       tox = 'toxic';
-    } else if (toxInfo.contains('pet') || toxInfo.contains('cachorro') || toxInfo.contains('gato')) {
+    } 
+    
+    // Specific pet check
+    final isToxicToPets = analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true || 
+                          analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true;
+    
+    if (isToxicToPets) {
       tox = 'harmful_pets';
     }
 
     // Determine survival semaphore
     String semaphore = 'verde';
-    if (analysis.saude.condicao.toLowerCase().contains('crítico') || analysis.saude.urgencia.toLowerCase() == 'high') {
+    final cond = analysis.saude.condicao.toLowerCase();
+    final urg = analysis.saude.urgencia.toLowerCase();
+    
+    if (cond.contains('crítico') || cond.contains('critical') || urg == 'high') {
       semaphore = 'vermelho';
-    } else if (analysis.saude.condicao.toLowerCase().contains('atenção') || analysis.saude.urgencia.toLowerCase() == 'medium') {
+    } else if (cond.contains('atenção') || cond.contains('attention') || urg == 'medium' || cond.contains('sick') || cond.contains('doente')) {
       semaphore = 'amarelo';
     }
 
@@ -76,27 +91,109 @@ class BotanyService {
       recoveryPlan: analysis.saude.planoRecuperacao,
       survivalSemaphore: semaphore,
       lightWaterSoilNeeds: {
-        'luz': analysis.sobrevivencia.luminosidade['ideal']?.toString() ?? 'N/A',
-        'agua': analysis.sobrevivencia.regimeHidrico['frequencia']?.toString() ?? 'N/A',
-        'solo': analysis.sobrevivencia.soloENutricao['tipo_solo']?.toString() ?? 'N/A',
+        'luz': analysis.sobrevivencia.luminosidade['type']?.toString() ?? analysis.sobrevivencia.luminosidade['tipo']?.toString() ?? 'N/A',
+        'agua': analysis.sobrevivencia.regimeHidrico['frequency']?.toString() ?? analysis.sobrevivencia.regimeHidrico['frequencia']?.toString() ?? 'N/A',
+        'solo': analysis.sobrevivencia.soloENutricao['soil_composition']?.toString() ?? analysis.sobrevivencia.soloENutricao['tipo_solo']?.toString() ?? 'N/A',
       },
       fengShuiTips: analysis.lifestyle.simbolismo,
       imagePath: savedPath,
       toxicityStatus: tox,
-      rawMetadata: analysis.toJson(),
+      locale: locale,
+      rawMetadata: _sanitizeMetadata(analysis.toJson(), locale),
     );
 
-    await _box!.add(item);
+    try {
+      await box.add(item);
+      debugPrint("✅ Gravado no histórico com sucesso! ID: ${item.id}");
+    } catch (e, stack) {
+      debugPrint("❌ ERRO AO GRAVAR: $e");
+      debugPrint("TRACE: $stack");
+      rethrow;
+    }
   }
 
   Future<List<BotanyHistoryItem>> getHistory() async {
-    await init();
-    return _box?.values.toList().reversed.toList() ?? [];
+    final box = await _ensureBox();
+    final list = box.values.whereType<BotanyHistoryItem>().toList().reversed.toList();
+    debugPrint("🔍 Itens encontrados no banco: ${list.length}");
+    return list;
   }
 
   /// Quick check for toxicity alerts
   Future<List<BotanyHistoryItem>> getToxicPlants() async {
-    await init();
-    return _box?.values.where((p) => p.toxicityStatus != 'safe').toList() ?? [];
+    final box = await _ensureBox();
+    return box.values.where((p) => p.toxicityStatus != 'safe').toList();
+  }
+
+  Future<void> clearAll() async {
+    final box = await _ensureBox();
+    await box.clear();
+    debugPrint('🧹 Botany history cleared');
+  }
+
+  /// Sanitizes metadata to remove common Portuguese leakages if locale is English
+  Map<String, dynamic> _sanitizeMetadata(Map<String, dynamic> json, String? locale) {
+    if (locale == null || !locale.toLowerCase().startsWith('en')) {
+      return json;
+    }
+
+    // Convert map to string, replace terms, and convert back
+    // This is safer than deep recursion for simple term replacement
+    String jsonString = json.toString();
+    
+    // Replacement Dictionary (Common Leaks)
+    final replacements = {
+      'Saudável': 'Healthy',
+      'Doente': 'Sick',
+      'Manchas': 'Spots',
+      'Rega': 'Watering',
+      'Luz Direta': 'Full Sun',
+      'Sombra': 'Shade',
+      'Meia Sombra': 'Partial Shade',
+      'Tóxica': 'Toxic',
+      'Perigo': 'Danger',
+      'Não': 'No',
+      'Sim': 'Yes',
+      'Vermelho': 'Red',
+      'Amarelo': 'Yellow',
+      'Verde': 'Green',
+      'Alta': 'High',
+      'Média': 'Medium',
+      'Baixa': 'Low',
+    };
+
+    replacements.forEach((pt, en) {
+      // Basic string replacement that doesn't break JSON structure
+      // We look for values wrapped in quotes theoretically, but since we are working
+      // with a stringified Map (not JSON string), we are careful.
+      // Ideally we would recurse, but this is a quick safety net.
+      jsonString = jsonString.replaceAll(pt, en);
+    });
+
+    // Note: Since we are doing string manipulation on the .toString() of a Map,
+    // we cannot easily convert it back to a Map.
+    // So instead, we will use a recursive approach to be type-safe.
+    return _recursiveSanitize(json, replacements);
+  }
+
+  dynamic _recursiveSanitize(dynamic data, Map<String, String> replacements) {
+    if (data is String) {
+      String result = data;
+      replacements.forEach((pt, en) {
+        if (result.contains(pt)) {
+           result = result.replaceAll(pt, en);
+        }
+      });
+      return result;
+    } else if (data is Map<String, dynamic>) {
+      final newMap = <String, dynamic>{};
+      data.forEach((key, value) {
+        newMap[key] = _recursiveSanitize(value, replacements);
+      });
+      return newMap;
+    } else if (data is List) {
+      return data.map((e) => _recursiveSanitize(e, replacements)).toList();
+    }
+    return data;
   }
 }

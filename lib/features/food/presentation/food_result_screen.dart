@@ -79,6 +79,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 final pdf = await ExportService().generateFoodAnalysisReport(
                   analysis: widget.analysis,
                   imageFile: widget.imageFile,
+                  strings: AppLocalizations.of(context)!,
                 );
                 return pdf.save();
               },
@@ -163,9 +164,11 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                           _buildCalorieBadge(dailyGoal),
                           const SizedBox(height: 8),
                           Text(
-                            widget.analysis.identidade.nome
-                                .replaceAll('aproximadamente', '+-')
-                                .replaceAll('Aproximadamente', '+-'),
+                            (widget.analysis.identidade.nome == 'UNKNOWN_FOOD')
+                                ? AppLocalizations.of(context)!.unknownFood
+                                : widget.analysis.identidade.nome
+                                    .replaceAll('aproximadamente', '+-')
+                                    .replaceAll('Aproximadamente', '+-'),
                             style: GoogleFonts.poppins(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -198,11 +201,11 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                     unselectedLabelColor: Colors.white54,
                     isScrollable: true,
                     labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
-                    tabs: const [
-                      Tab(text: "RESUMO"),
-                      Tab(text: "SAÚDE"),
-                      Tab(text: "NUTRIENTES"),
-                      Tab(text: "GASTRONOMIA"),
+                    tabs: [
+                      Tab(text: AppLocalizations.of(context)!.tabSummary),
+                      Tab(text: AppLocalizations.of(context)!.tabHealth),
+                      Tab(text: AppLocalizations.of(context)!.tabNutrients),
+                      Tab(text: AppLocalizations.of(context)!.tabGastronomy),
                     ],
                   ),
                 ),
@@ -355,8 +358,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           const SizedBox(height: 24),
           
           ProAccessWrapper(
-            featureName: 'Micronutrientes & Sinergia',
-            featureDescription: 'Obtenha análise completa de vitaminas, minerais e como eles interagem.',
+            featureName: l10n.featureMicrosTitle,
+            featureDescription: l10n.featureMicrosDesc,
             featureIcon: FontAwesomeIcons.dna,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -494,7 +497,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                   widget.analysis.identidade.statusProcessamento.toUpperCase(), 
                   style: GoogleFonts.poppins(color: statusColor, fontSize: 13, fontWeight: FontWeight.bold)
                 ),
-                Text("Semáforo: ${widget.analysis.identidade.semaforoSaude}", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                Text("${AppLocalizations.of(context)!.labelTrafficLight}: ${widget.analysis.identidade.semaforoSaude}", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),

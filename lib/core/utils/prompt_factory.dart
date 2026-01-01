@@ -1,3 +1,5 @@
+import '../constants/botany_prompts.dart';
+import '../constants/nutrition_prompts.dart';
 import '../enums/scannut_mode.dart';
 
 class PromptFactory {
@@ -475,157 +477,46 @@ Mantenha as chaves JSON em inglês.
 ''';
   }
 
-  static String getPrompt(ScannutMode mode) {
-    const languageInstruction = "IMPORTANT: Answer all string values in the JSON in Portuguese (pt-BR). Keep the JSON keys exactly as requested in English.";
+  static String getPrompt(ScannutMode mode, {String locale = 'pt'}) {
+    // Map locale code to full language name and strict instruction
+    String languageName;
+    String languageInstruction;
+    
+    // Normalize locale string
+    final normalizedLocale = locale.replaceAll('-', '_');
+    
+    if (normalizedLocale.startsWith('en')) {
+      languageName = "English";
+      languageInstruction = "Respond in English. CRITICAL: Do not use any Portuguese terms. Translate all plant names and technical symptoms.";
+    } else if (normalizedLocale.startsWith('es')) {
+      languageName = "Spanish";
+      languageInstruction = "Responda en Español. CRITICAL: Traduzca todos los nombres de plantas y términos técnicos.";
+    } else if (normalizedLocale == 'pt_PT') {
+      languageName = "Portuguese-PT";
+      languageInstruction = "Responda em Português de Portugal (ex: telemóvel, frigorífico, sumo).";
+    } else {
+      // Default to pt_BR
+      languageName = "Portuguese-BR";
+      languageInstruction = "Responda em Português do Brasil.";
+    }
 
     switch (mode) {
       case ScannutMode.food:
-        return '''
-Atue como um PhD em Nutrição Clínica, Engenheiro de Alimentos e Biohacker de ELITE. Ao realizar o scan de um alimento, gere um JSON estruturado com profundidade técnica em Biohacking e praticidade culinária.
-
-Regras de Negócio:
-1. FOCO EM TEMPO: As receitas sugeridas DEVEM ter preparo de ATÉ 15 minutos.
-2. BIOHACKING: Analise como o alimento afeta a performance humana (foco, energia, saciedade).
-3. SEMÁFORO DE SAÚDE: Identifique o processamento (Sistema NOVA) e atribua Verde, Amarelo ou Vermelho.
-
-Responda EXCLUSIVAMENTE em JSON (sem markdown). Use Português do Brasil (PT-BR).
-
-Estrutura Obrigatória:
-{
-  "identidade_e_seguranca": {
-    "nome": "string",
-    "status_processamento": "In Natura | Processado | Ultraprocessado",
-    "semaforo_saude": "Verde | Amarelo | Vermelho",
-    "alerta_critico": "string (Glúten, Lactose, Alérgenos)",
-    "bioquimica_alert": "string (Antinutrientes e como neutralizá-los)"
-  },
-  "macronutrientes_pro": {
-    "calorias_100g": integer,
-    "proteinas": "string",
-    "carboidratos_liquidos": "string",
-    "gorduras_perfil": "string",
-    "indice_glicemico": "string (Baixo|Médio|Alto)"
-  },
-  "mapa_de_vitaminas_e_minerais": {
-    "lista": [
-      { "nome": "string", "quantidade": "string", "percentual_dv": integer, "funcao": "string" }
-    ],
-    "sinergia_nutricional": "string"
-  },
-  "analise_pros_e_contras": {
-    "pontos_positivos": ["string"],
-    "pontos_negativos": ["string"],
-    "veredito_ia": "string (1 frase de impacto)"
-  },
-  "biohacking_e_performance": {
-    "pontos_positivos_corpo": ["string (ex: Melhora cognição, Cardio-protetor)"],
-    "pontos_atencao_corpo": ["string (ex: Pico de insulina, Inflamatório)"],
-    "indice_saciedade": integer (1-5),
-    "impacto_foco_energia": "string",
-    "momento_ideal_consumo": "string (ex: Pré-treino, Noite, Quebra de Jejum)"
-  },
-  "receitas_rapidas_15min": [
-    { "nome": "string", "instrucoes": "string (curto e direto)", "tempo_preparo": "string" },
-    { "nome": "string", "instrucoes": "string (curto e direto)", "tempo_preparo": "string" }
-  ],
-  "inteligencia_culinaria": {
-    "preservacao_nutrientes": "string",
-    "smart_swap": "string (Troca inteligente)",
-    "dica_especialista": "string"
-  },
-  "dica_do_especialista": "string"
-}
-
-Se a imagem não for comida, retorne {"error": "not_food"}.
-''';
+        return NutritionPrompts.getFoodAnalysisPrompt(languageName, languageInstruction);
 
       case ScannutMode.plant:
-        return '''
-Atue como um PhD em Botânica e Paisagista de Alto Padrão. Ao realizar o scan de uma planta (além do diagnóstico de doenças), gere um JSON ultra-detalhado contendo as seguintes camadas de informação.
-
-Responda EXCLUSIVAMENTE em JSON (sem markdown). Use Português do Brasil (PT-BR).
-
-Estrutura Obrigatória:
-{
-  "identificacao": {
-    "nome_cientifico": "string",
-    "nomes_populares": ["string"],
-    "familia": "string",
-    "origem_geografica": "string"
-  },
-  "estetica_viva": {
-    "epoca_floracao": "string",
-    "cor_das_flores": "string",
-    "tamanho_maximo_estimado": "string",
-    "velocidade_crescimento": "Lento | Médio | Rápido"
-  },
-  "diagnostico_saude": {
-    "condicao": "Saudável | Doente | Deficiência | Pragas",
-    "detalhes": "string (descrição clínica)",
-    "urgencia": "low | medium | high",
-    "plano_recuperacao": "string (passo a passo)"
-  },
-  "guia_sobrevivencia": {
-    "luminosidade": {
-      "tipo": "Sol Pleno | Meia-Sombra | Sombra",
-      "explicacao": "string",
-      "tolerancia_artificial": "string"
-    },
-    "regime_hidrico": {
-      "frequencia_ideal": "string",
-      "metodo_rega": "string",
-      "sinais_sede": "string",
-      "sensibilidade_cloro": "string"
-    },
-    "solo_e_nutricao": {
-      "ph_ideal": "string",
-      "composicao_substrato": "string",
-      "frequencia_adubacao": "string",
-      "adubo_recomendado": "string (NPC)"
-    }
-  },
-  "seguranca_e_biofilia": {
-    "seguranca_domestica": {
-      "toxica_para_pets": boolean,
-      "toxica_para_criancas": boolean,
-      "sintomas_ingestao": "string"
-    },
-    "poderes_biofilicos": {
-      "purificacao_ar_score": integer (1-10),
-      "umidificacao_natural": "string",
-      "impacto_bem_estar": "string"
-    }
-  },
-  "engenharia_propagacao": {
-    "metodo": "string",
-    "passo_a_passo": "string (guia rápido)",
-    "dificuldade_reproducao": "Fácil | Moderada | Desafiadora"
-  },
-  "inteligencia_ecossistema": {
-    "companion_planting": {
-      "plantas_parceiras": ["string"],
-      "plantas_conflitantes": ["string"]
-    },
-    "repelente_natural": "string (pragas que afasta)"
-  },
-  "lifestyle_e_feng_shui": {
-    "posicionamento_ideal": "string (melhor local da casa)",
-    "simbolismo": "string (significado cultural/espiritual)"
-  },
-  "alertas_sazonais": {
-    "inverno": "string (dormência)",
-    "verao": "string (crescimento)"
-  }
-}
-
-Se não for uma planta, retorne {"error": "not_plant"}.
-''';
+        return BotanyPrompts.getPlantAnalysisPrompt(languageName, languageInstruction, normalizedLocale);
 
       case ScannutMode.petIdentification:
         return '''
+$languageInstruction
+
 Atue como um Especialista Multidisciplinar (Médico Veterinário, Nutricionista Animal e Adestrador Canino/Felino). Ao identificar um animal por foto, gere um relatório técnico ultra-detalhado em formato JSON.
 
-Responda EXCLUSIVAMENTE em JSON (sem markdown). Use Português do Brasil (PT-BR).
+Responda EXCLUSIVAMENTE em JSON (sem markdown). Use $languageName.
+CRITICAL: All food names, ingredients, and instructions MUST be strictly in $languageName. Never use terms from the source image if they are in a different language.
+URGENT: All "Meal Names" must be translated to $languageName. Example: Instead of "Pizza caseira", use "Homemade Pizza". No Portuguese words allowed in the JSON values.
+Translate Brazilian brands to generic equivalents in $languageName (e.g., "1 tortilla" instead of "1 Rap10").
 
 Estrutura Obrigatória:
 {
@@ -758,6 +649,8 @@ O sistema Scannut opera EXCLUSIVAMENTE com Alimentação Natural (AN).
 
 TODAS as refeições devem usar APENAS ingredientes frescos/reais (comida de verdade).
 
+IMPORTANT: The list below uses Portuguese terms, but you MUST translate and output the selected ingredients in $languageName.
+
 CATEGORIAS PERMITIDAS:
 1. Proteínas: Carnes (bovina, frango, porco, peixe, cordeiro) e ovos
 2. Vísceras: Fígado, rim, baço, coração, moela
@@ -773,6 +666,8 @@ Se a imagem for inconclusiva ou não for um pet, retorne {"error": "not_detected
 
       case ScannutMode.petDiagnosis:
         return '''
+$languageInstruction
+
 Act as a veterinary triage assistant. Analyze the CLOSE-UP image of a skin condition, wound, or injury on a pet.
 Return a STRICT JSON object (no markdown) with: 
 {
@@ -793,7 +688,6 @@ Urgency Levels:
 
 IMPORTANT: Include a disclaimer in immediate_care.
 If no condition/wound is found, return {"error": "not_detected"}.
-$languageInstruction
 ''';
     }
   }

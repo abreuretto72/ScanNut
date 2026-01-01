@@ -17,25 +17,31 @@ class DataManagementService {
       // Define all boxes used in the app
       final boxes = [
         'scannut_history',
+        'box_nutrition_human', // Human nutrition history
+        'nutrition_weekly_plans', // Human weekly plans
+        'nutrition_meal_logs', // Human meal logs
+        'nutrition_shopping_list', // Human shopping list
         'pet_profiles',
         'pet_health',
         'meal_plans',
+        'weekly_meal_plans', // Pet weekly plans
         'pet_events',
         'vaccine_status',
         'partners',
         'partner_reminders',
+        'box_plants_history', // Added: Plant history
+        'box_botany_intel', // Legacy: old plant history name
+        'box_workouts', // Workout history
       ];
 
       for (var boxName in boxes) {
-        if (Hive.isBoxOpen(boxName)) {
-          await Hive.box(boxName).clear();
-        } else {
-          try {
-            var box = await Hive.openBox(boxName);
-            await box.clear();
-          } catch (e) {
-            debugPrint('⚠️ Error clearing box $boxName: $e');
+        try {
+          if (Hive.isBoxOpen(boxName)) {
+            await Hive.box(boxName).clear();
           }
+          await Hive.deleteBoxFromDisk(boxName);
+        } catch (e) {
+          debugPrint('⚠️ Error deleting box $boxName: $e');
         }
       }
       debugPrint('✅ Hive boxes cleared');

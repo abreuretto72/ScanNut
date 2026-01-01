@@ -8,6 +8,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../models/food_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
 import '../../../../core/providers/settings_provider.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class ResultCard extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -22,6 +23,8 @@ class ResultCard extends ConsumerStatefulWidget {
 class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isSaved = false;
+
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   @override
   void initState() {
@@ -60,6 +63,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
@@ -67,20 +71,18 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
       builder: (context, scrollController) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.grey.shade900.withValues(alpha: 0.95),
-                    Colors.black.withValues(alpha: 0.98),
-                  ],
-                ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF1A1A1A),
+                  const Color(0xFF000000),
+                ],
               ),
-              child: Column(
+            ),
+            child: Column(
                 children: [
                   // Handle Bar
                   Center(
@@ -134,8 +136,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                   ],
                                 ),
                               ),
-                              Text(
-                                "Toque para ver receitas ✨",
+                                Text(
+                                  l10n.cardTapForRecipes,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   color: _themeColor,
@@ -165,7 +167,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                   ),
                                 ),
                                 Text(
-                                  "Score",
+                                  l10n.cardScore,
                                   style: GoogleFonts.poppins(
                                     fontSize: 10,
                                     color: _themeColor.withValues(alpha: 0.8),
@@ -201,11 +203,11 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
-                      tabs: const [
-                        Tab(text: "Visão Geral"),
-                        Tab(text: "Detalhes"),
-                        Tab(text: "Dicas"),
-                      ],
+                        tabs: [
+                          Tab(text: l10n.cardTabOverview),
+                          Tab(text: l10n.cardTabDetails),
+                          Tab(text: l10n.cardTabTips),
+                        ],
                     ),
                   ),
 
@@ -226,13 +228,13 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 ],
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    }
 
   Widget _buildOverviewTab(ScrollController scrollController) {
+    final l10n = AppLocalizations.of(context)!;
     final settings = ref.watch(settingsProvider);
     final dailyGoal = settings.dailyCalorieGoal;
     
@@ -287,7 +289,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
               ),
               const SizedBox(height: 16),
               Text(
-                "Calorias Totais",
+                l10n.cardTotalCalories,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -296,7 +298,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
               ),
               const SizedBox(height: 4),
               Text(
-                "${((widget.analysis.estimatedCalories / dailyGoal) * 100).toStringAsFixed(0)}% da meta diária ($dailyGoal kcal)",
+                "${((widget.analysis.estimatedCalories / dailyGoal) * 100).toStringAsFixed(0)}% ${l10n.cardDailyGoal} ($dailyGoal kcal)",
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.white54,
@@ -325,21 +327,21 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.protein),
                   color: Colors.blue,
-                  title: 'Prot',
+                  title: l10n.foodProt,
                   radius: 50,
                   titleStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.carbs),
                   color: Colors.orange,
-                  title: 'Carb',
+                  title: l10n.foodCarb,
                   radius: 50,
                   titleStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.fats),
                   color: Colors.purple,
-                  title: 'Gord',
+                  title: l10n.foodFat,
                   radius: 50,
                   titleStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
@@ -352,7 +354,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
 
         // Macros Dashboard
         Text(
-          "Distribuição de Macronutrientes",
+          l10n.cardMacroDist,
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -363,21 +365,21 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
 
         // Macros em Column (sem overflow)
         _buildMacroCard(
-          "Proteína",
+          l10n.nutrientsProteins,
           widget.analysis.macronutrients.protein,
           Icons.fitness_center,
           Colors.blue,
         ),
         const SizedBox(height: 12),
         _buildMacroCard(
-          "Carboidratos",
+          l10n.nutrientsCarbs,
           widget.analysis.macronutrients.carbs,
           Icons.grain,
           Colors.orange,
         ),
         const SizedBox(height: 12),
         _buildMacroCard(
-          "Gorduras",
+          l10n.nutrientsFats,
           widget.analysis.macronutrients.fats,
           Icons.opacity,
           Colors.purple,
@@ -387,7 +389,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
 
         // Quick Stats
         Text(
-          "Resumo Rápido",
+          l10n.cardQuickSummary,
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -403,7 +405,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 onTap: () => _showBenefitsDialog(context),
                 child: _buildStatCard(
                   "${widget.analysis.benefits.length}",
-                  "Benefícios",
+                  l10n.cardBenefits,
                   Icons.check_circle,
                   Colors.green,
                 ),
@@ -415,7 +417,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 onTap: () => _showAlertsDialog(context),
                 child: _buildStatCard(
                   "${widget.analysis.risks.length}",
-                  "Alertas",
+                  l10n.cardAlerts,
                   Icons.warning_amber_rounded,
                   Colors.orange,
                 ),
@@ -461,7 +463,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Score de Vitalidade",
+                        l10n.cardVitalityScore,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: Colors.white70,
@@ -617,12 +619,13 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
   }
 
   Widget _buildDetailsTab(ScrollController scrollController) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.all(24),
       children: [
         Text(
-          "Informações Detalhadas",
+          l10n.cardDetailedInfo,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -634,7 +637,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         // Protein Details
         if (widget.analysis.macronutrients.protein.contains('('))
           _buildDetailCard(
-            "Proteína",
+            l10n.nutrientsProteins,
             widget.analysis.macronutrients.protein,
             Icons.fitness_center,
           ),
@@ -642,7 +645,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         // Carbs Details
         if (widget.analysis.macronutrients.carbs.contains('('))
           _buildDetailCard(
-            "Carboidratos",
+            l10n.nutrientsCarbs,
             widget.analysis.macronutrients.carbs,
             Icons.grain,
           ),
@@ -650,15 +653,15 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         // Fats Details
         if (widget.analysis.macronutrients.fats.contains('('))
           _buildDetailCard(
-            "Gorduras",
+            l10n.nutrientsFats,
             widget.analysis.macronutrients.fats,
             Icons.opacity,
           ),
 
         const SizedBox(height: 16),
-        const Text(
-          'Nota: Esta é uma análise feita por IA e não substitui um diagnóstico de nutricionista.',
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+        Text(
+          l10n.cardDisclaimer,
+          style: const TextStyle(color: Colors.white54, fontSize: 12),
           textAlign: TextAlign.center,
         ),
       ],
@@ -666,6 +669,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
   }
 
   Widget _buildInsightsTab(ScrollController scrollController) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.all(24),
@@ -673,7 +677,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         // Benefits
         if (widget.analysis.benefits.isNotEmpty) ...[
           Text(
-            "Benefícios",
+            l10n.cardBenefits,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -688,7 +692,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         // Risks
         if (widget.analysis.risks.isNotEmpty) ...[
           Text(
-            "Pontos de Atenção",
+            l10n.foodCons,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,

@@ -75,8 +75,13 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     state = _service.getCurrentWeekPlan();
   }
 
-  Future<void> generateNewPlan(UserNutritionProfile profile, {MenuCreationParams? params, DateTime? startDate}) async {
-    final plan = await _generator.generateWeeklyPlan(profile: profile, params: params, startDate: startDate);
+  Future<void> generateNewPlan(UserNutritionProfile profile, {MenuCreationParams? params, DateTime? startDate, String? languageCode}) async {
+    final plan = await _generator.generateWeeklyPlan(
+      profile: profile, 
+      params: params, 
+      startDate: startDate,
+      languageCode: languageCode
+    );
     if (plan != null) {
       await _service.savePlan(plan);
       state = plan; // If the generated plan is for current week, this updates UI. 
@@ -90,9 +95,13 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     }
   }
 
-  Future<void> regeneratePlan(UserNutritionProfile profile) async {
+  Future<void> regeneratePlan(UserNutritionProfile profile, {String? languageCode}) async {
     final newSeed = DateTime.now().millisecondsSinceEpoch;
-    final plan = await _generator.generateWeeklyPlan(profile: profile, seed: newSeed);
+    final plan = await _generator.generateWeeklyPlan(
+      profile: profile, 
+      seed: newSeed,
+      languageCode: languageCode
+    );
     if (plan != null) {
       await _service.savePlan(plan);
       state = plan;

@@ -15,6 +15,7 @@ import '../../../plant/presentation/botany_history_screen.dart';
 import '../../../food/presentation/fitness_dashboard_screen.dart';
 import '../../../pet/presentation/pet_history_screen.dart';
 import '../../../../nutrition/presentation/screens/nutrition_home_screen.dart';
+import '../../../../features/subscription/presentation/paywall_screen.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -29,7 +30,7 @@ class AppDrawer extends ConsumerWidget {
       child: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header (mantido igual, não mostrado no replace)
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
@@ -54,7 +55,7 @@ class AppDrawer extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    settings.userName.isEmpty ? 'Olá!' : 'Olá, ${settings.userName}!',
+                    settings.userName.isEmpty ? l10n.menuHello : l10n.menuHelloUser(settings.userName),
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -62,7 +63,7 @@ class AppDrawer extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'Scannut AI Assistant',
+                    l10n.menuAiAssistant,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.white70,
@@ -77,11 +78,55 @@ class AppDrawer extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 children: [
+                  // PRO BUTTON
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaywallScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFA000), Color(0xFFFFC107)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.amber.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ListTile(
+                        leading: const Icon(Icons.star, color: Colors.black),
+                        title: Text(
+                          l10n.drawerProTitle,
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          l10n.drawerProSubtitle,
+                          style: GoogleFonts.poppins(color: Colors.black87, fontSize: 12),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.black54, size: 16),
+                      ),
+                    ),
+                  ),
+
                   _buildMenuItem(
                     context,
                     icon: Icons.settings,
-                    title: 'Configuração',
-                    subtitle: 'Meta diária: ${settings.dailyCalorieGoal} kcal',
+                    title: l10n.menuSettings,
+                    subtitle: l10n.menuSettingsSubtitle(settings.dailyCalorieGoal.toString()),
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -95,8 +140,8 @@ class AppDrawer extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.temple_buddhist,
-                    title: 'Pilares da Nutrição',
-                    subtitle: 'Conceitos do ScanNut',
+                    title: l10n.menuNutritionalPillars,
+                    subtitle: l10n.menuNutritionalPillarsSubtitle,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const NutritionalPillarsScreen()));
@@ -106,8 +151,8 @@ class AppDrawer extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.dashboard_customize_outlined,
-                    title: 'Balanço Energético',
-                    subtitle: 'Dashboard Fitness & Biohacking',
+                    title: l10n.menuEnergyBalance,
+                    subtitle: l10n.menuEnergyBalanceSubtitle,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const FitnessDashboardScreen()));
@@ -116,8 +161,8 @@ class AppDrawer extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.history,
-                    title: 'Histórico de Nutrição',
-                    subtitle: 'Análises de Alimentos',
+                    title: l10n.menuNutritionHistory,
+                    subtitle: l10n.menuNutritionHistorySubtitle,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const NutritionHistoryScreen()));
@@ -126,8 +171,8 @@ class AppDrawer extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.local_florist_outlined,
-                    title: 'Histórico Botânico',
-                    subtitle: 'Saúde e Guia de Cultivo',
+                    title: l10n.menuBotanyHistory,
+                    subtitle: l10n.menuBotanyHistorySubtitle,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const BotanyHistoryScreen()));
@@ -136,8 +181,8 @@ class AppDrawer extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.pets_outlined,
-                    title: 'Histórico de Pets',
-                    subtitle: 'Dossiês e Exames',
+                    title: l10n.menuPetHistory,
+                    subtitle: l10n.menuPetHistorySubtitle,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(context, MaterialPageRoute(builder: (context) => PetHistoryScreen()));
@@ -146,8 +191,8 @@ class AppDrawer extends ConsumerWidget {
                   _buildMenuItem(
                     context,
                     icon: Icons.help_outline,
-                    title: 'Ajuda',
-                    subtitle: 'Como usar o app',
+                    title: l10n.menuHelp,
+                    subtitle: l10n.menuHelpSubtitle,
                     onTap: () {
                       Navigator.pop(context);
                       _showHelpDialog(context);
@@ -162,7 +207,7 @@ class AppDrawer extends ConsumerWidget {
                       return _buildMenuItem(
                         context,
                         icon: Icons.info_outline,
-                        title: 'Sobre',
+                        title: l10n.menuAbout,
                         subtitle: version,
                         onTap: () {
                           Navigator.pop(context);
@@ -185,7 +230,7 @@ class AppDrawer extends ConsumerWidget {
                       } else {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Não foi possível abrir o link')),
+                            SnackBar(content: Text(l10n.linkError)),
                           );
                         }
                       }
@@ -195,15 +240,15 @@ class AppDrawer extends ConsumerWidget {
                     context,
                     icon: Icons.delete_forever_outlined,
                     title: l10n.deleteAccount,
-                    subtitle: 'Remover todos os registros',
+                    subtitle: l10n.menuDeleteAccountSubtitle,
                     onTap: () => _showDeleteAccountDialog(context),
                     isDestructive: true,
                   ),
                   _buildMenuItem(
                     context,
                     icon: Icons.exit_to_app,
-                    title: 'Sair',
-                    subtitle: 'Fechar o aplicativo',
+                    title: l10n.menuExit,
+                    subtitle: l10n.menuExitSubtitle,
                     onTap: () {
                       _showExitDialog(context);
                     },
@@ -217,7 +262,7 @@ class AppDrawer extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Feito com ❤️ usando Gemini AI',
+                l10n.footerMadeWith,
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.white54,
@@ -331,23 +376,24 @@ class AppDrawer extends ConsumerWidget {
   }
 
   void _showExitDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
         title: Text(
-          'Sair do App',
+          l10n.exitDialogTitle,
           style: GoogleFonts.poppins(color: Colors.white),
         ),
         content: Text(
-          'Deseja realmente sair do Scannut?',
+          l10n.exitDialogContent,
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancelar',
+              l10n.petNamePromptCancel,
               style: GoogleFonts.poppins(color: Colors.white70),
             ),
           ),
@@ -359,7 +405,7 @@ class AppDrawer extends ConsumerWidget {
               SystemNavigator.pop();
             },
             child: Text(
-              'Sair',
+              l10n.menuExit,
               style: GoogleFonts.poppins(color: Colors.red),
             ),
           ),
@@ -376,12 +422,14 @@ class AppDrawer extends ConsumerWidget {
     
     if (!context.mounted) return;
     
+    final l10n = AppLocalizations.of(context)!;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
         title: Text(
-          'Sobre o Scannut',
+          l10n.aboutTitle,
           style: GoogleFonts.poppins(color: Colors.white),
         ),
         content: Column(
@@ -389,7 +437,7 @@ class AppDrawer extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Scannut AI Visual Assistant',
+              l10n.aboutSubtitle,
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -402,12 +450,12 @@ class AppDrawer extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Análise inteligente de:\n• Alimentos 🍎\n• Plantas 🌿\n• Pets 🐾',
+              l10n.aboutDescription,
               style: GoogleFonts.poppins(color: Colors.white70),
             ),
             const SizedBox(height: 16),
             Text(
-              'Powered by Google Gemini 2.5 Flash',
+              l10n.aboutPoweredBy,
               style: GoogleFonts.poppins(
                 color: Colors.green.shade300,
                 fontSize: 12,
@@ -419,7 +467,7 @@ class AppDrawer extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Fechar',
+              'Fechar', // You might want to localize this too or use 'Cancel'
               style: GoogleFonts.poppins(color: Colors.green),
             ),
           ),
@@ -429,6 +477,7 @@ class AppDrawer extends ConsumerWidget {
   }
 
   void _showHelpDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -447,7 +496,7 @@ class AppDrawer extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Guia Completo',
+                l10n.helpUserGuide,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -464,7 +513,7 @@ class AppDrawer extends ConsumerWidget {
             children: [
               // Seções do Perfil
               Text(
-                '📋 SEÇÕES DO PERFIL DO PET',
+                l10n.guideVitalsTitle,
                 style: GoogleFonts.poppins(
                   color: const Color(0xFF00E676),
                   fontSize: 14,
@@ -474,28 +523,28 @@ class AppDrawer extends ConsumerWidget {
               const SizedBox(height: 12),
               
               _buildSectionInfo(
-                '🐾 Identidade',
-                'Gerencie os dados vitais do pet: peso, raça, idade e análise comportamental genética completa.',
+                '🐾 ${l10n.guideIdentity}',
+                l10n.guideIdentityDesc,
               ),
               
               _buildSectionInfo(
-                '💉 Saúde',
-                'Histórico médico completo com controle de vacinas, vermífugos, exames laboratoriais e lembretes de consultas.',
+                '💉 ${l10n.guideHealth}',
+                l10n.guideHealthDesc,
               ),
               
               _buildSectionInfo(
-                '🍖 Nutrição',
-                'Planejamento alimentar semanal detalhado com cálculos de Kcal, datas (DD/MM) e os 5 pilares nutricionais.',
+                '🍖 ${l10n.guideNutrition}',
+                l10n.guideNutritionDesc,
               ),
               
               _buildSectionInfo(
-                '📸 Galeria',
-                'Documente visualmente a evolução e momentos especiais do seu pet com fotos e vídeos.',
+                '📸 ${l10n.guideGallery}',
+                l10n.guideGalleryDesc,
               ),
               
               _buildSectionInfo(
-                '🤝 Prac',
-                'Prontuário de Acompanhamento Comportamental para registrar rotinas, mudanças de hábito e rede de apoio.',
+                '🤝 ${l10n.guidePrac}',
+                l10n.guidePracDesc,
               ),
               
               const SizedBox(height: 20),
@@ -504,7 +553,7 @@ class AppDrawer extends ConsumerWidget {
               
               // Campo de Observações
               Text(
-                '📝 OBSERVAÇÕES E HISTÓRICO',
+                l10n.guideObservationsTitle,
                 style: GoogleFonts.poppins(
                   color: const Color(0xFF00E676),
                   fontSize: 14,
@@ -514,23 +563,23 @@ class AppDrawer extends ConsumerWidget {
               const SizedBox(height: 12),
               
               _buildFeatureItem(
-                '✅ Histórico Cumulativo',
-                'Cada seção possui um campo de observações. Novas anotações NÃO apagam as antigas - tudo fica registrado!',
+                '✅ ${l10n.guideHistory}',
+                l10n.guideHistoryDesc,
               ),
               
               _buildFeatureItem(
-                '🕐 Timestamps Automáticos',
-                'O sistema insere automaticamente Data e Hora em cada entrada, criando um histórico cronológico completo.',
+                '🕐 ${l10n.guideTimestamps}',
+                l10n.guideTimestampsDesc,
               ),
               
               _buildFeatureItem(
-                '📌 Ordem Inteligente',
-                'A entrada mais recente sempre aparece no topo, facilitando a leitura e acompanhamento.',
+                '📌 ${l10n.guideOrder}',
+                l10n.guideOrderDesc,
               ),
               
               _buildFeatureItem(
-                '🎤 Ditado por Voz',
-                'Use o ícone de microfone para ditar observações em vez de digitar. Mais rápido e prático!',
+                '🎤 ${l10n.guideVoice}',
+                l10n.guideVoiceDesc,
               ),
               
               const SizedBox(height: 20),
@@ -539,7 +588,7 @@ class AppDrawer extends ConsumerWidget {
               
               // Exportação PDF
               Text(
-                '📄 EXPORTAÇÃO EM PDF',
+                '📄 ${l10n.guideExportTitle}',
                 style: GoogleFonts.poppins(
                   color: const Color(0xFF00E676),
                   fontSize: 14,
@@ -564,7 +613,7 @@ class AppDrawer extends ConsumerWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Prontuário Veterinário Completo',
+                            l10n.guidePdfTitle,
                             style: GoogleFonts.poppins(
                               color: Colors.blue[200],
                               fontSize: 12,
@@ -576,18 +625,10 @@ class AppDrawer extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Todas as informações e observações acumuladas podem ser exportadas de forma seletiva no PDF do Perfil.',
+                      l10n.guidePdfDesc,
                       style: GoogleFonts.poppins(
                         color: Colors.white70,
-                        fontSize: 11,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '✓ Serve como prontuário oficial para veterinários\n✓ Escolha quais seções incluir\n✓ Formato profissional com capa e timestamps',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white60,
-                        fontSize: 10,
+                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -600,7 +641,7 @@ class AppDrawer extends ConsumerWidget {
               
               // Módulo de Plantas
               Text(
-                '🌿 ANÁLISE DE PLANTAS',
+                '🌿 ${l10n.guideBotanyTitle}',
                 style: GoogleFonts.poppins(
                   color: const Color(0xFF00E676),
                   fontSize: 14,
@@ -610,23 +651,23 @@ class AppDrawer extends ConsumerWidget {
               const SizedBox(height: 12),
               
               _buildFeatureItem(
-                '🍃 Ícone de Folha (Verde)',
-                'Indica que a planta está SAUDÁVEL. Nenhuma intervenção urgente necessária.',
+                '🍃 ${l10n.guideBotanyLeaf}',
+                l10n.guideBotanyLeafDesc,
               ),
               
               _buildFeatureItem(
-                '⚠️ Ícone de Alerta (Amarelo/Laranja)',
-                'Planta requer ATENÇÃO. Pode estar com deficiências nutricionais ou estresse hídrico.',
+                '⚠️ ${l10n.guideBotanyAlert}',
+                l10n.guideBotanyAlertDesc,
               ),
               
               _buildFeatureItem(
-                '🚨 Ícone de Emergência (Vermelho)',
-                'Estado CRÍTICO. A planta necessita de tratamento imediato para sobreviver.',
+                '🚨 ${l10n.guideBotanyCritical}',
+                l10n.guideBotanyCriticalDesc,
               ),
               
               _buildFeatureItem(
-                '📊 Semáforo de Sobrevivência',
-                'Verde = Ideal | Amarelo = Atenção | Vermelho = Urgente. Aparece nos cards de histórico.',
+                '📊 ${l10n.guideBotanyTraffic}',
+                l10n.guideBotanyTrafficDesc,
               ),
               
               const SizedBox(height: 20),
@@ -635,9 +676,9 @@ class AppDrawer extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00E676).withOpacity(0.1),
+                  color: const Color(0xFF00E676).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3)),
+                  border: Border.all(color: const Color(0xFF00E676).withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -645,7 +686,7 @@ class AppDrawer extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'O ScanNut é uma ferramenta de longo prazo para acompanhar toda a vida do seu pet!',
+                        l10n.guideFinalTip,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF00E676),
                           fontSize: 11,
@@ -663,7 +704,7 @@ class AppDrawer extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Entendi',
+              l10n.commonUnderstand,
               style: GoogleFonts.poppins(
                 color: const Color(0xFF00E676),
                 fontWeight: FontWeight.bold,
@@ -681,9 +722,9 @@ class AppDrawer extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

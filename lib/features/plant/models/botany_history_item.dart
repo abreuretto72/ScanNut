@@ -1,3 +1,10 @@
+/// ============================================================================
+/// 🚫 MODELO BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este modelo representa o histórico persistente de botânica.
+/// Índices @HiveField (0-12) são imutáveis para retrocompatibilidade.
+/// Data de Congelamento: 01/01/2026
+/// ============================================================================
+
 import 'package:hive/hive.dart';
 
 part 'botany_history_item.g.dart';
@@ -37,6 +44,9 @@ class BotanyHistoryItem extends HiveObject {
   @HiveField(10)
   final String toxicityStatus; // safe / toxic / harmful_pets
 
+  @HiveField(11)
+  final String? locale; // e.g., pt_BR, pt_PT, en, es
+
   @HiveField(12)
   final Map<String, dynamic>? rawMetadata;
 
@@ -52,6 +62,7 @@ class BotanyHistoryItem extends HiveObject {
     required this.fengShuiTips,
     this.imagePath,
     required this.toxicityStatus,
+    this.locale,
     this.rawMetadata,
   });
 }

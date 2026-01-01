@@ -17,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../pet/services/pet_event_service.dart';
 import '../../pet/models/pet_event.dart';
 import '../../partners/models/agenda_event.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
   const PetHistoryScreen({Key? key}) : super(key: key);
@@ -87,6 +88,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -96,7 +98,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Meus Pets Salvos',
+          l10n.petHistoryTitle,
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
@@ -108,7 +110,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                   const Icon(Icons.pets, size: 64, color: Colors.white24),
                   const SizedBox(height: 16),
                   Text(
-                    'Nenhum pet salvo ainda.',
+                    l10n.petHistoryEmpty,
                     style: GoogleFonts.poppins(color: Colors.white54),
                   ),
                 ],
@@ -133,9 +135,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                 String subtitle = 'Carregando...';
                 try {
                   if (data['analysis_type'] == 'diagnosis') {
-                    subtitle = "${data['breed'] ?? 'N/A'} • Saúde";
+                    subtitle = "${data['breed'] ?? l10n.petBreed} • Saúde";
                   } else {
-                    subtitle = "${data['identificacao']?['raca_predominante'] ?? 'N/A'} • ID";
+                    subtitle = "${data['identificacao']?['raca_predominante'] ?? l10n.petBreed} • ID";
                   }
                 } catch (e) {
                    subtitle = 'Info indisponível';
@@ -181,7 +183,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          DateFormat('dd/MM/yyyy HH:mm').format(date),
+                          DateFormat('dd/MM/yyyy HH:mm', Localizations.localeOf(context).toString()).format(date),
                           style: GoogleFonts.poppins(color: Colors.white30, fontSize: 12),
                         ),
                         
@@ -259,10 +261,10 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                   } else {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Vincule um parceiro na aba "Parc." para acessar a agenda'),
+                                        SnackBar(
+                                          content: Text(l10n.petLinkPartnerError),
                                           backgroundColor: Colors.orange,
-                                          duration: Duration(seconds: 3),
+                                          duration: const Duration(seconds: 3),
                                         ),
                                       );
                                     }
@@ -325,7 +327,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                   } else {
                                     if (context.mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Sem cardápio recente.')),
+                                        SnackBar(content: Text(l10n.petNoRecentMenu)),
                                       );
                                     }
                                   }
@@ -428,7 +430,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                   if (result != null && result is Map && result['action'] == 'save') {
                                       _loadHistory();
                                       if (context.mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alterações salvas.')));
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petEditSaved)));
                                       }
                                   } else {
                                       _loadHistory();

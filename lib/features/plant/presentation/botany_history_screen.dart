@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../models/botany_history_item.dart';
 import '../models/plant_analysis_model.dart';
 import '../services/botany_service.dart';
@@ -9,6 +11,7 @@ import 'widgets/plant_result_card.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import '../../../l10n/app_localizations.dart';
 
 class BotanyHistoryScreen extends StatefulWidget {
   const BotanyHistoryScreen({Key? key}) : super(key: key);
@@ -29,6 +32,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
 
   Future<void> _loadHistory() async {
     final items = await BotanyService().getHistory();
+    debugPrint("📜 HistoryScreen loaded ${items.length} items from service.");
     setState(() {
       _items = items;
       _isLoading = false;
@@ -37,41 +41,50 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Inteligência Botânica',
+        title: Text(l10n.botanyTitle,
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
-          : _items.isEmpty
-              ? _buildEmptyState()
-              : AnimationLimiter(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      return AnimationConfiguration.staggeredList(
-                        position: index,
-                        duration: const Duration(milliseconds: 375),
-                        child: SlideAnimation(
-                          verticalOffset: 50.0,
-                          child: FadeInAnimation(
-                            child: _buildPlantCard(item),
-                          ),
-                        ),
-                      );
-                    },
+      body: ValueListenableBuilder<Box<BotanyHistoryItem>>(
+        valueListenable: BotanyService().listenable!,
+        builder: (context, box, _) {
+          final items = box.values.whereType<BotanyHistoryItem>().toList().reversed.toList();
+          
+          if (items.isEmpty) {
+            return _buildEmptyState();
+          }
+          
+          return AnimationLimiter(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return AnimationConfiguration.staggeredList(
+                  position: index,
+                  duration: const Duration(milliseconds: 375),
+                  child: SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: FadeInAnimation(
+                      child: _buildPlantCard(item),
+                    ),
                   ),
-                ),
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildEmptyState() {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -79,7 +92,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           Icon(Icons.local_florist, size: 80, color: Colors.grey.shade800),
           const SizedBox(height: 16),
           Text(
-            'Nenhuma planta analisada ainda.',
+            l10n.botanyEmpty,
             style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
           ),
         ],
@@ -88,6 +101,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   }
 
   Widget _buildPlantCard(BotanyHistoryItem item) {
+    final l10n = AppLocalizations.of(context)!;
     Color semaphoreColor;
     switch (item.survivalSemaphore.toLowerCase()) {
       case 'verde': semaphoreColor = Colors.greenAccent; break;
@@ -152,27 +166,53 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'STATUS: ${item.survivalSemaphore.toUpperCase()}',
+                          '${l10n.botanyStatus}: ${_getLocalizedStatus(item.survivalSemaphore)}',
                           style: GoogleFonts.poppins(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
                 ),
-                // Date
+                // Date & Locale
                 Positioned(
                   bottom: 12,
                   left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      DateFormat('dd MMM yyyy').format(item.timestamp),
-                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 10),
-                    ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          DateFormat('dd MMM yyyy', Localizations.localeOf(context).toString()).format(item.timestamp),
+                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 10),
+                        ),
+                      ),
+                      if (item.locale != null && item.locale != Localizations.localeOf(context).toString()) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.amber, width: 0.5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.language, color: Colors.white, size: 10),
+                              const SizedBox(width: 4),
+                              Text(
+                                item.locale!.toUpperCase().replaceAll('_', '-'),
+                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ],
@@ -183,9 +223,12 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AutoSizeText(
                     item.plantName,
                     style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                    maxLines: 1,
+                    minFontSize: 14,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -218,9 +261,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                           const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              item.toxicityStatus == 'toxic' ? 'TÓXICA para humanos' : 'PERIGOSA para pets',
+                            child: AutoSizeText(
+                              item.toxicityStatus == 'toxic' ? l10n.botanyToxicHuman : l10n.botanyDangerousPet,
                               style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w600),
+                              maxLines: 1,
+                              minFontSize: 8,
                             ),
                           ),
                         ],
@@ -276,26 +321,28 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
         const SizedBox(height: 4),
         SizedBox(
           width: 80,
-          child: Text(
-            value,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 10),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+            child: AutoSizeText(
+              value,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(color: Colors.white70, fontSize: 10),
+              maxLines: 1,
+              minFontSize: 6,
+              overflow: TextOverflow.ellipsis,
+            ),
         ),
       ],
     );
   }
 
   Widget _buildActionButtons(BotanyHistoryItem item) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () => _showRecoveryPlan(item),
             icon: const Icon(Icons.health_and_safety_rounded, size: 18),
-            label: Text('Recuperação', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
+            label: Text(l10n.botanyRecovery, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.1),
               foregroundColor: const Color(0xFF00E676),
@@ -348,6 +395,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   }
 
   Future<void> _generateHistoryPDF(BotanyHistoryItem item) async {
+    final l10n = AppLocalizations.of(context)!;
     if (item.rawMetadata == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro: Dados completos não encontrados para este item.')),
@@ -364,10 +412,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => PdfPreviewScreen(
-            title: 'Dossiê Botânico: ${item.plantName}',
+            title: l10n.botanyDossierTitle(item.plantName),
             buildPdf: (format) async {
               final pdf = await ExportService().generatePlantAnalysisReport(
                 analysis: analysis,
+                strings: AppLocalizations.of(context)!,
                 imageFile: item.imagePath != null ? File(item.imagePath!) : null,
               );
               return pdf.save();
@@ -386,30 +435,51 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   }
 
   void _showRecoveryPlan(BotanyHistoryItem item) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Plano de Recuperação', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(l10n.botanyRecoveryPlan, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
         content: Text(item.recoveryPlan, style: GoogleFonts.poppins(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Entendido')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.commonUnderstand)),
         ],
       ),
     );
   }
 
   void _showFengShui(BotanyHistoryItem item) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Feng Shui & Simbolismo', style: GoogleFonts.poppins(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+        title: Text(l10n.botanyFengShui, style: GoogleFonts.poppins(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
         content: Text(item.fengShuiTips, style: GoogleFonts.poppins(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.commonClose)),
         ],
       ),
     );
+  }
+
+  String _getLocalizedStatus(String status) {
+    final s = status.toLowerCase();
+    // Assuming Portuguese is the base storage language for these keys 'verde', 'amarelo', 'vermelho'
+    // We map them to English equivalents if we are in English mode, or return as is (uppercased)
+    // Actually, checking if we have specific keys. We don't have "Green" in arb, but we can infer logical mapping.
+    
+    // Check if current locale is English
+    bool isEnglish = Localizations.localeOf(context).languageCode == 'en';
+    
+    if (isEnglish) {
+       if (s.contains('verde') || s.contains('green')) return 'GREEN / HEALTHY';
+       if (s.contains('amarelo') || s.contains('yellow')) return 'YELLOW / WARNING';
+       if (s.contains('vermelho') || s.contains('red')) return 'RED / CRITICAL';
+    }
+    
+    // Default fallback (Portuguese or others)
+    return status.toUpperCase();
   }
 }

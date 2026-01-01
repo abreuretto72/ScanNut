@@ -625,11 +625,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       builder: (context, scrollController) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.9),
-              child: Column(
+          child: Container(
+            color: const Color(0xFF121212),
+            child: Column(
                 children: [
                    _buildHeader(),
                    if (widget.analysis.analysisType == 'diagnosis') 
@@ -668,11 +666,10 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 ],
               ),
             ),
-          ),
-        );
-      },
-    );
-  }
+          );
+        },
+      );
+    }
 
   Widget _buildHeader() {
     return Padding(

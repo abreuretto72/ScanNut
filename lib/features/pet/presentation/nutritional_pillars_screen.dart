@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../l10n/app_localizations.dart';
 
 class NutritionalPillarsScreen extends StatelessWidget {
   const NutritionalPillarsScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
-          'Guia de Nutrição Animal ScanNut',
+          l10n.nutritionGuideTitle,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontSize: 16,
@@ -35,7 +37,7 @@ class NutritionalPillarsScreen extends StatelessWidget {
                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: Text(
-                'Diferente dos humanos, os cães e gatos possuem um metabolismo acelerado e exigências nutricionais únicas. O ScanNut utiliza IA para equilibrar estes 5 pilares vitais para a longevidade do seu pet.',
+                l10n.nutritionIntro,
                 style: GoogleFonts.poppins(
                   color: Colors.white70,
                   fontSize: 14,
@@ -47,52 +49,52 @@ class NutritionalPillarsScreen extends StatelessWidget {
 
             _buildPillarCard(
               context,
-              title: 'Proteína Animal',
-              subtitle: 'A Força do Pet',
+              title: l10n.ngProteinTitle,
+              subtitle: l10n.ngProteinSubtitle,
               icon: Icons.fitness_center,
               color: Colors.redAccent,
-              whatIs: 'Pets são carnívoros (estritos como gatos ou facultativos como cães). Eles precisam de aminoácidos específicos encontrados na carne que o corpo deles não produz.',
-              scanNutAction: 'Priorizamos fontes como frango, carne bovina, peixes, ovos ou proteínas selecionadas em rações premium.',
+              whatIs: l10n.ngProteinWhatIs,
+              scanNutAction: l10n.ngProteinAction,
             ),
             const SizedBox(height: 16),
             _buildPillarCard(
               context,
-              title: 'Gorduras Específicas',
-              subtitle: 'A Proteção',
+              title: l10n.ngFatsTitle,
+              subtitle: l10n.ngFatsSubtitle,
               icon: Icons.bolt,
               color: Colors.amber,
-              whatIs: 'Além da energia, a gordura correta previne dermatites e garante que o pet absorva as vitaminas A, D, E e K. O Ômega 3 é o maior aliado contra inflamações.',
-              scanNutAction: 'Sugerimos o equilíbrio de Ômegas 3 e 6, provenientes de óleos de peixe ou gorduras boas.',
+              whatIs: l10n.ngFatsWhatIs,
+              scanNutAction: l10n.ngFatsAction,
             ),
             const SizedBox(height: 16),
             _buildPillarCard(
               context,
-              title: 'Fibras e Carboidratos Selecionados',
-              subtitle: 'O Intestino',
+              title: l10n.ngCarbsTitle,
+              subtitle: l10n.ngCarbsSubtitle,
               icon: Icons.grass,
               color: Colors.green,
-              whatIs: 'O sistema digestivo do pet é mais curto. Usamos carboidratos de fácil digestão (como batata-doce ou arroz) e fibras que auxiliam na formação correta das fezes.',
-              scanNutAction: 'Sugerimos vegetais como abóbora e cenoura, e grãos como arroz integral ou aveia.',
+              whatIs: l10n.ngCarbsWhatIs,
+              scanNutAction: l10n.ngCarbsAction,
             ),
             const SizedBox(height: 16),
             _buildPillarCard(
               context,
-              title: 'Minerais e Vitaminas',
-              subtitle: 'Cuidado com a Dose',
+              title: l10n.ngVitaminsTitle,
+              subtitle: l10n.ngVitaminsSubtitle,
               icon: Icons.science,
               color: Colors.purpleAccent,
-              whatIs: 'Crucial: O excesso de cálcio pode prejudicar filhotes e a falta pode fragilizar idosos. O ScanNut foca no equilíbrio mineral exato para a estrutura óssea canina e felina.',
-              scanNutAction: 'O app sinaliza a necessidade de suplementação, especialmente em dietas Naturais, para evitar carências.',
+              whatIs: l10n.ngVitaminsWhatIs,
+              scanNutAction: l10n.ngVitaminsAction,
             ),
             const SizedBox(height: 16),
             _buildPillarCard(
               context,
-              title: 'Hidratação Biológica',
-              subtitle: 'O Ponto Fraco',
+              title: l10n.ngHydrationTitle,
+              subtitle: l10n.ngHydrationSubtitle,
               icon: Icons.water_drop,
               color: Colors.blueAccent,
-              whatIs: 'Muitos pets não sentem sede proporcional à necessidade. O app incentiva alimentos úmidos para evitar cálculos renais, uma das maiores causas de óbito em gatos e cães idosos.',
-              scanNutAction: 'Sugerimos a inclusão de alimentos úmidos, caldos ou adição de água na ração para proteger os rins.',
+              whatIs: l10n.ngHydrationWhatIs,
+              scanNutAction: l10n.ngHydrationAction,
             ),
             const SizedBox(height: 32),
             Container(
@@ -116,14 +118,14 @@ class NutritionalPillarsScreen extends StatelessWidget {
                         ),
                         children: [
                           TextSpan(
-                            text: 'ATENÇÃO: ',
+                            text: '${l10n.ngWarningTitle} ',
                             style: GoogleFonts.poppins(
                               color: Colors.orangeAccent,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const TextSpan(
-                            text: 'Nunca ofereça alimentos proibidos para pets (como chocolate, uvas, cebola e xilitol). As sugestões do ScanNut respeitam estas restrições de segurança.',
+                          TextSpan(
+                            text: l10n.ngWarningText,
                           ),
                         ],
                       ),
@@ -147,6 +149,7 @@ class NutritionalPillarsScreen extends StatelessWidget {
     required String whatIs,
     required String scanNutAction,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.05),
@@ -190,14 +193,14 @@ class NutritionalPillarsScreen extends StatelessWidget {
                 children: [
                   const Divider(color: Colors.white10),
                   const SizedBox(height: 12),
-                  _buildSectionTitle('O que é:', color),
+                  _buildSectionTitle(l10n.ngSectionWhatIs, color),
                   const SizedBox(height: 4),
                   Text(
                     whatIs,
                     style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionTitle('No ScanNut:', const Color(0xFF00E676)),
+                  _buildSectionTitle(l10n.ngSectionScanNut, const Color(0xFF00E676)),
                   const SizedBox(height: 4),
                   Text(
                     scanNutAction,

@@ -169,7 +169,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         debugPrint('Camera initialization error: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao iniciar câmera: $e'), backgroundColor: Colors.red),
+            SnackBar(content: Text('${AppLocalizations.of(context)!.cameraError}$e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -287,14 +287,36 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       }
 
       debugPrint('🚀 _onCapture: Starting analysis...');
+      
+      // Language Shield: Enforce en_US if English is detected to prevent mixed responses
+      String localeCode = Localizations.localeOf(context).toString();
+      if (localeCode.toLowerCase().contains('en')) {
+        localeCode = 'en_US';
+      }
+
       await ref.read(analysisNotifierProvider.notifier).analyzeImage(
         imageFile: File(image.path), 
         mode: mode,
         petName: _petName,
         excludedBases: excludedIngredients,
+        locale: localeCode,
       );
+      
+      // Capture the success state BEFORE resetting the provider
+      final resultState = ref.read(analysisNotifierProvider);
+
+      // Critical Fix: Reset provider to Idle to remove the Loading Overlay (Stack) immediately
+      // This prevents the "faded/blurred" effect over the result sheet.
+      ref.read(analysisNotifierProvider.notifier).reset();
+
+      if (!context.mounted) return;
+
+      // Small delay to allow the UI (loading overlay) to disappear completely from the frame
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       debugPrint('✅ _onCapture: Analysis complete, handling result...');
-      _handleAnalysisResult();
+      // Pass the captured state to the handler
+      _handleAnalysisResult(resultState);
       debugPrint('🎉 _onCapture: END SUCCESS');
     } catch (e, stackTrace) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
@@ -302,63 +324,79 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
   }
 
-  void _handleAnalysisResult() {
-    final state = ref.read(analysisNotifierProvider);
+  void _handleAnalysisResult([AnalysisState? injectedState]) {
+    // Use injected state if provided (from _onCapture), otherwise read from provider
+    final state = injectedState ?? ref.read(analysisNotifierProvider);
 
-    if (state is AnalysisSuccess) {
-      if (state.data is FoodAnalysisModel) {
-        if (_capturedImage != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FoodResultScreen(
-                analysis: state.data as FoodAnalysisModel,
-                imageFile: _capturedImage,
-                onSave: () => _handleSave('Food'),
+    try {
+      if (state is AnalysisSuccess) {
+        if (state.data is FoodAnalysisModel) {
+          if (_capturedImage != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FoodResultScreen(
+                  analysis: state.data as FoodAnalysisModel,
+                  imageFile: _capturedImage,
+                  onSave: () => _handleSave('Food', data: state.data),
+                ),
               ),
-            ),
-          );
-        } else {
-           _showResultSheet(
+            );
+          } else {
+             _showResultSheet(
+              context,
+              ResultCard(
+                analysis: state.data as FoodAnalysisModel,
+                onSave: () => _handleSave('Food', data: state.data),
+              ),
+            );
+          }
+        } else if (state.data is PlantAnalysisModel) {
+          _showResultSheet(
             context,
-            ResultCard(
-              analysis: state.data as FoodAnalysisModel,
-              onSave: () => _handleSave('Food'),
+            PlantResultCard(
+              analysis: state.data as PlantAnalysisModel,
+              imagePath: _capturedImage?.path,
+              onSave: () => _handleSave('Plant', data: state.data),
+              onShop: () => _handleShop(),
+            ),
+          );
+        } else if (state.data is PetAnalysisResult) {
+          final petAnalysis = state.data as PetAnalysisResult;
+          
+          // If in diagnosis mode and a pet was selected (not NOVO), save wound analysis
+          if (_petMode == 1 && _petName != null) {
+            debugPrint('💾 Saving wound analysis for pet: $_petName');
+            _saveWoundAnalysis(petAnalysis);
+          } else if (_petMode == 1 && _petName == null) {
+            debugPrint('ℹ️ NOVO selected - showing analysis without saving');
+          }
+          
+          _showResultSheet(
+            context,
+            PetResultCard(
+              analysis: petAnalysis,
+              imagePath: _capturedImage!.path,
+              onSave: () => _handleSave('Pet', data: state.data),
+              petName: _petName,
             ),
           );
         }
-      } else if (state.data is PlantAnalysisModel) {
-        _showResultSheet(
-          context,
-          PlantResultCard(
-            analysis: state.data as PlantAnalysisModel,
-            imagePath: _capturedImage?.path,
-            onSave: () => _handleSave('Plant'),
-            onShop: () => _handleShop(),
-          ),
-        );
-      } else if (state.data is PetAnalysisResult) {
-        final petAnalysis = state.data as PetAnalysisResult;
-        
-        // If in diagnosis mode and a pet was selected (not NOVO), save wound analysis
-        if (_petMode == 1 && _petName != null) {
-          debugPrint('💾 Saving wound analysis for pet: $_petName');
-          _saveWoundAnalysis(petAnalysis);
-        } else if (_petMode == 1 && _petName == null) {
-          debugPrint('ℹ️ NOVO selected - showing analysis without saving');
-        }
-        
-        _showResultSheet(
-          context,
-          PetResultCard(
-            analysis: petAnalysis,
-            imagePath: _capturedImage!.path,
-            onSave: () => _handleSave('Pet'),
-            petName: _petName,
-          ),
-        );
       }
-    } else if (state is AnalysisError) {
+    } catch (e, stackTrace) {
+        debugPrint('❌ ERRO NA NAVEGAÇÃO: $e');
+        debugPrint('📚 STACKTRACE: $stackTrace');
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Erro de Navegação: $e"), 
+              duration: const Duration(seconds: 10),
+              backgroundColor: Colors.red,
+            )
+          );
+        }
+    }
+    if (state is AnalysisError) {
       final l10n = AppLocalizations.of(context)!;
       String errorMessage;
 
@@ -380,30 +418,46 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   }
 
   void _showResultSheet(BuildContext context, Widget child) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      enableDrag: false,
-      backgroundColor: Colors.transparent,
-      builder: (context) => child,
-    );
+    // 1. Reset do loading para remover o desfoque da Home
+    ref.read(analysisNotifierProvider.notifier).reset(); 
+    
+    // 2. Pequeno delay para o Flutter limpar a UI
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (context.mounted) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          enableDrag: true, // Permitir fechar arrastando para baixo
+          backgroundColor: Colors.transparent,
+          builder: (context) => child,
+        );
+      }
+    });
   }
 
-  Future<void> _handleSave(String type) async {
+  Future<void> _handleSave(String type, {dynamic data}) async {
     final state = ref.read(analysisNotifierProvider);
-    if (type == 'Pet' && state is AnalysisSuccess && state.data is PetAnalysisResult) {
-      final petData = state.data as PetAnalysisResult;
+    // Prioritize passed data, fallback to provider (though provider is likely reset)
+    final activeData = data ?? (state is AnalysisSuccess ? state.data : null);
+
+    if (activeData == null) {
+      debugPrint('❌ SAVE FAILED: No data available. Provider state: ${state.runtimeType}');
+      return;
+    }
+
+    if (type == 'Pet' && activeData is PetAnalysisResult) {
+      final petData = activeData;
       final petName = petData.petName ?? _petName;
 
       if (petName != null && petName.isNotEmpty) {
-        final data = petData.toJson();
+        final dataMap = petData.toJson();
         if (_capturedImage != null) {
-          data['image_path'] = _capturedImage!.path;
+          dataMap['image_path'] = _capturedImage!.path;
         }
-        await ref.read(historyServiceProvider).savePetAnalysis(petName, data);
+        await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap);
          if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Dossiê do $petName salvo/atualizado com sucesso!')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.petSavedSuccess(petName))),
         );
 
         // Auto-Navigation Logic for Diagnosis Mode
@@ -449,52 +503,56 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       } else {
          if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro: Nome do pet não encontrado.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorPetNameNotFound)),
         );
       }
-    } else if (state is AnalysisSuccess) {
+    } else {
         // Handle saving for Food or Plant
         try {
-            if (state.data is FoodAnalysisModel) {
+            if (type == 'Food' && activeData is FoodAnalysisModel) {
                 await NutritionService().saveFoodAnalysis(
-                    state.data as FoodAnalysisModel,
+                    activeData,
                     _capturedImage
                 );
-            } else if (state.data is PlantAnalysisModel) {
+            } else if (type == 'Plant' && activeData is PlantAnalysisModel) {
+                debugPrint("🌱 Requesting BotanyService to save plant...");
                 await BotanyService().savePlantAnalysis(
-                    state.data as PlantAnalysisModel,
+                    activeData,
                     _capturedImage
                 );
             }
             
             // Still save to main history for backward compatibility and unified view
-            final data = (state.data is FoodAnalysisModel) 
-                ? (state.data as FoodAnalysisModel).toJson()
-                : (state.data as dynamic).toJson();
+            final dataJson = (activeData is FoodAnalysisModel) 
+                ? activeData.toJson()
+                : (activeData as dynamic).toJson();
             
             await ref.read(historyServiceProvider).saveAnalysis(
-                data, 
+                dataJson, 
                 type, 
                 imagePath: _capturedImage?.path
             );
 
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('$type salvo nas boxes especializadas!')),
+              SnackBar(content: Text(AppLocalizations.of(context)!.savedSuccess(type))),
             );
         } catch (e) {
-            debugPrint('Save error for $type: $e');
+            debugPrint('❌ Save error for $type: $e');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.red),
+            );
         }
     }
     
-    // Reset state after saving
+    // Reset state after saving (already reset, but harmless)
     ref.read(analysisNotifierProvider.notifier).reset();
   }
 
   void _handleShop() {
     // Implement shop navigation
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Redirecionando para loja parceira...')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.redirectShop)),
     );
   }
   @override
@@ -641,7 +699,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                               Icon(Icons.pets, size: 20, color: _petMode == 0 ? Colors.black : Colors.white),
                               if (_petMode == 0) ...[
                                 const SizedBox(width: 8),
-                                const Text("Raça & ID", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                Text(AppLocalizations.of(context)!.modePetIdentification, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                               ]
                             ],
                           ),
@@ -663,7 +721,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                               Icon(Icons.health_and_safety, size: 20, color: _petMode == 1 ? Colors.white : Colors.white),
                               if (_petMode == 1) ...[
                                 const SizedBox(width: 8),
-                                const Text("Saúde", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                Text(AppLocalizations.of(context)!.modePetHealth, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               ]
                             ],
                           ),
@@ -716,7 +774,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.history, color: Colors.white, size: 28),
-                      tooltip: 'Histórico Alimentar',
+                      tooltip: AppLocalizations.of(context)!.tooltipNutritionHistory,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -735,7 +793,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.restaurant_menu, color: Color(0xFFFF6B35), size: 28),
-                      tooltip: 'Gestão da Nutrição',
+                      tooltip: AppLocalizations.of(context)!.tooltipNutritionManagement,
                       onPressed: () {
                         try {
                           Navigator.push(
@@ -777,7 +835,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.history, color: Colors.white, size: 28),
-                      tooltip: 'Histórico Botânico',
+                      tooltip: AppLocalizations.of(context)!.tooltipBotanyHistory,
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -890,8 +948,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     Expanded(
                       child: Text(
                         _petMode == 0
-                            ? 'Aponte a câmera para o corpo inteiro do seu pet'
-                            : 'Aponte a câmera para a ferida do seu pet',
+                            ? AppLocalizations.of(context)!.instructionPetBody
+                            : AppLocalizations.of(context)!.instructionPetWound,
                         style: GoogleFonts.poppins(
                           color: Colors.black,
                           fontSize: 13,
@@ -955,7 +1013,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            analysisState.message,
+                            _translateLoadingMessage(analysisState.message, AppLocalizations.of(context)!),
+                            textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 18,
@@ -1205,7 +1264,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       // Extract wound/diagnosis information from analysis
       final analysisData = {
         'imagePath': _capturedImage?.path ?? '',
-        'diagnosis': analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? 'Análise de ferida/lesão',
+        'diagnosis': analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? AppLocalizations.of(context)!.defaultWoundAnalysis,
         'severity': _extractSeverity(analysis),
         'recommendations': analysis.possiveisCausasDiag ?? [],
         'rawData': analysis.toJson(), // Store complete analysis
@@ -1222,7 +1281,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Análise salva no histórico de saúde de $_petName'),
+            content: Text(AppLocalizations.of(context)!.healthAnalysisSaved(_petName!)),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),
@@ -1233,7 +1292,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao salvar análise: $e'),
+            content: Text(AppLocalizations.of(context)!.errorSavingAnalysis(e.toString())),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -1286,6 +1345,16 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
   }
 
+  String _translateLoadingMessage(String key, AppLocalizations l10n) {
+    switch (key) {
+      case 'loadingFood': return l10n.loadingFood;
+      case 'loadingPlant': return l10n.loadingPlant;
+      case 'loadingPetBreed': return l10n.loadingPetBreed;
+      case 'loadingPetHealth': return l10n.loadingPetHealth;
+      default: return key;
+    }
+  }
+
   void _showExitDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -1293,18 +1362,18 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         backgroundColor: Colors.grey.shade900,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Sair do App',
+          AppLocalizations.of(context)!.exitDialogTitle,
           style: GoogleFonts.poppins(color: Colors.white),
         ),
         content: Text(
-          'Deseja realmente sair do Scannut?',
+          AppLocalizations.of(context)!.exitDialogContent,
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancelar',
+              AppLocalizations.of(context)!.cancel,
               style: GoogleFonts.poppins(color: Colors.white70),
             ),
           ),
@@ -1313,7 +1382,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               SystemNavigator.pop();
             },
             child: Text(
-              'Sair',
+              AppLocalizations.of(context)!.exit,
               style: GoogleFonts.poppins(color: Colors.red),
             ),
           ),

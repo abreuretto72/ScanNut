@@ -1,3 +1,10 @@
+/// ============================================================================
+/// 🚫 MODELO BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este modelo representa o histórico persistente de alimentos do usuário.
+/// Índices @HiveField (0-11) são imutáveis para garantir retrocompatibilidade.
+/// Data de Congelamento: 01/01/2026
+/// ============================================================================
+
 import 'package:hive/hive.dart';
 
 part 'nutrition_history_item.g.dart';

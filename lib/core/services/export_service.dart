@@ -72,7 +72,7 @@ class ExportService {
   }
 
   /// RIGOROUS HEADER: Consistent across all reports (Eco-Friendly)
-  pw.Widget _buildHeader(String title, String timestamp) {
+  pw.Widget _buildHeader(String title, String timestamp, {String dateLabel = 'Data'}) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 20),
       child: pw.Column(
@@ -105,7 +105,7 @@ class ExportService {
                       ),
                     ),
                     pw.Text(
-                      'Data: $timestamp',
+                      '$dateLabel: $timestamp',
                       style: pw.TextStyle(
                         fontSize: 8,
                         color: PdfColors.white,
@@ -125,7 +125,11 @@ class ExportService {
   }
 
   /// RIGOROUS FOOTER: Consistent across all reports
-  pw.Widget _buildFooter(pw.Context context) {
+  pw.Widget _buildFooter(pw.Context context, {AppLocalizations? strings}) {
+    final pageText = strings != null 
+        ? strings.pdfPage(context.pageNumber, context.pagesCount)
+        : 'Página ${context.pageNumber} de ${context.pagesCount}';
+
     return pw.Column(
       children: [
         pw.Divider(thickness: 0.5, color: PdfColors.grey300),
@@ -134,7 +138,7 @@ class ExportService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             pw.Text(appName, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-            pw.Text('Página ${context.pageNumber} de ${context.pagesCount}', 
+            pw.Text(pageText, 
               style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
             pw.Text(supportEmail, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
           ],
@@ -461,14 +465,14 @@ class ExportService {
     String? batchCookingTips,
   }) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Plano Alimentar Semanal', timestampStr),
-        footer: (context) => _buildFooter(context),
+        header: (context) => _buildHeader(strings.pdfMenuPlanTitle, timestampStr),
+        footer: (context) => _buildFooter(context, strings: strings),
         build: (context) => [
           // Header Info Card
           pw.Container(
@@ -484,12 +488,12 @@ class ExportService {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('PLANO ALIMENTAR PERSONALIZADO', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-                    pw.Text('OBJETIVO: $goal', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
+                    pw.Text(strings.pdfPersonalizedPlanTitle, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                    pw.Text('${strings.pdfGoalLabel}: $goal', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
                   ],
                 ),
                 pw.SizedBox(height: 5),
-                pw.Text('RELATÓRIO DE NUTRICIO SEMANAL GERADO POR SCAN NUT AI', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                pw.Text(strings.pdfGeneratedByLine, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
               ],
             ),
           ),
@@ -497,7 +501,7 @@ class ExportService {
 
           // Detailed Plan
           ...days.map((day) {
-            final String diaStr = DateFormat('EEEE, dd/MM', 'pt_BR').format(day.date).toUpperCase();
+            final String diaStr = DateFormat('EEEE, dd/MM', strings.localeName).format(day.date).toUpperCase();
             
             return pw.Container(
               margin: const pw.EdgeInsets.only(bottom: 20),
@@ -530,7 +534,7 @@ class ExportService {
                             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                             children: [
                               pw.Text(
-                                _getMealLabelPT(meal.tipo).toUpperCase(),
+                                _getMealLabel(meal.tipo, strings).toUpperCase(),
                                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green900),
                               ),
                               if (meal.nomePrato != null)
@@ -548,7 +552,7 @@ class ExportService {
                             ),
                           ],
                           pw.SizedBox(height: 10),
-                          pw.Text('INGREDIENTES:', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
+                          pw.Text(strings.ingredientsTitle, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
                           pw.SizedBox(height: 4),
                           ...meal.itens.map((item) => pw.Padding(
                             padding: const pw.EdgeInsets.only(left: 10, bottom: 2),
@@ -584,7 +588,7 @@ class ExportService {
                 children: [
                   pw.Row(
                     children: [
-                      pw.Text('💡 DICAS DE BATCH COOKING & PREPARO', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.orange900)),
+                      pw.Text(strings.pdfBatchCookingTips, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.orange900)),
                     ],
                   ),
                   pw.SizedBox(height: 10),
@@ -599,20 +603,20 @@ class ExportService {
     return pdf;
   }
 
-  String _getMealLabelPT(String tipo) {
+  String _getMealLabel(String tipo, AppLocalizations strings) {
     switch (tipo) {
-      case 'cafe': return 'Café da Manhã';
-      case 'almoco': return 'Almoço';
-      case 'lanche': return 'Lanche';
-      case 'jantar': return 'Jantar';
+      case 'cafe': return strings.mealBreakfast;
+      case 'almoco': return strings.mealLunch;
+      case 'lanche': return strings.mealSnack;
+      case 'jantar': return strings.mealDinner;
       default: return tipo;
     }
   }
 
   /// 4. FOOD ANALYSIS REPORT (UNIFIED LAYOUT)
-   Future<pw.Document> generateFoodAnalysisReport({required FoodAnalysisModel analysis, File? imageFile}) async {
+  Future<pw.Document> generateFoodAnalysisReport({required FoodAnalysisModel analysis, required AppLocalizations strings, File? imageFile}) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
     
     // Carregar imagem se disponível
     pw.ImageProvider? foodImage;
@@ -624,8 +628,8 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Análise Nutricional & Biohacking', timestampStr),
-        footer: (context) => _buildFooter(context),
+        header: (context) => _buildHeader(strings.pdfFoodTitle, timestampStr, dateLabel: strings.pdfDate),
+        footer: (context) => _buildFooter(context, strings: strings),
         build: (context) => [
           // --- HEADER COM IMAGEM E DADOS BÁSICOS ---
           pw.Row(
@@ -653,16 +657,17 @@ class ExportService {
                     pw.Text(analysis.identidade.nome, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.black)),
                     pw.SizedBox(height: 5),
                     pw.Row(
+
                       children: [
-                        _buildIndicator('Calorias:', '${analysis.macros.calorias100g} kcal/100g', PdfColors.red700),
+                        _buildIndicator('${strings.pdfCalories}:', '${analysis.macros.calorias100g} kcal/100g', PdfColors.red700),
                         pw.SizedBox(width: 10),
-                         _buildIndicator('Semáforo:', analysis.identidade.semaforoSaude, 
-                          analysis.identidade.semaforoSaude.toLowerCase() == 'verde' ? PdfColors.green700 : 
-                          (analysis.identidade.semaforoSaude.toLowerCase() == 'amarelo' ? PdfColors.amber700 : PdfColors.red700)),
+                         _buildIndicator('${strings.pdfTrafficLight}:', analysis.identidade.semaforoSaude, 
+                          analysis.identidade.semaforoSaude.toLowerCase() == 'verde' || analysis.identidade.semaforoSaude.toLowerCase() == 'green' ? PdfColors.green700 : 
+                          (analysis.identidade.semaforoSaude.toLowerCase() == 'amarelo' || analysis.identidade.semaforoSaude.toLowerCase() == 'yellow' ? PdfColors.amber700 : PdfColors.red700)),
                       ],
                     ),
                     pw.SizedBox(height: 5),
-                    pw.Text('Processamento: ${analysis.identidade.statusProcessamento}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                    pw.Text('${strings.pdfProcessing}: ${analysis.identidade.statusProcessamento}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
                   ],
                 ),
               ),
@@ -672,14 +677,14 @@ class ExportService {
           pw.SizedBox(height: 20),
 
           // --- 1. RESUMO EXECUTIVO ---
-          _buildSectionHeader('Resumo Executivo'),
+          _buildSectionHeader(strings.pdfExSummary),
           pw.Container(
             padding: const pw.EdgeInsets.all(10),
             decoration: pw.BoxDecoration(color: PdfColors.grey100, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5))),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('Veredito da IA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                pw.Text('${strings.pdfAiVerdict}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                 pw.Text(analysis.analise.vereditoIa, style: const pw.TextStyle(fontSize: 9)), // Removed italic
               ],
             ),
@@ -692,7 +697,7 @@ class ExportService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('Pontos Positivos:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
+                    pw.Text('${strings.pdfPros}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
                     ...analysis.analise.pontosPositivos.map((p) => pw.Bullet(text: p, style: const pw.TextStyle(fontSize: 8))),
                   ],
                 ),
@@ -702,7 +707,7 @@ class ExportService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('Pontos de Atenção:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.amber700)),
+                    pw.Text('${strings.pdfCons}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.amber700)),
                     ...analysis.analise.pontosNegativos.map((p) => pw.Bullet(text: p, style: const pw.TextStyle(fontSize: 8))),
                   ],
                 ),
@@ -711,23 +716,23 @@ class ExportService {
           ),
 
           // --- 2. NUTRIÇÃO DETALHADA ---
-          _buildSectionHeader('Nutrição Detalhada'),
-          pw.Text('Macronutrientes:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          _buildSectionHeader(strings.pdfDetailedNutrition),
+          pw.Text('${strings.pdfMacros}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
           pw.SizedBox(height: 5),
           pw.Table.fromTextArray(
             border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
             headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey50),
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
             cellStyle: const pw.TextStyle(fontSize: 8),
-            headers: ['Nutriente', 'Quantidade', 'Detalhes'],
+            headers: [strings.pdfNutrient, strings.pdfQuantity, strings.pdfDetails],
             data: [
-              ['Proteínas', analysis.macros.proteinas, 'Perfil de Aminoácidos'],
-              ['Carbs Líquidos', analysis.macros.carboidratosLiquidos, 'Índice Glicêmico: ${analysis.macros.indiceGlicemico}'],
-              ['Gorduras', analysis.macros.gordurasPerfil, 'Ácidos Graxos'],
+              [strings.nutrientsProteins, analysis.macros.proteinas, strings.labelAminoProfile],
+              [strings.nutrientsCarbs, analysis.macros.carboidratosLiquidos, '${strings.labelGlycemicImpact}: ${analysis.macros.indiceGlicemico}'],
+              [strings.nutrientsFats, analysis.macros.gordurasPerfil, strings.labelFattyAcids],
             ],
           ),
           pw.SizedBox(height: 10),
-          pw.Text('Micronutrientes & Vitaminas:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          pw.Text('${strings.pdfMicros}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
            pw.Wrap(
             spacing: 10,
             runSpacing: 5,
@@ -740,10 +745,10 @@ class ExportService {
             ).toList(),
           ),
           pw.SizedBox(height: 5),
-          pw.Text('Sinergia Nutricional: ${analysis.micronutrientes.sinergiaNutricional}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.blue700)), // Removed italic
+          pw.Text('${strings.pdfSynergy}: ${analysis.micronutrientes.sinergiaNutricional}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.blue700)), // Removed italic
 
           // --- 3. BIOHACKING & SAÚDE ---
-          _buildSectionHeader('Biohacking & Saúde'),
+          _buildSectionHeader(strings.pdfBiohacking),
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -751,10 +756,10 @@ class ExportService {
                  child: pw.Column(
                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                    children: [
-                     pw.Text('Performance:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                     pw.Bullet(text: 'Índice de Saciedade: ${analysis.performance.indiceSaciedade}/5', style: const pw.TextStyle(fontSize: 8)),
-                     pw.Bullet(text: 'Foco/Energia: ${analysis.performance.impactoFocoEnergia}', style: const pw.TextStyle(fontSize: 8)),
-                     pw.Bullet(text: 'Momento Ideal: ${analysis.performance.momentoIdealConsumo}', style: const pw.TextStyle(fontSize: 8)),
+                     pw.Text('${strings.pdfPerformance}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                     pw.Bullet(text: '${strings.pdfSatiety}: ${analysis.performance.indiceSaciedade}/5', style: const pw.TextStyle(fontSize: 8)),
+                     pw.Bullet(text: '${strings.pdfFocus}: ${analysis.performance.impactoFocoEnergia}', style: const pw.TextStyle(fontSize: 8)),
+                     pw.Bullet(text: '${strings.pdfIdealMoment}: ${analysis.performance.momentoIdealConsumo}', style: const pw.TextStyle(fontSize: 8)),
                    ]
                  ),
                ),
@@ -763,9 +768,9 @@ class ExportService {
                  child: pw.Column(
                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                    children: [
-                     pw.Text('Segurança:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                     pw.Bullet(text: 'Alertas: ${analysis.identidade.alertaCritico}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.red700)),
-                     pw.Bullet(text: 'Bioquímica: ${analysis.identidade.bioquimicaAlert}', style: const pw.TextStyle(fontSize: 8)),
+                     pw.Text('${strings.pdfSecurity}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                     pw.Bullet(text: '${strings.pdfAlerts}: ${analysis.identidade.alertaCritico}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.red700)),
+                     pw.Bullet(text: '${strings.pdfBiochem}: ${analysis.identidade.bioquimicaAlert}', style: const pw.TextStyle(fontSize: 8)),
                    ]
                  ),
                ),
@@ -773,9 +778,9 @@ class ExportService {
           ),
 
           // --- 4. GASTRONOMIA ---
-          _buildSectionHeader('Gastronomia & Dicas'),
+          _buildSectionHeader(strings.pdfGastronomy),
           if (analysis.receitas.isNotEmpty) ...[
-              pw.Text('Receitas Rápidas:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+              pw.Text('${strings.pdfQuickRecipes}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
               ...analysis.receitas.map((r) => pw.Container(
                   margin: const pw.EdgeInsets.symmetric(vertical: 4),
                   padding: const pw.EdgeInsets.all(6),
@@ -825,9 +830,13 @@ class ExportService {
   }
 
   /// 4.1 PLANT ANALYSIS REPORT (SCANNUT BOTANY STANDARD)
-  Future<pw.Document> generatePlantAnalysisReport({required PlantAnalysisModel analysis, File? imageFile}) async {
+  Future<pw.Document> generatePlantAnalysisReport({
+    required PlantAnalysisModel analysis, 
+    required AppLocalizations strings,
+    File? imageFile
+  }) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
     
     pw.ImageProvider? plantImage;
     if (imageFile != null) {
@@ -838,10 +847,39 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Dossiê Botânico Completo', timestampStr),
-        footer: (context) => _buildFooter(context),
+        header: (context) => _buildHeader(strings.botanyDossierTitle(analysis.plantName), timestampStr),
+        footer: (context) => _buildFooter(context, strings: strings),
         build: (context) => [
           // Header with image and basic info
+          if (analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true ||
+              analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true ||
+              analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true ||
+              analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_children'] == true)
+            pw.Container(
+              margin: const pw.EdgeInsets.only(bottom: 20),
+              padding: const pw.EdgeInsets.all(10),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.red50,
+                border: pw.Border.all(color: PdfColors.red, width: 2),
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+              ),
+              child: pw.Row(
+                children: [
+                   pw.Text('⚠️', style: const pw.TextStyle(fontSize: 24)),
+                   pw.SizedBox(width: 10),
+                   pw.Expanded(
+                     child: pw.Column(
+                       crossAxisAlignment: pw.CrossAxisAlignment.start,
+                       children: [
+                         pw.Text(strings.toxicityWarning.toUpperCase(), style: pw.TextStyle(color: PdfColors.red900, fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                         pw.Text(analysis.segurancaBiofilia.segurancaDomestica['toxicity_details'] ?? analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao'] ?? strings.plantDangerPets, style: const pw.TextStyle(color: PdfColors.red900, fontSize: 10)),
+                       ],
+                     ),
+                   ),
+                ],
+              ),
+            ),
+            
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -869,9 +907,9 @@ class ExportService {
                     pw.SizedBox(height: 10),
                     pw.Row(
                       children: [
-                        _buildIndicator('Saúde:', analysis.saude.condicao, analysis.isHealthy ? PdfColors.green700 : PdfColors.red700),
+                        _buildIndicator(strings.tabHealth + ':', analysis.saude.condicao, analysis.isHealthy ? PdfColors.green700 : PdfColors.red700),
                         pw.SizedBox(width: 10),
-                         _buildIndicator('Família:', analysis.identificacao.familia, PdfColors.black),
+                         _buildIndicator(strings.plantFamily + ':', analysis.identificacao.familia, PdfColors.black),
                       ],
                     ),
                   ],
@@ -883,72 +921,81 @@ class ExportService {
           pw.SizedBox(height: 20),
 
           // 1. IDENTIFICAÇÃO E TAXONOMIA
-          _buildSectionHeader('1. Identificação e Taxonomia'),
-          pw.Text('Nomes Populares: ${analysis.identificacao.nomesPopulares.join(', ')}'),
-          pw.Text('Nome Científico: ${analysis.identificacao.nomeCientifico}'),
-          pw.Text('Família: ${analysis.identificacao.familia}'),
-          pw.Text('Origem Geográfica: ${analysis.identificacao.origemGeografica}'),
+          _buildSectionHeader('1. ${strings.plantIdentificationTaxonomy}'),
+          pw.Text('${strings.plantPopularNames}: ${analysis.identificacao.nomesPopulares.join(', ')}'),
+          pw.Text('${strings.plantScientificName}: ${analysis.identificacao.nomeCientifico}'),
+          pw.Text('${strings.plantFamily}: ${analysis.identificacao.familia}'),
+          pw.Text('${strings.plantOrigin}: ${analysis.identificacao.origemGeografica}'),
+          pw.SizedBox(height: 10),
 
           // 2. DIAGNÓSTICO DE SAÚDE
-          _buildSectionHeader('2. Diagnóstico de Saúde'),
-          pw.Text('Condição Geral: ${analysis.saude.condicao}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-          pw.Text('Análise Clínica: ${analysis.saude.detalhes}'),
-          pw.Text('Plano de Recuperação: ${analysis.saude.planoRecuperacao}'),
+          _buildSectionHeader('2. ${strings.plantClinicalDiagnosis}'),
+          pw.Text('${strings.plantClinicalDiagnosis}: ${analysis.saude.condicao}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.Text('${strings.plantDetails}: ${analysis.saude.detalhes}'),
+          pw.Text('${strings.plantRecoveryPlan}: ${analysis.saude.planoRecuperacao}'),
+          if (!analysis.isHealthy)
+             pw.Text('${strings.plantUrgency}: ${analysis.saude.urgencia}', style: pw.TextStyle(color: PdfColors.red700, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 10),
 
           // 3. GUIA DE SOBREVIVÊNCIA (HARDWARE)
-          _buildSectionHeader('3. Guia de Sobrevivência (Hardware)'),
+          _buildSectionHeader('3. ${strings.tabHardware} (${strings.labelTrafficLight})'),
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                pw.Text('LUMINOSIDADE:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                pw.Text(analysis.sobrevivencia.luminosidade['tipo'] ?? 'N/A'),
-                pw.Text(analysis.sobrevivencia.luminosidade['explicacao'] ?? '', style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(strings.plantNeedSun, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                pw.Text(analysis.sobrevivencia.luminosidade['type'] ?? analysis.sobrevivencia.luminosidade['tipo'] ?? strings.noInformation),
+                pw.Text(analysis.sobrevivencia.luminosidade['explanation'] ?? analysis.sobrevivencia.luminosidade['explicacao'] ?? '', style: const pw.TextStyle(fontSize: 8)),
               ])),
               pw.SizedBox(width: 20),
               pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                pw.Text('REGIME HÍDRICO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                pw.Text(analysis.sobrevivencia.regimeHidrico['frequencia_ideal'] ?? 'N/A'),
-                pw.Text(analysis.sobrevivencia.regimeHidrico['sinais_sede'] ?? '', style: const pw.TextStyle(fontSize: 8)),
+                pw.Text(strings.plantNeedWater, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                pw.Text(analysis.sobrevivencia.regimeHidrico['frequency'] ?? analysis.sobrevivencia.regimeHidrico['frequencia_ideal'] ?? strings.noInformation),
+                pw.Text(analysis.sobrevivencia.regimeHidrico['thirst_signs'] ?? analysis.sobrevivencia.regimeHidrico['sinais_sede'] ?? '', style: const pw.TextStyle(fontSize: 8)),
               ])),
             ]
           ),
           pw.SizedBox(height: 10),
-          pw.Text('SOLO E NUTRIÇÃO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-          pw.Text('Substrato: ${analysis.sobrevivencia.soloENutricao['composicao_substrato']}'),
-          pw.Text('Adubação: ${analysis.sobrevivencia.soloENutricao['adubo_recomendado']} (${analysis.sobrevivencia.soloENutricao['frequencia_adubacao']})'),
+          pw.Text('${strings.plantNeedSoil} & ${strings.tabNutrition}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          pw.Text('${strings.plantSubstrate}: ${analysis.sobrevivencia.soloENutricao['soil_type'] ?? analysis.sobrevivencia.soloENutricao['composicao_substrato'] ?? strings.noInformation}'),
+          pw.Text('${strings.plantFertilizer}: ${analysis.sobrevivencia.soloENutricao['fertilizer'] ?? analysis.sobrevivencia.soloENutricao['adubo_recomendado'] ?? strings.noInformation}'),
+          if (analysis.sobrevivencia.soloENutricao['ideal_ph'] != null)
+             pw.Text('${strings.plantIdealPh}: ${analysis.sobrevivencia.soloENutricao['ideal_ph']}'),
 
           // 4. SEGURANÇA E BIOFILIA (BIOS)
-          _buildSectionHeader('4. Segurança e Biofilia (BIOS)'),
+          _buildSectionHeader('4. ${strings.tabBios} (${strings.plantHomeSafety})'),
           pw.Row(children: [
-            pw.Expanded(child: pw.Text('Tóxica Pets: ${analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true ? "SIM ⚠️" : "NÃO ✅"}')),
-            pw.Expanded(child: pw.Text('Tóxica Crianças: ${analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true ? "SIM ⚠️" : "NÃO ✅"}')),
+            pw.Expanded(child: pw.Text('${strings.plantDangerPets}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true) ? "YES ⚠️" : "NO ✅"}')),
+            pw.Expanded(child: pw.Text('${strings.plantDangerKids}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_children'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true) ? "YES ⚠️" : "NO ✅"}')),
           ]),
-          if (analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao'] != null)
-             pw.Text('Sintomas em caso de ingestão: ${analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao']}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.red700)),
+          pw.Text('${strings.plantToxicityDetails}: ${analysis.segurancaBiofilia.segurancaDomestica['toxicity_details'] ?? analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao'] ?? strings.plantNoAlerts}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.red700)),
           pw.SizedBox(height: 10),
-          pw.Text('Poderes Biofílicos:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-          pw.Text('Score de Purificação: ${analysis.segurancaBiofilia.poderesBiofilicos['purificacao_ar_score']}/10'),
-          pw.Text('Impacto no Bem-estar: ${analysis.segurancaBiofilia.poderesBiofilicos['impacto_bem_estar']}'),
+          pw.Text(strings.plantBioPower, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          pw.Text('${strings.plantAirScore}: ${analysis.segurancaBiofilia.poderesBiofilicos['air_purification_score'] ?? analysis.segurancaBiofilia.poderesBiofilicos['purificacao_ar_score'] ?? 5}/10'),
+          pw.Text('${strings.plantWellness}: ${analysis.segurancaBiofilia.poderesBiofilicos['wellness_impact'] ?? analysis.segurancaBiofilia.poderesBiofilicos['impacto_bem_estar'] ?? strings.noInformation}'),
 
           // 5. ENGENHARIA DE PROPAGAÇÃO
-          _buildSectionHeader('5. Engenharia de Propagação'),
-          pw.Text('Método Recomendado: ${analysis.propagacao.metodo}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-          pw.Text('Dificuldade: ${analysis.propagacao.dificuldade}'),
-          pw.Text('Passo a Passo: ${analysis.propagacao.passoAPasso}'),
+          _buildSectionHeader('5. ${strings.plantPropagationEngine}'),
+          pw.Text('${strings.plantMethod}: ${analysis.propagacao.metodo}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.Text('${strings.plantDifficulty}: ${analysis.propagacao.dificuldade}'),
+          pw.Text('${strings.plantStepByStep}: ${analysis.propagacao.passoAPasso}'),
 
           // 6. INTELIGÊNCIA DE ECOSSISTEMA
-          _buildSectionHeader('6. Inteligência de Ecossistema'),
-          pw.Text('Companheiras: ${analysis.ecossistema.plantasParceiras.join(", ")}'),
-          pw.Text('Conflitantes: ${analysis.ecossistema.plantasConflitantes.join(", ")}'),
-          pw.Text('Repelente Natural: ${analysis.ecossistema.repelenteNatural}'),
+          _buildSectionHeader('6. ${strings.plantEcoIntel}'),
+          pw.Text('${strings.plantCompanions}: ${analysis.ecossistema.plantasParceiras.join(", ")}'),
+          pw.Text('${strings.plantAvoid}: ${analysis.ecossistema.plantasConflitantes.join(", ")}'),
+          pw.Text('${strings.plantRepellent}: ${analysis.ecossistema.repelenteNatural}'),
 
           // 7. ESTÉTICA E LIFESTYLE (FENG SHUI)
-          _buildSectionHeader('7. Estética e Lifestyle'),
-          pw.Text('Posicionamento Ideal (Feng Shui): ${analysis.lifestyle.posicionamentoIdeal}'),
-          pw.Text('Simbolismo e Significado: ${analysis.lifestyle.simbolismo}'),
-          pw.Text('Época de Floração: ${analysis.estetica.epocaFloracao}'),
-          pw.Text('Tamanho Máximo: ${analysis.estetica.tamanhoMaximo}'),
+          _buildSectionHeader('7. ${strings.tabLifestyle}'),
+          pw.Text('${strings.plantPlacement}: ${analysis.lifestyle.posicionamentoIdeal}'),
+          pw.Text('${strings.plantSymbolism}: ${analysis.lifestyle.simbolismo}'),
+          pw.SizedBox(height: 10),
+          pw.Text(strings.plantLivingAesthetic, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          pw.Text('${strings.plantFlowering}: ${analysis.estetica.epocaFloracao}'),
+          pw.Text('${strings.plantFlowerColor}: ${analysis.estetica.corDasFlores}'),
+          pw.Text('${strings.plantGrowth}: ${analysis.estetica.velocidadeCrescimento}'),
+          pw.Text('${strings.plantMaxSize}: ${analysis.estetica.tamanhoMaximo}'),
         ],
       ),
     );

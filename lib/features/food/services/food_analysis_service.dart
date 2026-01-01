@@ -33,9 +33,14 @@ class FoodAnalysisService {
         throw Exception("Não foi possível analisar o alimento.");
       }
 
+      // DEBUG: Print raw response to debug parsing issues
+      // ignore: avoid_print
+      print('🔍 RAW IA RESPONSE: $jsonString');
+
       final cleanJson = jsonString
           .replaceAll('```json', '')
           .replaceAll('```', '')
+          .replaceAll('json', '') // Extra safety for loose "json" text
           .trim();
 
       final Map<String, dynamic> data = jsonDecode(cleanJson);
@@ -47,7 +52,9 @@ class FoodAnalysisService {
 
       return FoodAnalysisModel.fromJson(data);
     } catch (e) {
-      // Fallback or rethrow
+      // Log specific parsing error
+      // ignore: avoid_print
+      print('❌ Error parsing food analysis: $e');
       rethrow;
     }
   }

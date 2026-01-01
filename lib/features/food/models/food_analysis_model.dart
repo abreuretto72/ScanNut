@@ -1,3 +1,13 @@
+/// ============================================================================
+/// 🚫 MODELO BLINDADO E CONGELADO - NÃO ALTERAR
+/// Este modelo é a base da análise de IA para alimentos.
+/// Chaves JSON (English) devem ser mantidas para compatibilidade com o prompt.
+/// Data de Congelamento: 01/01/2026
+/// ============================================================================
+
+import 'package:flutter/foundation.dart';
+
+/// Nota: Este modelo é referido internamente como "FoodModel" nos planos de blindagem.
 class FoodAnalysisModel {
   final IdentidadeESeguranca identidade;
   final MacronutrientesPro macros;
@@ -42,17 +52,38 @@ class FoodAnalysisModel {
   }
 
   factory FoodAnalysisModel.fromJson(Map<String, dynamic> json) {
+    // Debug logging to verify incoming keys
+    // ignore: avoid_print
+    print('🔍 Decoding FoodAnalysisModel: ${json.keys.toList()}');
+
     return FoodAnalysisModel(
-      identidade: IdentidadeESeguranca.fromJson(json['identidade_e_seguranca'] ?? {}),
-      macros: MacronutrientesPro.fromJson(json['macronutrientes_pro'] ?? {}),
-      micronutrientes: VitaminasEMinerais.fromJson(json['mapa_de_vitaminas_e_minerais'] ?? {}),
-      analise: AnaliseProsContras.fromJson(json['analise_pros_e_contras'] ?? {}),
-      performance: BiohackingPerformance.fromJson(json['biohacking_e_performance'] ?? {}),
-      gastronomia: InteligenciaCulinaria.fromJson(json['inteligencia_culinaria'] ?? {}),
-      receitas: (json['receitas_rapidas_15min'] as List? ?? [])
+      identidade: IdentidadeESeguranca.fromJson(
+        json['identity_and_safety'] ?? json['identidade_e_seguranca'] ?? {}
+      ),
+      macros: MacronutrientesPro.fromJson(
+        json['macronutrients_pro'] ?? json['macronutrientes_pro'] ?? {}
+      ),
+      micronutrientes: VitaminasEMinerais.fromJson(
+        json['vitamins_minerals_map'] ?? json['mapa_de_vitaminas_e_minerais'] ?? {}
+      ),
+      analise: AnaliseProsContras.fromJson(
+        json['pros_cons_analysis'] ?? json['analise_pros_e_contras'] ?? {}
+      ),
+      performance: BiohackingPerformance.fromJson(
+        json['biohacking_performance'] ?? json['biohacking_e_performance'] ?? {}
+      ),
+      gastronomia: InteligenciaCulinaria.fromJson(
+        json['culinary_intelligence'] ?? json['inteligencia_culinaria'] ?? {}
+      ),
+      receitas: ((json['quick_recipes_15min'] ?? json['receitas_rapidas_15min']) as List? ?? [])
           .map((e) => ReceitaRapida.fromJson(e))
           .toList(),
-      dicaEspecialista: json['dica_do_especialista'] ?? json['dica_especialista'] ?? '',
+      dicaEspecialista: json['dica_do_especialista'] ?? 
+                        json['expert_tip'] ??
+                          // Try extracting from culinary_intelligence if top-level is missing
+                          (json['culinary_intelligence'] != null ? json['culinary_intelligence']['expert_tip'] : null) ??
+                          (json['inteligencia_culinaria'] != null ? json['inteligencia_culinaria']['dica_especialista'] : null) ??
+                          '',
     );
   }
 }
@@ -82,11 +113,11 @@ class IdentidadeESeguranca {
 
   factory IdentidadeESeguranca.fromJson(Map<String, dynamic> json) {
     return IdentidadeESeguranca(
-      nome: json['nome']?.toString() ?? 'Alimento Desconhecido',
-      statusProcessamento: json['status_processamento']?.toString() ?? json['categoria']?.toString() ?? 'In natura',
-      semaforoSaude: json['semaforo_saude']?.toString() ?? 'Verde',
-      alertaCritico: json['alerta_critico']?.toString() ?? 'Nenhum',
-      bioquimicaAlert: json['bioquimica_alert']?.toString() ?? '',
+      nome: json['name']?.toString() ?? json['nome']?.toString() ?? 'UNKNOWN_FOOD',
+      statusProcessamento: json['processing_status']?.toString() ?? json['status_processamento']?.toString() ?? 'In natura',
+      semaforoSaude: json['health_traffic_light']?.toString() ?? json['semaforo_saude']?.toString() ?? 'Verde',
+      alertaCritico: json['critical_alert']?.toString() ?? json['alerta_critico']?.toString() ?? 'Nenhum',
+      bioquimicaAlert: json['biochemistry_alert']?.toString() ?? json['bioquimica_alert']?.toString() ?? '',
     );
   }
 }
@@ -122,11 +153,11 @@ class MacronutrientesPro {
 
   factory MacronutrientesPro.fromJson(Map<String, dynamic> json) {
     return MacronutrientesPro(
-      calorias100g: json['calorias_100g'] ?? json['calorias'] ?? 0,
-      proteinas: json['proteinas']?.toString() ?? '',
-      carboidratosLiquidos: json['carboidratos_liquidos'] ?? json['carboidratos']?['total'] ?? '',
-      gordurasPerfil: json['gorduras_perfil'] ?? json['gorduras']?['total'] ?? '',
-      indiceGlicemico: json['indice_glicemico']?.toString() ?? '',
+      calorias100g: json['calories_100g'] ?? json['calorias_100g'] ?? 0,
+      proteinas: json['proteins']?.toString() ?? json['proteinas']?.toString() ?? '',
+      carboidratosLiquidos: json['net_carbs']?.toString() ?? json['carboidratos_liquidos']?.toString() ?? '',
+      gordurasPerfil: json['fat_profile']?.toString() ?? json['gorduras_perfil']?.toString() ?? '',
+      indiceGlicemico: json['glycemic_index']?.toString() ?? json['indice_glicemico']?.toString() ?? '',
     );
   }
 }
@@ -147,10 +178,10 @@ class VitaminasEMinerais {
 
   factory VitaminasEMinerais.fromJson(Map<String, dynamic> json) {
     return VitaminasEMinerais(
-      lista: (json['lista'] as List? ?? [])
+      lista: ((json['list'] ?? json['lista']) as List? ?? [])
           .map((e) => NutrienteItem.fromJson(e))
           .toList(),
-      sinergiaNutricional: json['sinergia_nutricional']?.toString() ?? '',
+      sinergiaNutricional: json['nutritional_synergy']?.toString() ?? json['sinergia_nutricional']?.toString() ?? '',
     );
   }
 }
@@ -177,10 +208,10 @@ class NutrienteItem {
 
   factory NutrienteItem.fromJson(Map<String, dynamic> json) {
     return NutrienteItem(
-      nome: json['nome']?.toString() ?? '',
-      quantidade: json['quantidade']?.toString() ?? '',
-      percentualDv: (json['percentual_dv'] is int) ? json['percentual_dv'] : int.tryParse(json['percentual_dv']?.toString() ?? '0') ?? 0,
-      funcao: json['funcao']?.toString() ?? '',
+      nome: json['name']?.toString() ?? json['nome']?.toString() ?? '',
+      quantidade: json['amount']?.toString() ?? json['quantidade']?.toString() ?? '',
+      percentualDv: ((json['dv_percent'] ?? json['percentual_dv']) is int) ? (json['dv_percent'] ?? json['percentual_dv']) : int.tryParse((json['dv_percent'] ?? json['percentual_dv'])?.toString() ?? '0') ?? 0,
+      funcao: json['function']?.toString() ?? json['funcao']?.toString() ?? '',
     );
   }
 }
@@ -204,9 +235,9 @@ class AnaliseProsContras {
 
   factory AnaliseProsContras.fromJson(Map<String, dynamic> json) {
     return AnaliseProsContras(
-      pontosPositivos: (json['pontos_positivos'] as List? ?? []).map((e) => e.toString()).toList(),
-      pontosNegativos: (json['pontos_negativos'] as List? ?? []).map((e) => e.toString()).toList(),
-      vereditoIa: json['veredito_ia']?.toString() ?? '',
+      pontosPositivos: ((json['positives'] ?? json['pontos_positivos']) as List? ?? []).map((e) => e.toString()).toList(),
+      pontosNegativos: ((json['negatives'] ?? json['pontos_negativos']) as List? ?? []).map((e) => e.toString()).toList(),
+      vereditoIa: json['ia_verdict']?.toString() ?? json['veredito_ia']?.toString() ?? '',
     );
   }
 }
@@ -236,11 +267,11 @@ class BiohackingPerformance {
 
   factory BiohackingPerformance.fromJson(Map<String, dynamic> json) {
     return BiohackingPerformance(
-      pontosPositivosCorpo: (json['pontos_positivos_corpo'] as List? ?? []).map((e) => e.toString()).toList(),
-      pontosAtencaoCorpo: (json['pontos_atencao_corpo'] as List? ?? []).map((e) => e.toString()).toList(),
-      indiceSaciedade: (json['indice_saciedade'] is int) ? json['indice_saciedade'] : int.tryParse(json['indice_saciedade']?.toString() ?? '3') ?? 3,
-      impactoFocoEnergia: json['impacto_foco_energia']?.toString() ?? json['impacto_no_foco']?.toString() ?? '',
-      momentoIdealConsumo: json['momento_ideal_consumo']?.toString() ?? json['momento_ideal']?.toString() ?? '',
+      pontosPositivosCorpo: ((json['body_positives'] ?? json['pontos_positivos_corpo']) as List? ?? []).map((e) => e.toString()).toList(),
+      pontosAtencaoCorpo: ((json['body_attention_points'] ?? json['pontos_atencao_corpo']) as List? ?? []).map((e) => e.toString()).toList(),
+      indiceSaciedade: ((json['satiety_index'] ?? json['indice_saciedade']) is int) ? (json['satiety_index'] ?? json['indice_saciedade']) : int.tryParse((json['satiety_index'] ?? json['indice_saciedade'])?.toString() ?? '3') ?? 3,
+      impactoFocoEnergia: json['focus_energy_impact']?.toString() ?? json['impacto_foco_energia']?.toString() ?? '',
+      momentoIdealConsumo: json['ideal_consumption_moment']?.toString() ?? json['momento_ideal_consumo']?.toString() ?? '',
     );
   }
 }
@@ -264,9 +295,9 @@ class ReceitaRapida {
 
   factory ReceitaRapida.fromJson(Map<String, dynamic> json) {
     return ReceitaRapida(
-      nome: json['nome']?.toString() ?? '',
-      instrucoes: json['instrucoes']?.toString() ?? '',
-      tempoPreparo: json['tempo_preparo']?.toString() ?? '15 min',
+      nome: json['name']?.toString() ?? json['nome']?.toString() ?? '',
+      instrucoes: json['instructions']?.toString() ?? json['instrucoes']?.toString() ?? '',
+      tempoPreparo: json['prep_time']?.toString() ?? json['tempo_preparo']?.toString() ?? '15 min',
     );
   }
 }
@@ -290,9 +321,9 @@ class InteligenciaCulinaria {
 
   factory InteligenciaCulinaria.fromJson(Map<String, dynamic> json) {
     return InteligenciaCulinaria(
-      preservacaoNutrientes: json['preservacao_nutrientes']?.toString() ?? '',
+      preservacaoNutrientes: json['nutrient_preservation']?.toString() ?? json['preservacao_nutrientes']?.toString() ?? '',
       smartSwap: json['smart_swap']?.toString() ?? '',
-      dicaEspecialista: json['dica_especialista']?.toString() ?? json['dica_do_especialista']?.toString() ?? '',
+      dicaEspecialista: json['expert_tip']?.toString() ?? json['dica_especialista']?.toString() ?? '',
     );
   }
 }

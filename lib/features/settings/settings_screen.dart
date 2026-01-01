@@ -1,3 +1,4 @@
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,11 @@ import '../../core/providers/partner_provider.dart';
 import 'widgets/backup_optimize_dialog.dart';
 import '../../core/models/user_profile.dart';
 import '../../core/services/user_profile_service.dart';
+import '../../l10n/app_localizations.dart';
+import '../../features/food/services/nutrition_service.dart';
+import '../../nutrition/presentation/controllers/nutrition_providers.dart';
+import '../../core/providers/vaccine_status_provider.dart';
+import '../../core/providers/pet_event_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -53,6 +59,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -64,7 +71,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Configurações',
+          l10n.settingsTitle,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -76,7 +83,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           // Profile Section
           Text(
-            'Perfil',
+            l10n.settingsProfile,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -88,8 +95,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // Name Field
           _buildTextField(
             controller: _nameController,
-            label: 'Nome',
-            hint: 'Como você gostaria de ser chamado?',
+            label: l10n.settingsNameLabel,
+            hint: l10n.settingsNameHint,
             icon: Icons.person_outline,
             onChanged: (value) {
               ref.read(settingsProvider.notifier).setUserName(value);
@@ -100,7 +107,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Language Section
           Text(
-            'Idioma / Language',
+            l10n.settingsLanguage,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -142,7 +149,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Weight Unit Section
           Text(
-            'Unidade de Peso / Weight Unit',
+            l10n.settingsWeightUnit,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -165,9 +172,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                    style: GoogleFonts.poppins(color: Colors.white),
                    isExpanded: true,
                    icon: const Icon(Icons.scale, color: Color(0xFF00E676)),
-                   items: const [
-                      DropdownMenuItem(value: 'kg', child: Text('Kilogramas (kg)')),
-                      DropdownMenuItem(value: 'lbs', child: Text('Libras (lbs)')),
+                   items: [
+                      DropdownMenuItem(value: 'kg', child: Text(l10n.settingsKg)),
+                      DropdownMenuItem(value: 'lbs', child: Text(l10n.settingsLbs)),
                    ],
                    onChanged: (val) {
                       if (val != null) {
@@ -182,7 +189,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Preferences Section
           Text(
-            'Preferências',
+            l10n.settingsPreferences,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -193,8 +200,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Show Tips Toggle
           _buildSwitchTile(
-            title: 'Mostrar Dicas',
-            subtitle: 'Exibir dicas nutricionais nas análises',
+            title: l10n.settingsShowTips,
+            subtitle: l10n.settingsShowTipsSubtitle,
             value: settings.showTips,
             onChanged: (value) {
               ref.read(settingsProvider.notifier).setShowTips(value);
@@ -206,7 +213,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Partners Section
           Text(
-            'Gestão de Parceiros',
+            l10n.settingsPartnerManagement,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -221,7 +228,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           // Backup & Optimization
           Text(
-            'Manutenção do Sistema',
+            l10n.settingsSystemMaintenance,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -244,8 +251,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               child: const Icon(Icons.security, color: Colors.amber),
             ),
-            title: Text('Gerar Backup e Otimizar', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-            subtitle: Text('Gera PDF completo e libera espaço antigo.', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+            title: Text(l10n.settingsBackupOptimize, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
+            subtitle: Text(l10n.settingsBackupOptimizeSubtitle, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
             trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
           ),
 
@@ -267,7 +274,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const Icon(Icons.dangerous, color: Colors.redAccent),
                     const SizedBox(width: 8),
                     Text(
-                      'Zona de Perigo',
+                      l10n.settingsDangerZone,
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -278,31 +285,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 16),
                 _buildDangerButton(
-                  'Excluir Histórico de Pets',
-                  'Apagar todos os pets salvos permanentemente.',
-                  () => _confirmDeleteAction('Pets', () => ref.read(historyServiceProvider).clearAllPets()),
+                  l10n.settingsDeletePets,
+                  l10n.settingsDeletePetsSubtitle,
+                  () => _confirmDeleteAction('Pets', () async {
+                      final petBoxes = ['box_pets_master', 'pet_health_records', 'weekly_meal_plans', 'pet_events', 'vaccine_status'];
+                      for(var b in petBoxes) {
+                        if (Hive.isBoxOpen(b)) await Hive.box(b).close();
+                        await Hive.deleteBoxFromDisk(b);
+                      }
+                  }),
                 ),
                 const SizedBox(height: 12),
                 _buildDangerButton(
-                  'Excluir Histórico de Plantas',
-                  'Apagar todas as plantas salvas permanentemente.',
-                  () => _confirmDeleteAction('Plantas', () => ref.read(historyServiceProvider).clearAllPlants()),
+                  l10n.settingsDeletePlants,
+                  l10n.settingsDeletePlantsSubtitle,
+                  () => _confirmDeleteAction('Plantas', () async {
+                      final plantBoxes = ['box_botany_intel', 'box_plants_history'];
+                      for(var b in plantBoxes) {
+                        if (Hive.isBoxOpen(b)) await Hive.box(b).close();
+                        await Hive.deleteBoxFromDisk(b);
+                      }
+                  }),
                 ),
                 const SizedBox(height: 12),
                 _buildDangerButton(
-                  'Excluir Histórico de Alimentos',
-                  'Apagar todos os alimentos salvos permanentemente.',
-                  () => _confirmDeleteAction('Alimentos', () => ref.read(historyServiceProvider).clearAllFood()),
+                  l10n.settingsDeleteFood,
+                  l10n.settingsDeleteFoodSubtitle,
+                  () => _confirmDeleteAction('Alimentos', () async {
+                      // Power delete food related boxes
+                      final foodBoxes = ['box_nutrition_human', 'nutrition_weekly_plans', 'meal_log', 'nutrition_shopping_list'];
+                      for(var b in foodBoxes) {
+                        if (Hive.isBoxOpen(b)) await Hive.box(b).close();
+                        await Hive.deleteBoxFromDisk(b);
+                      }
+                      // Re-init current box if needed for UI, but navigating away is safer.
+                      // For simplicity, we just clear and the user will see empty on next visit.
+                  }),
                 ),
                 const SizedBox(height: 12),
                 _buildDangerButton(
-                  'Limpar Rede de Apoio',
-                  'Remover todos os parceiros cadastrados permanentemente.',
+                  l10n.settingsClearPartners,
+                  l10n.settingsClearPartnersSubtitle,
                   () => _confirmDeleteAction('Parceiros', () async {
                     final service = ref.read(partnerServiceProvider);
                     await service.init();
                     await service.clearAllPartners();
                   }),
+                ),
+                const SizedBox(height: 12),
+                _buildDangerButton(
+                  l10n.deleteAccount,
+                  l10n.menuDeleteAccountSubtitle,
+                  () => _confirmDeleteAction('CONTA COMPLETA', () => _performFactoryReset()),
                 ),
               ],
             ),
@@ -317,7 +351,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
             icon: const Icon(Icons.restore, color: Colors.red),
             label: Text(
-              'Restaurar Padrões',
+              l10n.settingsResetDefaults,
               style: GoogleFonts.poppins(color: Colors.red),
             ),
             style: OutlinedButton.styleFrom(
@@ -342,7 +376,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Suas configurações são salvas automaticamente',
+                    l10n.settingsAutoSaveInfo,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: Colors.blue.shade300,
@@ -468,7 +502,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Raio de Busca Padrão',
+                AppLocalizations.of(context)!.settingsSearchRadius,
                 style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500),
               ),
               Text(
@@ -491,7 +525,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             },
           ),
           Text(
-            'Sugere parceiros próximos ao seu pet baseando-se neste limite.',
+            AppLocalizations.of(context)!.settingsSearchRadiusSubtitle,
             style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
           ),
         ],
@@ -500,23 +534,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showResetDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
         title: Text(
-          'Restaurar Padrões',
+          l10n.settingsResetDialogTitle,
           style: GoogleFonts.poppins(color: Colors.white),
         ),
         content: Text(
-          'Tem certeza que deseja restaurar todas as configurações para os valores padrão?',
+          l10n.settingsResetDialogContent,
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Cancelar',
+              l10n.cancel,
               style: GoogleFonts.poppins(color: Colors.white70),
             ),
           ),
@@ -526,7 +561,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _nameController.text = '';
               _calorieController.text = '2000';
               Navigator.pop(context);
-              SnackBarHelper.showSuccess(context, 'Configurações restauradas');
+              SnackBarHelper.showSuccess(context, l10n.settingsResetSuccess);
             },
             child: Text(
               'Restaurar',
@@ -582,35 +617,86 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _confirmDeleteAction(String itemType, Future<void> Function() onDelete) {
+    final l10n = AppLocalizations.of(context)!;
+    final isNuclear = itemType == 'CONTA COMPLETA';
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
         title: Text(
-          'Confirmar Exclusão',
+          isNuclear ? l10n.deleteAccountConfirmTitle : l10n.settingsConfirmDeleteTitle,
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Tem certeza que deseja apagar permanentemente todo o histórico de $itemType? Essa ação não pode ser desfeita.',
+          isNuclear 
+            ? l10n.deleteAccountConfirmBody 
+            : l10n.settingsConfirmDeleteContent(itemType),
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white54)),
+            child: Text(l10n.cancel, style: GoogleFonts.poppins(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await onDelete();
                if (!mounted) return;
-              SnackBarHelper.showSuccess(context, 'Histórico de $itemType apagado com sucesso.');
+              SnackBarHelper.showSuccess(context, l10n.settingsDeleteSuccess(itemType));
             },
-            child: Text('Apagar', style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(l10n.actionDelete, style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _performFactoryReset() async {
+    try {
+      // 1. Reset SharedPreferences (Settings)
+      await ref.read(settingsProvider.notifier).resetToDefaults();
+      
+      // 2. Hard reset all Hive databases
+      await ref.read(historyServiceProvider).hardResetAllDatabases();
+      
+      // 3. Invalidate Providers to clear RAM cache (Exhaustive)
+      final providersToInvalidate = [
+        nutritionProfileProvider,
+        weeklyPlanHistoryProvider,
+        currentWeekPlanProvider,
+        mealLogsProvider,
+        shoppingListProvider,
+        historyServiceProvider,
+        settingsProvider,
+        vaccineStatusServiceProvider,
+        petEventServiceProvider,
+        partnerServiceProvider,
+      ];
+
+      for (final provider in providersToInvalidate) {
+        ref.invalidate(provider as dynamic);
+      }
+      
+      if (!mounted) return;
+      
+      // 4. Shimmer/Wait for UI
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All data has been successfully deleted.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // 5. Force navigate to Root (Splash) - This will re-trigger init sequence
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    } catch (e) {
+      debugPrint('Error factory reset: $e');
+      if (mounted) {
+        SnackBarHelper.showError(context, 'Erro ao resetar: $e');
+      }
+    }
   }
 
   Future<void> _saveUserProfileOnChange() async {
