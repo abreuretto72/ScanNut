@@ -1679,7 +1679,28 @@ class _EditPetFormState extends State<EditPetForm>
                    }
                }
 
-               // 2. Refresh Opaque Data (Raw Analysis & Agenda)
+               // 2. Refresh Linked Partners and Notes
+               if (data['linked_partner_ids'] != null) {
+                   if (mounted) {
+                      setState(() {
+                          _linkedPartnerIds = (data['linked_partner_ids'] as List?)?.cast<String>() ?? [];
+                      });
+                      // Reload partner models
+                      _loadLinkedPartners();
+                   }
+               }
+               
+               if (data['partner_notes'] != null) {
+                   if (mounted) {
+                      setState(() {
+                          _partnerNotes = (data['partner_notes'] as Map?)?.map(
+                              (k, v) => MapEntry(k.toString(), (v as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? []),
+                          ) ?? {};
+                      });
+                   }
+               }
+
+               // 3. Refresh Opaque Data (Raw Analysis & Agenda)
                final freshRaw = data['raw_analysis'];
                if (freshRaw != null) {
                    _currentRawAnalysis = Map<String,dynamic>.from(freshRaw);
@@ -1690,7 +1711,7 @@ class _EditPetFormState extends State<EditPetForm>
                    _currentRawAnalysis!['agendaEvents'] = data['agendaEvents'];
                }
 
-               debugPrint('HIVE: Dados recarregados e fundidos com sucesso (Wound History + Raw Data).');
+               debugPrint('HIVE: Dados recarregados e fundidos com sucesso (Wound History + Linked Partners + Raw Data).');
           }
       } catch (e) {
           debugPrint('ERRO RECARREGANDO DADOS: $e');
