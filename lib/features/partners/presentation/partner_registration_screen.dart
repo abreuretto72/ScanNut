@@ -13,6 +13,8 @@ import '../../settings/settings_screen.dart';
 
 import 'package:intl/intl.dart';
 import 'package:scannut/l10n/app_localizations.dart';
+import '../../../core/services/export_service.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
 
 class PartnerRegistrationScreen extends StatefulWidget {
   final PartnerModel? initialData;
@@ -36,6 +38,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   final _specialtiesController = TextEditingController();
   final _websiteController = TextEditingController();
   final _emailController = TextEditingController();
+  final _cnpjController = TextEditingController();
+  final _whatsappController = TextEditingController();
   final _teamController = TextEditingController(); // Input auxiliar para o time
   
   List<String> _teamMembers = [];
@@ -65,6 +69,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       _lng = widget.initialData!.longitude;
       _websiteController.text = widget.initialData!.website ?? '';
       _emailController.text = widget.initialData!.email ?? '';
+      _cnpjController.text = widget.initialData!.cnpj ?? '';
+      _whatsappController.text = widget.initialData!.whatsapp ?? '';
       _teamMembers = List.from(widget.initialData!.teamMembers);
     }
     if (widget.linkedNotes != null) {
@@ -163,11 +169,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         latitude: _lat ?? 0.0,
         longitude: _lng ?? 0.0,
         phone: _phoneController.text,
-        whatsapp: _phoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+        whatsapp: _whatsappController.text.isNotEmpty ? _whatsappController.text : _phoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
         instagram: _instagramController.text.isNotEmpty ? _instagramController.text : null,
         address: _addressController.text,
         specialties: specialties,
         email: _emailController.text,
+        cnpj: _cnpjController.text,
         teamMembers: _teamMembers,
         website: _websiteController.text,
         metadata: {
@@ -212,10 +219,56 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   }
 
   Future<void> _generatePdf() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Gerar PDF: Funcionalidade em desenvolvimento'), 
-        backgroundColor: Colors.blueAccent
+    final name = _nameController.text.trim();
+    if (name.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaRequired)));
+        return;
+    }
+
+    final specialties = _specialtiesController.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+
+    // Construct model from current state
+    final partner = PartnerModel(
+        id: widget.initialData?.id ?? '',
+        name: name,
+        category: _category,
+        latitude: _lat ?? 0.0,
+        longitude: _lng ?? 0.0,
+        phone: _phoneController.text.trim(),
+        address: _addressController.text.trim(),
+        email: _emailController.text.trim(),
+        website: _websiteController.text.trim(),
+        instagram: _instagramController.text.trim(),
+        whatsapp: _whatsappController.text.trim(),
+        cnpj: _cnpjController.text.trim(),
+        openingHours: {
+          'plantao24h': _is24h,
+          'raw': _openingHoursController.text.trim(),
+        },
+        metadata: {'notes': _notes},
+        teamMembers: _teamMembers,
+        specialties: specialties,
+        rating: widget.initialData?.rating ?? 0.0,
+        isFavorite: widget.initialData?.isFavorite ?? false,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PdfPreviewScreen(
+          title: '${AppLocalizations.of(context)!.pdfReportTitle} - $name',
+          buildPdf: (format) async {
+            final pdf = await ExportService().generateSinglePartnerReport(
+              partner: partner,
+              strings: AppLocalizations.of(context)!,
+            );
+            return pdf.save();
+          },
+        ),
       ),
     );
   }
@@ -604,10 +657,29 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   }
 
   Widget _buildCategoryDropdown() {
-    final List<String> categories = ['Veterinário', 'Pet Shop', 'Farmácias Pet', 'Banho e Tosa', 'Hotéis', 'Laboratórios'];
-    if (!categories.contains(_category) && _category != 'Pet Shop') {
-        _category = 'Pet Shop';
+    final strings = AppLocalizations.of(context)!;
+    final List<String> categories = [
+        strings.partnersFilterVet, 
+        strings.partnersFilterPetShop, 
+        strings.partnersFilterPharmacy, 
+        strings.partnersFilterGrooming, 
+        strings.partnersFilterHotel, 
+        strings.partnersFilterLab
+    ];
+    
+    // Check if current category is in the localized list, if not, try to match or default
+    if (!categories.contains(_category)) {
+        // Try to find a match in groups
+        String? match;
+        for (var cat in categories) {
+            if (_isSameCategory(cat, _category)) {
+                match = cat;
+                break;
+            }
+        }
+        _category = match ?? categories.first;
     }
+
     return DropdownButtonFormField<String>(
       value: _category,
       dropdownColor: Colors.grey.shade900,
@@ -625,6 +697,28 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
           .toList(),
       onChanged: (v) => setState(() => _category = v!),
     );
+  }
+
+  bool _isSameCategory(String catA, String catB) {
+    if (catA == catB) return true;
+    final a = catA.toLowerCase();
+    final b = catB.toLowerCase();
+    
+    final List<List<String>> synonymGroups = [
+      ['veterinário', 'veterinary', 'veterinarian', 'veterinario', 'vet'],
+      ['pet shop', 'petshop', 'tienda de mascotas'],
+      ['farmácias pet', 'pet pharmacy', 'pharmacy', 'farmacia pet', 'farmacia'],
+      ['banho e tosa', 'grooming', 'peluquería', 'tosa'],
+      ['hotéis', 'hotel', 'pet hotel', 'adestramento', 'training'],
+      ['laboratórios', 'laboratory', 'lab', 'laboratorio', 'laboratorios'],
+    ];
+
+    for (var group in synonymGroups) {
+      bool hasA = group.any((s) => a.contains(s));
+      bool hasB = group.any((s) => b.contains(s));
+      if (hasA && hasB) return true;
+    }
+    return false;
   }
 }
 
@@ -695,7 +789,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
       if (results.isEmpty) {
         debugPrint("Radar: Nenhum resultado em 10km. Expandindo para 20km...");
         if (mounted) {
-          setState(() => _error = 'Ampliando área de busca para 20km...');
+          setState(() => _error = AppLocalizations.of(context)!.partnersEmpty);
         }
         results = await _service.discoverNearbyPartners(
           lat: pos.latitude,
@@ -708,7 +802,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
         setState(() {
           _discovered = results;
           _isLoading = false;
-          _error = results.isEmpty ? 'Nenhum parceiro encontrado nesta região.' : '';
+          _error = results.isEmpty ? AppLocalizations.of(context)!.partnersEmpty : '';
         });
       }
     } catch (e) {
@@ -805,14 +899,13 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
   }
 
   IconData _getIcon(String category) {
-    switch (category) {
-      case 'Veterinário': return Icons.local_hospital;
-      case 'Farmácias Pet': return Icons.medication;
-      case 'Pet Shop': return Icons.shopping_basket;
-      case 'Banho e Tosa': return Icons.content_cut;
-      case 'Hotéis': return Icons.hotel;
-      case 'Laboratórios': return Icons.biotech;
-      default: return Icons.pets;
-    }
+    final c = category.toLowerCase();
+    if (c.contains('vet')) return Icons.local_hospital;
+    if (c.contains('farm') || c.contains('pharm')) return Icons.medication;
+    if (c.contains('shop') || c.contains('tienda')) return Icons.shopping_basket;
+    if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) return Icons.content_cut;
+    if (c.contains('hotel')) return Icons.hotel;
+    if (c.contains('lab')) return Icons.biotech;
+    return Icons.pets;
   }
 }

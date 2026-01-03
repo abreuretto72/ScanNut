@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/permission_helper.dart';
+import '../../../core/services/file_upload_service.dart';
 
 // Core
 import '../../../core/providers/analysis_provider.dart';
@@ -316,7 +317,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       
       debugPrint('✅ _onCapture: Analysis complete, handling result...');
       // Pass the captured state to the handler
-      _handleAnalysisResult(resultState);
+      await _handleAnalysisResult(resultState);
       debugPrint('🎉 _onCapture: END SUCCESS');
     } catch (e, stackTrace) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
@@ -324,7 +325,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
   }
 
-  void _handleAnalysisResult([AnalysisState? injectedState]) {
+  Future<void> _handleAnalysisResult([AnalysisState? injectedState]) async {
     // Use injected state if provided (from _onCapture), otherwise read from provider
     final state = injectedState ?? ref.read(analysisNotifierProvider);
 
@@ -367,7 +368,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           // If in diagnosis mode and a pet was selected (not NOVO), save wound analysis
           if (_petMode == 1 && _petName != null) {
             debugPrint('💾 Saving wound analysis for pet: $_petName');
-            _saveWoundAnalysis(petAnalysis);
+            await _saveWoundAnalysis(petAnalysis);
           } else if (_petMode == 1 && _petName == null) {
             debugPrint('ℹ️ NOVO selected - showing analysis without saving');
           }
@@ -1238,19 +1239,31 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   // Show pet selection dialog for Health mode
   Future<String?> _showPetSelectionDialog() async {
     try {
-      // Load all registered pets
+      // 1. Load all registered pets (Profiles)
       final petProfileService = PetProfileService();
       await petProfileService.init();
-      final petNames = await petProfileService.getAllPetNames();
+      final registeredPets = await petProfileService.getAllPetNames();
       
-      debugPrint('📋 Loaded ${petNames.length} registered pets for selection');
+      // 2. Load pets from history (Analyzed before but maybe no profile yet)
+      final history = await HistoryService.getHistory();
+      final historyPets = history
+          .where((item) => item['mode'] == 'Pet')
+          .map((item) => item['pet_name'] as String? ?? '')
+          .where((name) => name.isNotEmpty)
+          .toList();
+
+      // 3. Merge and unique
+      final allUniquePets = <String>{...registeredPets, ...historyPets}.toList();
+      allUniquePets.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      
+      debugPrint('📋 Loaded ${allUniquePets.length} unique pets (Profiles: ${registeredPets.length}, History: ${historyPets.length})');
       
       // Show dialog
       final selectedPet = await showDialog<String>(
         context: context,
         barrierDismissible: false,
         builder: (context) => PetSelectionDialog(
-          registeredPets: petNames,
+          registeredPets: allUniquePets,
         ),
       );
       
@@ -1267,9 +1280,23 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       final petProfileService = PetProfileService();
       await petProfileService.init();
       
+      // Save image permanently
+      String? savedImagePath = _capturedImage?.path;
+      if (_capturedImage != null) {
+        final fileService = FileUploadService();
+        final permanentPath = await fileService.saveMedicalDocument(
+          file: _capturedImage!,
+          petName: _petName!,
+          attachmentType: 'wound_analysis',
+        );
+        if (permanentPath != null) {
+          savedImagePath = permanentPath;
+        }
+      }
+
       // Extract wound/diagnosis information from analysis
       final analysisData = {
-        'imagePath': _capturedImage?.path ?? '',
+        'imagePath': savedImagePath ?? '',
         'diagnosis': analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? AppLocalizations.of(context)!.defaultWoundAnalysis,
         'severity': _extractSeverity(analysis),
         'recommendations': analysis.possiveisCausasDiag ?? [],

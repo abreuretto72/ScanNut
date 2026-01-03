@@ -48,9 +48,16 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_selectedCategory.isEmpty || _selectedCategory == 'Todos' || _selectedCategory == 'All') {
+    if (_selectedCategory.isEmpty || _isAll(_selectedCategory)) {
        _selectedCategory = AppLocalizations.of(context)!.partnersFilterAll;
     }
+  }
+
+  bool _isAll(String category) {
+    if (category.isEmpty) return true;
+    final c = category.toLowerCase();
+    return c == 'todos' || c == 'all' || 
+           c == AppLocalizations.of(context)!.partnersFilterAll.toLowerCase();
   }
 
   Future<void> _loadPartners() async { // Renamed from _loadData
@@ -220,14 +227,14 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
     );
   }
 
-  Future<void> _executePdfGeneration(String category, String type) async {
-    final reportPartners = category == AppLocalizations.of(context)!.partnersFilterAll
-        ? _allPartners // Renamed from _allPartners
-        : _allPartners.where((p) => p.category == category).toList(); // Renamed from _allPartners
+  Future<void> _executePdfGeneration(String selectedCategory, String type) async {
+    final reportPartners = _isAll(selectedCategory)
+        ? _allPartners
+        : _allPartners.where((p) => _isSameCategory(p.category, selectedCategory)).toList();
 
     if (reportPartners.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.noPartnersForFilters), backgroundColor: Colors.orange), // This one seemed okay? If fails, I'll fix it.
+        SnackBar(content: Text(AppLocalizations.of(context)!.noPartnersForFilters), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -251,16 +258,34 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   }
 
   List<PartnerModel> get _filteredPartners {
-    if (_selectedCategory == AppLocalizations.of(context)!.partnersFilterAll) return _allPartners;
-    return _allPartners.where((p) {
-        // Map localized category back to canonical or compare loosely?
-        // Better: Use internal canonical categories ('veterinarian', 'pharmacy') vs Display categories.
-        // For now, assuming PartnerModel stores localized or canonical.
-        // If PartnerModel stores 'Veterinária' (pt), we need to ensure compatibility.
-        // Assuming PartnerService saves localized strings from UI.
-        // Quick fix: Check if category contains partial match or match exact.
-        return p.category.toLowerCase() == _selectedCategory.toLowerCase();
-    }).toList();
+    if (_isAll(_selectedCategory)) return _allPartners;
+    return _allPartners.where((p) => _isSameCategory(p.category, _selectedCategory)).toList();
+  }
+
+  bool _isSameCategory(String catA, String catB) {
+    if (catA == catB) return true;
+    final a = catA.toLowerCase();
+    final b = catB.toLowerCase();
+    if (a == b) return true;
+    
+    // Canonical mapping check for multi-language support
+    // (Veterinary, Vet, Lab, Grooming, etc.)
+    final List<List<String>> synonymGroups = [
+      ['veterinário', 'veterinary', 'veterinarian', 'veterinario', 'vet'],
+      ['pet shop', 'petshop', 'tienda de mascotas'],
+      ['farmácias pet', 'pet pharmacy', 'pharmacy', 'farmacia pet', 'farmacia'],
+      ['banho e tosa', 'grooming', 'peluquería', 'tosa'],
+      ['hotéis', 'hotel', 'pet hotel', 'adestramento', 'training'],
+      ['laboratórios', 'laboratory', 'lab', 'laboratorio', 'laboratorios'],
+    ];
+
+    for (var group in synonymGroups) {
+      bool hasA = group.any((s) => a.contains(s));
+      bool hasB = group.any((s) => b.contains(s));
+      if (hasA && hasB) return true;
+    }
+
+    return false;
   }
 
   @override
@@ -414,12 +439,14 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   Widget _getCategoryIcon(String category) {
     IconData icon;
     Color color;
-    if (category == AppLocalizations.of(context)!.partnersFilterVet) { icon = Icons.local_hospital; color = Colors.redAccent; }
-    else if (category == AppLocalizations.of(context)!.partnersFilterPharmacy) { icon = Icons.medication; color = Colors.blueAccent; }
-    else if (category == AppLocalizations.of(context)!.partnersFilterPetShop) { icon = Icons.shopping_basket; color = Colors.orangeAccent; }
-    else if (category == AppLocalizations.of(context)!.partnersFilterGrooming) { icon = Icons.content_cut; color = Colors.purpleAccent; }
-    else if (category == AppLocalizations.of(context)!.partnersFilterHotel) { icon = Icons.hotel; color = Colors.amberAccent; }
-    else if (category == AppLocalizations.of(context)!.partnersFilterLab) { icon = Icons.biotech; color = Colors.cyanAccent; }
+    final c = category.toLowerCase();
+    
+    if (c.contains('vet')) { icon = Icons.local_hospital; color = Colors.redAccent; }
+    else if (c.contains('farm') || c.contains('pharm')) { icon = Icons.medication; color = Colors.blueAccent; }
+    else if (c.contains('shop') || c.contains('tienda')) { icon = Icons.shopping_basket; color = Colors.orangeAccent; }
+    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; color = Colors.purpleAccent; }
+    else if (c.contains('hotel')) { icon = Icons.hotel; color = Colors.amberAccent; }
+    else if (c.contains('lab')) { icon = Icons.biotech; color = Colors.cyanAccent; }
     else { icon = Icons.pets; color = Colors.greenAccent; }
 
     return Container(
@@ -458,16 +485,23 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = 'Todos';
+    _selectedCategory = 'All'; // Will be localized in didChangeDependencies
     _startDiscovery();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_selectedCategory == 'Todos') {
+    if (_isAll(_selectedCategory)) {
        _selectedCategory = AppLocalizations.of(context)!.partnersFilterAll;
     }
+  }
+
+  bool _isAll(String category) {
+    if (category.isEmpty) return true;
+    final c = category.toLowerCase();
+    return c == 'todos' || c == 'all' || 
+           c == AppLocalizations.of(context)!.partnersFilterAll.toLowerCase();
   }
 
   Future<void> _startDiscovery() async {
@@ -539,8 +573,32 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
   }
 
   List<PartnerModel> get _filteredResults {
-    if (_selectedCategory == 'Todos') return _discoveredResults;
-    return _discoveredResults.where((p) => p.category == _selectedCategory).toList();
+    if (_isAll(_selectedCategory)) return _discoveredResults;
+    return _discoveredResults.where((p) => _isSameCategory(p.category, _selectedCategory)).toList();
+  }
+
+  bool _isSameCategory(String catA, String catB) {
+    if (catA == catB) return true;
+    final a = catA.toLowerCase();
+    final b = catB.toLowerCase();
+    if (a == b) return true;
+    
+    final List<List<String>> synonymGroups = [
+      ['veterinário', 'veterinary', 'veterinarian', 'veterinario', 'vet'],
+      ['pet shop', 'petshop', 'tienda de mascotas'],
+      ['farmácias pet', 'pet pharmacy', 'pharmacy', 'farmacia pet', 'farmacia'],
+      ['banho e tosa', 'grooming', 'peluquería', 'tosa'],
+      ['hotéis', 'hotel', 'pet hotel', 'adestramento', 'training'],
+      ['laboratórios', 'laboratory', 'lab', 'laboratorio', 'laboratorios'],
+    ];
+
+    for (var group in synonymGroups) {
+      bool hasA = group.any((s) => a.contains(s));
+      bool hasB = group.any((s) => b.contains(s));
+      if (hasA && hasB) return true;
+    }
+
+    return false;
   }
 
   @override
@@ -675,15 +733,16 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
   Widget _getCategoryIcon(String category) {
     IconData icon;
     Color color;
-    switch (category) {
-      case 'Veterinário': icon = Icons.local_hospital; color = Colors.redAccent; break;
-      case 'Farmácias Pet': icon = Icons.medication; color = Colors.blueAccent; break;
-      case 'Pet Shop': icon = Icons.shopping_basket; color = Colors.orangeAccent; break;
-      case 'Banho e Tosa': icon = Icons.content_cut; color = Colors.purpleAccent; break;
-      case 'Hotéis': icon = Icons.hotel; color = Colors.amberAccent; break;
-      case 'Laboratórios': icon = Icons.biotech; color = Colors.cyanAccent; break;
-      default: icon = Icons.pets; color = Colors.greenAccent;
-    }
+    final c = category.toLowerCase();
+    
+    if (c.contains('vet')) { icon = Icons.local_hospital; color = Colors.redAccent; }
+    else if (c.contains('farm') || c.contains('pharm')) { icon = Icons.medication; color = Colors.blueAccent; }
+    else if (c.contains('shop') || c.contains('tienda')) { icon = Icons.shopping_basket; color = Colors.orangeAccent; }
+    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; color = Colors.purpleAccent; }
+    else if (c.contains('hotel')) { icon = Icons.hotel; color = Colors.amberAccent; }
+    else if (c.contains('lab')) { icon = Icons.biotech; color = Colors.cyanAccent; }
+    else { icon = Icons.pets; color = Colors.greenAccent; }
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),

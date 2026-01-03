@@ -326,10 +326,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                   
                                   if (profile != null && profile['data'] != null) {
                                       final pData = profile['data'];
-                                      if (pData['plano_semanal'] != null) {
-                                          rawPlan = pData['plano_semanal'];
-                                          guidelines = pData['orientacoes_gerais'];
-                                      }
+                                      rawPlan = pData['plano_semanal'] ?? pData['raw_analysis']?['plano_semanal'] ?? [];
+                                      guidelines = pData['orientacoes_gerais'] ?? pData['raw_analysis']?['orientacoes_gerais'];
                                   }
                                   
                                   if (rawPlan.isEmpty && data['plano_semanal'] != null) {

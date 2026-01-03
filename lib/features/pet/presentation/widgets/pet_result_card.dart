@@ -158,34 +158,37 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     }
 
     final now = DateTime.now();
-    final dateStr = DateFormat.yMd(Localizations.localeOf(context).toString()).add_Hm().format(now);
+    final l10n = AppLocalizations.of(context)!;
+    final dateStr = DateFormat.yMd(l10n.localeName).add_Hm().format(now);
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
+        build: (pw.Context pdfContext) {
           final pet = widget.analysis;
           if (pet.analysisType == 'diagnosis') {
              return [
-               pw.Header(level: 0, child: pw.Text("ScanNut - Triage Veterinária", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.red))),
+               pw.Header(level: 0, child: pw.Text("ScanNut - ${l10n.pdfDiagnosisTriage}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.red))),
                pw.SizedBox(height: 10),
                if (image != null) pw.Center(child: pw.Image(image, height: 200)),
                pw.SizedBox(height: 20),
-               pw.Text("Raça/Espécie: ${pet.especie} - ${pet.raca}"),
+               pw.Text("${l10n.pdfFieldBreedSpecies}: ${pet.especie} - ${pet.raca}"),
                pw.Row(
                  children: [
-                   pw.Text("Urgência: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                   pw.Text("${l10n.pdfFieldUrgency}: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                    pw.Text(pet.urgenciaNivel, style: pw.TextStyle(
-                     color: pet.urgenciaNivel.toLowerCase().contains('vermelho') ? PdfColors.red : PdfColors.black,
+                     color: pet.urgenciaNivel.toLowerCase().contains('vermelho') || 
+                            pet.urgenciaNivel.toLowerCase().contains('red') || 
+                            pet.urgenciaNivel.toLowerCase().contains('rojo') ? PdfColors.red : PdfColors.black,
                      fontWeight: pw.FontWeight.bold,
                    )),
                  ],
                ),
-               pw.Text("Descrição: ${pet.descricaoVisual}"),
+               pw.Text("${l10n.petVisualDescription}: ${pet.descricaoVisual}"),
                pw.SizedBox(height: 5),
-               pw.Text("Recomendação Profissional:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+               pw.Text("${l10n.pdfFieldProfessionalRecommendation}:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                pw.Text(pet.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')),
-               pw.Footer(title: pw.Text("Gerado em $dateStr por ScanNut", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey))),
+               pw.Footer(title: pw.Text(l10n.pdfGeneratedBy(dateStr, "ScanNut"), style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey))),
              ];
           }
           return [
@@ -195,12 +198,12 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text("ScanNut", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.green)),
-                  pw.Text("Dossiê 360º de Pet", style: pw.TextStyle(fontSize: 18)),
+                  pw.Text(l10n.pdfDossierTitle, style: pw.TextStyle(fontSize: 18)),
                 ],
               ),
             ),
             pw.SizedBox(height: 10),
-            pw.Text("Gerado em: $dateStr", style: const pw.TextStyle(color: PdfColors.grey)),
+            pw.Text(l10n.pdfGeneratedBy(dateStr, "ScanNut"), style: const pw.TextStyle(color: PdfColors.grey)),
             pw.SizedBox(height: 10),
             // Pet Name - Always visible
             pw.Container(
@@ -210,7 +213,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 borderRadius: pw.BorderRadius.circular(8),
               ),
               child: pw.Text(
-                "🐾 ${widget.petName ?? 'Pet sem nome'}",
+                "🐾 ${widget.petName ?? l10n.petNotIdentified}",
                 style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 18,
@@ -223,49 +226,49 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             pw.SizedBox(height: 20),
             
             // === SEÇÃO 1: IDENTIDADE E PERFIL ===
-            pw.Text("1. IDENTIDADE E PERFIL", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+            pw.Text(l10n.pdfSectionIdentity, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
             pw.Divider(color: PdfColors.blue900),
-            pw.Text("Raça Predominante: ${pet.identificacao.racaPredominante}"),
-            pw.Text("Linhagem SRD: ${pet.identificacao.linhagemSrdProvavel}"),
-            pw.Text("Porte: ${pet.identificacao.porteEstimado}"),
-            pw.Text("Expectativa de Vida: ${pet.identificacao.expectativaVidaMedia}"),
+            pw.Text("${l10n.pdfFieldPredominantBreed}: ${pet.identificacao.racaPredominante}"),
+            pw.Text("${l10n.petLineage}: ${pet.identificacao.linhagemSrdProvavel}"),
+            pw.Text("${l10n.petSize}: ${pet.identificacao.porteEstimado}"),
+            pw.Text("${l10n.petLongevity}: ${pet.identificacao.expectativaVidaMedia}"),
             pw.SizedBox(height: 10),
 
             // Perfil Comportamental
-            pw.Text("Perfil Comportamental:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "Nível de Energia: ${pet.perfilComportamental.nivelEnergia}/5"),
-            pw.Bullet(text: "Inteligência: ${pet.perfilComportamental.nivelInteligencia}/5"),
-            pw.Bullet(text: "Sociabilidade: ${pet.perfilComportamental.sociabilidadeGeral}/5"),
-            pw.Bullet(text: "Drive Ancestral: ${pet.perfilComportamental.driveAncestral}"),
+            pw.Text("${l10n.pdfFieldBehavioralProfile}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Bullet(text: "${l10n.pdfFieldEnergyLevel}: ${pet.perfilComportamental.nivelEnergia}/5"),
+            pw.Bullet(text: "${l10n.pdfFieldIntelligence}: ${pet.perfilComportamental.nivelInteligencia}/5"),
+            pw.Bullet(text: "${l10n.pdfFieldSociability}: ${pet.perfilComportamental.sociabilidadeGeral}/5"),
+            pw.Bullet(text: "${l10n.pdfFieldAncestralDrive}: ${pet.perfilComportamental.driveAncestral}"),
             pw.SizedBox(height: 15),
 
             // Growth Curve
             if (pet.identificacao.curvaCrescimento.isNotEmpty) ...[
-              pw.Text("Curva de Crescimento Estimada:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-              pw.Bullet(text: "3 Meses: ${pet.identificacao.curvaCrescimento['peso_3_meses'] ?? 'N/A'}"),
-              pw.Bullet(text: "6 Meses: ${pet.identificacao.curvaCrescimento['peso_6_meses'] ?? 'N/A'}"),
-              pw.Bullet(text: "12 Meses: ${pet.identificacao.curvaCrescimento['peso_12_meses'] ?? 'N/A'}"),
-              pw.Bullet(text: "Adulto: ${pet.identificacao.curvaCrescimento['peso_adulto'] ?? 'N/A'}"),
+              pw.Text("${l10n.pdfFieldEstimatedGrowthCurve}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+              pw.Bullet(text: "${l10n.petMonth3}: ${pet.identificacao.curvaCrescimento['peso_3_meses'] ?? 'N/A'}"),
+              pw.Bullet(text: "${l10n.petMonth6}: ${pet.identificacao.curvaCrescimento['peso_6_meses'] ?? 'N/A'}"),
+              pw.Bullet(text: "${l10n.petMonth12}: ${pet.identificacao.curvaCrescimento['peso_12_meses'] ?? 'N/A'}"),
+              pw.Bullet(text: "${l10n.petAdult}: ${pet.identificacao.curvaCrescimento['peso_adulto'] ?? 'N/A'}"),
               pw.SizedBox(height: 15),
             ],
 
             // === SEÇÃO 2: NUTRIÇÃO E DIETA ===
-            pw.Text("2. NUTRIÇÃO E DIETA ESTRATÉGICA", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.orange900)),
+            pw.Text(l10n.pdfSectionNutrition, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.orange900)),
             pw.Divider(color: PdfColors.orange900),
             
             // Metas Calóricas
-            pw.Text("Metas Calóricas Diárias:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "Filhote: ${(pet.nutricao.metaCalorica['kcal_filhote'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
-            pw.Bullet(text: "Adulto: ${(pet.nutricao.metaCalorica['kcal_adulto'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
-            pw.Bullet(text: "Sênior: ${(pet.nutricao.metaCalorica['kcal_senior'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
+            pw.Text("${l10n.pdfFieldDailyCaloricGoals}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Bullet(text: "${l10n.pdfFieldPuppy}: ${(pet.nutricao.metaCalorica['kcal_filhote'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
+            pw.Bullet(text: "${l10n.pdfFieldAdult}: ${(pet.nutricao.metaCalorica['kcal_adulto'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
+            pw.Bullet(text: "${l10n.pdfFieldSenior}: ${(pet.nutricao.metaCalorica['kcal_senior'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
             pw.SizedBox(height: 10),
             
-            pw.Text("Nutrientes Alvo: ${pet.nutricao.nutrientesAlvo.join(', ')}"),
-            pw.Text("Suplementação Sugerida: ${pet.nutricao.suplementacaoSugerida.join(', ')}"),
+            pw.Text("${l10n.pdfFieldTargetNutrients}: ${pet.nutricao.nutrientesAlvo.join(', ')}"),
+            pw.Text("${l10n.pdfFieldSuggestedSupplementation}: ${pet.nutricao.suplementacaoSugerida.join(', ')}"),
             pw.SizedBox(height: 10),
 
             // Segurança Alimentar
-            pw.Text("Segurança Alimentar:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Text("${l10n.pdfFieldFoodSafety}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             if (pet.nutricao.segurancaAlimentar['tendencia_obesidade'] == true)
               pw.Container(
                 padding: const pw.EdgeInsets.all(8),
@@ -273,19 +276,19 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                   color: PdfColors.red50,
                   borderRadius: pw.BorderRadius.circular(6),
                 ),
-                child: pw.Text("⚠️ ALERTA: Tendência à obesidade detectada", style: const pw.TextStyle(color: PdfColors.red900)),
+                child: pw.Text(l10n.pdfAlertObesity, style: const pw.TextStyle(color: PdfColors.red900)),
               ),
             pw.SizedBox(height: 15),
 
             // Tabelas de Alimentos
             if (pet.tabelaBenigna.isNotEmpty) ...[
-              pw.Text("Alimentos Seguros (Benigna):", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.green900)),
+              pw.Text("${l10n.pdfFieldSafeFoods}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.green900)),
               pw.Table.fromTextArray(
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
                 cellStyle: const pw.TextStyle(fontSize: 9),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.green100),
                 data: [
-                  ['Alimento', 'Benefício'],
+                  [l10n.pdfFieldFoodName, l10n.pdfFieldBenefit],
                   ...pet.tabelaBenigna.map((row) => [row['alimento'] ?? '', row['beneficio'] ?? '']),
                 ],
               ),
@@ -293,13 +296,13 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             ],
 
             if (pet.tabelaMaligna.isNotEmpty) ...[
-              pw.Text("Alimentos Tóxicos (Maligna):", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
+              pw.Text("${l10n.pdfFieldToxicFoods}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
               pw.Table.fromTextArray(
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
                 cellStyle: const pw.TextStyle(fontSize: 9),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.red100),
                 data: [
-                  ['Alimento', 'Risco'],
+                  [l10n.pdfFieldFoodName, l10n.pdfFieldRisk],
                   ...pet.tabelaMaligna.map((row) => [row['alimento'] ?? '', row['risco'] ?? '']),
                 ],
               ),
@@ -308,7 +311,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
             // Weekly Meal Plan
             if (pet.planoSemanal.isNotEmpty) ...[
-              pw.Text("Cardápio Semanal (Dieta Natural):", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+              pw.Text("${l10n.pdfFieldWeeklyMenu}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
               if (pet.orientacoesGerais != null) ...[
                 pw.Container(
                   padding: const pw.EdgeInsets.all(8),
@@ -327,8 +330,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 final now = DateTime.now();
                 final mondayStart = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
                 final dateForDay = mondayStart.add(Duration(days: index));
-                final dateStr = DateFormat('dd/MM').format(dateForDay);
-                final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay); 
+                final dateStr = DateFormat('dd/MM', Localizations.localeOf(context).toString()).format(dateForDay);
+                final weekDayName = DateFormat('EEEE', Localizations.localeOf(context).toString()).format(dateForDay); 
                 final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
                 final String dia = "$weekDayCap - $dateStr";
 
@@ -352,7 +355,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                     pw.Bullet(text: refeicao, style: const pw.TextStyle(fontSize: 10)),
                     pw.Padding(
                       padding: const pw.EdgeInsets.only(left: 15),
-                      child: pw.Text("↳ Motivo: $beneficio", style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic)),
+                      child: pw.Text("↳ ${l10n.pdfFieldReason}: $beneficio", style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic)),
                     ),
                     pw.SizedBox(height: 10),
                   ],
@@ -362,12 +365,12 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             ],
 
             // === SEÇÃO 3: GROOMING E HIGIENE ===
-            pw.Text("3. GROOMING & HIGIENE", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.amber900)),
+            pw.Text(l10n.pdfSectionGrooming, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.amber900)),
             pw.Divider(color: PdfColors.amber900),
-            pw.Text("Tipo de Pelo: ${pet.higiene.manutencaoPelagem['tipo_pelo'] ?? 'N/A'}"),
-            pw.Text("Frequência de Escovação: ${pet.higiene.manutencaoPelagem['frequencia_escovacao_semanal'] ?? 'N/A'}"),
-            pw.Text("Frequência de Banho: ${pet.higiene.banhoEHigiene['frequencia_ideal_banho'] ?? 'N/A'}"),
-            pw.Text("Produtos Recomendados: ${pet.higiene.banhoEHigiene['produtos_recomendados'] ?? 'N/A'}"),
+            pw.Text("${l10n.pdfFieldCoatType}: ${pet.higiene.manutencaoPelagem['tipo_pelo'] ?? 'N/A'}"),
+            pw.Text("${l10n.pdfFieldBrushingFrequency}: ${pet.higiene.manutencaoPelagem['frequencia_escovacao_semanal'] ?? 'N/A'}"),
+            pw.Text("${l10n.pdfFieldBathFrequency}: ${pet.higiene.banhoEHigiene['frequencia_ideal_banho'] ?? 'N/A'}"),
+            pw.Text("${l10n.pdfFieldRecommendedProducts}: ${pet.higiene.banhoEHigiene['produtos_recomendados'] ?? 'N/A'}"),
             if (pet.higiene.manutencaoPelagem['alerta_subpelo'] != null)
               pw.Container(
                 margin: const pw.EdgeInsets.only(top: 8),
@@ -381,42 +384,42 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             pw.SizedBox(height: 15),
 
             // === SEÇÃO 4: SAÚDE PREVENTIVA ===
-            pw.Text("4. SAÚDE PREVENTIVA", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
+            pw.Text(l10n.pdfSectionHealth, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
             pw.Divider(color: PdfColors.red900),
             
-            pw.Text("Predisposição a Doenças:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Text("${l10n.pdfFieldDiseasePredisposition}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             if (pet.saude.predisposicaoDoencas.isNotEmpty)
               ...pet.saude.predisposicaoDoencas.map((d) => pw.Bullet(text: d))
             else
-              pw.Text("• Nenhuma predisposição específica identificada", style: const pw.TextStyle(fontSize: 10)),
+              pw.Text("• ${l10n.petNotIdentifiedPlural}", style: const pw.TextStyle(fontSize: 10)),
             pw.SizedBox(height: 10),
 
-            pw.Text("Pontos Críticos Anatômicos:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Text("${l10n.pdfFieldAnatomicalCriticalPoints}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             if (pet.saude.pontosCriticosAnatomicos.isNotEmpty)
               ...pet.saude.pontosCriticosAnatomicos.map((p) => pw.Bullet(text: p))
             else
-              pw.Text("• Nenhum ponto crítico específico", style: const pw.TextStyle(fontSize: 10)),
+              pw.Text("• ${l10n.petNotIdentified}", style: const pw.TextStyle(fontSize: 10)),
             pw.SizedBox(height: 10),
 
-            pw.Text("Checkup Veterinário:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "Frequência: ${pet.saude.checkupVeterinario['frequencia_ideal'] ?? 'Anual'}"),
+            pw.Text("${l10n.pdfFieldVeterinaryCheckup}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Bullet(text: "${l10n.petFrequency}: ${pet.saude.checkupVeterinario['frequencia_ideal'] ?? 'Anual'}"),
             if (pet.saude.checkupVeterinario['exames_obrigatorios_anuais'] != null)
-              pw.Bullet(text: "Exames: ${(pet.saude.checkupVeterinario['exames_obrigatorios_anuais'] as List).join(', ')}"),
+              pw.Bullet(text: "${l10n.pdfFieldMandatoryExams}: ${(pet.saude.checkupVeterinario['exames_obrigatorios_anuais'] as List).join(', ')}"),
             pw.SizedBox(height: 10),
 
-            pw.Text("Sensibilidade Climática:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "Calor: ${pet.saude.sensibilidadeClimatica['tolerancia_calor'] ?? 'N/A'}"),
-            pw.Bullet(text: "Frio: ${pet.saude.sensibilidadeClimatica['tolerancia_frio'] ?? 'N/A'}"),
+            pw.Text("${l10n.pdfFieldClimateSensitivity}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Bullet(text: "${l10n.pdfFieldHeat}: ${pet.saude.sensibilidadeClimatica['tolerancia_calor'] ?? 'N/A'}"),
+            pw.Bullet(text: "${l10n.pdfFieldCold}: ${pet.saude.sensibilidadeClimatica['tolerancia_frio'] ?? 'N/A'}"),
             pw.SizedBox(height: 15),
 
             // Protocolo de Imunização
             if (pet.protocoloImunizacao != null) ...[
-              pw.Text("4.1 Protocolo de Imunização", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+              pw.Text(l10n.pdfSectionImmunization, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
               pw.SizedBox(height: 8),
               
               // Vacinas Essenciais
               if (pet.protocoloImunizacao!['vacinas_essenciais'] != null) ...[
-                pw.Text("Vacinas Essenciais:", style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                pw.Text("${l10n.pdfFieldEssentialVaccines}:", style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
                 ...((pet.protocoloImunizacao!['vacinas_essenciais'] as List?) ?? []).map((v) {
                   final nome = v['nome'] ?? 'Vacina';
                   final objetivo = v['objetivo'] ?? '';
@@ -435,11 +438,11 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       children: [
                         pw.Text("• $nome", style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
                         if (objetivo.isNotEmpty)
-                          pw.Text("  Objetivo: $objetivo", style: const pw.TextStyle(fontSize: 9)),
+                          pw.Text("  ${l10n.pdfFieldVaccineGoal}: $objetivo", style: const pw.TextStyle(fontSize: 9)),
                         if (primeiraIdade.isNotEmpty)
-                          pw.Text("  1ª dose: $primeiraIdade", style: const pw.TextStyle(fontSize: 9)),
+                          pw.Text("  ${l10n.pdfFieldFirstDose}: $primeiraIdade", style: const pw.TextStyle(fontSize: 9)),
                         if (reforco.isNotEmpty)
-                          pw.Text("  Reforço: $reforco", style: const pw.TextStyle(fontSize: 9)),
+                          pw.Text("  ${l10n.pdfFieldBooster}: $reforco", style: const pw.TextStyle(fontSize: 9)),
                       ],
                     ),
                   );
@@ -462,14 +465,14 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       pw.Row(
                         children: [
                           pw.Text("📅 ", style: const pw.TextStyle(fontSize: 12)),
-                          pw.Text("Calendário Preventivo", style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.green900)),
+                          pw.Text(l10n.pdfFieldPreventiveCalendar, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.green900)),
                         ],
                       ),
                       pw.SizedBox(height: 6),
                       if (pet.protocoloImunizacao!['calendario_preventivo']['cronograma_filhote'] != null)
-                        pw.Bullet(text: "Filhotes: ${pet.protocoloImunizacao!['calendario_preventivo']['cronograma_filhote']}", style: const pw.TextStyle(fontSize: 10)),
+                        pw.Bullet(text: "${l10n.pdfFieldPuppies}: ${pet.protocoloImunizacao!['calendario_preventivo']['cronograma_filhote']}", style: const pw.TextStyle(fontSize: 10)),
                       if (pet.protocoloImunizacao!['calendario_preventivo']['reforco_anual'] != null)
-                        pw.Bullet(text: "Adultos: ${pet.protocoloImunizacao!['calendario_preventivo']['reforco_anual']}", style: const pw.TextStyle(fontSize: 10)),
+                        pw.Bullet(text: "${l10n.pdfFieldAdults}: ${pet.protocoloImunizacao!['calendario_preventivo']['reforco_anual']}", style: const pw.TextStyle(fontSize: 10)),
                     ],
                   ),
                 ),
@@ -491,7 +494,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       pw.Row(
                         children: [
                           pw.Text("🐛 ", style: const pw.TextStyle(fontSize: 12)),
-                          pw.Text("Prevenção Parasitária", style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.orange900)),
+                          pw.Text(l10n.pdfFieldParasitePrevention, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.orange900)),
                         ],
                       ),
                       pw.SizedBox(height: 6),
@@ -499,14 +502,14 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                         pw.Builder(
                           builder: (context) {
                             final vermifugacao = pet.protocoloImunizacao!['prevencao_parasitaria']['vermifugacao'] as Map<String, dynamic>;
-                            return pw.Bullet(text: "Vermífugo: ${vermifugacao['frequencia'] ?? 'Consulte veterinário'}", style: const pw.TextStyle(fontSize: 10));
+                            return pw.Bullet(text: "${l10n.pdfFieldDewormer}: ${vermifugacao['frequencia'] ?? l10n.petConsultVetCare}", style: const pw.TextStyle(fontSize: 10));
                           },
                         ),
                       if (pet.protocoloImunizacao!['prevencao_parasitaria']['controle_ectoparasitas'] != null)
                         pw.Builder(
                           builder: (context) {
                             final ecto = pet.protocoloImunizacao!['prevencao_parasitaria']['controle_ectoparasitas'] as Map<String, dynamic>;
-                            return pw.Bullet(text: "Pulgas/Carrapatos: ${ecto['pulgas_carrapatos'] ?? 'Consulte veterinário'}", style: const pw.TextStyle(fontSize: 10));
+                            return pw.Bullet(text: "${l10n.pdfFieldTickFlea}: ${ecto['pulgas_carrapatos'] ?? l10n.petConsultVetCare}", style: const pw.TextStyle(fontSize: 10));
                           },
                         ),
                       if (pet.protocoloImunizacao!['prevencao_parasitaria']['alerta_regional'] != null)
@@ -540,7 +543,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       pw.Row(
                         children: [
                           pw.Text("🦴 ", style: const pw.TextStyle(fontSize: 12)),
-                          pw.Text("Saúde Bucal e Óssea", style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.teal900)),
+                          pw.Text(l10n.pdfFieldOralBoneHealth, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.teal900)),
                         ],
                       ),
                       pw.SizedBox(height: 6),
@@ -548,11 +551,11 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                         pw.Builder(
                           builder: (context) {
                             final ossos = pet.protocoloImunizacao!['saude_bucal_ossea']['ossos_naturais_permitidos'] as List;
-                            return pw.Bullet(text: "Ossos Permitidos: ${ossos.join(', ')}", style: const pw.TextStyle(fontSize: 10));
+                            return pw.Bullet(text: "${l10n.pdfFieldPermittedBones}: ${ossos.join(', ')}", style: const pw.TextStyle(fontSize: 10));
                           },
                         ),
                       if (pet.protocoloImunizacao!['saude_bucal_ossea']['frequencia_semanal'] != null)
-                        pw.Bullet(text: "Frequência: ${pet.protocoloImunizacao!['saude_bucal_ossea']['frequencia_semanal']}", style: const pw.TextStyle(fontSize: 10)),
+                        pw.Bullet(text: "${l10n.pdfFieldFrequency}: ${pet.protocoloImunizacao!['saude_bucal_ossea']['frequencia_semanal']}", style: const pw.TextStyle(fontSize: 10)),
                       if (pet.protocoloImunizacao!['saude_bucal_ossea']['alerta_seguranca'] != null)
                         pw.Container(
                           margin: const pw.EdgeInsets.only(top: 6),
@@ -572,22 +575,22 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             ],
 
             // === SEÇÃO 5: LIFESTYLE E EDUCAÇÃO ===
-            pw.Text("5. LIFESTYLE & EDUCAÇÃO", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)),
+            pw.Text(l10n.pdfSectionLifestyle, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)),
             pw.Divider(color: PdfColors.purple900),
             
-            pw.Text("Treinamento:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "Dificuldade de Adestramento: ${pet.lifestyle.treinamento['dificuldade_adestramento'] ?? 'N/A'}"),
-            pw.Bullet(text: "Métodos Recomendados: ${pet.lifestyle.treinamento['metodos_recomendados'] ?? 'Reforço positivo'}"),
+            pw.Text("${l10n.pdfFieldTraining}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Bullet(text: "${l10n.pdfFieldTrainingDifficulty}: ${pet.lifestyle.treinamento['dificuldade_adestramento'] ?? 'N/A'}"),
+            pw.Bullet(text: "${l10n.pdfFieldRecommendedMethods}: ${pet.lifestyle.treinamento['metodos_recomendados'] ?? l10n.petPositiveReinforcement}"),
             pw.SizedBox(height: 10),
 
-            pw.Text("Ambiente Ideal:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "Espaço Aberto: ${pet.lifestyle.ambienteIdeal['necessidade_de_espaco_aberto'] ?? 'N/A'}"),
-            pw.Bullet(text: "Adaptação Apartamento: ${pet.lifestyle.ambienteIdeal['adaptacao_apartamento_score'] ?? 'N/A'}/5"),
+            pw.Text("${l10n.pdfFieldIdealEnvironment}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Bullet(text: "${l10n.pdfFieldOpenSpace}: ${pet.lifestyle.ambienteIdeal['necessidade_de_espaco_aberto'] ?? 'N/A'}"),
+            pw.Bullet(text: "${l10n.pdfFieldApartmentAdaptation}: ${pet.lifestyle.ambienteIdeal['adaptacao_apartamento_score'] ?? 'N/A'}/5"),
             pw.SizedBox(height: 10),
 
-            pw.Text("Estímulo Mental:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "Necessidade: ${pet.lifestyle.estimuloMental['necessidade_estimulo_mental'] ?? 'N/A'}"),
-            pw.Bullet(text: "Atividades: ${pet.lifestyle.estimuloMental['atividades_sugeridas'] ?? 'Brinquedos interativos'}"),
+            pw.Text("${l10n.pdfFieldMentalStimulus}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+            pw.Bullet(text: "${l10n.petFrequency}: ${pet.lifestyle.estimuloMental['necessidade_estimulo_mental'] ?? 'N/A'}"),
+            pw.Bullet(text: "${l10n.pdfFieldSuggestedActivities}: ${pet.lifestyle.estimuloMental['atividades_sugeridas'] ?? l10n.petInteractiveToys}"),
             pw.SizedBox(height: 15),
 
             // === INSIGHT DO ESPECIALISTA ===
@@ -601,7 +604,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text("💡 INSIGHT DO ESPECIALISTA", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)),
+                   pw.Text("💡 ${l10n.pdfFieldExpertInsight}", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)),
                   pw.SizedBox(height: 6),
                   pw.Text(pet.dica.insightExclusivo.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const pw.TextStyle(fontSize: 11)),
                 ],
@@ -615,7 +618,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                    pw.Text("ScanNut App - Inteligência Animal", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey)),
                    pw.SizedBox(height: 4),
                    pw.Text(
-                     "Aviso: Este relatório foi gerado por IA e não substitui consulta veterinária profissional.",
+                     l10n.pdfDisclaimer,
                      style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic),
                    ),
                 ],
@@ -632,7 +635,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         context,
         MaterialPageRoute(
           builder: (context) => PdfPreviewScreen(
-            title: "Dossiê: ${widget.petName ?? 'Pet'}",
+            title: "${l10n.pdfDossierTitle}: ${widget.petName ?? l10n.petNotIdentified}",
             buildPdf: (format) async => pdf.save(),
           ),
         ),
@@ -869,11 +872,11 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
           ),
         ),
         const SizedBox(height: 24),
-        _buildSectionCard(title: "Descrição Visual", icon: Icons.visibility, color: Colors.blueAccent, child: Text(widget.analysis.descricaoVisual.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const TextStyle(color: Colors.white70))),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petVisualDescription, icon: Icons.visibility, color: Colors.blueAccent, child: Text(widget.analysis.descricaoVisual.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const TextStyle(color: Colors.white70))),
         const SizedBox(height: 16),
-        _buildSectionCard(title: "Causas Prováveis", icon: Icons.list, color: Colors.purpleAccent, child: Text(widget.analysis.possiveisCausas.join('\n• '), style: const TextStyle(color: Colors.white70))),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petPossibleCauses, icon: Icons.list, color: Colors.purpleAccent, child: Text(widget.analysis.possiveisCausas.join('\n• '), style: const TextStyle(color: Colors.white70))),
         const SizedBox(height: 16),
-        _buildSectionCard(title: "Orientação do Especialista", icon: Icons.medical_services, color: Colors.tealAccent, child: Text(widget.analysis.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const TextStyle(color: Colors.white))),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petSpecialistOrientation, icon: Icons.medical_services, color: Colors.tealAccent, child: Text(widget.analysis.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const TextStyle(color: Colors.white))),
         const SizedBox(height: 48),
       ],
     );

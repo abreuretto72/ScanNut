@@ -27,13 +27,13 @@ Domine o reino vegetal ao seu redor com ciência e estética.
 
 ### 3. Gestão Digital de Pets: O Prontuário Clínico Definitivo
 O cuidado que seu melhor amigo merece, organizado de forma profissional e inteligente.
-- **Análise de Pele com IA**: Monitore lesões e feridas cutâneas com histórico visual e evolução temporal (Recurso Pro).
+- **Análise de Feridas com IA**: Sistema completo de diagnóstico visual de lesões cutâneas com armazenamento permanente de fotos, histórico temporal e classificação de severidade (Alta/Média/Baixa).
 - **Inteligência Diagnóstica**: Explicação automática de exames de sangue item por item para fácil compreensão.
 - **Plano Alimentar Inteligente**: Sugestões semanais personalizadas (Natural, Ração ou Híbrida) com foco em preferências e alergias alimentares.
 - **Controle Biológico e Bioestatística**: Perfil biológico, análise da raça, controle de peso inteligente e galeria de fotos integrada.
 - **Hub de Parceiros**: Encontre veterinários, pet shops e adestradores próximos com geolocalização e adicione-os ao prontuário do seu pet.
 - **Organização Total**: Diário por voz, agenda global, histórico de higiene, anexos de receitas e carteira de vacinação digital.
-- **PDF Médico Profissional**: Gere relatórios completos (histórico, saúde, parceiros, galeria) para compartilhar com seu veterinário.
+- **PDF Médico Profissional**: Gere relatórios completos (histórico, saúde, parceiros, galeria) totalmente localizados em PT/EN/ES para compartilhar com seu veterinário.
 - **Histórico de Pets**: Acesse dossiês completos e exames de todos os seus pets em um só lugar.
 
 ### 4. ScanNut Pro: Potencialize Sua Experiência

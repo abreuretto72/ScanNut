@@ -101,10 +101,34 @@ class PetProfileExtended {
           ? DateTime.parse(json['last_updated'] as String)
           : DateTime.now(),
       imagePath: (json['image_path'] ?? json['photo_path']) as String?,
-      rawAnalysis: json['raw_analysis'] != null 
-          ? Map<String, dynamic>.from(json['raw_analysis'] as Map) 
-          : null,
+      rawAnalysis: _extractRawAnalysis(json),
     );
+  }
+
+  static Map<String, dynamic>? _extractRawAnalysis(Map<String, dynamic> json) {
+    final Map<String, dynamic>? base = json['raw_analysis'] != null 
+          ? Map<String, dynamic>.from(json['raw_analysis'] as Map) 
+          : null;
+    
+    // Capture AI-generated fields that might be at the top level due to saveWeeklyMenu
+    final List<String> aiKeys = [
+      'plano_semanal', 
+      'orientacoes_gerais', 
+      'data_inicio_semana', 
+      'data_fim_semana',
+      'last_meal_plan_gen'
+    ];
+
+    Map<String, dynamic>? result = base;
+    
+    for (var key in aiKeys) {
+      if (json.containsKey(key) && json[key] != null) {
+        result ??= {};
+        result[key] = json[key];
+      }
+    }
+    
+    return result;
   }
 
   factory PetProfileExtended.fromHiveEntry(Map<String, dynamic> entry) {
@@ -191,7 +215,14 @@ class PetProfileExtended {
       'observacoes_prac': observacoesPrac,
       'last_updated': lastUpdated.toIso8601String(),
       if (imagePath != null) 'image_path': imagePath,
-      if (rawAnalysis != null) 'raw_analysis': rawAnalysis,
+      if (rawAnalysis != null) ...{
+        'raw_analysis': rawAnalysis,
+        // Spread AI fields to top level for compatibility with services/UI looking there
+        if (rawAnalysis!.containsKey('plano_semanal')) 'plano_semanal': rawAnalysis!['plano_semanal'],
+        if (rawAnalysis!.containsKey('orientacoes_gerais')) 'orientacoes_gerais': rawAnalysis!['orientacoes_gerais'],
+        if (rawAnalysis!.containsKey('data_inicio_semana')) 'data_inicio_semana': rawAnalysis!['data_inicio_semana'],
+        if (rawAnalysis!.containsKey('data_fim_semana')) 'data_fim_semana': rawAnalysis!['data_fim_semana'],
+      },
     };
   }
 

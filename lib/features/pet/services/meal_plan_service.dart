@@ -49,6 +49,7 @@ class MealPlanService {
   Future<void> savePlan(WeeklyMealPlan plan) async {
     final box = await _ensureBox();
     await box.put(plan.id, plan);
+    await box.flush(); // Force write to disk
     debugPrint('🍽️ Menu saved: ${plan.id} for ${plan.petId} (Week: ${plan.startDate})');
   }
 

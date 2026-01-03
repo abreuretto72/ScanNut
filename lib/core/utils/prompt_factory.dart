@@ -1,5 +1,6 @@
 import '../constants/botany_prompts.dart';
 import '../constants/nutrition_prompts.dart';
+import '../constants/pet_prompts.dart';
 import '../enums/scannut_mode.dart';
 
 class PromptFactory {
@@ -571,96 +572,10 @@ Mantenha as chaves JSON em inglês.
         return BotanyPrompts.getPlantAnalysisPrompt(languageName, languageInstruction, normalizedLocale);
 
       case ScannutMode.petIdentification:
-        return '''
-$languageInstruction
-
-[ROLE]
-You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze the pet image and generate a COMPLETE biological profile.
-
-[STRICT ZERO N/A POLICY - CRITICAL]
-1. You must Return a Valid JSON. Use $languageName.
-2. "N/A", "Unknown", "Not Estimated", "Não informado", "Desc", "Non-specified" are STRICTLY FORBIDDEN.
-3. MANDATORY INFERENCE: If a value is not visible, you MUST ESTIMATE it based on the breed ($languageName standards).
-   - Example: If Border Collie is identified, "grooming_frequency" MUST be "Weekly" (or "Semanal").
-   - Example: "kcal_puppy" MUST be a numeric estimate (e.g. "1200 kcal") based on size.
-4. CONSISTENCY RULES & TRANSLATIONS:
-   A. IF LANGUAGE IS ENGLISH:
-      - activity_level: Use ONLY "Low", "Moderate", "High", "Athlete".
-      - reproductive_status (if inferred): Use ONLY "Neutered" or "Intact".
-      - coat_type: Use "Short", "Long", "Double", "Wire", "Curly".
-      - grooming_frequency: Use "Daily", "Weekly", "Bi-weekly", "Monthly".
-   B. IF LANGUAGE IS PORTUGUESE:
-      - activity_level: Use APENAS "Baixo", "Moderado", "Alto", "Atleta".
-      - reproductive_status (if inferred): Use APENAS "Castrado" ou "Inteiro".
-      - coat_type: Use "Curto", "Longo", "Duplo", "Duro", "Encaracolado".
-      - grooming_frequency: Use "Diária", "Semanal", "Quinzenal", "Mensal".
-   C. IF LANGUAGE IS SPANISH:
-      - activity_level: Use SOLO "Bajo", "Moderado", "Alto", "Atleta".
-      - reproductive_status (if inferred): Use SOLO "Castrado" o "Entero".
-      - coat_type: Use "Corto", "Largo", "Doble", "Duro", "Rizado".
-      - grooming_frequency: Use "Diaria", "Semanal", "Quincenal", "Mensual".
-
-[STRUCTURE]
-{
-  "identification": {
-    "breed": "string (Identify breed or 'Mixed/SRD')",
-    "lineage": "string",
-    "size": "string (Small/Medium/Large/Giant)",
-    "longevity": "string (e.g. 12-15 years)"
-  },
-  "growth_curve": {
-    "weight_3_months": "string (Estimated kg)",
-    "weight_6_months": "string (Estimated kg)",
-    "weight_12_months": "string (Estimated kg)",
-    "adult_weight": "string (Estimated kg)"
-  },
-  "grooming": {
-    "coat_type": "string",
-    "grooming_frequency": "string (Estimated frequency)"
-  },
-  "nutrition": {
-    "kcal_puppy": "string (Estimated daily kcal)",
-    "kcal_adult": "string (Estimated daily kcal)",
-    "kcal_senior": "string (Estimated daily kcal)",
-    "target_nutrients": ["string"]
-  },
-  "health": {
-    "predispositions": ["string", "string"],
-    "preventive_checkup": "string"
-  },
-  "lifestyle": {
-    "activity_level": "string (Low/Moderate/High)",
-    "environment_type": "string (Apartment/House)",
-    "training_intelligence": "string"
-  }
-}
-''';
+        return PetPrompts.getPetIdentificationPrompt(languageName, languageInstruction);
 
       case ScannutMode.petDiagnosis:
-        return '''
-$languageInstruction
-
-Act as a veterinary triage assistant. Analyze the CLOSE-UP image of a skin condition, wound, or injury on a pet.
-Return a STRICT JSON object (no markdown) with: 
-{
-  "analysis_type": "diagnosis",
-  "species": "string (Identify species if visible, else 'Unknown')", 
-  "breed": "string (Identify if visible, else 'N/A')",
-  "characteristics": "string (Brief description of the area affected)",
-  "visual_description": "string (Detailed clinical description of the wound/condition)", 
-  "possible_causes": ["list of strings (Potential causes: parasites, trauma, allergy, etc.)"], 
-  "urgency_level": "${isPortuguese ? 'Verde' : 'Green'}" | "${isPortuguese ? 'Amarelo' : 'Yellow'}" | "${isPortuguese ? 'Vermelho' : 'Red'}", 
-  "immediate_care": "string (First aid advice or recommendation to see a vet)"
-}. 
-
-Urgency Levels:
-- ${isPortuguese ? 'Verde' : 'Green'}: Healthy/Observation.
-- ${isPortuguese ? 'Amarelo' : 'Yellow'}: Attention/Monitor.
-- ${isPortuguese ? 'Vermelho' : 'Red'}: Emergency/Immediate Action.
-
-IMPORTANT: Include a disclaimer in immediate_care.
-If no condition/wound is found, return {"error": "not_detected"}.
-''';
+        return PetPrompts.getPetDiagnosisPrompt(languageName, languageInstruction, isPortuguese);
     }
   }
 

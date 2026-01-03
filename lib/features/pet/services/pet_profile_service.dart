@@ -91,11 +91,19 @@ class PetProfileService {
   /// Get all pet names
   Future<List<String>> getAllPetNames() async {
     try {
-      return _profileBox?.values
+      if (_profileBox == null || !(_profileBox?.isOpen ?? false)) {
+          await init();
+      }
+      
+      final names = _profileBox?.values
+          .where((e) => e is Map && e.containsKey('pet_name'))
           .map((e) => (e as Map)['pet_name'] as String)
           .toList() ?? [];
+          
+      // Ensure unique display names
+      return names.toSet().toList();
     } catch (e) {
-      debugPrint('❌ Error getting pet names: $e');
+      debugPrint('❌ Error getting pet names from profiles: $e');
       return [];
     }
   }

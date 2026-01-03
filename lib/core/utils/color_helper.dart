@@ -36,30 +36,26 @@ class ColorHelper {
 
   /// Determine theme color based on pet urgency level
   static Color getPetThemeColor(String urgencyLevel) {
-    switch (urgencyLevel.toLowerCase()) {
-      case 'vermelho':
-        return Colors.redAccent;
-      case 'amarelo':
-        return Colors.amber;
-      case 'verde':
-      default:
-        return const Color(0xFF00E676);
+    final level = urgencyLevel.toLowerCase();
+    if (level.contains('vermelho') || level.contains('red') || level.contains('rojo')) {
+      return Colors.redAccent;
+    } else if (level.contains('amarelo') || level.contains('yellow') || level.contains('amarillo')) {
+      return Colors.amber;
+    } else if (level.contains('verde') || level.contains('green')) {
+      return const Color(0xFF00E676);
     }
+    return const Color(0xFF00E676); // Default to safe green
   }
 
   /// Get urgency icon based on level
   static IconData getUrgencyIcon(String urgencyLevel) {
-    switch (urgencyLevel.toLowerCase()) {
-      case 'vermelho':
-      case 'high':
-        return Icons.warning_amber_rounded;
-      case 'amarelo':
-      case 'medium':
-        return Icons.info_outline;
-      case 'verde':
-      case 'low':
-      default:
-        return Icons.check_circle_outline;
+    final level = urgencyLevel.toLowerCase();
+    if (level.contains('vermelho') || level.contains('red') || level.contains('rojo') || level.contains('high')) {
+      return Icons.warning_amber_rounded;
+    } else if (level.contains('amarelo') || level.contains('yellow') || level.contains('amarillo') || level.contains('medium')) {
+      return Icons.info_outline;
+    } else {
+      return Icons.check_circle_outline;
     }
   }
 }

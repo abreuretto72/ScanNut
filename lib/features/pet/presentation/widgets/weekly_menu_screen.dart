@@ -70,15 +70,20 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                   _kcalTarget = meta['kcal_adulto'] ?? meta['kcal_filhote'] ?? meta['kcal_senior'];
               }
 
-              if (pData['plano_semanal'] != null) {
-                  final rawPlan = pData['plano_semanal'] as List;
-                  _guidelines = pData['orientacoes_gerais'] as String?;
+              if (pData != null) {
+                  final rawPlan = (pData['plano_semanal'] ?? pData['raw_analysis']?['plano_semanal']) as List?;
+                  _guidelines = (pData['orientacoes_gerais'] ?? pData['raw_analysis']?['orientacoes_gerais']) as String?;
                   
                   // Contextual dates
-                  if (pData['data_inicio_semana'] != null) _savedStartDate = DateTime.tryParse(pData['data_inicio_semana']);
-                  if (pData['data_fim_semana'] != null) _savedEndDate = DateTime.tryParse(pData['data_fim_semana']);
+                  final startStr = pData['data_inicio_semana'] ?? pData['raw_analysis']?['data_inicio_semana'];
+                  final endStr = pData['data_fim_semana'] ?? pData['raw_analysis']?['data_fim_semana'];
+                  
+                  if (startStr != null) _savedStartDate = DateTime.tryParse(startStr);
+                  if (endStr != null) _savedEndDate = DateTime.tryParse(endStr);
 
-                  allItems = rawPlan.map((e) => Map<String, dynamic>.from(e)).toList();
+                  if (rawPlan != null) {
+                      allItems = rawPlan.map((e) => Map<String, dynamic>.from(e)).toList();
+                  }
               }
           }
           

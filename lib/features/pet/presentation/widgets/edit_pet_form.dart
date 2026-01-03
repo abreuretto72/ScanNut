@@ -229,7 +229,7 @@ class _EditPetFormState extends State<EditPetForm>
        
        // Update Backup for Undo (Atomic Save -> New Baseline)
        _petBackup = _deepCopyProfile(profile);
-       _hasChanges = true; // Keep true so PopScope can still do verify if needed, or set false?
+       _hasChanges = false; // Changes are now persisted
        // Actually, with atomic save, we are always "saved". 
        // But user might want to "Undo" changes made in this session.
        // The prompt says: "Undo system must be updated to reflect the last saved state."
@@ -852,12 +852,11 @@ class _EditPetFormState extends State<EditPetForm>
     return PopScope(
       canPop: true,
       onPopInvoked: (bool didPop) async {
-        // Atomic Save: Ensure any pending debounce is saved before closing
-        if (_debounce?.isActive ?? false) {
-           _debounce!.cancel();
+        // Atomic Save: Ensure any pending changes or debounced writes are committed
+        if ((_debounce?.isActive ?? false) || _hasChanges) {
+           _debounce?.cancel();
            await _saveNow(silent: true);
         }
-        // Pass back result if needed (optional via Navigator.pop manually elsewhere, but here logic is auto)
       },
       child: Scaffold(
         backgroundColor: Colors.grey[900],
@@ -2268,11 +2267,18 @@ class _EditPetFormState extends State<EditPetForm>
         final currentProfile = await profileService.getProfile(_nameController.text.trim());
         
         List<Map<String, dynamic>> combinedPlan = [];
-        if (currentProfile != null && currentProfile['data'] != null && currentProfile['data']['plano_semanal'] != null) {
-             final oldPlan = List<Map<String, dynamic>>.from(
-                 (currentProfile['data']['plano_semanal'] as List).map((x) => Map<String, dynamic>.from(x))
-             );
-             combinedPlan = [...oldPlan, ...finalItems];
+        if (currentProfile != null && currentProfile['data'] != null) {
+             final pData = currentProfile['data'];
+             final rawOldPlan = pData['plano_semanal'] ?? pData['raw_analysis']?['plano_semanal'];
+             
+             if (rawOldPlan != null && rawOldPlan is List) {
+                 combinedPlan = List<Map<String, dynamic>>.from(
+                     rawOldPlan.map((x) => Map<String, dynamic>.from(x as Map))
+                 );
+                 combinedPlan = [...combinedPlan, ...finalItems];
+             } else {
+                 combinedPlan = finalItems;
+             }
         } else {
              combinedPlan = finalItems;
         }
@@ -2292,14 +2298,19 @@ class _EditPetFormState extends State<EditPetForm>
             _currentRawAnalysis!['data_inicio_semana'] = DateFormat('yyyy-MM-dd').format(selectedDateRange!.start);
             _currentRawAnalysis!['data_fim_semana'] = DateFormat('yyyy-MM-dd').format(selectedDateRange!.end);
             _currentRawAnalysis!['orientacoes_gerais'] = rawResponse['orientacoes_gerais'];
+            _hasChanges = true; // Mark as dirty
         });
+
+        debugPrint('💾 [Generator] Requesting atomic save...');
+        await _saveNow(silent: true);
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(AppLocalizations.of(context)!.menuPlannedSuccess),
             backgroundColor: const Color(0xFF00E676),
         ));
 
-     } catch (e) {
+     } catch (e, stack) {
+        debugPrint('❌ [Generator] Error: $e\n$stack');
         if (mounted && Navigator.canPop(context)) Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red));
      }

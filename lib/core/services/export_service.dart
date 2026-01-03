@@ -237,7 +237,7 @@ class ExportService {
     required AppLocalizations strings,
   }) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
     final int totalCount = events.length;
     final int completedCount = events.where((e) => e.completed).length;
     final int pendingCount = totalCount - completedCount;
@@ -264,12 +264,12 @@ class ExportService {
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
               headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 9),
               cellStyle: const pw.TextStyle(fontSize: 7.5),
-              headers: ['${strings.pdfDate}/${strings.pdfFieldTime}', strings.pdfFieldEvent, strings.pdfFieldPet, strings.pdfFieldCategory, strings.pdfObservations, strings.pdfStatus],
+              headers: [strings.pdfDate, strings.pdfFieldEvent, strings.pdfFieldPet, strings.pdfFieldCategory, strings.pdfObservations, strings.pdfStatus],
               data: events.map((e) => [
-                DateFormat('dd/MM HH:mm').format(e.dateTime),
+                DateFormat.yMd(strings.localeName).add_Hm().format(e.dateTime),
                 e.title,
                 e.petName,
-                e.attendant ?? ' - ',
+                e.getLocalizedTypeLabel(strings),
                 e.notes ?? ' - ',
                 e.completed ? strings.pdfCompleted : strings.pdfPending,
               ]).toList(),
@@ -292,7 +292,7 @@ class ExportService {
     required AppLocalizations strings,
   }) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
     
     pdf.addPage(
       pw.MultiPage(
@@ -340,7 +340,7 @@ class ExportService {
     String? period, // Added period
   }) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
 
     pdf.addPage(
       pw.MultiPage(
@@ -362,23 +362,23 @@ class ExportService {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('PET: $petName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-                    pw.Text('PERÍODO: ${period ?? 'Semanal'}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue700)),
+                    pw.Text('${strings.pdfFieldPet.toUpperCase()}: $petName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                    pw.Text('${strings.pdfFieldPeriod.toUpperCase()}: ${period ?? strings.pdfPeriodWeekly}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue700)),
                   ],
                 ),
                 pw.SizedBox(height: 5),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('RAÇA: $raceName', style: const pw.TextStyle(fontSize: 10)),
-                    pw.Text('REGIME: $dietType', style: pw.TextStyle(color: PdfColors.blue900, fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    pw.Text('${strings.pdfFieldBreed.toUpperCase()}: $raceName', style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('${strings.pdfFieldRegime.toUpperCase()}: $dietType', style: pw.TextStyle(color: PdfColors.blue900, fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ],
                 ),
                 if (dailyKcal != null) ...[
                   pw.SizedBox(height: 5),
                   pw.Align(
                     alignment: pw.Alignment.centerRight,
-                    child: pw.Text('META CALÓRICA DIÁRIA: $dailyKcal', style: pw.TextStyle(color: PdfColors.red800, fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    child: pw.Text('${strings.pdfFieldDailyKcalMeta.toUpperCase()}: $dailyKcal', style: pw.TextStyle(color: PdfColors.red800, fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ),
                 ],
               ],
@@ -439,14 +439,14 @@ class ExportService {
                              // Kcal align right + Principais Nutrientes label
                               if (dailyKcal != null)
                                 pw.RichText(text: pw.TextSpan(children: [
-                                   pw.TextSpan(text: 'Principais Nutrientes: ', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                                   pw.TextSpan(text: '${strings.pdfFieldMainNutrients}: ', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
                                    pw.TextSpan(text: dailyKcal, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.red800)),
                                 ])),
                             ],
                           ),
                           pw.SizedBox(height: 8),
                           pw.Text(
-                            'COMPOSIÇÃO E DETALHAMENTO (5 PILARES):',
+                            strings.pdfFieldDetailsComposition,
                             style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700),
                           ),
                           pw.SizedBox(height: 4),
@@ -459,7 +459,7 @@ class ExportService {
                     );
                   }).toList(),
                   if (meals.isEmpty)
-                    pw.Padding(padding: const pw.EdgeInsets.all(10), child: pw.Text('Nenhuma refeição planejada.', style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 8))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(10), child: pw.Text(strings.pdfNoMealsPlanned, style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 8))),
                 ],
               ),
             );
@@ -473,7 +473,7 @@ class ExportService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('ORIENTAÇÕES GERAIS:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue900)),
+                  pw.Text('${strings.pdfFieldGeneralGuidelines}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue900)),
                   pw.SizedBox(height: 5),
                   pw.Text(guidelines, style: const pw.TextStyle(fontSize: 9)),
                 ],
@@ -530,7 +530,7 @@ class ExportService {
 
           // Detailed Plan
           ...days.map((day) {
-            final String diaStr = DateFormat('EEEE, dd/MM', strings.localeName).format(day.date).toUpperCase();
+            final String diaStr = DateFormat.MMMEd(strings.localeName).format(day.date).toUpperCase();
             
             return pw.Container(
               margin: const pw.EdgeInsets.only(bottom: 20),
@@ -1038,7 +1038,7 @@ class ExportService {
      Map<String, bool>? selectedSections,
    }) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
     
     // Default: all sections enabled if not specified
     final sections = selectedSections ?? {
@@ -1141,7 +1141,15 @@ class ExportService {
     final List<Map<String, dynamic>> woundsWithImages = [];
     if (sections['health'] == true && profile.woundAnalysisHistory.isNotEmpty) {
         final sortedWounds = List<Map<String, dynamic>>.from(profile.woundAnalysisHistory)
-             ..sort((a, b) => DateTime.parse(b['date']).compareTo(DateTime.parse(a['date'])));
+             ..sort((a, b) {
+                try {
+                  final da = DateTime.tryParse(a['date']?.toString() ?? '') ?? DateTime(2000);
+                  final db = DateTime.tryParse(b['date']?.toString() ?? '') ?? DateTime(2000);
+                  return db.compareTo(da);
+                } catch (_) {
+                  return 0;
+                }
+             });
         
         for (var w in sortedWounds) {
             final img = await _safeLoadImage(w['imagePath']?.toString());
@@ -1430,9 +1438,9 @@ class ExportService {
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
                 cellStyle: const pw.TextStyle(fontSize: 8),
                 cellPadding: const pw.EdgeInsets.all(4),
-                headers: [strings.pdfDate, 'Peso (kg)', strings.pdfStatus],
+                headers: [strings.pdfDate, '${strings.pdfFieldCurrentWeight} (kg)', strings.pdfStatus],
                 data: profile.weightHistory.take(10).map((entry) => [
-                  DateFormat('dd/MM/yyyy').format(DateTime.parse(entry['date'])),
+                  DateFormat.yMd(strings.localeName).format(DateTime.tryParse(entry['date']?.toString() ?? '') ?? DateTime.now()),
                   '${entry['weight']} kg',
                   entry['status_label'] ?? strings.pdfPesoStatusNormal,
                 ]).toList(),
@@ -1451,24 +1459,24 @@ class ExportService {
               headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellPadding: const pw.EdgeInsets.all(6),
-              headers: [strings.pdfFieldLabel, 'Última Aplicação', 'Próxima Dose'],
+              headers: [strings.pdfFieldLabel, strings.pdfLastDose, strings.pdfNextDose],
               data: [
                 [
                   strings.pdfVacinaV10,
                   profile.dataUltimaV10 != null 
-                    ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaV10!)
+                    ? DateFormat.yMd(strings.localeName).format(profile.dataUltimaV10!)
                     : strings.pdfVacinaNaoRegistrada,
                   profile.dataUltimaV10 != null
-                    ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaV10!.add(const Duration(days: 365)))
+                    ? DateFormat.yMd(strings.localeName).format(profile.dataUltimaV10!.add(const Duration(days: 365)))
                     : 'N/A',
                 ],
                 [
                   strings.pdfVacinaAntirrabica,
                   profile.dataUltimaAntirrabica != null
-                    ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaAntirrabica!)
+                    ? DateFormat.yMd(strings.localeName).format(profile.dataUltimaAntirrabica!)
                     : strings.pdfVacinaNaoRegistrada,
                   profile.dataUltimaAntirrabica != null
-                    ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaAntirrabica!.add(const Duration(days: 365)))
+                    ? DateFormat.yMd(strings.localeName).format(profile.dataUltimaAntirrabica!.add(const Duration(days: 365)))
                     : 'N/A',
                 ],
               ],
@@ -1517,8 +1525,8 @@ class ExportService {
                     cellPadding: const pw.EdgeInsets.all(4),
                     headers: [strings.pdfDate, strings.pdfType, strings.pdfDescription, strings.pdfStatus],
                     data: medicalEvents.map((e) => [
-                        DateFormat('dd/MM/yy').format(e.dateTime),
-                        e.typeLabel,
+                        DateFormat.yMd(strings.localeName).format(e.dateTime),
+                        e.getLocalizedTypeLabel(strings),
                         e.title,
                         e.completed ? strings.pdfCompleted : strings.pdfPending
                     ]).toList(),
@@ -1552,7 +1560,7 @@ class ExportService {
                             style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                           ),
                           pw.Text(
-                            DateFormat('dd/MM/yyyy').format(exam.uploadDate),
+                            DateFormat.yMd(strings.localeName).format(exam.uploadDate),
                             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
                           ),
                         ],
@@ -1591,7 +1599,7 @@ class ExportService {
                 style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.red700)),
               pw.SizedBox(height: 5),
               ...woundsWithImages.map((analysis) {
-                final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(analysis['date']));
+                final dateStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.tryParse(analysis['date']?.toString() ?? '') ?? DateTime.now());
                 final severity = analysis['severity'] ?? 'N/A';
                 final diagnosis = analysis['diagnosis'] ?? strings.petDiagnosisDefault;
                 final recommendations = (analysis['recommendations'] as List?)?.cast<String>() ?? [];
@@ -2097,7 +2105,7 @@ class ExportService {
                     ),
                   ),
                   pw.SizedBox(height: 6),
-                  ...upcomingEvents.take(10).map((event) => _buildEventItem(event, isUpcoming: true)),
+                  ...upcomingEvents.take(10).map((event) => _buildEventItem(event, strings, isUpcoming: true)),
                   pw.SizedBox(height: 12),
                 ],
                 
@@ -2115,7 +2123,7 @@ class ExportService {
                     ),
                   ),
                   pw.SizedBox(height: 6),
-                  ...pastEvents.take(15).map((event) => _buildEventItem(event, isUpcoming: false)),
+                  ...pastEvents.take(15).map((event) => _buildEventItem(event, strings, isUpcoming: false)),
                 ],
               ];
             }(),
@@ -2168,12 +2176,13 @@ class ExportService {
     required AppLocalizations strings,
   }) async {
     final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
     
-    // Contagem por tipo
+    // Contagem por tipo (LOCALIZED)
     Map<String, int> counts = {};
     for (var p in partners) {
-      counts[p.category] = (counts[p.category] ?? 0) + 1;
+      final localizedCat = _localizeCategory(p.category, strings);
+      counts[localizedCat] = (counts[localizedCat] ?? 0) + 1;
     }
 
     // ORDENAÇÃO OBRIGATÓRIA: Primeiro por Tipo, depois por Nome
@@ -2223,15 +2232,16 @@ class ExportService {
               : [strings.pdfFieldName, strings.partnersCategory, strings.pdfFieldPhone, strings.pdfFieldAddress, strings.pdfFieldEmail, strings.pdfFieldObservations],
             data: sortedPartners.map((p) {
               if (reportType == strings.partnersSummary) {
-                return [p.name, p.category, p.phone];
+                return [p.name, _localizeCategory(p.category, strings), p.phone];
               } else {
+                final metadataStr = p.metadata.isNotEmpty ? '\nInfo: ${p.metadata.toString()}' : '';
                 return [
                   p.name,
-                  p.category,
+                  _localizeCategory(p.category, strings),
                   p.phone,
                   p.address,
                   p.email ?? '---',
-                  p.specialties.join(', ') + (p.metadata.isNotEmpty ? '\nInfo: ${p.metadata}' : ''),
+                  p.specialties.join(', ') + metadataStr,
                 ];
               }
             }).toList(),
@@ -2243,7 +2253,129 @@ class ExportService {
   }
 
   // Helper method to build event items for PDF
-  pw.Widget _buildEventItem(PetEvent event, {required bool isUpcoming}) {
+  /// 7. SINGLE PARTNER DOSSIER (DETAILED LAYOUT)
+  Future<pw.Document> generateSinglePartnerReport({
+    required PartnerModel partner,
+    required AppLocalizations strings,
+  }) async {
+    final pdf = pw.Document();
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
+
+    // Extract notes from metadata if present
+    final List<Map<String, dynamic>> notes = [];
+    if (partner.metadata['notes'] != null) {
+        notes.addAll(List<Map<String, dynamic>>.from(partner.metadata['notes']));
+        // Sort notes by date descending
+        notes.sort((a, b) => (b['date'] as String).compareTo(a['date'] as String));
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(35),
+        header: (context) => _buildHeader('${strings.pdfReportTitle}: ${partner.name}', timestampStr, dateLabel: strings.pdfGeneratedOn),
+        footer: (context) => _buildFooter(context),
+        build: (context) => [
+          // HEADER INFO
+          pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                  _buildIndicator(strings.partnersCategory, partner.category, PdfColors.blue800),
+                  if (partner.rating > 0) _buildIndicator(strings.pdfRating, '${partner.rating} ${strings.pdfStars}', PdfColors.orange700),
+              ]
+          ),
+          pw.SizedBox(height: 20),
+
+          // DETAILS SECTION
+          _buildSectionHeader(strings.petBasicInfo),
+          pw.SizedBox(height: 10),
+          pw.Table(
+            columnWidths: {
+                0: const pw.FixedColumnWidth(120),
+                1: const pw.FlexColumnWidth(),
+            },
+            children: [
+                _buildTableRow(strings.pdfFieldName, partner.name),
+                if (partner.cnpj != null && partner.cnpj!.isNotEmpty) _buildTableRow('CNPJ:', partner.cnpj!),
+                _buildTableRow(strings.pdfFieldPhone, partner.phone),
+                if (partner.whatsapp != null && partner.whatsapp!.isNotEmpty && partner.whatsapp != partner.phone) 
+                  _buildTableRow('WhatsApp:', partner.whatsapp!),
+                if (partner.email != null && partner.email!.isNotEmpty) _buildTableRow(strings.pdfFieldEmail, partner.email!),
+                if (partner.website != null && partner.website!.isNotEmpty) _buildTableRow('Website:', partner.website!),
+                if (partner.instagram != null && partner.instagram!.isNotEmpty) _buildTableRow('Instagram:', partner.instagram!),
+                _buildTableRow(strings.pdfFieldAddress, partner.address),
+                if (partner.openingHours['raw'] != null && partner.openingHours['raw'].toString().isNotEmpty)
+                  _buildTableRow(strings.partnerFieldHours, partner.openingHours['raw']),
+            ]
+          ),
+          pw.SizedBox(height: 15),
+          if (partner.openingHours['plantao24h'] == true) 
+            pw.Row(
+              children: [
+                _buildIndicator(strings.partnerField24h, 'ATIVO / ACTIVE', PdfColors.red700),
+              ]
+            ),
+          pw.SizedBox(height: 20),
+
+          // TEAM SECTION
+          if (partner.teamMembers.isNotEmpty) ...[
+              _buildSectionHeader(strings.partnerTeamMembers),
+              pw.SizedBox(height: 10),
+              pw.Bullet(text: partner.teamMembers.join(', '), style: const pw.TextStyle(fontSize: 10)),
+              pw.SizedBox(height: 20),
+          ],
+
+          // NOTES SECTION
+          if (notes.isNotEmpty) ...[
+              _buildSectionHeader(strings.partnerNotesTitle),
+              pw.SizedBox(height: 10),
+              ...notes.map((n) {
+                  final date = DateTime.parse(n['date']);
+                  final formattedDate = DateFormat.yMd(strings.localeName).add_Hm().format(date);
+                  return pw.Padding(
+                      padding: const pw.EdgeInsets.only(bottom: 15),
+                      child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                              pw.Text(formattedDate, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.blue800)),
+                              pw.SizedBox(height: 4),
+                              pw.Text(n['content'], style: const pw.TextStyle(fontSize: 10)),
+                              pw.Divider(color: PdfColors.grey300),
+                          ]
+                      )
+                  );
+              }).toList(),
+          ],
+
+          // SPECIALTIES
+          if (partner.specialties.isNotEmpty) ...[
+               pw.SizedBox(height: 10),
+               _buildSectionHeader(strings.pdfFieldDetails),
+               pw.SizedBox(height: 10),
+               pw.Text(partner.specialties.join(', '), style: const pw.TextStyle(fontSize: 10)),
+          ]
+        ],
+      ),
+    );
+    return pdf;
+  }
+
+  pw.TableRow _buildTableRow(String label, String value) {
+      return pw.TableRow(
+          children: [
+              pw.Padding(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                  child: pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+              ),
+              pw.Padding(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                  child: pw.Text(value, style: const pw.TextStyle(fontSize: 10)),
+              ),
+          ]
+      );
+  }
+
+  pw.Widget _buildEventItem(PetEvent event, AppLocalizations strings, {required bool isUpcoming}) {
     // Get event icon and color based on type
     String icon;
     PdfColor color;
@@ -2275,7 +2407,7 @@ class ExportService {
         color = PdfColors.grey700;
     }
     
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(event.dateTime);
+    final dateStr = DateFormat.yMd(strings.localeName).add_Hm().format(event.dateTime);
     
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 6),
@@ -2353,5 +2485,16 @@ class ExportService {
         ],
       ),
     );
+  }
+
+  String _localizeCategory(String category, AppLocalizations strings) {
+    final c = category.toLowerCase();
+    if (c.contains('vet')) return strings.partnersFilterVet;
+    if (c.contains('farm') || c.contains('pharm')) return strings.partnersFilterPharmacy;
+    if (c.contains('shop') || c.contains('tienda')) return strings.partnersFilterPetShop;
+    if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) return strings.partnersFilterGrooming;
+    if (c.contains('hotel')) return strings.partnersFilterHotel;
+    if (c.contains('lab') || c.contains('laboratório') || c.contains('laboratory')) return strings.partnersFilterLab;
+    return category;
   }
 }

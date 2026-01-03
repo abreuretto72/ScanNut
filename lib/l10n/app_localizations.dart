@@ -1316,14 +1316,14 @@ abstract class AppLocalizations {
   /// No description provided for @healthAnalysisSaved.
   ///
   /// In pt, this message translates to:
-  /// **'Análise salva no histórico de saúde de {petName}'**
-  String healthAnalysisSaved(Object petName);
+  /// **'Análise de saúde de {petName} salva com sucesso!'**
+  String healthAnalysisSaved(String petName);
 
   /// No description provided for @errorSavingAnalysis.
   ///
   /// In pt, this message translates to:
   /// **'Erro ao salvar análise: {error}'**
-  String errorSavingAnalysis(Object error);
+  String errorSavingAnalysis(String error);
 
   /// No description provided for @menuHello.
   ///
@@ -1790,13 +1790,13 @@ abstract class AppLocalizations {
   /// No description provided for @petLinkPartnerError.
   ///
   /// In pt, this message translates to:
-  /// **'Vincule um parceiro na aba \"Parc.\" para acessar a agenda'**
+  /// **'Vincule o pet a um Veterinário ou Pet Shop na aba \'Parceiros\' para usar a agenda.'**
   String get petLinkPartnerError;
 
   /// No description provided for @petNoRecentMenu.
   ///
   /// In pt, this message translates to:
-  /// **'Sem cardápio recente.'**
+  /// **'O pet ainda não tem cardápio gerado'**
   String get petNoRecentMenu;
 
   /// No description provided for @petEditSaved.
@@ -1804,6 +1804,24 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Alterações salvas.'**
   String get petEditSaved;
+
+  /// No description provided for @petVisualDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Descrição Visual'**
+  String get petVisualDescription;
+
+  /// No description provided for @petPossibleCauses.
+  ///
+  /// In pt, this message translates to:
+  /// **'Causas Prováveis'**
+  String get petPossibleCauses;
+
+  /// No description provided for @petSpecialistOrientation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Orientação do Especialista'**
+  String get petSpecialistOrientation;
 
   /// No description provided for @foodHistoryTitle.
   ///
@@ -2420,8 +2438,8 @@ abstract class AppLocalizations {
   /// No description provided for @pdfGeneratedBy.
   ///
   /// In pt, this message translates to:
-  /// **'Gerado por ScanNut'**
-  String get pdfGeneratedBy;
+  /// **'Gerado em {date} por {owner}'**
+  String pdfGeneratedBy(Object date, Object owner);
 
   /// No description provided for @pdfPage.
   ///
@@ -2936,7 +2954,7 @@ abstract class AppLocalizations {
   /// No description provided for @defaultWoundAnalysis.
   ///
   /// In pt, this message translates to:
-  /// **'Análise de Ferida/Lesão'**
+  /// **'Análise visual de ferida ou lesão detectada'**
   String get defaultWoundAnalysis;
 
   /// No description provided for @petSelectionTitle.
@@ -3506,7 +3524,7 @@ abstract class AppLocalizations {
   /// No description provided for @petPartners.
   ///
   /// In pt, this message translates to:
-  /// **'Parc.'**
+  /// **'Parceiros'**
   String get petPartners;
 
   /// No description provided for @petWeightControl.
@@ -3584,14 +3602,14 @@ abstract class AppLocalizations {
   /// No description provided for @petNoWounds.
   ///
   /// In pt, this message translates to:
-  /// **'Nenhuma análise de ferida registrada ainda'**
+  /// **'Nenhuma análise de ferida registrada ainda.'**
   String get petNoWounds;
 
   /// No description provided for @petWoundsCount.
   ///
   /// In pt, this message translates to:
   /// **'{count} análise(s) registrada(s)'**
-  String petWoundsCount(Object count);
+  String petWoundsCount(int count);
 
   /// No description provided for @petFoodAllergies.
   ///
@@ -5111,6 +5129,48 @@ abstract class AppLocalizations {
   /// **'Erro ao gerar PDF:'**
   String get pdfError;
 
+  /// No description provided for @pdfFieldPhone.
+  ///
+  /// In pt, this message translates to:
+  /// **'Telefone'**
+  String get pdfFieldPhone;
+
+  /// No description provided for @pdfFieldEmail.
+  ///
+  /// In pt, this message translates to:
+  /// **'E-mail'**
+  String get pdfFieldEmail;
+
+  /// No description provided for @pdfFieldAddress.
+  ///
+  /// In pt, this message translates to:
+  /// **'Endereço'**
+  String get pdfFieldAddress;
+
+  /// No description provided for @pdfFieldDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Detalhes e Especialidades'**
+  String get pdfFieldDetails;
+
+  /// No description provided for @partnerTeamMembers.
+  ///
+  /// In pt, this message translates to:
+  /// **'Integrantes da Equipe/Corpo Clínico'**
+  String get partnerTeamMembers;
+
+  /// No description provided for @partnerNotesTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Notas e Observações'**
+  String get partnerNotesTitle;
+
+  /// No description provided for @partnerNotesEmpty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma anotação ainda.\nEscreva ou grave lembretes sobre este parceiro.'**
+  String get partnerNotesEmpty;
+
   /// No description provided for @petWoundDeleteTitle.
   ///
   /// In pt, this message translates to:
@@ -5717,24 +5777,6 @@ abstract class AppLocalizations {
   /// **'Consulte um Vet.'**
   String get petConsultVetCare;
 
-  /// No description provided for @pdfFieldAddress.
-  ///
-  /// In pt, this message translates to:
-  /// **'Endereço'**
-  String get pdfFieldAddress;
-
-  /// No description provided for @pdfFieldEmail.
-  ///
-  /// In pt, this message translates to:
-  /// **'E-mail'**
-  String get pdfFieldEmail;
-
-  /// No description provided for @pdfFieldPhone.
-  ///
-  /// In pt, this message translates to:
-  /// **'Telefone'**
-  String get pdfFieldPhone;
-
   /// No description provided for @pdfFieldObservations.
   ///
   /// In pt, this message translates to:
@@ -5770,6 +5812,498 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Função'**
   String get partnerDetailsRole;
+
+  /// No description provided for @pdfDiagnosisTriage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Triage Veterinária'**
+  String get pdfDiagnosisTriage;
+
+  /// No description provided for @pdfFieldBreedSpecies.
+  ///
+  /// In pt, this message translates to:
+  /// **'Raça/Espécie'**
+  String get pdfFieldBreedSpecies;
+
+  /// No description provided for @pdfFieldUrgency.
+  ///
+  /// In pt, this message translates to:
+  /// **'Urgência'**
+  String get pdfFieldUrgency;
+
+  /// No description provided for @pdfFieldProfessionalRecommendation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recomendação Profissional'**
+  String get pdfFieldProfessionalRecommendation;
+
+  /// No description provided for @pdfDossierTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dossiê 360º de Pet'**
+  String get pdfDossierTitle;
+
+  /// No description provided for @pdfSectionIdentity.
+  ///
+  /// In pt, this message translates to:
+  /// **'1. IDENTIDADE E PERFIL'**
+  String get pdfSectionIdentity;
+
+  /// No description provided for @pdfSectionNutrition.
+  ///
+  /// In pt, this message translates to:
+  /// **'2. NUTRIÇÃO E DIETA ESTRATÉGICA'**
+  String get pdfSectionNutrition;
+
+  /// No description provided for @pdfSectionGrooming.
+  ///
+  /// In pt, this message translates to:
+  /// **'3. GROOMING & HIGIENE'**
+  String get pdfSectionGrooming;
+
+  /// No description provided for @pdfSectionHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'4. SAÚDE PREVENTIVA'**
+  String get pdfSectionHealth;
+
+  /// No description provided for @pdfSectionLifestyle.
+  ///
+  /// In pt, this message translates to:
+  /// **'5. LIFESTYLE & EDUCAÇÃO'**
+  String get pdfSectionLifestyle;
+
+  /// No description provided for @pdfFieldPredominantBreed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Raça Predominante'**
+  String get pdfFieldPredominantBreed;
+
+  /// No description provided for @pdfFieldBehavioralProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil Comportamental'**
+  String get pdfFieldBehavioralProfile;
+
+  /// No description provided for @pdfFieldEnergyLevel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nível de Energia'**
+  String get pdfFieldEnergyLevel;
+
+  /// No description provided for @pdfFieldIntelligence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inteligência'**
+  String get pdfFieldIntelligence;
+
+  /// No description provided for @pdfFieldSociability.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sociabilidade'**
+  String get pdfFieldSociability;
+
+  /// No description provided for @pdfFieldAncestralDrive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Drive Ancestral'**
+  String get pdfFieldAncestralDrive;
+
+  /// No description provided for @pdfFieldEstimatedGrowthCurve.
+  ///
+  /// In pt, this message translates to:
+  /// **'Curva de Crescimento Estimada'**
+  String get pdfFieldEstimatedGrowthCurve;
+
+  /// No description provided for @pdfFieldDailyCaloricGoals.
+  ///
+  /// In pt, this message translates to:
+  /// **'Metas Calóricas Diárias'**
+  String get pdfFieldDailyCaloricGoals;
+
+  /// No description provided for @pdfFieldPuppy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Filhote'**
+  String get pdfFieldPuppy;
+
+  /// No description provided for @pdfFieldAdult.
+  ///
+  /// In pt, this message translates to:
+  /// **'Adulto'**
+  String get pdfFieldAdult;
+
+  /// No description provided for @pdfFieldSenior.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sênior'**
+  String get pdfFieldSenior;
+
+  /// No description provided for @pdfFieldTargetNutrients.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutrientes Alvo'**
+  String get pdfFieldTargetNutrients;
+
+  /// No description provided for @pdfFieldSuggestedSupplementation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Suplementação Sugerida'**
+  String get pdfFieldSuggestedSupplementation;
+
+  /// No description provided for @pdfFieldFoodSafety.
+  ///
+  /// In pt, this message translates to:
+  /// **'Segurança Alimentar'**
+  String get pdfFieldFoodSafety;
+
+  /// No description provided for @pdfAlertObesity.
+  ///
+  /// In pt, this message translates to:
+  /// **'⚠️ ALERTA: Tendência à obesidade detectada'**
+  String get pdfAlertObesity;
+
+  /// No description provided for @pdfFieldSafeFoods.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimentos Seguros (Benigna)'**
+  String get pdfFieldSafeFoods;
+
+  /// No description provided for @pdfFieldToxicFoods.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimentos Tóxicos (Maligna)'**
+  String get pdfFieldToxicFoods;
+
+  /// No description provided for @pdfFieldFoodName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimento'**
+  String get pdfFieldFoodName;
+
+  /// No description provided for @pdfFieldBenefit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Benefício'**
+  String get pdfFieldBenefit;
+
+  /// No description provided for @pdfFieldRisk.
+  ///
+  /// In pt, this message translates to:
+  /// **'Risco'**
+  String get pdfFieldRisk;
+
+  /// No description provided for @pdfFieldWeeklyMenu.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cardápio Semanal (Dieta Natural)'**
+  String get pdfFieldWeeklyMenu;
+
+  /// No description provided for @pdfFieldReason.
+  ///
+  /// In pt, this message translates to:
+  /// **'Motivo'**
+  String get pdfFieldReason;
+
+  /// No description provided for @pdfFieldCoatType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Pelo'**
+  String get pdfFieldCoatType;
+
+  /// No description provided for @pdfFieldBrushingFrequency.
+  ///
+  /// In pt, this message translates to:
+  /// **'Frequência de Escovação'**
+  String get pdfFieldBrushingFrequency;
+
+  /// No description provided for @pdfFieldRecommendedProducts.
+  ///
+  /// In pt, this message translates to:
+  /// **'Produtos Recomendados'**
+  String get pdfFieldRecommendedProducts;
+
+  /// No description provided for @pdfFieldDiseasePredisposition.
+  ///
+  /// In pt, this message translates to:
+  /// **'Predisposição a Doenças'**
+  String get pdfFieldDiseasePredisposition;
+
+  /// No description provided for @pdfFieldAnatomicalCriticalPoints.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pontos Críticos Anatômicos'**
+  String get pdfFieldAnatomicalCriticalPoints;
+
+  /// No description provided for @pdfFieldVeterinaryCheckup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Checkup Veterinário'**
+  String get pdfFieldVeterinaryCheckup;
+
+  /// No description provided for @pdfFieldMandatoryExams.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exames'**
+  String get pdfFieldMandatoryExams;
+
+  /// No description provided for @pdfFieldClimateSensitivity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sensibilidade Climática'**
+  String get pdfFieldClimateSensitivity;
+
+  /// No description provided for @pdfFieldHeat.
+  ///
+  /// In pt, this message translates to:
+  /// **'Calor'**
+  String get pdfFieldHeat;
+
+  /// No description provided for @pdfFieldCold.
+  ///
+  /// In pt, this message translates to:
+  /// **'Frio'**
+  String get pdfFieldCold;
+
+  /// No description provided for @pdfSectionImmunization.
+  ///
+  /// In pt, this message translates to:
+  /// **'4.1 Protocolo de Imunização'**
+  String get pdfSectionImmunization;
+
+  /// No description provided for @pdfFieldEssentialVaccines.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacinas Essenciais'**
+  String get pdfFieldEssentialVaccines;
+
+  /// No description provided for @pdfFieldVaccineGoal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Objetivo'**
+  String get pdfFieldVaccineGoal;
+
+  /// No description provided for @pdfFieldFirstDose.
+  ///
+  /// In pt, this message translates to:
+  /// **'1ª dose'**
+  String get pdfFieldFirstDose;
+
+  /// No description provided for @pdfFieldBooster.
+  ///
+  /// In pt, this message translates to:
+  /// **'Reforço'**
+  String get pdfFieldBooster;
+
+  /// No description provided for @pdfFieldPreventiveCalendar.
+  ///
+  /// In pt, this message translates to:
+  /// **'Calendário Preventivo'**
+  String get pdfFieldPreventiveCalendar;
+
+  /// No description provided for @pdfFieldPuppies.
+  ///
+  /// In pt, this message translates to:
+  /// **'Filhotes'**
+  String get pdfFieldPuppies;
+
+  /// No description provided for @pdfFieldAdults.
+  ///
+  /// In pt, this message translates to:
+  /// **'Adultos'**
+  String get pdfFieldAdults;
+
+  /// No description provided for @pdfFieldParasitePrevention.
+  ///
+  /// In pt, this message translates to:
+  /// **'Prevenção Parasitária'**
+  String get pdfFieldParasitePrevention;
+
+  /// No description provided for @pdfFieldDewormer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vermífugo'**
+  String get pdfFieldDewormer;
+
+  /// No description provided for @pdfFieldTickFlea.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pulgas/Carrapatos'**
+  String get pdfFieldTickFlea;
+
+  /// No description provided for @pdfFieldOralBoneHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde Bucal e Óssea'**
+  String get pdfFieldOralBoneHealth;
+
+  /// No description provided for @pdfFieldPermittedBones.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ossos Permitidos'**
+  String get pdfFieldPermittedBones;
+
+  /// No description provided for @pdfFieldFrequency.
+  ///
+  /// In pt, this message translates to:
+  /// **'Frequência'**
+  String get pdfFieldFrequency;
+
+  /// No description provided for @pdfFieldTraining.
+  ///
+  /// In pt, this message translates to:
+  /// **'Treinamento'**
+  String get pdfFieldTraining;
+
+  /// No description provided for @pdfFieldTrainingDifficulty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dificuldade de Adestramento'**
+  String get pdfFieldTrainingDifficulty;
+
+  /// No description provided for @pdfFieldRecommendedMethods.
+  ///
+  /// In pt, this message translates to:
+  /// **'Métodos Recomendados'**
+  String get pdfFieldRecommendedMethods;
+
+  /// No description provided for @pdfFieldIdealEnvironment.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ambiente Ideal'**
+  String get pdfFieldIdealEnvironment;
+
+  /// No description provided for @pdfFieldOpenSpace.
+  ///
+  /// In pt, this message translates to:
+  /// **'Espaço Aberto'**
+  String get pdfFieldOpenSpace;
+
+  /// No description provided for @pdfFieldApartmentAdaptation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Adaptação Apartamento'**
+  String get pdfFieldApartmentAdaptation;
+
+  /// No description provided for @pdfFieldPeriod.
+  ///
+  /// In pt, this message translates to:
+  /// **'Período'**
+  String get pdfFieldPeriod;
+
+  /// No description provided for @pdfFieldRegime.
+  ///
+  /// In pt, this message translates to:
+  /// **'Regime'**
+  String get pdfFieldRegime;
+
+  /// No description provided for @pdfFieldDailyKcalMeta.
+  ///
+  /// In pt, this message translates to:
+  /// **'Meta Calórica Diária'**
+  String get pdfFieldDailyKcalMeta;
+
+  /// No description provided for @pdfFieldDetailsComposition.
+  ///
+  /// In pt, this message translates to:
+  /// **'COMPOSIÇÃO E DETALHAMENTO (5 PILARES):'**
+  String get pdfFieldDetailsComposition;
+
+  /// No description provided for @pdfPeriodWeekly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Semanal'**
+  String get pdfPeriodWeekly;
+
+  /// No description provided for @pdfNoMealsPlanned.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma refeição planejada.'**
+  String get pdfNoMealsPlanned;
+
+  /// No description provided for @pdfFieldGeneralGuidelines.
+  ///
+  /// In pt, this message translates to:
+  /// **'ORIENTAÇÕES GERAIS'**
+  String get pdfFieldGeneralGuidelines;
+
+  /// No description provided for @pdfFieldMainNutrients.
+  ///
+  /// In pt, this message translates to:
+  /// **'Principais Nutrientes'**
+  String get pdfFieldMainNutrients;
+
+  /// No description provided for @pdfLastDose.
+  ///
+  /// In pt, this message translates to:
+  /// **'Última Aplicação'**
+  String get pdfLastDose;
+
+  /// No description provided for @pdfNextDose.
+  ///
+  /// In pt, this message translates to:
+  /// **'Próxima Dose'**
+  String get pdfNextDose;
+
+  /// No description provided for @eventVaccine.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacina'**
+  String get eventVaccine;
+
+  /// No description provided for @eventBath.
+  ///
+  /// In pt, this message translates to:
+  /// **'Banho'**
+  String get eventBath;
+
+  /// No description provided for @eventGrooming.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tosa'**
+  String get eventGrooming;
+
+  /// No description provided for @eventVeterinary.
+  ///
+  /// In pt, this message translates to:
+  /// **'Veterinário'**
+  String get eventVeterinary;
+
+  /// No description provided for @eventMedication.
+  ///
+  /// In pt, this message translates to:
+  /// **'Medicamento'**
+  String get eventMedication;
+
+  /// No description provided for @eventOther.
+  ///
+  /// In pt, this message translates to:
+  /// **'Outro'**
+  String get eventOther;
+
+  /// No description provided for @pdfFieldMentalStimulus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Estímulo Mental'**
+  String get pdfFieldMentalStimulus;
+
+  /// No description provided for @pdfFieldSuggestedActivities.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atividades'**
+  String get pdfFieldSuggestedActivities;
+
+  /// No description provided for @pdfFieldExpertInsight.
+  ///
+  /// In pt, this message translates to:
+  /// **'INSIGHT DO ESPECIALISTA'**
+  String get pdfFieldExpertInsight;
+
+  /// No description provided for @pdfDisclaimer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aviso: Este relatório foi gerado por IA e não substitui consulta veterinária profissional.'**
+  String get pdfDisclaimer;
 
   /// No description provided for @btnCancel.
   ///
@@ -6472,18 +7006,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Categoria'**
   String get partnerCategory;
-
-  /// No description provided for @partnerNotesTitle.
-  ///
-  /// In pt, this message translates to:
-  /// **'Notas e Observações'**
-  String get partnerNotesTitle;
-
-  /// No description provided for @partnerNotesEmpty.
-  ///
-  /// In pt, this message translates to:
-  /// **'Nenhuma anotação ainda.\nEscreva ou grave lembretes sobre este parceiro.'**
-  String get partnerNotesEmpty;
 
   /// No description provided for @partnerNotesHint.
   ///

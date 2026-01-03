@@ -659,12 +659,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get errorPetNameNotFound => 'Erro: Nome do pet não encontrado.';
 
   @override
-  String healthAnalysisSaved(Object petName) {
-    return 'Análise salva no histórico de saúde de $petName';
+  String healthAnalysisSaved(String petName) {
+    return 'Análise de saúde de $petName salva com sucesso!';
   }
 
   @override
-  String errorSavingAnalysis(Object error) {
+  String errorSavingAnalysis(String error) {
     return 'Erro ao salvar análise: $error';
   }
 
@@ -923,13 +923,22 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get petLinkPartnerError =>
-      'Vincule um parceiro na aba \"Parc.\" para acessar a agenda';
+      'Vincule o pet a um Veterinário ou Pet Shop na aba \'Parceiros\' para usar a agenda.';
 
   @override
-  String get petNoRecentMenu => 'Sem cardápio recente.';
+  String get petNoRecentMenu => 'O pet ainda não tem cardápio gerado';
 
   @override
   String get petEditSaved => 'Alterações salvas.';
+
+  @override
+  String get petVisualDescription => 'Descrição Visual';
+
+  @override
+  String get petPossibleCauses => 'Causas Prováveis';
+
+  @override
+  String get petSpecialistOrientation => 'Orientação do Especialista';
 
   @override
   String get foodHistoryTitle => 'Histórico de Alimentos';
@@ -1254,7 +1263,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfQuickRecipes => 'Receitas Rápidas';
 
   @override
-  String get pdfGeneratedBy => 'Gerado por ScanNut';
+  String pdfGeneratedBy(Object date, Object owner) {
+    return 'Gerado em $date por $owner';
+  }
 
   @override
   String pdfPage(Object current, Object total) {
@@ -1532,7 +1543,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get foodWater => 'Água';
 
   @override
-  String get defaultWoundAnalysis => 'Análise de Ferida/Lesão';
+  String get defaultWoundAnalysis =>
+      'Análise visual de ferida ou lesão detectada';
 
   @override
   String get petSelectionTitle => 'De qual pet é esta análise?';
@@ -1821,7 +1833,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petGallery => 'Galeria';
 
   @override
-  String get petPartners => 'Parc.';
+  String get petPartners => 'Parceiros';
 
   @override
   String get petWeightControl => 'Controle de Peso Inteligente';
@@ -1861,10 +1873,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petWoundHistory => 'Histórico de Análises de Feridas';
 
   @override
-  String get petNoWounds => 'Nenhuma análise de ferida registrada ainda';
+  String get petNoWounds => 'Nenhuma análise de ferida registrada ainda.';
 
   @override
-  String petWoundsCount(Object count) {
+  String petWoundsCount(int count) {
     return '$count análise(s) registrada(s)';
   }
 
@@ -2667,6 +2679,28 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfError => 'Erro ao gerar PDF:';
 
   @override
+  String get pdfFieldPhone => 'Telefone';
+
+  @override
+  String get pdfFieldEmail => 'E-mail';
+
+  @override
+  String get pdfFieldAddress => 'Endereço';
+
+  @override
+  String get pdfFieldDetails => 'Detalhes e Especialidades';
+
+  @override
+  String get partnerTeamMembers => 'Integrantes da Equipe/Corpo Clínico';
+
+  @override
+  String get partnerNotesTitle => 'Notas e Observações';
+
+  @override
+  String get partnerNotesEmpty =>
+      'Nenhuma anotação ainda.\nEscreva ou grave lembretes sobre este parceiro.';
+
+  @override
   String get petWoundDeleteTitle => 'Excluir Análise';
 
   @override
@@ -2979,15 +3013,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petConsultVetCare => 'Consulte um Vet.';
 
   @override
-  String get pdfFieldAddress => 'Endereço';
-
-  @override
-  String get pdfFieldEmail => 'E-mail';
-
-  @override
-  String get pdfFieldPhone => 'Telefone';
-
-  @override
   String get pdfFieldObservations => 'Observações';
 
   @override
@@ -3004,6 +3029,254 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get partnerDetailsRole => 'Função';
+
+  @override
+  String get pdfDiagnosisTriage => 'Triage Veterinária';
+
+  @override
+  String get pdfFieldBreedSpecies => 'Raça/Espécie';
+
+  @override
+  String get pdfFieldUrgency => 'Urgência';
+
+  @override
+  String get pdfFieldProfessionalRecommendation => 'Recomendação Profissional';
+
+  @override
+  String get pdfDossierTitle => 'Dossiê 360º de Pet';
+
+  @override
+  String get pdfSectionIdentity => '1. IDENTIDADE E PERFIL';
+
+  @override
+  String get pdfSectionNutrition => '2. NUTRIÇÃO E DIETA ESTRATÉGICA';
+
+  @override
+  String get pdfSectionGrooming => '3. GROOMING & HIGIENE';
+
+  @override
+  String get pdfSectionHealth => '4. SAÚDE PREVENTIVA';
+
+  @override
+  String get pdfSectionLifestyle => '5. LIFESTYLE & EDUCAÇÃO';
+
+  @override
+  String get pdfFieldPredominantBreed => 'Raça Predominante';
+
+  @override
+  String get pdfFieldBehavioralProfile => 'Perfil Comportamental';
+
+  @override
+  String get pdfFieldEnergyLevel => 'Nível de Energia';
+
+  @override
+  String get pdfFieldIntelligence => 'Inteligência';
+
+  @override
+  String get pdfFieldSociability => 'Sociabilidade';
+
+  @override
+  String get pdfFieldAncestralDrive => 'Drive Ancestral';
+
+  @override
+  String get pdfFieldEstimatedGrowthCurve => 'Curva de Crescimento Estimada';
+
+  @override
+  String get pdfFieldDailyCaloricGoals => 'Metas Calóricas Diárias';
+
+  @override
+  String get pdfFieldPuppy => 'Filhote';
+
+  @override
+  String get pdfFieldAdult => 'Adulto';
+
+  @override
+  String get pdfFieldSenior => 'Sênior';
+
+  @override
+  String get pdfFieldTargetNutrients => 'Nutrientes Alvo';
+
+  @override
+  String get pdfFieldSuggestedSupplementation => 'Suplementação Sugerida';
+
+  @override
+  String get pdfFieldFoodSafety => 'Segurança Alimentar';
+
+  @override
+  String get pdfAlertObesity => '⚠️ ALERTA: Tendência à obesidade detectada';
+
+  @override
+  String get pdfFieldSafeFoods => 'Alimentos Seguros (Benigna)';
+
+  @override
+  String get pdfFieldToxicFoods => 'Alimentos Tóxicos (Maligna)';
+
+  @override
+  String get pdfFieldFoodName => 'Alimento';
+
+  @override
+  String get pdfFieldBenefit => 'Benefício';
+
+  @override
+  String get pdfFieldRisk => 'Risco';
+
+  @override
+  String get pdfFieldWeeklyMenu => 'Cardápio Semanal (Dieta Natural)';
+
+  @override
+  String get pdfFieldReason => 'Motivo';
+
+  @override
+  String get pdfFieldCoatType => 'Tipo de Pelo';
+
+  @override
+  String get pdfFieldBrushingFrequency => 'Frequência de Escovação';
+
+  @override
+  String get pdfFieldRecommendedProducts => 'Produtos Recomendados';
+
+  @override
+  String get pdfFieldDiseasePredisposition => 'Predisposição a Doenças';
+
+  @override
+  String get pdfFieldAnatomicalCriticalPoints => 'Pontos Críticos Anatômicos';
+
+  @override
+  String get pdfFieldVeterinaryCheckup => 'Checkup Veterinário';
+
+  @override
+  String get pdfFieldMandatoryExams => 'Exames';
+
+  @override
+  String get pdfFieldClimateSensitivity => 'Sensibilidade Climática';
+
+  @override
+  String get pdfFieldHeat => 'Calor';
+
+  @override
+  String get pdfFieldCold => 'Frio';
+
+  @override
+  String get pdfSectionImmunization => '4.1 Protocolo de Imunização';
+
+  @override
+  String get pdfFieldEssentialVaccines => 'Vacinas Essenciais';
+
+  @override
+  String get pdfFieldVaccineGoal => 'Objetivo';
+
+  @override
+  String get pdfFieldFirstDose => '1ª dose';
+
+  @override
+  String get pdfFieldBooster => 'Reforço';
+
+  @override
+  String get pdfFieldPreventiveCalendar => 'Calendário Preventivo';
+
+  @override
+  String get pdfFieldPuppies => 'Filhotes';
+
+  @override
+  String get pdfFieldAdults => 'Adultos';
+
+  @override
+  String get pdfFieldParasitePrevention => 'Prevenção Parasitária';
+
+  @override
+  String get pdfFieldDewormer => 'Vermífugo';
+
+  @override
+  String get pdfFieldTickFlea => 'Pulgas/Carrapatos';
+
+  @override
+  String get pdfFieldOralBoneHealth => 'Saúde Bucal e Óssea';
+
+  @override
+  String get pdfFieldPermittedBones => 'Ossos Permitidos';
+
+  @override
+  String get pdfFieldFrequency => 'Frequência';
+
+  @override
+  String get pdfFieldTraining => 'Treinamento';
+
+  @override
+  String get pdfFieldTrainingDifficulty => 'Dificuldade de Adestramento';
+
+  @override
+  String get pdfFieldRecommendedMethods => 'Métodos Recomendados';
+
+  @override
+  String get pdfFieldIdealEnvironment => 'Ambiente Ideal';
+
+  @override
+  String get pdfFieldOpenSpace => 'Espaço Aberto';
+
+  @override
+  String get pdfFieldApartmentAdaptation => 'Adaptação Apartamento';
+
+  @override
+  String get pdfFieldPeriod => 'Período';
+
+  @override
+  String get pdfFieldRegime => 'Regime';
+
+  @override
+  String get pdfFieldDailyKcalMeta => 'Meta Calórica Diária';
+
+  @override
+  String get pdfFieldDetailsComposition =>
+      'COMPOSIÇÃO E DETALHAMENTO (5 PILARES):';
+
+  @override
+  String get pdfPeriodWeekly => 'Semanal';
+
+  @override
+  String get pdfNoMealsPlanned => 'Nenhuma refeição planejada.';
+
+  @override
+  String get pdfFieldGeneralGuidelines => 'ORIENTAÇÕES GERAIS';
+
+  @override
+  String get pdfFieldMainNutrients => 'Principais Nutrientes';
+
+  @override
+  String get pdfLastDose => 'Última Aplicação';
+
+  @override
+  String get pdfNextDose => 'Próxima Dose';
+
+  @override
+  String get eventVaccine => 'Vacina';
+
+  @override
+  String get eventBath => 'Banho';
+
+  @override
+  String get eventGrooming => 'Tosa';
+
+  @override
+  String get eventVeterinary => 'Veterinário';
+
+  @override
+  String get eventMedication => 'Medicamento';
+
+  @override
+  String get eventOther => 'Outro';
+
+  @override
+  String get pdfFieldMentalStimulus => 'Estímulo Mental';
+
+  @override
+  String get pdfFieldSuggestedActivities => 'Atividades';
+
+  @override
+  String get pdfFieldExpertInsight => 'INSIGHT DO ESPECIALISTA';
+
+  @override
+  String get pdfDisclaimer =>
+      'Aviso: Este relatório foi gerado por IA e não substitui consulta veterinária profissional.';
 
   @override
   String get btnCancel => 'Cancelar';
@@ -3377,13 +3650,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get partnerCategory => 'Categoria';
-
-  @override
-  String get partnerNotesTitle => 'Notas e Observações';
-
-  @override
-  String get partnerNotesEmpty =>
-      'Nenhuma anotação ainda.\nEscreva ou grave lembretes sobre este parceiro.';
 
   @override
   String get partnerNotesHint => 'Nova observação...';
@@ -4027,12 +4293,12 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get errorPetNameNotFound => 'Erro: Nome do animal não encontrado.';
 
   @override
-  String healthAnalysisSaved(Object petName) {
+  String healthAnalysisSaved(String petName) {
     return 'Análise guardada no histórico de saúde de $petName';
   }
 
   @override
-  String errorSavingAnalysis(Object error) {
+  String errorSavingAnalysis(String error) {
     return 'Erro ao guardar análise: $error';
   }
 
@@ -4613,7 +4879,9 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get pdfQuickRecipes => 'Receitas Rápidas';
 
   @override
-  String get pdfGeneratedBy => 'Gerado por ScanNut';
+  String pdfGeneratedBy(Object date, Object owner) {
+    return 'Gerado por ScanNut';
+  }
 
   @override
   String pdfPage(Object current, Object total) {

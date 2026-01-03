@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 
 part 'pet_event.g.dart';
 
@@ -86,7 +87,9 @@ class PetEvent extends HiveObject {
   }) : createdAt = createdAt ?? DateTime.now();
 
   // Helper methods
-  String get typeLabel {
+  String get typeLabel => _getLegacyTypeLabel(); // Keep for legacy if needed
+
+  String _getLegacyTypeLabel() {
     switch (type) {
       case EventType.vaccine:
         return 'Vacina';
@@ -100,6 +103,23 @@ class PetEvent extends HiveObject {
         return 'Medicamento';
       case EventType.other:
         return 'Outro';
+    }
+  }
+
+  String getLocalizedTypeLabel(AppLocalizations strings) {
+    switch (type) {
+      case EventType.vaccine:
+        return strings.eventVaccine;
+      case EventType.bath:
+        return strings.eventBath;
+      case EventType.grooming:
+        return strings.eventGrooming;
+      case EventType.veterinary:
+        return strings.eventVeterinary;
+      case EventType.medication:
+        return strings.eventMedication;
+      case EventType.other:
+        return strings.eventOther;
     }
   }
 
