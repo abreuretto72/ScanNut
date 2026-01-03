@@ -6,6 +6,7 @@ import '../models/pet_event.dart';
 import '../services/pet_event_service.dart';
 import '../../../core/providers/pet_event_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 
 class PetAgendaScreen extends ConsumerStatefulWidget {
   final String petName;
@@ -77,7 +78,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
         ),
         body: Center(
           child: Text(
-            'Erro ao carregar agenda: $error',
+            '${AppLocalizations.of(context)!.commonError}: $error',
             style: GoogleFonts.poppins(color: Colors.red),
           ),
         ),
@@ -102,7 +103,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Agenda',
+              AppLocalizations.of(context)!.agendaTitle,
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
@@ -131,7 +132,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: null,
-                child: Text('Todos', style: GoogleFonts.poppins()),
+                child: Text(AppLocalizations.of(context)!.agendaTabAll, style: GoogleFonts.poppins()),
               ),
               ...EventType.values.map((type) {
                 final event = PetEvent(
@@ -162,18 +163,18 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
           unselectedLabelColor: Colors.white54,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           tabs: [
-            Tab(text: 'Próximos (${upcomingEvents.length})'),
-            Tab(text: 'Passados (${pastEvents.length})'),
-            Tab(text: 'Todos (${allEvents.length})'),
+            Tab(text: '${AppLocalizations.of(context)!.agendaTabUpcoming} (${upcomingEvents.length})'),
+            Tab(text: '${AppLocalizations.of(context)!.agendaTabPast} (${pastEvents.length})'),
+            Tab(text: '${AppLocalizations.of(context)!.agendaTabAll} (${allEvents.length})'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildEventList(upcomingEvents, isEmpty: upcomingEvents.isEmpty, emptyMessage: 'Nenhum evento próximo'),
-          _buildEventList(pastEvents, isEmpty: pastEvents.isEmpty, emptyMessage: 'Nenhum evento passado'),
-          _buildEventList(allEvents, isEmpty: allEvents.isEmpty, emptyMessage: 'Nenhum evento cadastrado'),
+          _buildEventList(upcomingEvents, isEmpty: upcomingEvents.isEmpty, emptyMessage: AppLocalizations.of(context)!.agendaNoUpcoming),
+          _buildEventList(pastEvents, isEmpty: pastEvents.isEmpty, emptyMessage: AppLocalizations.of(context)!.agendaNoPast),
+          _buildEventList(allEvents, isEmpty: allEvents.isEmpty, emptyMessage: AppLocalizations.of(context)!.agendaNoEvents),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -181,7 +182,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
         backgroundColor: const Color(0xFF00E676),
         icon: const Icon(Icons.add, color: Colors.black),
         label: Text(
-          'Novo Evento',
+          AppLocalizations.of(context)!.agendaNewEvent,
           style: GoogleFonts.poppins(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -216,7 +217,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
     if (filteredEvents.isEmpty) {
       return Center(
         child: Text(
-          'Nenhum evento deste tipo',
+          AppLocalizations.of(context)!.agendaNoFiltered,
           style: GoogleFonts.poppins(color: Colors.white54),
         ),
       );
@@ -249,19 +250,19 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: Text('Excluir Evento?', style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.agendaDeleteTitle, style: GoogleFonts.poppins(color: Colors.white)),
         content: Text(
-          'Tem certeza que deseja excluir "${event.title}"?',
+          AppLocalizations.of(context)!.agendaDeleteContent(event.title),
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white54)),
+            child: Text(AppLocalizations.of(context)!.btnCancel, style: GoogleFonts.poppins(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Excluir', style: GoogleFonts.poppins(color: Colors.red)),
+            child: Text(AppLocalizations.of(context)!.btnDelete, style: GoogleFonts.poppins(color: Colors.red)),
           ),
         ],
       ),
@@ -274,7 +275,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Evento excluído', style: GoogleFonts.poppins()),
+            content: Text(AppLocalizations.of(context)!.agendaDeleted, style: GoogleFonts.poppins()),
             backgroundColor: Colors.red,
           ),
         );
@@ -417,7 +418,7 @@ class _EventCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'ATRASADO',
+                        AppLocalizations.of(context)!.agendaStatusOverdue,
                         style: GoogleFonts.poppins(
                           color: Colors.red,
                           fontSize: 10,
@@ -435,7 +436,7 @@ class _EventCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'HOJE',
+                        AppLocalizations.of(context)!.agendaStatusToday,
                         style: GoogleFonts.poppins(
                           color: Colors.orange,
                           fontSize: 10,
@@ -630,7 +631,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.existingEvent != null ? 'Evento atualizado!' : 'Evento criado!',
+            widget.existingEvent != null ? AppLocalizations.of(context)!.agendaUpdated : AppLocalizations.of(context)!.agendaCreated,
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: Colors.green,
@@ -645,7 +646,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
     return AlertDialog(
       backgroundColor: Colors.grey[900],
       title: Text(
-        isEdit ? 'Editar Evento' : 'Novo Evento',
+        isEdit ? AppLocalizations.of(context)!.agendaEditEvent : AppLocalizations.of(context)!.agendaNewEvent,
         style: GoogleFonts.poppins(color: Colors.white),
       ),
       content: SingleChildScrollView(
@@ -662,7 +663,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                   dropdownColor: Colors.grey[800],
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Selecione a Vacina',
+                    labelText: AppLocalizations.of(context)!.agendaFieldVaccineSelect,
                     labelStyle: const TextStyle(color: Colors.white54),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
@@ -687,7 +688,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                       }
                     });
                   },
-                  validator: (value) => value == null ? 'Selecione uma vacina' : null,
+                  validator: (value) => value == null ? AppLocalizations.of(context)!.agendaFieldVaccineSelect : null,
                 ),
                 const SizedBox(height: 16),
                 // Show text field if "Outra vacina" is selected
@@ -696,7 +697,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                     controller: _titleController,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      labelText: 'Nome da Vacina',
+                      labelText: AppLocalizations.of(context)!.agendaFieldVaccineName,
                       labelStyle: const TextStyle(color: Colors.white54),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
@@ -705,7 +706,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                         borderSide: BorderSide(color: Color(0xFF00E676)),
                       ),
                     ),
-                    validator: (value) => value == null || value.trim().isEmpty ? 'Obrigatório' : null,
+                    validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
                   ),
               ] else
                 // Regular title field for non-vaccine events
@@ -713,7 +714,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                   controller: _titleController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Título',
+                    labelText: AppLocalizations.of(context)!.agendaFieldTitle,
                     labelStyle: const TextStyle(color: Colors.white54),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
@@ -722,7 +723,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                       borderSide: BorderSide(color: Color(0xFF00E676)),
                     ),
                   ),
-                  validator: (value) => value == null || value.trim().isEmpty ? 'Obrigatório' : null,
+                  validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
                 ),
               const SizedBox(height: 16),
               // Type
@@ -731,7 +732,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                 dropdownColor: Colors.grey[800],
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Tipo',
+                  labelText: AppLocalizations.of(context)!.agendaFieldType,
                   labelStyle: const TextStyle(color: Colors.white54),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),

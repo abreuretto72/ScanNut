@@ -10,10 +10,9 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/services/file_upload_service.dart';
 import '../../../../core/services/gemini_service.dart';
+import '../../../../core/utils/prompt_factory.dart';
 import '../../models/pet_profile_extended.dart';
-import '../../models/pet_analysis_result.dart';
-import 'pet_result_card.dart';
-import '../../../partners/presentation/partners_screen.dart';
+
 import '../../../partners/presentation/partners_hub_screen.dart'; // Add this line
 import '../../../partners/presentation/partner_registration_screen.dart'; // Add this line
 import '../../../../core/services/whatsapp_service.dart';
@@ -250,9 +249,9 @@ class _EditPetFormState extends State<EditPetForm>
     } catch (e) {
        debugPrint("❌ Save error: $e");
        if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(content: Text('⚠️ Erro ao sincronizar: $e'), backgroundColor: Colors.red)
-           );
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(AppLocalizations.of(context)!.commonSyncError(e.toString())), backgroundColor: Colors.red)
+            );
        }
     } finally {
        if (mounted) {
@@ -275,10 +274,8 @@ class _EditPetFormState extends State<EditPetForm>
     _partnerService.init();
     _loadAttachments();
     
-    // Compute the working profile from direct object or raw Map entry
-    final existing = widget.existingProfile ?? 
-        (widget.petData != null ? PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(widget.petData!)) : null);
-
+    final existing = widget.existingProfile;
+    
     // Load existing profile image
     _initialImagePath = existing?.imagePath;
     if (_initialImagePath != null) {
@@ -302,7 +299,7 @@ class _EditPetFormState extends State<EditPetForm>
     );
     _pesoIdealController = TextEditingController(
       text: existing?.pesoIdeal?.toString() ?? '',
-    ); // New
+    );
     _alergiasController = TextEditingController();
     _preferenciasController = TextEditingController();
 
@@ -342,6 +339,31 @@ class _EditPetFormState extends State<EditPetForm>
     _pesoIdealController.addListener(_onPesoIdealChanged);
     _alergiasController.addListener(_onUserTyping);
     _preferenciasController.addListener(_onUserTyping);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_selectedPartnerFilter == 'Todos' || _selectedPartnerFilter.isEmpty) {
+        _selectedPartnerFilter = AppLocalizations.of(context)!.partnersFilterAll;
+    }
+  }
+
+  // --- PARTNERS TAB IMPLEMENTATION ---
+  
+  String _selectedPartnerFilter = '';
+  
+  List<String> get _partnerFilterCategories {
+    final strings = AppLocalizations.of(context)!;
+    return [
+      strings.partnersFilterAll,
+      strings.partnersFilterVet,
+      strings.partnersFilterPetShop,
+      strings.partnersFilterPharmacy,
+      strings.partnersFilterGrooming,
+      strings.partnersFilterHotel,
+      strings.partnersFilterLab,
+    ];
   }
 
   // --- DISK-FIRST LOGGING HELPERS ---
@@ -459,11 +481,11 @@ class _EditPetFormState extends State<EditPetForm>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Alterar Foto do Perfil', style: GoogleFonts.poppins(color: Colors.white, fontSize: 16)),
+            Text(AppLocalizations.of(context)!.petChangePhoto, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: const Text('Tirar Foto', style: TextStyle(color: Colors.white)),
+              title: Text(AppLocalizations.of(context)!.petTakePhoto, style: const TextStyle(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromCamera();
@@ -475,7 +497,7 @@ class _EditPetFormState extends State<EditPetForm>
             ),
             ListTile(
               leading: const Icon(Icons.image, color: Colors.green),
-              title: const Text('Escolher da Galeria', style: TextStyle(color: Colors.white)),
+              title: Text(AppLocalizations.of(context)!.petChooseGallery, style: const TextStyle(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromGallery();
@@ -533,7 +555,7 @@ class _EditPetFormState extends State<EditPetForm>
   Future<void> _addAttachment(String type) async {
     final petName = widget.existingProfile?.petName ?? _nameController.text.trim();
     if (petName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Salve o pet ou insira o nome primeiro.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commonSaveNameFirst)));
       return;
     }
 
@@ -548,11 +570,11 @@ class _EditPetFormState extends State<EditPetForm>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(isGallery ? 'Adicionar Mídia' : 'Anexar Documento', style: GoogleFonts.poppins(color: Colors.white, fontSize: 16)),
+            Text(isGallery ? AppLocalizations.of(context)!.petAddMedia : AppLocalizations.of(context)!.petAttachDoc, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16)),
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: const Text('Câmera (Foto)', style: TextStyle(color: Colors.white)),
+              title: Text(AppLocalizations.of(context)!.petCameraPhoto, style: const TextStyle(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromCamera();
@@ -561,7 +583,7 @@ class _EditPetFormState extends State<EditPetForm>
             ),
             ListTile(
               leading: const Icon(Icons.image, color: Colors.green),
-              title: const Text('Galeria (Foto)', style: TextStyle(color: Colors.white)),
+              title: Text(AppLocalizations.of(context)!.petGalleryPhoto, style: const TextStyle(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromGallery();
@@ -571,7 +593,7 @@ class _EditPetFormState extends State<EditPetForm>
             if (isGallery) ...[
               ListTile(
                 leading: const Icon(Icons.videocam, color: Colors.orange),
-                title: const Text('Câmera (Vídeo)', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context)!.petCameraVideo, style: const TextStyle(color: Colors.white)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final file = await _fileService.pickVideoFromCamera();
@@ -580,7 +602,7 @@ class _EditPetFormState extends State<EditPetForm>
               ),
               ListTile(
                 leading: const Icon(Icons.video_library, color: Colors.purple),
-                title: const Text('Galeria (Vídeo)', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context)!.petGalleryVideo, style: const TextStyle(color: Colors.white)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final file = await _fileService.pickVideoFromGallery();
@@ -609,10 +631,10 @@ class _EditPetFormState extends State<EditPetForm>
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
       children: [
-        _buildSectionTitle('📸 Book de Mídias'),
+        _buildSectionTitle('📸 ${AppLocalizations.of(context)!.petGallery}'),
         const SizedBox(height: 16),
         Text(
-          'Fotos e vídeos dos melhores momentos',
+          AppLocalizations.of(context)!.petEmptyGalleryDesc,
           style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
         ),
         const SizedBox(height: 20),
@@ -629,7 +651,7 @@ class _EditPetFormState extends State<EditPetForm>
               children: [
                 const Icon(Icons.perm_media_outlined, size: 48, color: Colors.white24),
                 const SizedBox(height: 16),
-                Text('A galeria está vazia', style: GoogleFonts.poppins(color: Colors.white54)),
+                Text(AppLocalizations.of(context)!.petEmptyGallery, style: GoogleFonts.poppins(color: Colors.white54)),
               ],
             ),
           )
@@ -649,7 +671,7 @@ class _EditPetFormState extends State<EditPetForm>
               final isVideo = file.path.toLowerCase().endsWith('.mp4') || file.path.toLowerCase().endsWith('.mov');
               return InkWell(
                 onTap: () {
-                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Arquivo: ${path.basename(file.path)}')));
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commonFilePrefix + path.basename(file.path))));
                 },
                 onLongPress: () => _deleteAttachment(file),
                 child: Container(
@@ -672,7 +694,7 @@ class _EditPetFormState extends State<EditPetForm>
           child: OutlinedButton.icon(
             onPressed: () => _addAttachment('gallery'),
             icon: const Icon(Icons.add_a_photo),
-            label: const Text('Adicionar à Galeria'),
+            label: Text(AppLocalizations.of(context)!.petAddToGallery),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.all(16),
               side: const BorderSide(color: Color(0xFF00E676)),
@@ -708,7 +730,7 @@ class _EditPetFormState extends State<EditPetForm>
     if (savedPath != null) {
       _loadAttachments();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Documento anexado!')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.petDocAttached)));
       }
     }
   }
@@ -718,11 +740,11 @@ class _EditPetFormState extends State<EditPetForm>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: const Text('Excluir Anexo?', style: TextStyle(color: Colors.white)),
-        content: const Text('Esta ação não pode ser desfeita.', style: TextStyle(color: Colors.white70)),
+        title: Text(AppLocalizations.of(context)!.petDeleteAttachment, style: const TextStyle(color: Colors.white)),
+        content: Text(AppLocalizations.of(context)!.petDeleteAttachmentContent, style: const TextStyle(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Excluir', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.commonCancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppLocalizations.of(context)!.commonDelete, style: const TextStyle(color: Colors.red))),
         ],
       ),
     );
@@ -768,7 +790,7 @@ class _EditPetFormState extends State<EditPetForm>
                 icon: const Icon(Icons.add_circle_outline, color: Color(0xFF00E676), size: 20),
                 constraints: const BoxConstraints(),
                 padding: EdgeInsets.zero,
-                tooltip: 'Adicionar',
+                tooltip: AppLocalizations.of(context)!.commonAdd,
               ),
             ],
           ),
@@ -786,7 +808,7 @@ class _EditPetFormState extends State<EditPetForm>
                   return InkWell(
                     onTap: () {
                       // TODO: Implement open file
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Arquivo: ${path.basename(file.path)}')));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commonFilePrefix + path.basename(file.path))));
                     },
                     onLongPress: () => _deleteAttachment(file),
                     child: Container(
@@ -818,7 +840,7 @@ class _EditPetFormState extends State<EditPetForm>
           ] else
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: Text('Nenhum documento anexado.', style: GoogleFonts.poppins(color: Colors.white30, fontSize: 11, fontStyle: FontStyle.italic)),
+              child: Text(AppLocalizations.of(context)!.commonNoAttachments, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 11, fontStyle: FontStyle.italic)),
             ),
         ],
       ),
@@ -842,7 +864,7 @@ class _EditPetFormState extends State<EditPetForm>
         appBar: AppBar(
           backgroundColor: Colors.black,
           title: Text(
-            widget.existingProfile == null ? 'Novo Pet' : 'Editar Perfil',
+            widget.existingProfile == null ? AppLocalizations.of(context)!.newPetTitle : AppLocalizations.of(context)!.editPetTitle,
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           bottom: TabBar(
@@ -850,12 +872,12 @@ class _EditPetFormState extends State<EditPetForm>
             indicatorColor: const Color(0xFF00E676),
             labelColor: const Color(0xFF00E676),
             unselectedLabelColor: Colors.white60,
-            tabs: const [
-              Tab(icon: Icon(Icons.pets), text: 'Identidade'),
-              Tab(icon: Icon(Icons.favorite), text: 'Saúde'),
-              Tab(icon: Icon(Icons.restaurant), text: 'Nutrição'),
-              Tab(icon: Icon(Icons.perm_media), text: 'Galeria'),
-              Tab(icon: Icon(Icons.handshake_outlined), text: 'Parc.'),
+            tabs: [
+              Tab(icon: const Icon(Icons.pets), text: AppLocalizations.of(context)!.petIdentity),
+              Tab(icon: const Icon(Icons.favorite), text: AppLocalizations.of(context)!.petHealth),
+              Tab(icon: const Icon(Icons.restaurant), text: AppLocalizations.of(context)!.petNutrition),
+              Tab(icon: const Icon(Icons.perm_media), text: AppLocalizations.of(context)!.petGallery),
+              Tab(icon: const Icon(Icons.handshake_outlined), text: AppLocalizations.of(context)!.petPartners),
             ],
           ),
           actions: [
@@ -875,7 +897,7 @@ class _EditPetFormState extends State<EditPetForm>
                   }
                   if (_hasChanges) {
                     return Tooltip(
-                      message: 'Desfazer alterações',
+                      message: AppLocalizations.of(context)!.petUndoChanges,
                       child: GestureDetector(
                         onTap: _undoAllChanges,
                         child: const Icon(
@@ -886,8 +908,8 @@ class _EditPetFormState extends State<EditPetForm>
                       ),
                     );
                   }
-                  return const Tooltip(
-                    message: 'Tudo salvo',
+                  return Tooltip(
+                    message: AppLocalizations.of(context)!.petAllSaved,
                     child: Icon(
                       Icons.cloud_done,
                       color: Colors.white30,
@@ -926,8 +948,6 @@ class _EditPetFormState extends State<EditPetForm>
 
   // --- PARTNERS TAB IMPLEMENTATION ---
   
-  String _selectedPartnerFilter = 'Todos';
-  final List<String> _partnerCategories = ['Todos', 'Veterinário', 'Pet Shop', 'Farmácias Pet', 'Banho e Tosa', 'Hotéis', 'Laboratórios'];
 
   Widget _buildPartnersTab() {
     return FutureBuilder<List<PartnerModel>>(
@@ -940,9 +960,10 @@ class _EditPetFormState extends State<EditPetForm>
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)));
         
         final allPartners = snapshot.data!;
-        final filtered = _selectedPartnerFilter == 'Todos' 
+        final filterAll = AppLocalizations.of(context)!.partnersFilterAll;
+        final filtered = _selectedPartnerFilter == filterAll
             ? allPartners 
-            : allPartners.where((p) => p.category == _selectedPartnerFilter).toList();
+            : allPartners.where((p) => _localizeValue(p.category) == _selectedPartnerFilter).toList();
 
         return CustomScrollView(
           slivers: [
@@ -952,7 +973,7 @@ class _EditPetFormState extends State<EditPetForm>
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Row(
-                  children: _partnerCategories.map((cat) {
+                  children: _partnerFilterCategories.map((cat) {
                     final isSelected = _selectedPartnerFilter == cat;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
@@ -960,7 +981,7 @@ class _EditPetFormState extends State<EditPetForm>
                         label: Text(cat),
                         selected: isSelected,
                         onSelected: (v) => setState(() => _selectedPartnerFilter = cat),
-                        backgroundColor: Colors.white.withOpacity(0.05),
+                        backgroundColor: Colors.white.withValues(alpha: 0.05),
                         selectedColor: const Color(0xFF00E676),
                         labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white),
                         checkmarkColor: Colors.black,
@@ -980,7 +1001,7 @@ class _EditPetFormState extends State<EditPetForm>
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
-                      'Nenhum parceiro cadastrado.\nAdicione parceiros através do Hub de Parceiros na tela inicial.',
+                      AppLocalizations.of(context)!.petPartnersNoPartners,
                       style: GoogleFonts.poppins(color: Colors.white54, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
@@ -991,7 +1012,7 @@ class _EditPetFormState extends State<EditPetForm>
               SliverFillRemaining(
                 child: Center(
                   child: Text(
-                    'Nenhum parceiro encontrado nesta categoria.',
+                    AppLocalizations.of(context)!.petPartnersNotFound,
                     style: GoogleFonts.poppins(color: Colors.white30),
                   ),
                 ),
@@ -1045,7 +1066,7 @@ class _EditPetFormState extends State<EditPetForm>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-                                    Text(partner.category, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                    Text(_localizeValue(partner.category), style: const TextStyle(color: Colors.white54, fontSize: 12)),
                                   ],
                                 ),
                               ),
@@ -1077,7 +1098,7 @@ class _EditPetFormState extends State<EditPetForm>
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: CumulativeObservationsField(
-                  sectionName: 'Prac (Rede de Apoio)',
+                  sectionName: AppLocalizations.of(context)!.petPartnersObs,
                   initialValue: _observacoesPrac,
                   onChanged: (value) {
                     setState(() => _observacoesPrac = value);
@@ -1123,46 +1144,54 @@ class _EditPetFormState extends State<EditPetForm>
         _buildRaceDetailsSection(),
         const SizedBox(height: 24),
 
-        _buildSectionTitle('🐾 Informações Básicas'),
+        _buildSectionTitle('🐾 ${AppLocalizations.of(context)!.petBasicInfo}'),
         const SizedBox(height: 16),
         
         _buildTextField(
           controller: _nameController,
-          label: 'Nome do Pet',
+          label: AppLocalizations.of(context)!.petNameLabel,
           icon: Icons.pets,
-          validator: (v) => v?.isEmpty ?? true ? 'Nome obrigatório' : null,
+          validator: (v) => v?.isEmpty ?? true ? AppLocalizations.of(context)!.petNameRequired : null,
         ),
         
         _buildTextField(
           controller: _racaController,
-          label: 'Raça',
+          label: AppLocalizations.of(context)!.petBreedLabel,
           icon: Icons.category,
         ),
         
         _buildTextField(
           controller: _idadeController,
-          label: 'Idade Exata (ex: 2 anos 3 meses)',
+          label: AppLocalizations.of(context)!.petAgeLabel,
           icon: Icons.cake,
         ),
         
         const SizedBox(height: 24),
-        _buildSectionTitle('⚙️ Perfil Biológico'),
+        _buildSectionTitle('⚙️ ${AppLocalizations.of(context)!.petBiologicalProfile}'),
         const SizedBox(height: 16),
         
         _buildDropdown(
-          value: _nivelAtividade,
-          label: 'Nível de Atividade',
+          value: _localizeValue(_nivelAtividade),
+          label: AppLocalizations.of(context)!.petActivityLevel,
           icon: Icons.directions_run,
-          items: ['Sedentário', 'Moderado', 'Ativo'],
-          onChanged: (v) { setState(() => _nivelAtividade = v!); _onUserInteractionGeneric(); },
+          items: [
+             AppLocalizations.of(context)!.petActivityLow,
+             AppLocalizations.of(context)!.petActivityModerate,
+             AppLocalizations.of(context)!.petActivityHigh,
+             AppLocalizations.of(context)!.petActivityAthlete
+          ],
+          onChanged: (val) { setState(() => _nivelAtividade = val!); _onUserInteractionGeneric(); },
         ),
         
         _buildDropdown(
-          value: _statusReprodutivo,
-          label: 'Status Reprodutivo',
-          icon: Icons.medical_services,
-          items: ['Castrado', 'Inteiro'],
-          onChanged: (v) { setState(() => _statusReprodutivo = v!); _onUserInteractionGeneric(); },
+            value: _localizeValue(_statusReprodutivo),
+            label: AppLocalizations.of(context)!.petReproductiveStatus,
+            icon: Icons.medical_services,
+            items: [
+               AppLocalizations.of(context)!.petNeutered,
+               AppLocalizations.of(context)!.petIntact
+            ],
+            onChanged: (val) { setState(() => _statusReprodutivo = val!); _onUserInteractionGeneric(); },
         ),
 
 
@@ -1178,7 +1207,7 @@ class _EditPetFormState extends State<EditPetForm>
           accentColor: const Color(0xFF00E676),
         ),
 
-        _buildAttachmentSection('identity', 'Documentos de Identificação'),
+        _buildAttachmentSection('identity', AppLocalizations.of(context)!.pdfIdentitySection),
         
         _buildActionButtons(),
       ],
@@ -1190,49 +1219,53 @@ class _EditPetFormState extends State<EditPetForm>
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
       children: [
-        _buildSectionTitle('⚖️ Controle de Peso Inteligente'),
+        _buildSectionTitle('⚖️ ${AppLocalizations.of(context)!.petWeightControl}'),
         const SizedBox(height: 8),
         Text(
-          'Análise automática baseada na raça e porte do pet',
+          AppLocalizations.of(context)!.petWeightAutoAnalysis,
           style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
         ),
         const SizedBox(height: 16),
         _buildTextField(
             controller: _pesoController,
-            label: 'Peso Atual (kg)',
+            label: AppLocalizations.of(context)!.petCurrentWeight,
             icon: Icons.monitor_weight,
             keyboardType: TextInputType.number,
         ),
         _buildWeightFeedback(),
         
         const SizedBox(height: 24),
-        _buildSectionTitle('💉 Histórico de Vacinas'),
+        _buildSectionTitle('💉 ${AppLocalizations.of(context)!.petVaccinationHistory}'),
         const SizedBox(height: 16),
         
         _buildDatePicker(
-          label: 'Última V10/V8',
+          label: AppLocalizations.of(context)!.petLastV10,
           icon: Icons.vaccines,
           selectedDate: _dataUltimaV10,
           onDateSelected: (date) { setState(() => _dataUltimaV10 = date); _onUserInteractionGeneric(); },
         ),
         
         _buildDatePicker(
-          label: 'Última Antirrábica',
+          label: AppLocalizations.of(context)!.petLastRabies,
           icon: Icons.coronavirus,
           selectedDate: _dataUltimaAntirrabica,
           onDateSelected: (date) { setState(() => _dataUltimaAntirrabica = date); _onUserInteractionGeneric(); },
         ),
         
         const SizedBox(height: 24),
-        _buildSectionTitle('🛁 Higiene'),
+        _buildSectionTitle('🛁 ${AppLocalizations.of(context)!.petHygiene}'),
         const SizedBox(height: 16),
         
         _buildDropdown(
-          value: _frequenciaBanho,
-          label: 'Frequência de Banho',
-          icon: Icons.bathtub,
-          items: ['Semanal', 'Quinzenal', 'Mensal'],
-          onChanged: (v) { setState(() => _frequenciaBanho = v!); _onUserInteractionGeneric(); },
+          value: _localizeValue(_frequenciaBanho),
+          label: AppLocalizations.of(context)!.petBathFrequency,
+          icon: Icons.water_drop,
+          items: [
+             AppLocalizations.of(context)!.petBathBiweekly,
+             AppLocalizations.of(context)!.petBathWeekly,
+             AppLocalizations.of(context)!.petBathMonthly
+          ],
+          onChanged: (val) { setState(() => _frequenciaBanho = val!); _onUserInteractionGeneric(); },
         ),
 
         const SizedBox(height: 24),
@@ -1247,11 +1280,11 @@ class _EditPetFormState extends State<EditPetForm>
         ),
         
         const SizedBox(height: 24),
-        _buildSectionTitle('📄 Outros Documentos Médicos'),
+        _buildSectionTitle('📄 ${AppLocalizations.of(context)!.petMedicalDocs}'),
         const SizedBox(height: 8),
         
-        _buildAttachmentSection('health_prescriptions', '📝 Receitas Veterinárias'),
-        _buildAttachmentSection('health_vaccines', '💉 Carteira de Vacinação'),
+        _buildAttachmentSection('health_prescriptions', '📝 ${AppLocalizations.of(context)!.petPrescriptions}'),
+        _buildAttachmentSection('health_vaccines', '💉 ${AppLocalizations.of(context)!.petVaccineCard}'),
 
         const SizedBox(height: 24),
         _buildWoundAnalysisHistory(),
@@ -1278,17 +1311,17 @@ class _EditPetFormState extends State<EditPetForm>
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
       children: [
-        _buildSectionTitle('⚠️ Alergias Alimentares'),
+        _buildSectionTitle('⚠️ ${AppLocalizations.of(context)!.petFoodAllergies}'),
         const SizedBox(height: 8),
         Text(
-          'Ingredientes que devem ser evitados',
+          AppLocalizations.of(context)!.petFoodAllergiesDesc,
           style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
         ),
         const SizedBox(height: 16),
         
         _buildChipInput(
           controller: _alergiasController,
-          label: 'Adicionar Alergia',
+          label: AppLocalizations.of(context)!.petAddAllergy,
           icon: Icons.warning,
           chips: _alergiasConhecidas,
           onAdd: (text) {
@@ -1305,17 +1338,17 @@ class _EditPetFormState extends State<EditPetForm>
         ),
         
         const SizedBox(height: 24),
-        _buildSectionTitle('❤️ Preferências Alimentares'),
+        _buildSectionTitle('❤️ ${AppLocalizations.of(context)!.petFoodPreferences}'),
         const SizedBox(height: 8),
         Text(
-          'Alimentos que o pet mais gosta',
+          AppLocalizations.of(context)!.petFoodPreferencesDesc,
           style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
         ),
         const SizedBox(height: 16),
         
         _buildChipInput(
           controller: _preferenciasController,
-          label: 'Adicionar Preferência',
+          label: AppLocalizations.of(context)!.petAddPreference,
           icon: Icons.favorite,
           chips: _preferencias,
           chipColor: Colors.green,
@@ -1334,7 +1367,7 @@ class _EditPetFormState extends State<EditPetForm>
 
         _buildWeeklyPlanSection(),
 
-        _buildAttachmentSection('nutrition', 'Receitas e Dietas'),
+        _buildAttachmentSection('nutrition', AppLocalizations.of(context)!.petDietRecipes),
         
         const SizedBox(height: 24),
         CumulativeObservationsField(
@@ -1359,19 +1392,19 @@ class _EditPetFormState extends State<EditPetForm>
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Excluir Pet?', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.petDeleteTitle, style: const TextStyle(color: Colors.white)),
         content: Text(
-          'Deseja remover ${widget.existingProfile?.petName ?? 'este pet'} e todo o seu histórico? Esta ação não pode ser desfeita.',
+          AppLocalizations.of(context)!.petDeleteContent(widget.existingProfile?.petName ?? AppLocalizations.of(context)!.petDefaultName),
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white)),
+            child: Text(AppLocalizations.of(context)!.commonCancel, style: const TextStyle(color: Colors.white)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir Definitivamente', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.petDeleteConfirm, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -1394,7 +1427,7 @@ class _EditPetFormState extends State<EditPetForm>
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('🩹 Histórico de Análises de Feridas'),
+          _buildSectionTitle('🩹 ${AppLocalizations.of(context)!.petWoundHistory}'),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
@@ -1409,7 +1442,7 @@ class _EditPetFormState extends State<EditPetForm>
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Nenhuma análise de ferida registrada ainda',
+                    AppLocalizations.of(context)!.petNoWounds,
                     style: GoogleFonts.poppins(
                       color: Colors.white54,
                       fontSize: 13,
@@ -1426,10 +1459,10 @@ class _EditPetFormState extends State<EditPetForm>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('🩹 Histórico de Análises de Feridas'),
+        _buildSectionTitle('🩹 ${AppLocalizations.of(context)!.petWoundHistory}'),
         const SizedBox(height: 8),
         Text(
-          '${woundHistory.length} análise(s) registrada(s)',
+          AppLocalizations.of(context)!.petWoundsCount(woundHistory.length),
           style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
         ),
         const SizedBox(height: 16),
@@ -1440,24 +1473,29 @@ class _EditPetFormState extends State<EditPetForm>
 
   Widget _buildWoundAnalysisCard(Map<String, dynamic> analysis) {
     final date = DateTime.parse(analysis['date'] as String);
-    final diagnosis = analysis['diagnosis'] as String? ?? 'Sem diagnóstico';
-    final severity = analysis['severity'] as String? ?? 'Baixa';
+    final diagnosisRaw = analysis['diagnosis'] as String?;
+    final diagnosis = (diagnosisRaw != null && diagnosisRaw.isNotEmpty) ? diagnosisRaw : AppLocalizations.of(context)!.diagnosisPending;
+    // Removed old severityDisplay logic
     final recommendations = (analysis['recommendations'] as List?)?.cast<String>() ?? [];
     
     Color severityColor;
-    switch (severity) {
-      case 'Alta':
+    final severity = analysis['severity'] as String? ?? 'Baixa';
+    final sevLower = severity.toLowerCase();
+    
+    String severityDisplay;
+    if (sevLower.contains('alta') || sevLower.contains('high')) {
         severityColor = Colors.red;
-        break;
-      case 'Média':
+        severityDisplay = AppLocalizations.of(context)!.severityHigh;
+    } else if (sevLower.contains('média') || sevLower.contains('media') || sevLower.contains('medium')) {
         severityColor = Colors.orange;
-        break;
-      default:
+        severityDisplay = AppLocalizations.of(context)!.severityMedium;
+    } else {
         severityColor = Colors.green;
+        severityDisplay = AppLocalizations.of(context)!.severityLow;
     }
 
     final imagePath = analysis['imagePath'] as String?;
-    final hasImage = imagePath != null && imagePath.isNotEmpty && File(imagePath).existsSync();
+    final hasImage = imagePath != null && imagePath.isNotEmpty && File(imagePath!).existsSync();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1543,7 +1581,7 @@ class _EditPetFormState extends State<EditPetForm>
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                'Gravidade: $severity',
+                '${AppLocalizations.of(context)!.petSeverity}: $severityDisplay',
                 style: GoogleFonts.poppins(
                   color: severityColor,
                   fontSize: 11,
@@ -1560,7 +1598,7 @@ class _EditPetFormState extends State<EditPetForm>
             size: 22,
           ),
           onPressed: () => _confirmDeleteWoundAnalysis(analysis['date'] as String),
-          tooltip: 'Excluir análise',
+          tooltip: AppLocalizations.of(context)!.commonDelete,
         ),
         children: [
           const Divider(color: Colors.white12),
@@ -1568,7 +1606,7 @@ class _EditPetFormState extends State<EditPetForm>
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Diagnóstico:',
+              AppLocalizations.of(context)!.petDiagnosis,
               style: GoogleFonts.poppins(
                 color: Colors.white70,
                 fontSize: 12,
@@ -1587,7 +1625,7 @@ class _EditPetFormState extends State<EditPetForm>
           if (recommendations.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              'Recomendações:',
+              AppLocalizations.of(context)!.petRecommendations,
               style: GoogleFonts.poppins(
                 color: Colors.white70,
                 fontSize: 12,
@@ -1672,7 +1710,7 @@ class _EditPetFormState extends State<EditPetForm>
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Excluir Análise',
+                AppLocalizations.of(context)!.petWoundDeleteTitle,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
                   fontSize: 18,
@@ -1683,7 +1721,7 @@ class _EditPetFormState extends State<EditPetForm>
           ],
         ),
         content: Text(
-          'Tem certeza que deseja excluir esta análise de ferida? Esta ação não pode ser desfeita.',
+          AppLocalizations.of(context)!.petWoundDeleteConfirm,
           style: GoogleFonts.poppins(
             color: Colors.white70,
             fontSize: 14,
@@ -1693,7 +1731,7 @@ class _EditPetFormState extends State<EditPetForm>
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: Text(
-              'Cancelar',
+              AppLocalizations.of(context)!.cancel,
               style: GoogleFonts.poppins(
                 color: Colors.white60,
                 fontWeight: FontWeight.w500,
@@ -1710,7 +1748,7 @@ class _EditPetFormState extends State<EditPetForm>
               ),
             ),
             child: Text(
-              'Excluir',
+              AppLocalizations.of(context)!.commonDelete,
               style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
           ),
@@ -1738,7 +1776,7 @@ class _EditPetFormState extends State<EditPetForm>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Análise de ferida excluída com sucesso',
+                AppLocalizations.of(context)!.petWoundDeleteSuccess,
                 style: GoogleFonts.poppins(),
               ),
               backgroundColor: Colors.green,
@@ -1755,7 +1793,7 @@ class _EditPetFormState extends State<EditPetForm>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Erro ao excluir análise: $e',
+                '${AppLocalizations.of(context)!.petWoundDeleteError} $e',
                 style: GoogleFonts.poppins(),
               ),
               backgroundColor: Colors.red,
@@ -1899,7 +1937,7 @@ class _EditPetFormState extends State<EditPetForm>
                     Text(
                       selectedDate != null
                           ? DateFormat('dd/MM/yyyy').format(selectedDate)
-                          : 'Não informado',
+                          : AppLocalizations.of(context)!.petNotOffice,
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 16,
@@ -1984,7 +2022,7 @@ class _EditPetFormState extends State<EditPetForm>
 
   Future<void> _generateNewMenu() async {
      if (_nameController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nome do pet é obrigatório.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.petNameRequired)));
         return;
      }
 
@@ -1994,8 +2032,13 @@ class _EditPetFormState extends State<EditPetForm>
      );
      bool isNatural = true;
      bool isKibble = false;
-     String goal = 'Manutenção de Peso';
-     final goals = ['Manutenção de Peso', 'Perda de Peso', 'Ganho de Massa', 'Recuperação/Convalescença'];
+     String goal = AppLocalizations.of(context)!.goalWeightMaintenance;
+     final goals = [
+        AppLocalizations.of(context)!.goalWeightMaintenance,
+        AppLocalizations.of(context)!.goalWeightLoss,
+        AppLocalizations.of(context)!.goalMuscleGain,
+        AppLocalizations.of(context)!.goalRecovery
+     ];
 
      final confirmed = await showDialog<bool>(
         context: context,
@@ -2095,16 +2138,16 @@ class _EditPetFormState extends State<EditPetForm>
                        ),
                     ),
                     actions: [
-                       TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+                       TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white54))),
                        ElevatedButton(
                           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
                           onPressed: () {
                              if (!isNatural && !isKibble) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione ao menos um regime.')));
+                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.selectRegime)));
                                 return;
                              }
                              if (selectedDateRange == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Selecione as datas.')));
+                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.selectDatesError)));
                                 return;
                              }
                              Navigator.pop(ctx, true);
@@ -2129,10 +2172,10 @@ class _EditPetFormState extends State<EditPetForm>
               decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(16)),
               child: Column(
                  mainAxisSize: MainAxisSize.min,
-                 children: const [
-                    CircularProgressIndicator(color: Color(0xFF00E676)),
-                    SizedBox(height: 16),
-                    Text('Nutricionista IA criando plano...', style: TextStyle(color: Colors.white)),
+                 children: [
+                    const CircularProgressIndicator(color: Color(0xFF00E676)),
+                    const SizedBox(height: 16),
+                    Text(AppLocalizations.of(context)!.aiCalculatingMetrics, style: const TextStyle(color: Colors.white)),
                  ],
               ),
            ),
@@ -2140,6 +2183,13 @@ class _EditPetFormState extends State<EditPetForm>
      );
 
      try {
+        final locale = Localizations.localeOf(context).toString();
+        final isEn = locale.startsWith('en');
+        final isEs = locale.startsWith('es');
+        
+        String langName = isEn ? "English" : (isEs ? "Spanish" : "Portuguese-BR");
+        String langInst = isEn ? "Respond in English." : (isEs ? "Responda en Español." : "Responda em Português do Brasil.");
+
         final service = GeminiService();
         final existingPlan = _currentRawAnalysis?['plano_semanal'] as List?;
         
@@ -2150,61 +2200,38 @@ class _EditPetFormState extends State<EditPetForm>
            history = existingPlan.map((e) => Map<String, dynamic>.from(e)).toList();
         }
         
-        String historyContext = "⚠️ PERFIL ESPECÍFICO DO PET:\n";
-        if (_alergiasConhecidas.isNotEmpty) historyContext += "- ALERGIAS (PROIBIDO): ${_alergiasConhecidas.join(', ')}\n";
-        if (_preferencias.isNotEmpty) historyContext += "- PREFERÊNCIAS: ${_preferencias.join(', ')}\n";
-        if (history.isNotEmpty) historyContext += "\n- ÚLTIMAS REFEIÇÕES (PARA VARIAÇÃO): ${history.take(5).toList()}\n";
+        String historyContext = "${AppLocalizations.of(context)!.menuProfileHeader}\n";
+        if (_alergiasConhecidas.isNotEmpty) historyContext += "${AppLocalizations.of(context)!.menuAllergiesForbidden}: ${_alergiasConhecidas.join(', ')}\n";
+        if (_preferencias.isNotEmpty) historyContext += "${AppLocalizations.of(context)!.menuPreferences}: ${_preferencias.join(', ')}\n";
+        if (history.isNotEmpty) {
+           final historySample = history.take(5).map((e) => e['dia']).toList();
+           historyContext += "\n${AppLocalizations.of(context)!.menuRecentMeals}: $historySample\n";
+        }
 
-        final formatter = DateFormat('dd/MM/yyyy');
+        final formatter = DateFormat.yMd(locale);
         final startStr = formatter.format(selectedDateRange!.start);
         final endStr = formatter.format(selectedDateRange!.end);
         final duration = selectedDateRange!.end.difference(selectedDateRange!.start).inDays + 1;
         
-        String dietType = 'Indefinido';
+        String dietType = isEn ? 'Undefined' : (isEs ? 'Indefinido' : 'Indefinido');
         if (isNatural && isKibble) dietType = 'Hybrid (${AppLocalizations.of(context)!.dietKibble} + ${AppLocalizations.of(context)!.dietNatural})';
         else if (isNatural) dietType = '100% ${AppLocalizations.of(context)!.dietNatural}';
         else dietType = '100% ${AppLocalizations.of(context)!.dietKibble}';
 
-        final prompt = '''
-           ATUE COMO NUTRÓLOGO VETERINÁRIO ESPECIALISTA EXCLUSIVO (MÉTODO SCANNUT).
-           Gere um cardápio personalizado para: ${_nameController.text} (${_racaController.text}, ${_idadeController.text}, ${_pesoController.text}kg).
-           Meta Nutricional: $goal.
-           Regime Estabelecido: $dietType.
-           Período de Planejamento: $startStr até $endStr ($duration dias).
-           
-           $historyContext
-           
-           ⚠️ REGRAS INEGOCIÁVEIS (PROTOCOLOS SCANNUT):
-           1. Mantenha consistência biológica. Não sugira alimentos tóxicos (uva, cebola, chocolate, etc).
-           2. O plano deve ser diário e cobrir EXATAMENTE o período de $duration dias.
-           3. O campo 'refeicoes' deve ser preenchido para CADA dia.
-           4. Detalhamento Obrigatório nos 5 PILARES DE SAÚDE PET em TODAS as refeições:
-              - PROTEÍNA (Ex: Frango, Carne Bovina, Ovo, Peixe)
-              - GORDURA SAUDÁVEL (Ex: Azeite, Óleo de Peixe)
-              - FIBRAS (Ex: Abóbora, Chuchu, Cenoura)
-              - MINERAIS (Ex: Suplementação específica, casca de ovo processada)
-              - HIDRATAÇÃO (Ex: Água, caldos caseiros sem tempero)
-           
-           ESTRUTURA JSON OBRIGATÓRIA:
-           {
-             "plano_semanal": [
-               {
-                 "dia": "Dia da Semana - DD/MM", 
-                 "refeicoes": [
-                    {
-                      "hora": "HH:MM", 
-                      "titulo": "Nome Curto da Refeição", 
-                      "descricao": "Texto detalhado incluindo os 5 Pilares citados acima.", 
-                      "tipo_dieta": "$dietType"
-                    }
-                 ]
-               }
-             ],
-             "orientacoes_gerais": "Resumo estratégico focado na meta de $goal."
-           }
-           
-           NÃO ADICIONE TEXTO FORA DO JSON.
-        ''';
+        final prompt = PromptFactory.getWeeklyMenuPrompt(
+          petName: _nameController.text.trim(),
+          breed: _racaController.text.trim(),
+          age: _idadeController.text.trim(),
+          weight: _pesoController.text.trim(),
+          goal: goal,
+          dietType: dietType,
+          startStr: startStr,
+          endStr: endStr,
+          duration: duration,
+          historyContext: historyContext,
+          languageName: langName,
+          languageInstruction: langInst,
+        );
 
         final rawResponse = await service.generateTextContent(prompt);
         Navigator.pop(context); // Hide loader
@@ -2267,9 +2294,9 @@ class _EditPetFormState extends State<EditPetForm>
             _currentRawAnalysis!['orientacoes_gerais'] = rawResponse['orientacoes_gerais'];
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('✅ Cardápio Inteligente Planejado!'),
-            backgroundColor: Color(0xFF00E676),
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(AppLocalizations.of(context)!.menuPlannedSuccess),
+            backgroundColor: const Color(0xFF00E676),
         ));
 
      } catch (e) {
@@ -2301,7 +2328,7 @@ class _EditPetFormState extends State<EditPetForm>
                padding: const EdgeInsets.symmetric(vertical: 8),
                child: Row(
                  children: [
-                   _buildSectionTitle('🧬 Análise da Raça'),
+                   _buildSectionTitle(AppLocalizations.of(context)!.petRaceAnalysis),
                    const Spacer(),
                    Container(
                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -2313,7 +2340,7 @@ class _EditPetFormState extends State<EditPetForm>
                      child: Row(
                        mainAxisSize: MainAxisSize.min,
                        children: [
-                         const Text('Ver Completo', style: TextStyle(color: Color(0xFF00E676), fontSize: 12, fontWeight: FontWeight.bold)),
+                         Text(AppLocalizations.of(context)!.petSeeFull, style: const TextStyle(color: Color(0xFF00E676), fontSize: 12, fontWeight: FontWeight.bold)),
                          const SizedBox(width: 4),
                          const Icon(Icons.arrow_forward, color: Color(0xFF00E676), size: 14),
                        ],
@@ -2327,20 +2354,20 @@ class _EditPetFormState extends State<EditPetForm>
            
            
             if (ident != null) ...[
-               _buildInfoRow('Linhagem', ident['linhagem_mista']?.toString() ?? 'Não identificada'),
-               _buildInfoRow('Raça Predominante', ident['raca_predominante']?.toString() ?? 'Não identificada'),
-               _buildInfoRow('Confiabilidade', ident['confiabilidade']?.toString() ?? 'Baixa'),
+               _buildInfoRow(AppLocalizations.of(context)!.petLineage, _localizeValue(ident['linhagem_mista']?.toString())),
+               _buildInfoRow(AppLocalizations.of(context)!.petRaceAnalysis, _localizeValue(ident['raca_predominante']?.toString())),
+               _buildInfoRow(AppLocalizations.of(context)!.petReliability, _localizeValue(ident['confiabilidade']?.toString(), isReliability: true)),
             ],
             
             if (fisica != null) ...[
-               _buildInfoRow('Expectativa de Vida', fisica['expectativa_vida']?.toString() ?? 'Não estimada'),
-               _buildInfoRow('Porte', fisica['porte']?.toString() ?? 'Não identificado'),
-               _buildInfoRow('Peso Típico', fisica['peso_estimado']?.toString() ?? 'Variável'),
+               _buildInfoRow(AppLocalizations.of(context)!.petLifeExpectancy, fisica['expectativa_vida']?.toString() ?? AppLocalizations.of(context)!.petNotEstimated),
+               _buildInfoRow(AppLocalizations.of(context)!.petSize, fisica['porte']?.toString() ?? AppLocalizations.of(context)!.petNotIdentified),
+               _buildInfoRow(AppLocalizations.of(context)!.petTypicalWeight, fisica['peso_estimado']?.toString() ?? AppLocalizations.of(context)!.petVariable),
             ],
 
            if (temp != null) ...[
                const SizedBox(height: 12),
-               const Text('Temperamento', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+               Text(AppLocalizations.of(context)!.petTemperament, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                const SizedBox(height: 4),
                if (temp['personalidade'] != null)
                   Text(temp['personalidade'].toString(), style: const TextStyle(color: Colors.white70)),
@@ -2354,7 +2381,7 @@ class _EditPetFormState extends State<EditPetForm>
            if (origem != null) ...[
                const SizedBox(height: 12),
                ExpansionTile(
-                  title: Text('Origem & História', style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+                  title: Text(AppLocalizations.of(context)!.petOrigin, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
                   collapsedIconColor: Colors.white54,
                   iconColor: const Color(0xFF00E676),
                   children: [Padding(padding: const EdgeInsets.all(8), child: Text(origem, style: const TextStyle(color: Colors.white70)))],
@@ -2364,7 +2391,7 @@ class _EditPetFormState extends State<EditPetForm>
            if (curiosidades != null && curiosidades.isNotEmpty) ...[
                const SizedBox(height: 12),
                ExpansionTile(
-                  title: Text('Curiosidades', style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+                  title: Text(AppLocalizations.of(context)!.petCuriosities, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
                   collapsedIconColor: Colors.white54,
                   iconColor: Colors.amber,
                   children: curiosidades.map((c) => ListTile(
@@ -2380,8 +2407,8 @@ class _EditPetFormState extends State<EditPetForm>
    void _openFullAnalysis() {
       if (_currentRawAnalysis == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Detalhes completos indisponíveis. Realize uma nova análise.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.petDetailsUnavailable),
             backgroundColor: Colors.orange,
           ),
         );
@@ -2423,7 +2450,7 @@ class _EditPetFormState extends State<EditPetForm>
           child: Center(
               child: ElevatedButton.icon(
                   icon: const Icon(Icons.restaurant_menu),
-                  label: const Text('Gerar Cardápio Semanal'),
+                  label: Text(AppLocalizations.of(context)!.petGenerateWeeklyMenu),
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
                   onPressed: _generateNewMenu,
               )
@@ -2440,17 +2467,17 @@ class _EditPetFormState extends State<EditPetForm>
         Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-                _buildSectionTitle('📅 Plano Alimentar Semanal'),
+                _buildSectionTitle('📅 ${AppLocalizations.of(context)!.petWeeklyPlanTitle}'),
                 IconButton(
                     icon: const Icon(Icons.restaurant_menu, color: Color(0xFF00E676)),
-                    tooltip: 'Gerar Novo Cardápio',
+                    tooltip: AppLocalizations.of(context)!.petGenerateWeeklyMenu,
                     onPressed: _generateNewMenu,
                 ),
             ],
         ),
         const SizedBox(height: 8),
         Text(
-          'Cada refeição foca nos 5 Pilares (Protéina, Gordura, Fibras, Minerais e Hidratação)',
+          AppLocalizations.of(context)!.petNutritionPillarsDesc,
           style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
         ),
         const SizedBox(height: 16),
@@ -2545,7 +2572,7 @@ class _EditPetFormState extends State<EditPetForm>
                               child: Text(hora, style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11)),
                           ),
                           const SizedBox(width: 10),
-                          Expanded(child: Text(titulo, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14))),
+                          Expanded(child: Text(titulo, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15))),
                           if (tipo.isNotEmpty && tipo != 'Histórico')
                              Container(
                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -2556,7 +2583,7 @@ class _EditPetFormState extends State<EditPetForm>
                   ),
                   const SizedBox(height: 6),
                   Padding(
-                      padding: const EdgeInsets.only(left: 4),
+                      padding: const EdgeInsets.only(left: 48),
                       child: Text(
                           desc, 
                           style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, height: 1.4)
@@ -2748,7 +2775,7 @@ class _EditPetFormState extends State<EditPetForm>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao adicionar exame: $e'),
+            content: Text(AppLocalizations.of(context)!.errorAddingExam(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -2773,9 +2800,9 @@ class _EditPetFormState extends State<EditPetForm>
         _onUserInteractionGeneric();
         
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Texto extraído com sucesso! Clique em "Explicar Exame" para análise.'),
-            backgroundColor: Color(0xFF00E676),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.ocrSuccess),
+            backgroundColor: const Color(0xFF00E676),
           ),
         );
       }
@@ -2808,7 +2835,25 @@ class _EditPetFormState extends State<EditPetForm>
     );
     
     try {
-      final explanation = await _labExamService.generateExplanation(exam);
+      final locale = Localizations.localeOf(context).toString();
+      
+      // Direct language detection for lab exam explanations
+      String languageInstruction = "Responda em Português do Brasil.";
+      String languageName = "Portuguese-BR";
+      
+      if (locale.startsWith('en')) {
+          languageName = "English";
+          languageInstruction = "Respond in English. Translate all medical terms.";
+      } else if (locale.startsWith('es')) {
+          languageName = "Spanish";
+          languageInstruction = "Responda en Español. Traduzca todos los términos médicos.";
+      }
+
+      final explanation = await _labExamService.generateExplanation(
+          exam, 
+          languageName: languageName, 
+          languageInstruction: languageInstruction
+      );
       
       if (mounted) {
         Navigator.pop(context); // Close loading
@@ -2823,7 +2868,7 @@ class _EditPetFormState extends State<EditPetForm>
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao gerar explicação: $e'),
+            content: Text(AppLocalizations.of(context)!.errorGeneratingExplanation(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -2836,15 +2881,15 @@ class _EditPetFormState extends State<EditPetForm>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: Text('Excluir Exame', style: GoogleFonts.poppins(color: Colors.white)),
-        content: const Text(
-          'Tem certeza que deseja excluir este exame? Esta ação não pode ser desfeita.',
-          style: TextStyle(color: Colors.white70),
+        title: Text(AppLocalizations.of(context)!.examDeleteTitle, style: GoogleFonts.poppins(color: Colors.white)),
+        content: Text(
+          AppLocalizations.of(context)!.examDeleteContent,
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () {
@@ -2960,7 +3005,7 @@ class _EditPetFormState extends State<EditPetForm>
       _onUserInteractionGeneric();
       _loadLinkedPartners(); // Refresh partners UI
       
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alterações desfeitas.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.petChangesDiscarded)));
   }
 
   void _removeLinkedPartner(String id) {
@@ -3037,7 +3082,7 @@ class _EditPetFormState extends State<EditPetForm>
           context,
           MaterialPageRoute(
             builder: (context) => PdfPreviewScreen(
-              title: 'Prontuário de ${profile.petName}',
+              title: '${AppLocalizations.of(context)!.pdfReportTitle} - ${profile.petName}',
               buildPdf: (format) async {
                 final pdf = await ExportService().generatePetProfileReport(
                   profile: profile,
@@ -3053,10 +3098,76 @@ class _EditPetFormState extends State<EditPetForm>
         debugPrint('Erro ao gerar PDF: $e');
         if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+                SnackBar(content: Text('${AppLocalizations.of(context)!.pdfError} $e'), backgroundColor: Colors.red),
             );
         }
     }
+  }
+  String _localizeValue(String? value, {bool isReliability = false}) {
+    if (value == null) return AppLocalizations.of(context)!.petNotIdentified;
+    
+    final v = value.trim().toLowerCase();
+    final strings = AppLocalizations.of(context)!;
+
+    // Standard Null/NA checks
+    if (v == 'não informado' || v == 'not informed' || v == 'no informado' || v == 'n/a' || v == 'uninformed' || v == 'none' || v == 'nenhum' || v == 'ninguno') return strings.petNotOffice;
+    if (v == 'sem diagnóstico' || v == 'no diagnosis' || v == 'sin diagnóstico') return strings.petDiagnosisDefault;
+
+    // Partner Categories
+    if (v == 'todos' || v == 'all') return strings.partnersFilterAll;
+    if (v.contains('veterinário') || v.contains('veterinário') || v.contains('veterinarian')) return strings.partnersFilterVet;
+    if (v.contains('pet shop')) return strings.partnersFilterPetShop;
+    if (v.contains('farmácia') || v.contains('pharmacy')) return strings.partnersFilterPharmacy;
+    if (v.contains('banho') || v.contains('grooming') || v.contains('higiene') || v.contains('bath')) return strings.partnersFilterGrooming;
+    if (v.contains('hotel') || v.contains('hotéis')) return strings.partnersFilterHotel;
+    if (v.contains('lab') || v.contains('laboratório') || v.contains('laboratory')) return strings.partnersFilterLab;
+
+    if (isReliability) {
+      if (v.contains('baixa') || v.contains('low') || v.contains('baja')) return strings.petReliabilityLow;
+      if (v.contains('média') || v.contains('media') || v.contains('medium')) return strings.petReliabilityMedium;
+      if (v.contains('alta') || v.contains('high')) return strings.petReliabilityHigh;
+    }
+
+    // Activity Levels
+    if (v.contains('sedentário') || v.contains('baixo') || v.contains('low')) return strings.petActivityLow;
+    if (v.contains('moderado') || v.contains('moderate') || v.contains('médio') || v.contains('meio')) return strings.petActivityModerate;
+    if (v.contains('ativo') || v.contains('alta') || v.contains('alto') || v.contains('high')) return strings.petActivityHigh;
+    if (v.contains('atleta') || v.contains('athlete')) return strings.petActivityAthlete;
+
+    // Reproductive Status
+    if (v.contains('castrado') || v.contains('neutered')) return strings.petNeutered;
+    if (v.contains('inteiro') || v.contains('intacto') || v.contains('intact') || v.contains('entero')) return strings.petIntact;
+
+    // Bath Frequency
+    if (v.contains('semanal') || v.contains('weekly')) return strings.petBathWeekly;
+    if (v.contains('quinzenal') || v.contains('biweekly') || v.contains('bi-weekly')) return strings.petBathBiweekly;
+    if (v.contains('mensal') || v.contains('monthly')) return strings.petBathMonthly;
+
+    // General Not Identified/Estimated/Informed
+    if (v.contains('não identificada') || v.contains('not identified') || v.contains('no identificado')) return strings.petNotIdentified;
+    if (v.contains('não estimada') || v.contains('not estimated') || v.contains('no estimado')) return strings.petNotEstimated;
+    
+    // Model Fallbacks
+    if (v.contains('consulte veterinário') || v.contains('consult a veterinarian') || v.contains('consulte al veterinario')) return strings.petConsultVet;
+    if (v.contains('hemograma') || v.contains('blood count')) return strings.petHemogramaCheckup;
+    if (v.contains('reforço positivo') || v.contains('positive reinforcement') || v.contains('refuerzo positivo')) return strings.petPositiveReinforcement;
+    if (v.contains('brinquedos interativos') || v.contains('interactive toys') || v.contains('juguetes interactivos')) return strings.petInteractiveToys;
+    if (v.contains('consulte um vet') || v.contains('consult a vet') || v.contains('consulte a un vet')) return strings.petConsultVetCare;
+
+    // Size
+    if (v.contains('pequeno') || v.contains('small')) return strings.petSizeSmall;
+    if (v.contains('médio') || v.contains('medium') || v.contains('mediano')) return strings.petSizeMedium;
+    if (v.contains('grande') || v.contains('large')) return strings.petSizeLarge;
+    if (v.contains('gigante') || v.contains('giant')) return strings.petSizeGiant;
+
+    // Coat Type
+    if (v.contains('curto') || v.contains('short') || v.contains('corto')) return strings.petCoatShort;
+    if (v.contains('longo') || v.contains('long') || v.contains('largo')) return strings.petCoatLong;
+    if (v.contains('duplo') || v.contains('double') || v.contains('doble')) return strings.petCoatDouble;
+    if (v.contains('duro') || v.contains('wire')) return strings.petCoatWire;
+    if (v.contains('encaracolado') || v.contains('curly') || v.contains('rizado')) return strings.petCoatCurly;
+
+    return value;
   }
 }
 
@@ -3175,9 +3286,9 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
     final isYesterday = DateUtils.isSameDay(date, DateTime.now().subtract(const Duration(days: 1)));
     
     String label;
-    if (isToday) label = 'Hoje';
-    else if (isYesterday) label = 'Ontem';
-    else label = DateFormat('dd ' 'de' ' MMMM', 'pt_BR').format(date);
+    if (isToday) label = AppLocalizations.of(context)!.agendaToday;
+    else if (isYesterday) label = AppLocalizations.of(context)!.agendaYesterday;
+    else label = DateFormat('dd MMMM', Localizations.localeOf(context).toString()).format(date);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0, left: 4),
@@ -3250,7 +3361,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
                  Icon(Icons.event_busy, color: Colors.white.withOpacity(0.2), size: 48),
                  const SizedBox(height: 16),
                  Text(
-                   'Nenhum evento registrado.\nAdicione agendamentos, vacinas ou notas.',
+                   AppLocalizations.of(context)!.agendaNoEventsTitle,
                    textAlign: TextAlign.center,
                    style: GoogleFonts.poppins(color: Colors.white30, fontSize: 12),
                  ),
@@ -3263,12 +3374,12 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           const Text('Novo Evento', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+           Text(AppLocalizations.of(context)!.agendaNewEvent, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
            const SizedBox(height: 12),
            TextField(
              controller: _titleController,
              style: const TextStyle(color: Colors.white),
-             decoration: _inputDecoration('Título'),
+             decoration: _inputDecoration(AppLocalizations.of(context)!.agendaTitle),
            ),
            const SizedBox(height: 12),
            Row(
@@ -3285,7 +3396,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
                      if (d != null) setState(() => _selectedDate = d);
                    },
                    child: InputDecorator(
-                     decoration: _inputDecoration('Data'),
+                     decoration: _inputDecoration(AppLocalizations.of(context)!.agendaDate),
                      child: Text(DateFormat('dd/MM/yyyy').format(_selectedDate), style: const TextStyle(color: Colors.white)),
                    ),
                  ),
@@ -3298,7 +3409,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
                      if (t != null) setState(() => _selectedTime = t);
                    },
                    child: InputDecorator(
-                     decoration: _inputDecoration('Hora'),
+                     decoration: _inputDecoration(AppLocalizations.of(context)!.agendaTime),
                      child: Text(_selectedTime.format(context), style: const TextStyle(color: Colors.white)),
                    ),
                  ),
@@ -3310,7 +3421,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
              controller: _descController,
              style: const TextStyle(color: Colors.white),
              maxLines: 2,
-             decoration: _inputDecoration('Observações'),
+             decoration: _inputDecoration(AppLocalizations.of(context)!.agendaObservations),
            ),
            const SizedBox(height: 16),
            Row(
@@ -3318,13 +3429,13 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
              children: [
                TextButton(
                  onPressed: () => setState(() => _isAdding = false), 
-                 child: const Text('Cancelar', style: TextStyle(color: Colors.white54))
+                 child: Text(AppLocalizations.of(context)!.commonCancel, style: const TextStyle(color: Colors.white54))
                ),
                const SizedBox(width: 8),
                ElevatedButton(
                  onPressed: _saveEvent,
                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
-                 child: const Text('Adicionar'),
+                 child: Text(AppLocalizations.of(context)!.agendaAdd),
                )
              ],
            )
@@ -3351,7 +3462,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Agenda: ${widget.partner.name}', 
+                  '${AppLocalizations.of(context)!.petPartnersSchedule}: ${widget.partner.name}', 
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -3367,108 +3478,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
           const SizedBox(height: 20),
           
           if (_isAdding) _buildAddEventForm(),
-          if (false) ...[
-              Container(
-                 padding: const EdgeInsets.all(16),
-                 decoration: BoxDecoration(
-                     color: Colors.white.withOpacity(0.05),
-                     borderRadius: BorderRadius.circular(12),
-                     border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3))
-                 ),
-                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                        const Text('Novo Evento', style: TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 12),
-                        TextField(
-                            controller: _titleController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(
-                                labelText: 'Título (ex: Consulta, Banho)',
-                                labelStyle: TextStyle(color: Colors.white54),
-                                isDense: true,
-                                border: OutlineInputBorder()
-                            ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                            children: [
-                                Expanded(
-                                    child: InkWell(
-                                        onTap: () async {
-                                            final d = await showDatePicker(
-                                                context: context, 
-                                                initialDate: _selectedDate, 
-                                                firstDate: DateTime(2020), 
-                                                lastDate: DateTime(2030),
-                                                builder: (ctx, child) => Theme(data: Theme.of(ctx).copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF00E676), onSurface: Colors.white)), child: child!)
-                                            );
-                                            if (d != null) setState(() => _selectedDate = d);
-                                        },
-                                        child: InputDecorator(
-                                            decoration: const InputDecoration(
-                                                labelText: 'Data', 
-                                                isDense: true, 
-                                                border: OutlineInputBorder()
-                                            ),
-                                            child: Text(DateFormat('dd/MM/yyyy').format(_selectedDate), style: const TextStyle(color: Colors.white)),
-                                        ),
-                                    ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                    child: InkWell(
-                                        onTap: () async {
-                                            final t = await showTimePicker(
-                                                context: context, 
-                                                initialTime: _selectedTime,
-                                                builder: (ctx, child) => Theme(data: Theme.of(ctx).copyWith(colorScheme: const ColorScheme.dark(primary: Color(0xFF00E676), onSurface: Colors.white)), child: child!)
-                                            );
-                                            if (t != null) setState(() => _selectedTime = t);
-                                        },
-                                        child: InputDecorator(
-                                            decoration: const InputDecoration(
-                                                labelText: 'Hora', 
-                                                isDense: true, 
-                                                border: OutlineInputBorder()
-                                            ),
-                                            child: Text(_selectedTime.format(context), style: const TextStyle(color: Colors.white)),
-                                        ),
-                                    ),
-                                ),
-                            ],
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                            controller: _descController,
-                            style: const TextStyle(color: Colors.white),
-                            maxLines: 2,
-                            decoration: const InputDecoration(
-                                labelText: 'Observações',
-                                labelStyle: TextStyle(color: Colors.white54),
-                                isDense: true,
-                                border: OutlineInputBorder()
-                            ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                                TextButton(onPressed: () => setState(() => _isAdding = false), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                    onPressed: _saveEvent,
-                                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
-                                    child: const Text('Adicionar'),
-                                )
-                            ],
-                        )
-                    ],
-                 ),
-              ),
-              const SizedBox(height: 20),
-          ],
-
+          
           Expanded(
             child: _events.isEmpty
               ? _buildEmptyState()
@@ -3567,7 +3577,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
         debugPrint('Could not launch $uri: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Não foi possível abrir o aplicativo'))
+            SnackBar(content: Text(AppLocalizations.of(context)!.errorOpeningApp))
           );
         }
       }
@@ -3606,7 +3616,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                                  if (!v) widget.onUnlink();
                              }
                          ),
-                         const Text('Vinculado', style: TextStyle(color: Colors.white54, fontSize: 10))
+                         Text(AppLocalizations.of(context)!.petPartnersLinked, style: const TextStyle(color: Colors.white54, fontSize: 10))
                        ],
                      )
                  ],
@@ -3627,7 +3637,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                          const SizedBox(width: 8),
                          Expanded(
                              child: Text(
-                                 widget.partner.address.isNotEmpty ? widget.partner.address : 'Endereço não informado',
+                                 widget.partner.address.isNotEmpty ? widget.partner.address : AppLocalizations.of(context)!.petPartnersNoAddress,
                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
                              ),
                          ),
@@ -3646,13 +3656,13 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                          child: TextFormField(
                              controller: _phoneController,
                              style: const TextStyle(color: Colors.white, fontSize: 14),
-                             decoration: const InputDecoration(
+                             decoration: InputDecoration(
                                  isDense: true,
                                  border: InputBorder.none,
-                                 hintText: 'Telefone',
-                                 hintStyle: TextStyle(color: Colors.white30),
+                                 hintText: AppLocalizations.of(context)!.petPartnersPhoneHint,
+                                 hintStyle: const TextStyle(color: Colors.white30),
                                  enabledBorder: InputBorder.none,
-                                 focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                                 focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
                              ),
                              keyboardType: TextInputType.phone,
                              onChanged: _updatePhone,
@@ -3670,13 +3680,13 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                      _ActionIcon(
                          icon: Icons.phone, 
                          color: Colors.greenAccent, 
-                         label: 'Ligar', 
+                         label: AppLocalizations.of(context)!.petPartnersCall, 
                          onTap: () => _launch('tel', widget.partner.phone)
                      ),
                      _ActionIcon(
                          icon: Icons.event_note, 
                          color: Colors.amberAccent, 
-                         label: 'Agenda', 
+                         label: AppLocalizations.of(context)!.petPartnersSchedule, 
                          onTap: widget.onOpenAgenda,
                          isHighlighted: true,
                      ),

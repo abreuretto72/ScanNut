@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/nutrition_providers.dart';
 import '../../data/models/shopping_list_item.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 
 class ShoppingListScreen extends ConsumerWidget {
   const ShoppingListScreen({Key? key}) : super(key: key);
@@ -47,7 +48,7 @@ class ShoppingListScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            '$count Metais',
+            AppLocalizations.of(context)!.shopItems(count),
             style: GoogleFonts.poppins(color: Colors.white70, fontWeight: FontWeight.bold),
           ),
           Row(
@@ -55,11 +56,11 @@ class ShoppingListScreen extends ConsumerWidget {
               TextButton.icon(
                 onPressed: () => _generateFromPlan(context, ref),
                 icon: const Icon(Icons.sync, size: 18, color: Color(0xFF00E676)),
-                label: Text('Sincronizar Plano', style: GoogleFonts.poppins(color: const Color(0xFF00E676))),
+                label: Text(AppLocalizations.of(context)!.shopSyncPlan, style: GoogleFonts.poppins(color: const Color(0xFF00E676))),
               ),
               IconButton(
                 icon: const Icon(Icons.delete_sweep, color: Colors.redAccent),
-                tooltip: 'Limpar Concluídos',
+                tooltip: AppLocalizations.of(context)!.shopClearDone,
                 onPressed: () => ref.read(shoppingListProvider.notifier).clearCompleted(),
               ),
             ],
@@ -77,12 +78,12 @@ class ShoppingListScreen extends ConsumerWidget {
           const Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.white24),
           const SizedBox(height: 24),
           Text(
-            'Sua lista está vazia',
+            AppLocalizations.of(context)!.shopEmptyTitle,
             style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
-            'Adicione itens manualmente ou\ngere a partir do seu cardápio.',
+            AppLocalizations.of(context)!.shopEmptySubtitle,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(color: Colors.white54),
           ),
@@ -90,7 +91,7 @@ class ShoppingListScreen extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => _generateFromPlan(context, ref),
             icon: const Icon(Icons.restaurant_menu),
-            label: Text('Gerar do Cardápio Semanal', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+            label: Text(AppLocalizations.of(context)!.shopGenerateFromMenu, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00E676),
               foregroundColor: Colors.black,
@@ -135,7 +136,7 @@ class ShoppingListScreen extends ConsumerWidget {
   Future<void> _generateFromPlan(BuildContext context, WidgetRef ref) async {
     final currentPlan = ref.read(currentWeekPlanProvider);
     if (currentPlan == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Crie um cardápio primeiro!')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.shopNoMenuError)));
       return;
     }
 
@@ -143,11 +144,11 @@ class ShoppingListScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: const Text('Substituir lista?', style: TextStyle(color: Colors.white)),
-        content: const Text('Isso vai apagar a lista atual e criar uma nova baseada no cardápio.', style: TextStyle(color: Colors.white70)),
+        title: Text(AppLocalizations.of(context)!.shopReplaceTitle, style: const TextStyle(color: Colors.white)),
+        content: Text(AppLocalizations.of(context)!.shopReplaceContent, style: const TextStyle(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)), child: const Text('Gerar Lista')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.btnCancel)),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)), child: Text(AppLocalizations.of(context)!.shopGenerateBtn)),
         ],
       ),
     );
@@ -155,7 +156,7 @@ class ShoppingListScreen extends ConsumerWidget {
     if (confirm == true) {
       await ref.read(shoppingListProvider.notifier).generateFromPlan(currentPlan);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('✅ Lista gerada com sucesso!'), backgroundColor: Colors.green));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.shopGeneratedSuccess), backgroundColor: Colors.green));
       }
     }
   }
@@ -168,7 +169,7 @@ class ShoppingListScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Adicionar Item', style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.shopAddItemTitle, style: GoogleFonts.poppins(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -177,9 +178,9 @@ class ShoppingListScreen extends ConsumerWidget {
               autofocus: true,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                labelText: 'Nome do Item',
+                labelText: AppLocalizations.of(context)!.shopItemName,
                 labelStyle: const TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
               ),
             ),
             const SizedBox(height: 16),
@@ -187,9 +188,9 @@ class ShoppingListScreen extends ConsumerWidget {
               controller: qtdController,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                labelText: 'Quantidade (ex: 2kg, 1 un)',
+                labelText: AppLocalizations.of(context)!.shopItemQty,
                 labelStyle: const TextStyle(color: Colors.white54),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
               ),
             ),
           ],
@@ -197,20 +198,20 @@ class ShoppingListScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white54)),
+            child: Text(AppLocalizations.of(context)!.btnCancel, style: GoogleFonts.poppins(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () {
               if (nomeController.text.isNotEmpty) {
                 ref.read(shoppingListProvider.notifier).addItem(
                   nomeController.text,
-                  qtdController.text.isEmpty ? '1 porção' : qtdController.text,
+                  qtdController.text.isEmpty ? AppLocalizations.of(context)!.shopDefaultQty : qtdController.text,
                 );
                 Navigator.pop(context);
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35)),
-            child: Text('Adicionar', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.commonAdd, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

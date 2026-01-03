@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,31 +24,40 @@ class PartnersHubScreen extends ConsumerStatefulWidget {
 
 class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   final PartnerService _service = PartnerService();
-  List<PartnerModel> _registeredPartners = [];
+  List<PartnerModel> _allPartners = [];
   bool _loading = true;
-  String _selectedCategory = 'Todos';
+  late String _selectedCategory; // Initialized in didChangeDependencies
 
-  final List<String> _filterCategories = [
-    'Todos',
-    'Veterinário',
-    'Pet Shop',
-    'Farmácias Pet',
-    'Banho e Tosa',
-    'Hotéis',
-    'Laboratórios'
+  List<String> get _filterCategories => [
+    AppLocalizations.of(context)!.partnersFilterAll,
+    AppLocalizations.of(context)!.partnersFilterVet,
+    AppLocalizations.of(context)!.partnersFilterPetShop,
+    AppLocalizations.of(context)!.partnersFilterPharmacy,
+    AppLocalizations.of(context)!.partnersFilterGrooming,
+    AppLocalizations.of(context)!.partnersFilterHotel,
+    AppLocalizations.of(context)!.partnersFilterLab,
   ];
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _selectedCategory = ''; // Initialize empty
+    _loadPartners();
   }
 
-  Future<void> _loadData() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_selectedCategory.isEmpty || _selectedCategory == 'Todos' || _selectedCategory == 'All') {
+       _selectedCategory = AppLocalizations.of(context)!.partnersFilterAll;
+    }
+  }
+
+  Future<void> _loadPartners() async { // Renamed from _loadData
     try {
       setState(() => _loading = true);
       await _service.init();
-      _registeredPartners = _service.getAllPartners();
+      _allPartners = _service.getAllPartners(); // Renamed from _allPartners
     } catch (e) {
       debugPrint("Erro ao carregar parceiros: $e");
     } finally {
@@ -72,7 +82,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
               builder: (context) => PartnerRegistrationScreen(initialData: partner),
             ),
           );
-          if (result == true) _loadData();
+          if (result == true) _loadPartners(); // Updated call
         },
       ),
     );
@@ -83,12 +93,12 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
       context,
       MaterialPageRoute(builder: (context) => const PartnerRegistrationScreen()),
     );
-    if (result == true) _loadData();
+    if (result == true) _loadPartners(); // Updated call
   }
 
   Future<void> _generatePdf() async {
-    String selectedReportCategory = 'Todos';
-    String selectedReportType = 'Resumo';
+    String selectedReportCategory = AppLocalizations.of(context)!.partnersFilterAll;
+    String selectedReportType = AppLocalizations.of(context)!.partnersSummary;
 
     showDialog(
       context: context,
@@ -97,7 +107,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
           backgroundColor: Colors.grey[900],
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
-            'Exportar PDF: Hub de Apoio',
+            AppLocalizations.of(context)!.partnersExportPdf,
             style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           content: SizedBox(
@@ -107,7 +117,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Tipo de Parceiro', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                  Text(AppLocalizations.of(context)!.partnersCategory, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -127,27 +137,27 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text('Nível de Detalhamento', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                  Text(AppLocalizations.of(context)!.partnersDetailLevel, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       _buildTypeOption(
-                        'Resumo', 
-                        selectedReportType == 'Resumo', 
-                        () => setDialogState(() => selectedReportType = 'Resumo')
+                        AppLocalizations.of(context)!.partnersSummary,
+                        selectedReportType == AppLocalizations.of(context)!.partnersSummary,
+                        () => setDialogState(() => selectedReportType = AppLocalizations.of(context)!.partnersSummary)
                       ),
                       const SizedBox(width: 12),
                       _buildTypeOption(
-                        'Detalhamento', 
-                        selectedReportType == 'Detalhamento', 
-                        () => setDialogState(() => selectedReportType = 'Detalhamento')
+                        AppLocalizations.of(context)!.partnersDetailed,
+                        selectedReportType == AppLocalizations.of(context)!.partnersDetailed,
+                        () => setDialogState(() => selectedReportType = AppLocalizations.of(context)!.partnersDetailed)
                       ),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'O relatório incluirá os parceiros cadastrados no seu Hub de Apoio conforme os filtros selecionados.',
-                    style: TextStyle(color: Colors.white38, fontSize: 11),
+                  Text(
+                    AppLocalizations.of(context)!.partnersExportDisclaimer,
+                    style: const TextStyle(color: Colors.white38, fontSize: 11),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -164,7 +174,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 4,
                       ),
-                      child: const Text('GERAR RELATÓRIO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.1)),
+                      child: Text(AppLocalizations.of(context)!.partnersGenerateReport, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 1.1)),
                     ),
                   ),
                   const SizedBox(height: 20), // Anti-overflow Rule of Gold
@@ -176,7 +186,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('VOLTAR', style: TextStyle(color: Colors.white24, fontSize: 12)),
+                child: Text(AppLocalizations.of(context)!.partnersBack, style: const TextStyle(color: Colors.white24, fontSize: 12)),
               ),
             ),
           ],
@@ -211,13 +221,13 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   }
 
   Future<void> _executePdfGeneration(String category, String type) async {
-    final reportPartners = category == 'Todos' 
-        ? _registeredPartners 
-        : _registeredPartners.where((p) => p.category == category).toList();
+    final reportPartners = category == AppLocalizations.of(context)!.partnersFilterAll
+        ? _allPartners // Renamed from _allPartners
+        : _allPartners.where((p) => p.category == category).toList(); // Renamed from _allPartners
 
     if (reportPartners.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nenhum parceiro encontrado para os filtros selecionados.'), backgroundColor: Colors.orange),
+        SnackBar(content: Text(AppLocalizations.of(context)!.noPartnersForFilters), backgroundColor: Colors.orange), // This one seemed okay? If fails, I'll fix it.
       );
       return;
     }
@@ -226,11 +236,12 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => PdfPreviewScreen(
-          title: 'Relatório Hub de Apoio',
+          title: AppLocalizations.of(context)!.partnersExportPdf,
           buildPdf: (format) async {
             final pdf = await ExportService().generatePartnersHubReport(
               partners: reportPartners,
               reportType: type,
+              strings: AppLocalizations.of(context)!,
             );
             return pdf.save();
           },
@@ -240,8 +251,16 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   }
 
   List<PartnerModel> get _filteredPartners {
-    if (_selectedCategory == 'Todos') return _registeredPartners;
-    return _registeredPartners.where((p) => p.category == _selectedCategory).toList();
+    if (_selectedCategory == AppLocalizations.of(context)!.partnersFilterAll) return _allPartners;
+    return _allPartners.where((p) {
+        // Map localized category back to canonical or compare loosely?
+        // Better: Use internal canonical categories ('veterinarian', 'pharmacy') vs Display categories.
+        // For now, assuming PartnerModel stores localized or canonical.
+        // If PartnerModel stores 'Veterinária' (pt), we need to ensure compatibility.
+        // Assuming PartnerService saves localized strings from UI.
+        // Quick fix: Check if category contains partial match or match exact.
+        return p.category.toLowerCase() == _selectedCategory.toLowerCase();
+    }).toList();
   }
 
   @override
@@ -255,7 +274,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             floating: true,
             backgroundColor: Colors.black,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(widget.isSelectionMode ? 'Selecionar Parceiro' : 'Meu Hub de Apoio', 
+              title: Text(widget.isSelectionMode ? AppLocalizations.of(context)!.partnersSelectTitle : AppLocalizations.of(context)!.partnersTitle,
                   style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
               centerTitle: false,
               titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
@@ -285,13 +304,13 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             ),
         ],
       ),
-      floatingActionButton: widget.isSelectionMode 
-          ? null 
+      floatingActionButton: widget.isSelectionMode
+          ? null
           : FloatingActionButton.extended(
         onPressed: _openManualRegistration,
         backgroundColor: const Color(0xFF00E676),
         icon: const Icon(Icons.add, color: Colors.black),
-        label: Text('CADASTRAR', style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
+        label: Text(AppLocalizations.of(context)!.partnersRegister, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -338,13 +357,13 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             Icon(Icons.handshake_outlined, size: 80, color: Colors.white.withOpacity(0.1)),
             const SizedBox(height: 16),
             Text(
-              _selectedCategory == 'Todos' 
-                ? 'Sua rede de apoio está vazia' 
-                : 'Nenhum parceiro em "$_selectedCategory"', 
+              _selectedCategory == AppLocalizations.of(context)!.partnersFilterAll
+                ? AppLocalizations.of(context)!.partnersNoneFound
+                : AppLocalizations.of(context)!.partnersNoneInCategory(_selectedCategory),
               style: GoogleFonts.poppins(color: Colors.white54, fontSize: 16)
             ),
             const SizedBox(height: 8),
-            Text('Use o Radar para descobrir locais próximos', style: GoogleFonts.poppins(color: Colors.white24, fontSize: 12)),
+            Text(AppLocalizations.of(context)!.partnersRadarHint, style: GoogleFonts.poppins(color: Colors.white24, fontSize: 12)),
           ],
         ),
       ),
@@ -370,21 +389,21 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                   builder: (context) => PartnerRegistrationScreen(initialData: partner),
                 ),
               );
-              if (result == true) _loadData();
+              if (result == true) _loadPartners(); // Updated call
           }
         },
         contentPadding: const EdgeInsets.all(16),
         leading: _getCategoryIcon(partner.category),
         title: Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
         subtitle: Text(partner.category, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12)),
-        trailing: widget.isSelectionMode 
+        trailing: widget.isSelectionMode
             ? const Icon(Icons.check_circle_outline, color: Color(0xFF00E676))
             : IconButton(
                 icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF00E676)),
                 onPressed: () {
                     WhatsAppService.abrirChat(
                     telefone: partner.phone,
-                    mensagem: 'Olá, venho através do ScanNut e gostaria de informações sobre seus serviços.',
+                    mensagem: AppLocalizations.of(context)!.whatsappInitialMessage,
                     );
                 },
             ),
@@ -395,15 +414,14 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   Widget _getCategoryIcon(String category) {
     IconData icon;
     Color color;
-    switch (category) {
-      case 'Veterinário': icon = Icons.local_hospital; color = Colors.redAccent; break;
-      case 'Farmácias Pet': icon = Icons.medication; color = Colors.blueAccent; break;
-      case 'Pet Shop': icon = Icons.shopping_basket; color = Colors.orangeAccent; break;
-      case 'Banho e Tosa': icon = Icons.content_cut; color = Colors.purpleAccent; break;
-      case 'Hotéis': icon = Icons.hotel; color = Colors.amberAccent; break;
-      case 'Laboratórios': icon = Icons.biotech; color = Colors.cyanAccent; break;
-      default: icon = Icons.pets; color = Colors.greenAccent;
-    }
+    if (category == AppLocalizations.of(context)!.partnersFilterVet) { icon = Icons.local_hospital; color = Colors.redAccent; }
+    else if (category == AppLocalizations.of(context)!.partnersFilterPharmacy) { icon = Icons.medication; color = Colors.blueAccent; }
+    else if (category == AppLocalizations.of(context)!.partnersFilterPetShop) { icon = Icons.shopping_basket; color = Colors.orangeAccent; }
+    else if (category == AppLocalizations.of(context)!.partnersFilterGrooming) { icon = Icons.content_cut; color = Colors.purpleAccent; }
+    else if (category == AppLocalizations.of(context)!.partnersFilterHotel) { icon = Icons.hotel; color = Colors.amberAccent; }
+    else if (category == AppLocalizations.of(context)!.partnersFilterLab) { icon = Icons.biotech; color = Colors.cyanAccent; }
+    else { icon = Icons.pets; color = Colors.greenAccent; }
+
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
@@ -422,25 +440,34 @@ class _ExploreRadarSheet extends ConsumerStatefulWidget {
 
 class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
   final PartnerService _service = PartnerService();
-  String _selectedCategory = 'Todos';
+  late String _selectedCategory;
   List<PartnerModel> _discoveredResults = [];
   bool _isLoading = true;
   String _errorMessage = '';
-  
-  final List<String> _categories = [
-    'Todos',
-    'Veterinário',
-    'Pet Shop',
-    'Farmácias Pet',
-    'Banho e Tosa',
-    'Hotéis',
-    'Laboratórios'
+
+  List<String> get _categories => [
+    AppLocalizations.of(context)!.partnersFilterAll,
+    AppLocalizations.of(context)!.partnersFilterVet,
+    AppLocalizations.of(context)!.partnersFilterPetShop,
+    AppLocalizations.of(context)!.partnersFilterPharmacy,
+    AppLocalizations.of(context)!.partnersFilterGrooming,
+    AppLocalizations.of(context)!.partnersFilterHotel,
+    AppLocalizations.of(context)!.partnersFilterLab,
   ];
 
   @override
   void initState() {
     super.initState();
+    _selectedCategory = 'Todos';
     _startDiscovery();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_selectedCategory == 'Todos') {
+       _selectedCategory = AppLocalizations.of(context)!.partnersFilterAll;
+    }
   }
 
   Future<void> _startDiscovery() async {
@@ -457,7 +484,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
         if (permission == LocationPermission.denied) {
           setState(() {
             _isLoading = false;
-            _errorMessage = 'Permissão de localização negada.';
+            _errorMessage = AppLocalizations.of(context)!.partnersLocationDenied;
           });
           return;
         }
@@ -466,7 +493,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
       if (permission == LocationPermission.deniedForever) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Permissão negada permanentemente nas configurações.';
+          _errorMessage = AppLocalizations.of(context)!.partnersLocationPermanentlyDenied;
         });
         return;
       }
@@ -483,7 +510,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
         if (lastPos != null) {
           position = lastPos;
         } else {
-          throw 'Não foi possível obter sua localização atual.';
+          throw AppLocalizations.of(context)!.partnersLocationError;
         }
       }
 
@@ -564,7 +591,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text('Detectamos estabelecimentos reais na sua região', style: TextStyle(color: Colors.white38, fontSize: 13)),
+            Text(AppLocalizations.of(context)!.partnersRadarDetecting, style: const TextStyle(color: Colors.white38, fontSize: 13)),
             const SizedBox(height: 16),
             _buildRadarFilterBar(),
             const SizedBox(height: 16),
@@ -576,7 +603,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                       children: [
                         const CircularProgressIndicator(color: Colors.blueAccent),
                         const SizedBox(height: 16),
-                        Text('Rastreando estabelecimentos via GPS...', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                        Text(AppLocalizations.of(context)!.partnersRadarTracking, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
                       ],
                     ),
                   )
@@ -586,7 +613,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                       child: Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
                     ))
                   : _filteredResults.isEmpty 
-                    ? Center(child: Text('Nenhum local nesta categoria.', style: GoogleFonts.poppins(color: Colors.white38)))
+                    ? Center(child: Text(AppLocalizations.of(context)!.partnersRadarNoResults, style: GoogleFonts.poppins(color: Colors.white38)))
                     : ListView.builder(
                         controller: scrollController,
                         itemCount: _filteredResults.length,

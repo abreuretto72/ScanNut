@@ -44,7 +44,7 @@ class LabExamService {
   }
 
   /// Generate AI explanation for exam results using Gemini
-  Future<String> generateExplanation(LabExam exam) async {
+  Future<String> generateExplanation(LabExam exam, {String languageName = 'Portuguese-BR', String languageInstruction = 'Responda em Português do Brasil.'}) async {
     if (exam.extractedText == null || exam.extractedText!.isEmpty) {
       return 'Não foi possível extrair texto do exame.';
     }
@@ -54,9 +54,9 @@ class LabExamService {
     }
 
     try {
-      debugPrint('🤖 Gerando explicação com IA...');
+      debugPrint('🤖 Gerando explicação com IA (Lang: $languageName)...');
       
-      final prompt = _buildExplanationPrompt(exam);
+      final prompt = _buildExplanationPrompt(exam, languageName, languageInstruction);
       
       // Use Gemini API for real explanation
       final explanation = await _geminiService.generatePlainText(prompt);
@@ -93,56 +93,109 @@ class LabExamService {
     _textRecognizer.close();
   }
 
-  String _buildExplanationPrompt(LabExam exam) {
-    final categoryContext = _getCategoryContext(exam.category);
+  String _buildExplanationPrompt(LabExam exam, String languageName, String languageInstruction) {
+    final isPortuguese = languageName.contains('Portuguese');
+    final isSpanish = languageName.contains('Spanish');
+    final categoryContext = _getCategoryContext(exam.category, languageName);
     
     return '''
-Você é um assistente veterinário especializado em explicar exames laboratoriais para tutores de pets.
+$languageInstruction
 
-CONTEXTO: Este é um ${categoryContext['name']} de um animal de estimação.
+[ROLE]
+You are a Veterinary AI specialized in explaining lab results to pet owners.
 
-TEXTO EXTRAÍDO DO EXAME:
+CONTEXT: This is a ${categoryContext['name']} for a pet.
+
+EXTRACTED TEXT FROM EXAM:
 ${exam.extractedText}
 
-INSTRUÇÕES:
-1. Identifique os principais parâmetros mencionados no exame
-2. Para cada parâmetro relevante, explique:
-   - O que é esse parâmetro
-   - O que ele indica sobre a saúde do pet
-   - Se os valores parecem estar dentro ou fora do normal (se mencionados)
-3. Use linguagem simples e acessível para tutores leigos
-4. Seja objetivo e direto
-5. Mencione apenas os parâmetros que realmente aparecem no texto
-6. Limite a resposta a 300 palavras
+INSTRUCTIONS:
+1. Identify major parameters mentioned.
+2. For each relevant parameter, explain:
+   - What it is.
+   - What it indicates about pet health.
+   - If values seem normal or abnormal (if ranges are provided).
+3. Use simple, accessible language for laypeople.
+4. Be objective and direct.
+5. ONLY mention parameters found in the text.
+6. Limit response to 300 words.
+7. Output MUST be in $languageName.
 
-IMPORTANTE: Esta é apenas uma análise informativa. Sempre recomende consultar o veterinário para interpretação completa.
-
-Forneça a explicação em português brasileiro, de forma clara e organizada:
+IMPORTANT: This is informative only. Always recommend seeing a vet for full diagnosis.
 ''';
   }
 
-  Map<String, String> _getCategoryContext(String category) {
-    switch (category) {
-      case 'blood':
-        return {
-          'name': 'exame de sangue (hemograma ou bioquímico)',
-          'focus': 'hemoglobina, leucócitos, plaquetas, enzimas hepáticas, função renal',
-        };
-      case 'urine':
-        return {
-          'name': 'exame de urina (EAS - Elementos Anormais e Sedimentoscopia)',
-          'focus': 'densidade, pH, proteínas, glicose, cristais, células',
-        };
-      case 'feces':
-        return {
-          'name': 'exame de fezes (parasitológico)',
-          'focus': 'parasitas, ovos, larvas, protozoários',
-        };
-      default:
-        return {
-          'name': 'exame laboratorial',
-          'focus': 'parâmetros gerais de saúde',
-        };
+  Map<String, String> _getCategoryContext(String category, String languageName) {
+    if (languageName.contains('Portuguese')) {
+        switch (category) {
+          case 'blood':
+            return {
+              'name': 'exame de sangue (hemograma ou bioquímico)',
+              'focus': 'hemoglobina, leucócitos, plaquetas, enzimas hepáticas, função renal',
+            };
+          case 'urine':
+            return {
+              'name': 'exame de urina (EAS - Elementos Anormais e Sedimentoscopia)',
+              'focus': 'densidade, pH, proteínas, glicose, cristais, células',
+            };
+          case 'feces':
+            return {
+              'name': 'exame de fezes (parasitológico)',
+              'focus': 'parasitas, ovos, larvas, protozoários',
+            };
+          default:
+            return {
+              'name': 'exame laboratorial',
+              'focus': 'parâmetros gerais de saúde',
+            };
+        }
+    } else if (languageName.contains('Spanish')) {
+        switch (category) {
+          case 'blood':
+            return {
+              'name': 'análisis de sangre (hemograma o bioquímico)',
+              'focus': 'hemoglobina, leucocitos, plaquetas, enzimas hepáticas, función renal',
+            };
+          case 'urine':
+            return {
+              'name': 'análisis de orina (EAS - Elementos Anormales y Sedimentoscopia)',
+              'focus': 'densidad, pH, proteínas, glucosa, cristales, células',
+            };
+          case 'feces':
+            return {
+              'name': 'análisis de heces (parasitológico)',
+              'focus': 'parásitos, huevos, larvas, protozoarios',
+            };
+          default:
+            return {
+              'name': 'examen de laboratorio',
+              'focus': 'parámetros generales de salud',
+            };
+        }
+    } else {
+        // Default to English
+        switch (category) {
+          case 'blood':
+            return {
+              'name': 'blood test (CBC or biochemistry)',
+              'focus': 'hemoglobin, WBC, platelets, liver enzymes, kidney function',
+            };
+          case 'urine':
+            return {
+              'name': 'urinalysis',
+              'focus': 'density, pH, proteins, glucose, crystals, cells',
+            };
+          case 'feces':
+            return {
+              'name': 'fecal exam (parasitology)',
+              'focus': 'parasites, eggs, larvae, protozoa',
+            };
+          default:
+            return {
+              'name': 'laboratory exam',
+              'focus': 'general health parameters',
+            };
+        }
     }
   }
 

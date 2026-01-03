@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 
 /// Tela de detalhes completos da análise da raça do pet
 class RaceAnalysisDetailScreen extends StatelessWidget {
@@ -31,7 +32,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Análise Completa da Raça',
+          AppLocalizations.of(context)!.petFullAnalysisTitle,
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -71,7 +72,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Análise Genética Detalhada',
+                          AppLocalizations.of(context)!.petGeneticAnalysisSub,
                           style: GoogleFonts.poppins(
                             color: Colors.white.withOpacity(0.9),
                             fontSize: 12,
@@ -88,35 +89,35 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
 
             // Identificação
             if (ident != null) ...[
-              _buildSectionTitle('🧬 Identificação Genética', Icons.science),
+              _buildSectionTitle(AppLocalizations.of(context)!.petGeneticId, Icons.science),
               const SizedBox(height: 12),
               _buildInfoCard([
-                _buildInfoRow('Linhagem', ident['linhagem_mista']?.toString() ?? 'Não identificada'),
-                _buildInfoRow('Raça Predominante', ident['raca_predominante']?.toString() ?? 'Não identificada'),
-                _buildInfoRow('Raças Secundárias', ident['racas_secundarias']?.toString() ?? 'Não identificadas'),
-                _buildInfoRow('Confiabilidade', ident['confiabilidade']?.toString() ?? 'Baixa'),
+                _buildInfoRow(AppLocalizations.of(context)!.petLineage, ident['linhagem_mista']?.toString() ?? AppLocalizations.of(context)!.petNotIdentified),
+                _buildInfoRow(AppLocalizations.of(context)!.petPrimaryRace, ident['raca_predominante']?.toString() ?? AppLocalizations.of(context)!.petNotIdentified),
+                _buildInfoRow(AppLocalizations.of(context)!.petSecondaryRaces, ident['racas_secundarias']?.toString() ?? AppLocalizations.of(context)!.petNotIdentifiedPlural),
+                _buildInfoRow(AppLocalizations.of(context)!.petReliability, ident['confiabilidade']?.toString() ?? AppLocalizations.of(context)!.petReliabilityLow),
               ]),
               const SizedBox(height: 20),
             ],
 
             // Características Físicas
             if (fisica != null) ...[
-              _buildSectionTitle('📏 Características Físicas', Icons.straighten),
+              _buildSectionTitle(AppLocalizations.of(context)!.petPhysicalChars, Icons.straighten),
               const SizedBox(height: 12),
               _buildInfoCard([
-                _buildInfoRow('Porte', fisica['porte']?.toString() ?? 'Não identificado'),
-                _buildInfoRow('Peso Estimado', fisica['peso_estimado']?.toString() ?? 'Variável'),
-                _buildInfoRow('Altura', fisica['altura']?.toString() ?? 'Não estimada'),
-                _buildInfoRow('Expectativa de Vida', fisica['expectativa_vida']?.toString() ?? 'Não estimada'),
-                _buildInfoRow('Tipo de Pelagem', fisica['tipo_pelagem']?.toString() ?? 'Não identificado'),
-                _buildInfoRow('Cores Comuns', fisica['cores_comuns']?.toString() ?? 'Variadas'),
+                _buildInfoRow(AppLocalizations.of(context)!.petSize, fisica['porte']?.toString() ?? AppLocalizations.of(context)!.petNotIdentified),
+                _buildInfoRow(AppLocalizations.of(context)!.petWeightEstimated, fisica['peso_estimado']?.toString() ?? AppLocalizations.of(context)!.petVariable),
+                _buildInfoRow(AppLocalizations.of(context)!.petHeight, fisica['altura']?.toString() ?? AppLocalizations.of(context)!.petNotEstimated),
+                _buildInfoRow(AppLocalizations.of(context)!.petExpectancy, fisica['expectativa_vida']?.toString() ?? AppLocalizations.of(context)!.petNotEstimated),
+                _buildInfoRow(AppLocalizations.of(context)!.petCoatType, fisica['tipo_pelagem']?.toString() ?? AppLocalizations.of(context)!.petNotIdentified),
+                _buildInfoRow(AppLocalizations.of(context)!.petCommonColors, fisica['cores_comuns']?.toString() ?? AppLocalizations.of(context)!.petVaried),
               ]),
               const SizedBox(height: 20),
             ],
 
             // Temperamento
             if (temp != null) ...[
-              _buildSectionTitle('🎭 Temperamento e Personalidade', Icons.psychology),
+              _buildSectionTitle(AppLocalizations.of(context)!.petTemperamentTitle, Icons.psychology),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -130,7 +131,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
                   children: [
                     if (temp['personalidade'] != null) ...[
                       Text(
-                        'Personalidade',
+                        AppLocalizations.of(context)!.petPersonality,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF00E676),
                           fontSize: 14,
@@ -146,7 +147,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
                     ],
                     if (temp['comportamento_social'] != null) ...[
                       Text(
-                        'Comportamento Social',
+                        AppLocalizations.of(context)!.petSocialBehavior,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF00E676),
                           fontSize: 14,
@@ -162,7 +163,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
                     ],
                     if (temp['nivel_energia'] != null) ...[
                       Text(
-                        'Nível de Energia',
+                        AppLocalizations.of(context)!.petEnergyLevel,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF00E676),
                           fontSize: 14,
@@ -183,7 +184,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
 
             // Cuidados
             if (cuidados != null) ...[
-              _buildSectionTitle('💚 Cuidados Recomendados', Icons.favorite),
+              _buildSectionTitle(AppLocalizations.of(context)!.petRecommendedCare, Icons.favorite),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -196,19 +197,19 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (cuidados['exercicio'] != null) ...[
-                      _buildCareItem('🏃 Exercício', cuidados['exercicio'].toString()),
+                      _buildCareItem('🏃 ${AppLocalizations.of(context)!.petExercise}', cuidados['exercicio'].toString()),
                       const SizedBox(height: 12),
                     ],
                     if (cuidados['alimentacao'] != null) ...[
-                      _buildCareItem('🍖 Alimentação', cuidados['alimentacao'].toString()),
+                      _buildCareItem('🍖 ${AppLocalizations.of(context)!.petNutrition}', cuidados['alimentacao'].toString()),
                       const SizedBox(height: 12),
                     ],
                     if (cuidados['higiene'] != null) ...[
-                      _buildCareItem('🛁 Higiene', cuidados['higiene'].toString()),
+                      _buildCareItem('🛁 ${AppLocalizations.of(context)!.petHygiene}', cuidados['higiene'].toString()),
                       const SizedBox(height: 12),
                     ],
                     if (cuidados['saude'] != null) ...[
-                      _buildCareItem('💉 Saúde', cuidados['saude'].toString()),
+                      _buildCareItem('💉 ${AppLocalizations.of(context)!.petHealth}', cuidados['saude'].toString()),
                     ],
                   ],
                 ),
@@ -218,7 +219,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
 
             // Origem e História
             if (origem != null && origem.isNotEmpty) ...[
-              _buildSectionTitle('📜 Origem e História', Icons.history_edu),
+              _buildSectionTitle(AppLocalizations.of(context)!.petOriginHistory, Icons.history_edu),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -241,7 +242,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
 
             // Curiosidades
             if (curiosidades != null && curiosidades.isNotEmpty) ...[
-              _buildSectionTitle('✨ Curiosidades', Icons.lightbulb),
+              _buildSectionTitle(AppLocalizations.of(context)!.petCuriositiesTitle, Icons.lightbulb),
               const SizedBox(height: 12),
               ...curiosidades.map((curiosidade) => Container(
                 margin: const EdgeInsets.only(bottom: 12),

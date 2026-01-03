@@ -68,41 +68,36 @@ class LabExam {
 /// Exam category metadata
 class ExamCategory {
   final String id;
-  final String name;
+
   final IconData icon;
   final Color color;
 
   const ExamCategory({
     required this.id,
-    required this.name,
     required this.icon,
     required this.color,
   });
 
   static const blood = ExamCategory(
     id: 'blood',
-    name: 'Exame de Sangue',
     icon: Icons.bloodtype,
     color: Color(0xFFE53935),
   );
 
   static const urine = ExamCategory(
     id: 'urine',
-    name: 'Exame de Urina',
     icon: Icons.water_drop,
     color: Color(0xFFFDD835),
   );
 
   static const feces = ExamCategory(
     id: 'feces',
-    name: 'Exame de Fezes',
     icon: Icons.medication,
     color: Color(0xFF8D6E63),
   );
 
   static const other = ExamCategory(
     id: 'other',
-    name: 'Outros Exames',
     icon: Icons.add_to_photos,
     color: Color(0xFF00E676),
   );

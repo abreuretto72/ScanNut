@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -259,22 +260,22 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: Colors.grey[900],
-          title: const Text('Exportar Agenda', style: TextStyle(color: Colors.white)),
+          title: Text(AppLocalizations.of(context)!.agendaExportTitle, style: const TextStyle(color: Colors.white)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Tipo de Relatório:', style: TextStyle(color: Colors.white70)),
+                Text(AppLocalizations.of(context)!.agendaReportType, style: const TextStyle(color: Colors.white70)),
                 RadioListTile<String>(
-                  title: const Text('Resumo', style: TextStyle(color: Colors.white)),
+                  title: Text(AppLocalizations.of(context)!.agendaReportSummary, style: const TextStyle(color: Colors.white)),
                   value: 'Resumo',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
                   activeColor: const Color(0xFF00E676),
                 ),
                 RadioListTile<String>(
-                  title: const Text('Detalhamento', style: TextStyle(color: Colors.white)),
+                  title: Text(AppLocalizations.of(context)!.agendaReportDetail, style: const TextStyle(color: Colors.white)),
                   value: 'Detalhamento',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
@@ -286,7 +287,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+              child: Text(AppLocalizations.of(context)!.commonCancel, style: const TextStyle(color: Colors.white54)),
             ),
             TextButton(
               onPressed: () async {
@@ -312,22 +313,23 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                 final service = ExportService();
                 final pdf = await service.generateAgendaReport(
                   events: petEvents,
-                  start: DateTime(2000), // Coverage
+                  start: DateTime(2000),
                   end: DateTime(2100),
-                  reportType: reportType
+                  reportType: reportType,
+                  strings: AppLocalizations.of(context)!
                 );
                 
                 if (mounted) {
                   Navigator.push(
                     context, 
                     MaterialPageRoute(builder: (_) => PdfPreviewScreen(
-                      title: 'Relatório de Agenda',
+                      title: AppLocalizations.of(context)!.pdfAgendaReport,
                       buildPdf: (format) async => pdf.save(),
                     ))
                   );
                 }
               },
-              child: const Text('Gerar PDF', style: TextStyle(color: Color(0xFF00E676))),
+              child: Text(AppLocalizations.of(context)!.agendaGeneratePDF, style: const TextStyle(color: const Color(0xFF00E676))),
             ),
           ],
         ),
@@ -347,7 +349,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Agenda', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+            Text(AppLocalizations.of(context)!.agendaTitle, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
             Text(widget.partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
@@ -358,7 +360,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-            tooltip: 'Exportar PDF',
+            tooltip: AppLocalizations.of(context)!.menuExportReport,
             onPressed: _showExportDialog,
           ),
         ],
@@ -434,11 +436,11 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                 children: [
                   Text(
                     _selectedDay != null 
-                      ? DateFormat('d ' 'de' ' MMMM', 'pt_BR').format(_selectedDay!)
-                      : 'Hoje',
+                      ? DateFormat.MMMMd(Localizations.localeOf(context).toString()).format(_selectedDay!)
+                      : AppLocalizations.of(context)!.agendaToday,
                     style: GoogleFonts.poppins(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.w600),
                   ),
-                  Text('${dailyEvents.length} eventos', style: const TextStyle(color: Colors.white24, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.agendaEventsCount(dailyEvents.length), style: const TextStyle(color: Colors.white24, fontSize: 12)),
                 ],
               ),
             ),
@@ -477,7 +479,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
         children: [
           Icon(Icons.event_available, size: 60, color: Colors.white.withOpacity(0.05)),
           const SizedBox(height: 16),
-          Text('Sem eventos neste dia', style: GoogleFonts.poppins(color: Colors.white24)),
+          Text(AppLocalizations.of(context)!.agendaNoEventsDay, style: GoogleFonts.poppins(color: Colors.white24)),
         ],
       ),
     );

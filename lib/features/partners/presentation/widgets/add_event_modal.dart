@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
@@ -93,7 +94,7 @@ class _AddEventModalState extends State<AddEventModal> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Color(0xFF00E676)),
-              title: const Text('Câmera', style: TextStyle(color: Colors.white)),
+              title: Text(AppLocalizations.of(context)!.commonCamera, style: const TextStyle(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(context);
                 final photo = await _imagePicker.pickImage(source: ImageSource.camera);
@@ -104,7 +105,7 @@ class _AddEventModalState extends State<AddEventModal> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: Color(0xFF00E676)),
-              title: const Text('Galeria', style: TextStyle(color: Colors.white)),
+              title: Text(AppLocalizations.of(context)!.commonGallery, style: const TextStyle(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(context);
                 final photo = await _imagePicker.pickImage(source: ImageSource.gallery);
@@ -115,7 +116,7 @@ class _AddEventModalState extends State<AddEventModal> {
             ),
             ListTile(
               leading: const Icon(Icons.attach_file, color: Color(0xFF00E676)),
-              title: const Text('Arquivo PDF', style: TextStyle(color: Colors.white)),
+              title: Text(AppLocalizations.of(context)!.commonPDFFile, style: const TextStyle(color: Colors.white)),
               onTap: () async {
                 Navigator.pop(context);
                 final result = await FilePicker.platform.pickFiles(
@@ -147,7 +148,7 @@ class _AddEventModalState extends State<AddEventModal> {
               _contentController.text = val.recognizedWords;
             });
           },
-          localeId: 'pt_BR', 
+          localeId: Localizations.localeOf(context).toString(), 
         );
       } else {
         await Permission.microphone.request();
@@ -172,8 +173,8 @@ class _AddEventModalState extends State<AddEventModal> {
               Center(
                 child: Text(
                   widget.isReadOnly 
-                    ? 'Detalhes do Evento' 
-                    : (widget.existingEvent != null ? 'Editar Evento' : 'Novo Evento'),
+                    ? AppLocalizations.of(context)!.agendaAppointmentDetails 
+                    : (widget.existingEvent != null ? AppLocalizations.of(context)!.agendaEditEvent : AppLocalizations.of(context)!.agendaNewEvent),
                   style: GoogleFonts.poppins(
                     color: Colors.white,
                     fontSize: 18,
@@ -184,21 +185,21 @@ class _AddEventModalState extends State<AddEventModal> {
               const SizedBox(height: 24),
 
               // Campo: Parceiro/Local (Visualização apenas)
-              _buildInfoField('Parceiro/Local', widget.partner.name, Icons.location_on),
+              _buildInfoField(AppLocalizations.of(context)!.agendaResponsiblePartner, widget.partner.name, Icons.location_on),
               const SizedBox(height: 16),
 
               // Campo: Pet (Visualização apenas se houver petId)
               if (widget.petId != null) ...[
-                _buildInfoField('Pet', widget.petId!, Icons.pets),
+                _buildInfoField(AppLocalizations.of(context)!.pdfFieldPet, widget.petId!, Icons.pets),
                 const SizedBox(height: 16),
               ],
 
               // Campo: Data
-              _buildInfoField('Data', DateFormat('dd/MM/yyyy').format(widget.selectedDate), Icons.calendar_today),
+              _buildInfoField(AppLocalizations.of(context)!.pdfDate, DateFormat('dd/MM/yyyy').format(widget.selectedDate), Icons.calendar_today),
               const SizedBox(height: 16),
 
               // Campo: Hora
-              const Text('Hora', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(AppLocalizations.of(context)!.pdfFieldTime, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               InkWell(
                 onTap: () async {
@@ -244,14 +245,14 @@ class _AddEventModalState extends State<AddEventModal> {
                       ),
                       const Spacer(),
                       if (!widget.isReadOnly) 
-                        const Text('Alterar', style: TextStyle(color: Colors.white24, fontSize: 12)),
+                        Text(AppLocalizations.of(context)!.agendaChange, style: const TextStyle(color: Colors.white24, fontSize: 12)),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              const Text('Categoria', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(AppLocalizations.of(context)!.pdfFieldCategory, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -286,7 +287,7 @@ class _AddEventModalState extends State<AddEventModal> {
               const SizedBox(height: 16),
 
               if (widget.partner.teamMembers.isNotEmpty) ...[
-                const Text('Atendente / Especialista', style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text(AppLocalizations.of(context)!.agendaAttendantSpecialist, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -305,7 +306,7 @@ class _AddEventModalState extends State<AddEventModal> {
                         children: [
                           const Icon(Icons.person, color: Colors.white54, size: 18),
                           const SizedBox(width: 12),
-                          Text('Selecione o atendente', style: GoogleFonts.poppins(color: Colors.white30, fontSize: 14)),
+                          Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 14)),
                         ],
                       ),
                       items: widget.partner.teamMembers.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(color: Colors.white)))).toList(),
@@ -321,9 +322,9 @@ class _AddEventModalState extends State<AddEventModal> {
                 readOnly: widget.isReadOnly,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Título do Evento',
+                  labelText: AppLocalizations.of(context)!.agendaEventTitle,
                   labelStyle: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold),
-                  hintText: 'ex: Vacina Polivalente V10',
+                  hintText: AppLocalizations.of(context)!.agendaTitleExample,
                   hintStyle: const TextStyle(color: Colors.white30),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.05),
@@ -342,9 +343,9 @@ class _AddEventModalState extends State<AddEventModal> {
                     maxLines: 3,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      labelText: 'Observações',
+                      labelText: AppLocalizations.of(context)!.pdfObservations,
                       labelStyle: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold),
-                      hintText: 'Digite ou use o microfone...',
+                      hintText: AppLocalizations.of(context)!.agendaObservationsHint,
                       hintStyle: const TextStyle(color: Colors.white30),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.05),
@@ -384,7 +385,7 @@ class _AddEventModalState extends State<AddEventModal> {
                           children: [
                             Icon(Icons.attach_file, color: const Color(0xFF00E676), size: 18),
                             const SizedBox(width: 8),
-                            Text('Anexos (PDF ou Fotos)', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                            Text(AppLocalizations.of(context)!.agendaAttachmentsFull, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (!widget.isReadOnly)
@@ -428,7 +429,7 @@ class _AddEventModalState extends State<AddEventModal> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_titleController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, insira um título'), backgroundColor: Colors.orange));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaEnterTitle), backgroundColor: Colors.orange));
                         return;
                       }
                       final event = widget.existingEvent?.copyWith(
@@ -474,7 +475,7 @@ class _AddEventModalState extends State<AddEventModal> {
                       elevation: 4,
                     ),
                     child: Text(
-                      widget.existingEvent != null ? 'SALVAR ALTERAÇÕES' : 'CONFIRMAR EVENTO', 
+                      widget.existingEvent != null ? AppLocalizations.of(context)!.agendaSaveChanges : AppLocalizations.of(context)!.agendaConfirmEvent, 
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.1),
                     ),
                   ),

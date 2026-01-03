@@ -144,7 +144,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                 // Semaphore Indicator
                 Positioned(
                   top: 12,
-                  right: 12,
+                  left: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
@@ -213,6 +213,21 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                         ),
                       ],
                     ],
+                  ),
+                ),
+                // Delete Button
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.delete_sweep_outlined, color: Colors.redAccent),
+                      onPressed: () => _confirmDeletePlant(item),
+                    ),
                   ),
                 ),
               ],
@@ -481,5 +496,38 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
     
     // Default fallback (Portuguese or others)
     return status.toUpperCase();
+  }
+
+  Future<void> _confirmDeletePlant(BotanyHistoryItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deletePlantTitle),
+        content: Text(l10n.deletePlantConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+       // Delete Image
+       if (item.imagePath != null) {
+          final file = File(item.imagePath!);
+          if (await file.exists()) {
+             await file.delete();
+          }
+       }
+       // Delete from Hive
+       await item.delete();
+    }
   }
 }

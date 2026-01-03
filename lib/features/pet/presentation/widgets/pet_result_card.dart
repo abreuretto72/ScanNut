@@ -112,6 +112,40 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     return raca;
   }
 
+  // Helper to translate raw DB values to current Locale
+  String _bestEffortTranslate(String value) {
+    // Estimation Marker Detection
+    bool isEstimated = value.contains('[ESTIMATED]');
+    String cleanValue = value.replaceAll('[ESTIMATED]', '').trim();
+
+    if (cleanValue.toLowerCase() == 'n/a' || cleanValue.toLowerCase() == 'não informado' || cleanValue.toLowerCase() == 'sem dados') {
+      return AppLocalizations.of(context)!.petNotOffice; 
+    }
+    
+    // Activity Level
+    String result = cleanValue;
+    if (cleanValue.toLowerCase().contains('moderad') || cleanValue.toLowerCase().contains('medium')) result = AppLocalizations.of(context)!.petActivityModerate;
+    else if (cleanValue.toLowerCase().contains('alt') || cleanValue.toLowerCase().contains('high')) result = AppLocalizations.of(context)!.petActivityHigh;
+    else if (cleanValue.toLowerCase().contains('baix') || cleanValue.toLowerCase().contains('low')) result = AppLocalizations.of(context)!.petActivityLow;
+    
+    // Reproductive Status
+    else if (cleanValue.toLowerCase().contains('castrado') || cleanValue.toLowerCase().contains('neutered')) result = AppLocalizations.of(context)!.petNeutered;
+    else if (cleanValue.toLowerCase().contains('intact') || cleanValue.toLowerCase().contains('inteiro')) result = AppLocalizations.of(context)!.petIntact;
+    
+    // Bath Frequency
+    else if (cleanValue.toLowerCase().contains('quinzenal') || cleanValue.toLowerCase().contains('biweekly')) result = AppLocalizations.of(context)!.petBathBiweekly;
+    else if (cleanValue.toLowerCase().contains('semanal') || cleanValue.toLowerCase().contains('weekly')) result = AppLocalizations.of(context)!.petBathWeekly;
+    else if (cleanValue.toLowerCase().contains('mensal') || cleanValue.toLowerCase().contains('monthly')) result = AppLocalizations.of(context)!.petBathMonthly;
+
+    // Filters for Partners
+    else if (cleanValue.toLowerCase() == 'todos' || cleanValue.toLowerCase() == 'all') result = AppLocalizations.of(context)!.partnersFilterAll;
+
+    if (isEstimated) {
+      return "$result ✨"; // Sparkle icon to indicate AI/Breed estimation
+    }
+    return result;
+  }
+
   Future<void> _generatePDF() async {
     final pdf = pw.Document();
     
@@ -138,9 +172,19 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                if (image != null) pw.Center(child: pw.Image(image, height: 200)),
                pw.SizedBox(height: 20),
                pw.Text("Raça/Espécie: ${pet.especie} - ${pet.raca}"),
-               pw.Text("Urgência: ${pet.urgenciaNivel}"),
+               pw.Row(
+                 children: [
+                   pw.Text("Urgência: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                   pw.Text(pet.urgenciaNivel, style: pw.TextStyle(
+                     color: pet.urgenciaNivel.toLowerCase().contains('vermelho') ? PdfColors.red : PdfColors.black,
+                     fontWeight: pw.FontWeight.bold,
+                   )),
+                 ],
+               ),
                pw.Text("Descrição: ${pet.descricaoVisual}"),
-               pw.Text("Recomendação: ${pet.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')}"),
+               pw.SizedBox(height: 5),
+               pw.Text("Recomendação Profissional:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+               pw.Text(pet.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')),
                pw.Footer(title: pw.Text("Gerado em $dateStr por ScanNut", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey))),
              ];
           }
@@ -638,31 +682,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                        child: _buildTabContent(scrollController),
                      ),
                    ],
-                   // LEGAL DISCLAIMER FOOTER (AI LABELING)
-                   Container(
-                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                     decoration: BoxDecoration(
-                       color: Colors.red.withValues(alpha: 0.1),
-                       border: const Border(top: BorderSide(color: Colors.white10)),
-                     ),
-                     child: Row(
-                       children: [
-                         const Icon(Icons.info_outline, color: Colors.orangeAccent, size: 16),
-                         const SizedBox(width: 12),
-                         Expanded(
-                           child: Text(
-                             AppLocalizations.of(context)!.aiDisclaimer,
-                             style: GoogleFonts.poppins(
-                               color: Colors.white60,
-                               fontSize: 10,
-                               fontStyle: FontStyle.italic,
-                               height: 1.4,
-                             ),
-                           ),
-                         ),
-                       ],
-                     ),
-                   ),
+                   // Disclaimer removed by user request
+
                 ],
               ),
             ),
@@ -885,38 +906,38 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             ),
           ),
         _buildSectionCard(
-          title: "Análise Biométrica",
+          title: AppLocalizations.of(context)!.petBiometricAnalysis,
           icon: Icons.fingerprint,
           color: Colors.blueAccent,
           child: Column(
             children: [
-              _buildInfoRow("Linhagem:", id.linhagemSrdProvavel),
-              _buildInfoRow("Porte:", id.porteEstimado),
-              _buildInfoRow("Longevidade:", id.expectativaVidaMedia),
+              _buildInfoRow("${AppLocalizations.of(context)!.petLineage}:", _bestEffortTranslate(id.linhagemSrdProvavel)),
+              _buildInfoRow("${AppLocalizations.of(context)!.petSize}:", _bestEffortTranslate(id.porteEstimado)),
+              _buildInfoRow("${AppLocalizations.of(context)!.petLongevity}:", _bestEffortTranslate(id.expectativaVidaMedia)),
             ],
           ),
         ),
         if (id.curvaCrescimento.isNotEmpty) ...[
           const SizedBox(height: 12),
           _buildSectionCard(
-            title: "Curva de Crescimento Estimada",
+            title: AppLocalizations.of(context)!.petGrowthCurve,
             icon: Icons.show_chart,
             color: Colors.cyanAccent,
             child: Column(
               children: [
-                _buildInfoRow("3 Meses:", id.curvaCrescimento['peso_3_meses'] ?? 'N/A'),
-                _buildInfoRow("6 Meses:", id.curvaCrescimento['peso_6_meses'] ?? 'N/A'),
-                _buildInfoRow("12 Meses:", id.curvaCrescimento['peso_12_meses'] ?? 'N/A'),
-                _buildInfoRow("Adulto:", id.curvaCrescimento['peso_adulto'] ?? 'N/A'),
+                _buildInfoRow("${AppLocalizations.of(context)!.petMonth3}:", _bestEffortTranslate(id.curvaCrescimento['peso_3_meses'] ?? 'N/A')),
+                _buildInfoRow("${AppLocalizations.of(context)!.petMonth6}:", _bestEffortTranslate(id.curvaCrescimento['peso_6_meses'] ?? 'N/A')),
+                _buildInfoRow("${AppLocalizations.of(context)!.petMonth12}:", _bestEffortTranslate(id.curvaCrescimento['peso_12_meses'] ?? 'N/A')),
+                _buildInfoRow("${AppLocalizations.of(context)!.petAdult}:", _bestEffortTranslate(id.curvaCrescimento['peso_adulto'] ?? 'N/A')),
               ],
             ),
           ),
         ],
         const SizedBox(height: 24),
-        _buildStatLine("Energia", pc.nivelEnergia / 5.0, Colors.orange),
-        _buildStatLine("Inteligência", pc.nivelInteligencia / 5.0, Colors.purpleAccent),
-        _buildStatLine("Sociabilidade", pc.sociabilidadeGeral / 5.0, Colors.greenAccent),
-        _buildInfoLabel("Drive Ancestral:", pc.driveAncestral),
+        _buildStatLine(AppLocalizations.of(context)!.petEnergy, pc.nivelEnergia / 5.0, Colors.orange),
+        _buildStatLine(AppLocalizations.of(context)!.petIntelligence, pc.nivelInteligencia / 5.0, Colors.purpleAccent),
+        _buildStatLine(AppLocalizations.of(context)!.petSociability, pc.sociabilidadeGeral / 5.0, Colors.greenAccent),
+        _buildInfoLabel("${AppLocalizations.of(context)!.petDrive}:", pc.driveAncestral),
         const SizedBox(height: 24),
         _buildInsightCard(widget.analysis.dica.insightExclusivo),
       ],
@@ -941,7 +962,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         // NOVO: Cardápio Semanal Sugerido pela IA
         if (widget.analysis.planoSemanal.isNotEmpty) ...[
           _buildSectionCard(
-            title: "Plano Alimentar Sugerido",
+            title: AppLocalizations.of(context)!.petSuggestedPlan,
             icon: Icons.calendar_today,
             color: Colors.lightBlueAccent,
             child: WeeklyMealPlanner(
@@ -957,30 +978,30 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         ],
 
         _buildSectionCard(
-          title: "Metas Calóricas Diárias",
+          title: AppLocalizations.of(context)!.petDailyCaloricGoals,
           icon: Icons.bolt,
           color: Colors.orangeAccent,
           child: Column(
             children: [
-              _buildCaloricRow("Filhote:", nut.metaCalorica['kcal_filhote'] ?? 'N/A', Colors.pinkAccent),
+              _buildCaloricRow("${AppLocalizations.of(context)!.petPuppy}:", nut.metaCalorica['kcal_filhote'] ?? 'N/A', Colors.pinkAccent),
               const Divider(color: Colors.white10, height: 16),
-              _buildCaloricRow("Adulto:", nut.metaCalorica['kcal_adulto'] ?? 'N/A', Colors.orange),
+              _buildCaloricRow("${AppLocalizations.of(context)!.petAdult}:", nut.metaCalorica['kcal_adulto'] ?? 'N/A', Colors.orange),
               const Divider(color: Colors.white10, height: 16),
-              _buildCaloricRow("Sênior:", nut.metaCalorica['kcal_senior'] ?? 'N/A', Colors.blueGrey),
+              _buildCaloricRow("${AppLocalizations.of(context)!.petSenior}:", nut.metaCalorica['kcal_senior'] ?? 'N/A', Colors.blueGrey),
             ],
           ),
         ),
         const SizedBox(height: 16),
         _buildSectionCard(
-          title: "Segurança & Suplementos",
+          title: AppLocalizations.of(context)!.petSecuritySupplements,
           icon: Icons.medication_liquid,
           color: Colors.greenAccent,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoLabel("Nutrientes Alvo:", nut.nutrientesAlvo.join(', ')),
-              _buildInfoLabel("Suplementação:", nut.suplementacaoSugerida.join(', ')),
-              _buildToggleInfo("Tendência Obesidade", nut.segurancaAlimentar['tendencia_obesidade'] == true),
+              _buildInfoLabel("${AppLocalizations.of(context)!.petTargetNutrients}:", nut.nutrientesAlvo.join(', ')),
+              _buildInfoLabel("${AppLocalizations.of(context)!.petSupplementation}:", nut.suplementacaoSugerida.join(', ')),
+              _buildToggleInfo(AppLocalizations.of(context)!.petObesityTendency, nut.segurancaAlimentar['tendencia_obesidade'] == true),
             ],
           ),
         ),
@@ -991,12 +1012,12 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Widget _buildGroomingTab(ScrollController sc) {
     final groo = widget.analysis.higiene;
     return ListView(controller: sc, padding: const EdgeInsets.fromLTRB(24, 24, 24, 100), children: [
-        _buildSectionCard(title: "Pelagem & Tosa", icon: Icons.brush, color: Colors.amber, child: Column(children: [
-              _buildInfoRow("Tipo:", groo.manutencaoPelagem['tipo_pelo'] ?? 'N/A'),
-              _buildInfoRow("Frequência:", groo.manutencaoPelagem['frequencia_escovacao_semanal'] ?? 'N/A'),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petCoatGrooming, icon: Icons.brush, color: Colors.amber, child: Column(children: [
+              _buildInfoRow("${AppLocalizations.of(context)!.petType}:", _bestEffortTranslate(groo.manutencaoPelagem['tipo_pelo'] ?? 'N/A')),
+              _buildInfoRow("${AppLocalizations.of(context)!.petFrequency}:", _bestEffortTranslate(groo.manutencaoPelagem['frequencia_escovacao_semanal'] ?? 'N/A')),
               if (groo.manutencaoPelagem['alerta_subpelo'] != null) ...[
                 const SizedBox(height: 8),
-                Text(groo.manutencaoPelagem['alerta_subpelo'], style: const TextStyle(color: Colors.cyanAccent, fontSize: 11)),
+                Text(_bestEffortTranslate(groo.manutencaoPelagem['alerta_subpelo']!), style: const TextStyle(color: Colors.cyanAccent, fontSize: 11)),
               ]
         ])),
     ]);
@@ -1005,9 +1026,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Widget _buildSaudeTab(ScrollController sc) {
     final sau = widget.analysis.saude;
     return ListView(controller: sc, padding: const EdgeInsets.fromLTRB(24, 24, 24, 100), children: [
-        _buildSectionCard(title: "Saúde Preventiva", icon: Icons.health_and_safety, color: Colors.redAccent, child: Column(children: [
-              _buildInfoLabel("Predisposição:", sau.predisposicaoDoencas.join(', ')),
-              _buildInfoLabel("Checkup:", (sau.checkupVeterinario['exames_obrigatorios_anuais'] as List? ?? []).join(', ')),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petPreventiveHealth, icon: Icons.health_and_safety, color: Colors.redAccent, child: Column(children: [
+              _buildInfoLabel("${AppLocalizations.of(context)!.petPredisposition}:", sau.predisposicaoDoencas.join(', ')),
+              _buildInfoLabel("${AppLocalizations.of(context)!.petCheckup}:", (sau.checkupVeterinario['exames_obrigatorios_anuais'] as List? ?? []).join(', ')),
         ])),
         
         // Vaccination Protocol Card
@@ -1022,9 +1043,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Widget _buildLifestyleTab(ScrollController sc) {
     final life = widget.analysis.lifestyle;
     return ListView(controller: sc, padding: const EdgeInsets.fromLTRB(24, 24, 24, 100), children: [
-        _buildSectionCard(title: "Treino & Ambiente", icon: Icons.psychology, color: Colors.purpleAccent, child: Column(children: [
-              _buildInfoRow("Treino:", life.treinamento['dificuldade_adestramento'] ?? 'N/A'),
-              _buildStatLine("Apartamento", (life.ambienteIdeal['adaptacao_apartamento_score'] ?? 3) / 5.0, Colors.cyan),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petTrainingEnvironment, icon: Icons.psychology, color: Colors.purpleAccent, child: Column(children: [
+              _buildInfoRow("${AppLocalizations.of(context)!.petTraining}:", _bestEffortTranslate(life.treinamento['dificuldade_adestramento'] ?? 'N/A')),
+              _buildStatLine(AppLocalizations.of(context)!.petApartmentRef, (life.ambienteIdeal['adaptacao_apartamento_score'] ?? 3) / 5.0, Colors.cyan),
         ])),
     ]);
   }
@@ -1063,10 +1084,11 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
   Widget _buildToggleInfo(String label, bool value) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)), Icon(value ? Icons.report_problem : Icons.check_circle, color: value ? Colors.redAccent : Colors.greenAccent, size: 16)]);
 
-  Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text("💡 INSIGHT EXCLUSIVO", style: TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
+  Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text("💡 ${AppLocalizations.of(context)!.petExclusiveInsight}", style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
   Widget _buildCaloricRow(String label, String value, Color color) {
-    // Limpar o valor para evitar duplicidade de 'Kcal'
+    final isEstimated = value.contains('[ESTIMATED]');
     final cleanValue = value
+        .replaceAll('[ESTIMATED]', '')
         .replaceAll('aproximadamente', '+-')
         .replaceAll('Aproximadamente', '+-')
         .replaceAll('Kcal/dia', '')
@@ -1079,17 +1101,27 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(Icons.label_important, color: color.withValues(alpha: 0.5), size: 14),
+          Icon(isEstimated ? Icons.auto_awesome : Icons.label_important, color: color.withValues(alpha: 0.5), size: 14),
           const SizedBox(width: 10),
           SizedBox(
             width: 85,
             child: Text(label, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
           ),
           Expanded(
-            child: Text(
-              cleanValue, 
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.right,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  cleanValue, 
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.right,
+                ),
+                if (isEstimated)
+                  Text(
+                    AppLocalizations.of(context)!.petEstimatedByBreed,
+                    style: const TextStyle(color: Colors.white24, fontSize: 8),
+                  ),
+              ],
             ),
           ),
           const SizedBox(width: 8),

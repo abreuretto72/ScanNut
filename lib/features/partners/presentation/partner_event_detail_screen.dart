@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
@@ -68,7 +69,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
       path: cleaned,
     );
     if (!await launchUrl(launchUri)) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Não foi possível realizar a chamada')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.errorOpeningApp)));
     }
   }
 
@@ -84,7 +85,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Não foi possível abrir o WhatsApp')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorOpeningApp)),
         );
       }
     }
@@ -94,7 +95,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
     final query = Uri.encodeComponent(address);
     final googleUrl = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
     if (!await launchUrl(googleUrl, mode: LaunchMode.externalApplication)) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Não foi possível abrir o mapa')));
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.errorOpeningApp)));
     }
   }
 
@@ -114,7 +115,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
     if (eventMap == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Dados originais do evento não encontrados para edição.'))
+          SnackBar(content: Text(AppLocalizations.of(context)!.agendaOriginalDataMissing))
         );
       }
       return;
@@ -176,7 +177,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                 });
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Evento atualizado com sucesso!'), backgroundColor: Color(0xFF00E676))
+                  SnackBar(content: Text(AppLocalizations.of(context)!.agendaEventUpdated), backgroundColor: const Color(0xFF00E676))
                 );
               }
             },
@@ -193,7 +194,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text('Ficha do Atendimento', style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.agendaServiceRecord, style: GoogleFonts.poppins(color: Colors.white)),
         leading: const BackButton(color: Colors.white),
         actions: [
           if (_partner != null)
@@ -212,7 +213,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                 children: [
                   // 1. Detalhes do Agendamento
                   Text(
-                    'Detalhes do Agendamento',
+                    AppLocalizations.of(context)!.agendaAppointmentDetails,
                     style: GoogleFonts.poppins(
                       color: const Color(0xFF00E676),
                       fontSize: 18,
@@ -226,7 +227,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                   
                   // 2. Dados do Parceiro
                   Text(
-                    'Parceiro Responsável',
+                      AppLocalizations.of(context)!.agendaResponsiblePartner,
                     style: GoogleFonts.poppins(
                       color: const Color(0xFF00E676),
                       fontSize: 18,
@@ -237,7 +238,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                   if (_partner != null) 
                     _buildPartnerInfoCard()
                   else
-                    const Text('Parceiro não encontrado ou excluído.', style: TextStyle(color: Colors.white54)),
+                    Text(AppLocalizations.of(context)!.agendaPartnerNotFound, style: const TextStyle(color: Colors.white54)),
                   
                   if (!_event.completed) ...[
                       const SizedBox(height: 32),
@@ -247,12 +248,12 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                               onPressed: () async {
                                   await PetEventService().markAsCompleted(_event.id);
                                   if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Evento marcado como concluído!'), backgroundColor: Color(0xFF00E676)));
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaEventCompleted), backgroundColor: const Color(0xFF00E676)));
                                       Navigator.pop(context);
                                   }
                               },
                               icon: const Icon(Icons.check_circle_outline),
-                              label: const Text('MARCAR COMO CONCLUÍDO'),
+                              label: Text(AppLocalizations.of(context)!.agendaMarkCompleted),
                               style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white.withOpacity(0.1),
                                   foregroundColor: const Color(0xFF00E676),
@@ -323,13 +324,13 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
             ],
           ),
           const Divider(color: Colors.white10, height: 32),
-          _buildDetailRow(Icons.calendar_today, 'Data', dateFormat.format(_event.dateTime)),
+          _buildDetailRow(Icons.calendar_today, AppLocalizations.of(context)!.pdfDate, dateFormat.format(_event.dateTime)),
           const SizedBox(height: 12),
-          _buildDetailRow(Icons.access_time, 'Horário', timeFormat.format(_event.dateTime)),
+          _buildDetailRow(Icons.access_time, AppLocalizations.of(context)!.pdfFieldTime, timeFormat.format(_event.dateTime)),
           const SizedBox(height: 12),
           
           if (attendantName != null) ...[
-             _buildDetailRow(Icons.person, 'Atendente', attendantName),
+              _buildDetailRow(Icons.person, AppLocalizations.of(context)!.partnerDetailsRole, attendantName),
              const SizedBox(height: 12),
           ],
 
@@ -350,7 +351,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                          onCancel: () => Navigator.pop(context),
                      )));
                  } else {
-                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil do pet não encontrado.')));
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaProfileNotFound(_event.petName))));
                  }
              },
              child: Row(
@@ -360,7 +361,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                  const Text('Pet: ', style: TextStyle(color: Colors.white54)),
                  Expanded(
                    child: Text(
-                       '${_event.petName} (Toque para ver perfil)', 
+                        '${_event.petName} ${AppLocalizations.of(context)!.agendaViewProfile}', 
                        style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, decoration: TextDecoration.underline)
                    ),
                  ),
@@ -370,7 +371,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
           
           if (displayNotes.isNotEmpty) ...[
             const Divider(color: Colors.white10, height: 32),
-            const Text('Observações:', style: TextStyle(color: Colors.white54, fontSize: 12)),
+            Text('${AppLocalizations.of(context)!.pdfObservations}:', style: const TextStyle(color: Colors.white54, fontSize: 12)),
             const SizedBox(height: 4),
             Text(
               displayNotes,
@@ -423,8 +424,8 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                  children: [
                     const Icon(Icons.info_outline, color: Color(0xFF00E676), size: 14),
                     const SizedBox(width: 6),
-                    Text(
-                      'Toque para ver o cadastro',
+                      Text(
+                        AppLocalizations.of(context)!.agendaViewRegistration,
                       style: GoogleFonts.poppins(
                           color: const Color(0xFF00E676),
                           fontSize: 12, 
@@ -449,9 +450,9 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
            const SizedBox(height: 12),
 
            if (_partner!.whatsapp != null && _partner!.whatsapp!.isNotEmpty)
-             _buildActionRow(Icons.chat, 'Falar pelo WhatsApp', () => _openWhatsApp(_partner!.whatsapp!))
-           else if (_partner!.phone.isNotEmpty)
-             _buildActionRow(Icons.chat, 'Falar pelo WhatsApp', () => _openWhatsApp(_partner!.phone)),
+              _buildActionRow(Icons.chat, AppLocalizations.of(context)!.agendaWhatsAppChat, () => _openWhatsApp(_partner!.whatsapp!))
+            else if (_partner!.phone.isNotEmpty)
+              _buildActionRow(Icons.chat, AppLocalizations.of(context)!.agendaWhatsAppChat, () => _openWhatsApp(_partner!.phone)),
 
            const SizedBox(height: 12),
            
@@ -464,7 +465,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
              _buildActionRow(Icons.language, _partner!.website!, () async {
                  final url = Uri.parse(_partner!.website!);
                  if (!await launchUrl(url)) {
-                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao abrir site')));
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaWebsiteError)));
                  }
              }),
         ],

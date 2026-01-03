@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -88,7 +88,23 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading indicator protecting Hive access
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator(color: Color(0xFF00E676))),
+      );
+    }
+
     final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -102,8 +118,24 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
-      body: _history.isEmpty
-          ? Center(
+      body: ValueListenableBuilder<Box>(
+        valueListenable: Hive.box(HistoryService.boxName).listenable(),
+        builder: (context, box, _) {
+          // Real-time filtering and sorting
+          final allItems = box.values.toList();
+          final petHistory = allItems.where((item) {
+             if (item is! Map) return false;
+             return item['mode'] == 'Pet';
+          }).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+
+          petHistory.sort((a, b) {
+            final dateA = DateTime.tryParse(a['timestamp'] ?? '') ?? DateTime(2000);
+            final dateB = DateTime.tryParse(b['timestamp'] ?? '') ?? DateTime(2000);
+            return dateB.compareTo(dateA);
+          });
+          
+          if (petHistory.isEmpty) {
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -115,20 +147,20 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                   ),
                 ],
               ),
-            )
-          : RefreshIndicator(
+            );
+          }
+
+          return RefreshIndicator(
               onRefresh: _loadHistory,
               color: const Color(0xFF00E676),
               backgroundColor: Colors.grey[900],
               child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _history.length,
+              itemCount: petHistory.length,
               itemBuilder: (context, index) {
-                final rawItem = _history[index];
-                // Cast to proper type
-                final item = Map<String, dynamic>.from(rawItem as Map);
-                final data = item['data'];
-                final date = DateTime.parse(item['timestamp']);
+                final item = petHistory[index];
+                final data = item['data'] ?? {};
+                final date = DateTime.tryParse(item['timestamp'] ?? '') ?? DateTime.now();
                 final petName = item['pet_name'] ?? 'Pet Desconhecido';
                 
                 // Extract breed/species for subtitle
@@ -150,8 +182,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                     borderRadius: BorderRadius.circular(16),
                     side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
                   ),
-                  child: ListTile(
-                    // onTap removed - card is now static, only icons are interactive
+                  child: Stack(
+                    children: [
+                      ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     leading: Container(
                       padding: const EdgeInsets.all(12),
@@ -177,8 +210,6 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
                         ),
                         const SizedBox(height: 4),
@@ -354,7 +385,6 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                      await profileService.init();
                                      final existingMap = await profileService.getProfile(petName.trim());
                                      if (existingMap != null && existingMap['data'] != null) {
-                                        // Deep convert to ensure all nested maps are Map<String, dynamic>
                                         final dataMap = _deepConvertMap(existingMap['data']);
                                         loaded = PetProfileExtended.fromJson(dataMap);
                                      }
@@ -372,7 +402,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
                                    if (!context.mounted) return;
 
-                                   final result = await Navigator.push(
+                                   await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => EditPetForm(
@@ -415,26 +445,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                           );
                                         },
                                         onDelete: () async {
-                                          await HistoryService.deletePet(petName);
-                                          final service = PetProfileService(); 
-                                          await service.init();
-                                          await service.deleteProfile(petName);
-                                          
-                                          if (context.mounted) Navigator.pop(context);
-                                          _loadHistory();
+                                          await _confirmDelete(context, petName);
                                         },
                                       ),
                                     ),
                                   );
-
-                                  if (result != null && result is Map && result['action'] == 'save') {
-                                      _loadHistory();
-                                      if (context.mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petEditSaved)));
-                                      }
-                                  } else {
-                                      _loadHistory();
-                                  }
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -452,11 +467,52 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       ],
                     ),
                   ),
-                );
-              },
-            ),
-          ), 
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Colors.white),
+                      onPressed: () => _confirmDelete(context, petName),
+                    ),
+                  ),
+                ],
+              ),
+            );
+         },
+      ),
+      );
+    },
+  ),
+);
+}
+
+  Future<void> _confirmDelete(BuildContext context, String petName) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deletePetTitle),
+        content: Text(l10n.deletePetConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
+
+    if (confirmed == true) {
+       await HistoryService.deletePet(petName);
+       final service = PetProfileService();
+       await service.init();
+       await service.deleteProfile(petName);
+       if (mounted) _loadHistory();
+    }
   }
 
   /// Helper function to deep convert all nested maps to Map<String, dynamic>

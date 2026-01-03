@@ -1,11 +1,14 @@
+import '../services/pet_fallback_service.dart';
+
 class PetAnalysisResult {
   final IdentificacaoPet identificacao;
   final PerfilComportamental perfilComportamental;
   final NutricaoEStrutura nutricao;
-  final Grooming higiene; // Fixed typo
+  final Grooming higiene;
   final SaudePreventiva saude;
   final LifestyleEEducacao lifestyle;
   final DicaEspecialista dica;
+  
   final String? petName;
   final String analysisType;
 
@@ -18,16 +21,12 @@ class PetAnalysisResult {
   final String? urgenciaNivelDiag;
   final String? orientacaoImediataDiag;
 
-  // New Nutrition Tables
   final List<Map<String, String>> tabelaBenigna;
   final List<Map<String, String>> tabelaMaligna;
-  
-  // Weekly Meal Planner
   final List<Map<String, String>> planoSemanal;
   final String? orientacoesGerais;
-  
-  // Vaccination Protocol
   final Map<String, dynamic>? protocoloImunizacao;
+  final String? limitacoesAnalise;
 
   PetAnalysisResult({
     required this.identificacao,
@@ -51,6 +50,7 @@ class PetAnalysisResult {
     this.planoSemanal = const [],
     this.orientacoesGerais,
     this.protocoloImunizacao,
+    this.limitacoesAnalise,
   });
 
   // Backward compatibility getters
@@ -65,11 +65,15 @@ class PetAnalysisResult {
   factory PetAnalysisResult.fromJson(Map<String, dynamic> json) {
     List<Map<String, String>> parseTable(dynamic input) {
       if (input is List) {
-        return input.map((e) => Map<String, String>.from(e.map((k, v) => MapEntry(k.toString(), v.toString())))).toList();
+        return input
+            .where((e) => e is Map)
+            .map((e) => Map<String, String>.from((e as Map).map((k, v) => MapEntry(k.toString(), v.toString()))))
+            .toList();
       }
       return [];
     }
 
+    // Check for Diagnosis Mode
     if (json['analysis_type'] == 'diagnosis' || json['urgency_level'] != null) {
       return PetAnalysisResult(
         analysisType: 'diagnosis',
@@ -95,49 +99,55 @@ class PetAnalysisResult {
       );
     }
 
+    // "Inference Master" Mapping
     return PetAnalysisResult(
       analysisType: 'identification',
-      identificacao: IdentificacaoPet.fromJson(json['identificacao'] ?? {}),
-      perfilComportamental: PerfilComportamental.fromJson(json['perfil_comportamental'] ?? {}),
-      nutricao: NutricaoEStrutura.fromJson(json['nutricao_e_dieta_estrategica'] ?? {}),
-      higiene: Grooming.fromJson(json['grooming'] ?? {}),
-      saude: SaudePreventiva.fromJson(json['saude_preventiva'] ?? {}),
-      lifestyle: LifestyleEEducacao.fromJson(json['lifestyle_e_educacao'] ?? {}),
-      dica: DicaEspecialista.fromJson(json['dica_do_especialista'] ?? {}),
-      petName: json['pet_name'],
-      tabelaBenigna: parseTable(json['tabela_benigna']),
-      tabelaMaligna: parseTable(json['tabela_maligna']),
-      planoSemanal: parseTable(json['plano_semanal']),
-      orientacoesGerais: json['orientacoes_gerais'],
-      protocoloImunizacao: json['protocolo_imunizacao'] as Map<String, dynamic>?,
+      identificacao: IdentificacaoPet.fromTotalInference(
+        _safeMap(json['identification']),
+        _safeMap(json['growth_curve'])
+      ),
+      perfilComportamental: PerfilComportamental.empty(),
+      nutricao: NutricaoEStrutura.fromTotalInference(_safeMap(json['nutrition']), _safeMap(json['identification'])['size']?.toString() ?? 'Medium'),
+      higiene: Grooming.fromTotalInference(_safeMap(json['grooming'])),
+      saude: SaudePreventiva.fromTotalInference(_safeMap(json['health'])),
+      lifestyle: LifestyleEEducacao.fromTotalInference(_safeMap(json['lifestyle'])),
+      dica: DicaEspecialista.empty(),
+      limitacoesAnalise: null,
+      petName: json['pet_name'] ?? 'Pet',
+      tabelaBenigna: [],
+      tabelaMaligna: [],
+      planoSemanal: [],
+      orientacoesGerais: null,
+      protocoloImunizacao: null,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'identificacao': identificacao.toJson(),
-      'perfil_comportamental': perfilComportamental.toJson(),
-      'nutricao_e_dieta_estrategica': nutricao.toJson(),
-      'grooming': higiene.toJson(),
-      'saude_preventiva': saude.toJson(),
-      'lifestyle_e_educacao': lifestyle.toJson(),
-      'dica_do_especialista': dica.toJson(),
-      'pet_name': petName,
-      'analysis_type': analysisType,
-      'species': especieDiag,
-      'breed': racaDiag,
-      'characteristics': caracteristicasDiag,
-      'visual_description': descricaoVisualDiag,
-      'possible_causes': possiveisCausasDiag,
-      'urgency_level': urgenciaNivelDiag,
-      'immediate_care': orientacaoImediataDiag,
-      'tabela_benigna': tabelaBenigna,
-      'tabela_maligna': tabelaMaligna,
-      'plano_semanal': planoSemanal,
-      'orientacoes_gerais': orientacoesGerais,
-      'protocolo_imunizacao': protocoloImunizacao,
-    };
+  static Map<String, dynamic> _safeMap(dynamic input) {
+    if (input is Map) {
+      return Map<String, dynamic>.from(input);
+    }
+    return {};
   }
+  
+  Map<String, dynamic> toJson() => {
+    'analysis_type': analysisType,
+    'pet_name': petName,
+    'species': especieDiag,
+    'breed': racaDiag,
+    'characteristics': caracteristicasDiag,
+    'visual_description': descricaoVisualDiag,
+    'possible_causes': possiveisCausasDiag,
+    'urgency_level': urgenciaNivelDiag,
+    'immediate_care': orientacaoImediataDiag,
+    'tabela_benigna': tabelaBenigna,
+    'tabela_maligna': tabelaMaligna,
+    'identification': identificacao.toJson(),
+    'growth_curve': identificacao.curvaCrescimento,
+    'nutrition': nutricao.toJson(),
+    'grooming': higiene.toJson(),
+    'health': saude.toJson(),
+    'lifestyle': lifestyle.toJson(), // We need this
+  };
 }
 
 class IdentificacaoPet {
@@ -155,62 +165,54 @@ class IdentificacaoPet {
     required this.curvaCrescimento,
   });
 
-  factory IdentificacaoPet.fromJson(Map<String, dynamic> json) {
+  factory IdentificacaoPet.fromTotalInference(Map<String, dynamic> id, Map<String, dynamic> growth) {
+    String size = id['size']?.toString() ?? 'Medium';
+    Map<String, dynamic> fallbackGrowth = PetFallbackService.getGrowthCurve(size);
+
+    final Map<String, dynamic> mappedGrowth = {};
+    
+    // Use fallback if AI value is null or N/A
+    String? check(dynamic val, String key) {
+       // Aggressive check: if null, N/A, empty, or "null" string
+       if (val == null || 
+           val.toString().toLowerCase().contains('n/a') || 
+           val.toString().trim().isEmpty || 
+           val.toString().toLowerCase() == 'null') {
+         
+         final fallbackValue = fallbackGrowth[key];
+         return fallbackValue != null ? '$fallbackValue [ESTIMATED]' : 'Estimated [ESTIMATED]'; 
+       }
+       return val.toString();
+    }
+
+    mappedGrowth['peso_3_meses'] = check(growth['weight_3_months'], 'weight_3_months');
+    mappedGrowth['peso_6_meses'] = check(growth['weight_6_months'], 'weight_6_months');
+    mappedGrowth['peso_12_meses'] = check(growth['weight_12_months'], 'weight_12_months');
+    mappedGrowth['peso_adulto'] = check(growth['adult_weight'], 'adult_weight');
+
     return IdentificacaoPet(
-      racaPredominante: json['raca_predominante']?.toString() ?? 'N/A',
-      linhagemSrdProvavel: json['linhagem_srd_provavel']?.toString() ?? 'N/A',
-      porteEstimado: json['porte_estimado']?.toString() ?? 'Médio',
-      expectativaVidaMedia: json['expectativa_vida_media']?.toString() ?? 'N/A',
-      curvaCrescimento: Map<String, dynamic>.from(json['curva_crescimento'] ?? {}),
+      racaPredominante: id['breed']?.toString() ?? 'N/A',
+      linhagemSrdProvavel: id['lineage']?.toString() ?? 'N/A',
+      porteEstimado: size,
+      expectativaVidaMedia: id['longevity']?.toString() ?? '10-15 anos',
+      curvaCrescimento: mappedGrowth,
     );
   }
-
+  
+  factory IdentificacaoPet.fromJson(Map<String, dynamic> json) => IdentificacaoPet.empty();
   factory IdentificacaoPet.empty() => IdentificacaoPet(racaPredominante: 'N/A', linhagemSrdProvavel: 'N/A', porteEstimado: 'N/A', expectativaVidaMedia: 'N/A', curvaCrescimento: {});
-
   Map<String, dynamic> toJson() => {
-    'raca_predominante': racaPredominante,
-    'linhagem_srd_provavel': linhagemSrdProvavel,
-    'porte_estimado': porteEstimado,
-    'expectativa_vida_media': expectativaVidaMedia,
-    'curva_crescimento': curvaCrescimento,
-  };
-}
-
-class PerfilComportamental {
-  final int nivelEnergia;
-  final int nivelInteligencia;
-  final String driveAncestral;
-  final int sociabilidadeGeral;
-
-  PerfilComportamental({
-    required this.nivelEnergia,
-    required this.nivelInteligencia,
-    required this.driveAncestral,
-    required this.sociabilidadeGeral,
-  });
-
-  factory PerfilComportamental.fromJson(Map<String, dynamic> json) {
-    return PerfilComportamental(
-      nivelEnergia: _toInt(json['nivel_energia'], 3),
-      nivelInteligencia: _toInt(json['nivel_inteligencia'], 3),
-      driveAncestral: json['drive_ancestral']?.toString() ?? 'Companhia',
-      sociabilidadeGeral: _toInt(json['sociabilidade_geral'], 3),
-    );
-  }
-
-  factory PerfilComportamental.empty() => PerfilComportamental(nivelEnergia: 0, nivelInteligencia: 0, driveAncestral: 'N/A', sociabilidadeGeral: 0);
-
-  Map<String, dynamic> toJson() => {
-    'nivel_energia': nivelEnergia,
-    'nivel_inteligencia': nivelInteligencia,
-    'drive_ancestral': driveAncestral,
-    'sociabilidade_geral': sociabilidadeGeral,
+    'breed': racaPredominante,
+    'lineage': linhagemSrdProvavel,
+    'size': porteEstimado,
+    'longevity': expectativaVidaMedia,
   };
 }
 
 class NutricaoEStrutura {
   final Map<String, String> metaCalorica;
   final List<String> nutrientesAlvo;
+  // Legacy fields
   final List<String> suplementacaoSugerida;
   final Map<String, dynamic> segurancaAlimentar;
 
@@ -221,22 +223,42 @@ class NutricaoEStrutura {
     required this.segurancaAlimentar,
   });
 
-  factory NutricaoEStrutura.fromJson(Map<String, dynamic> json) {
+  factory NutricaoEStrutura.fromTotalInference(Map<String, dynamic> json, String size) {
+    Map<String, String> meta = {};
+    Map<String, String> fallback = PetFallbackService.getNutritionalTargets(size);
+
+    String check(dynamic val, String key) {
+       if (val == null || 
+           val.toString().toLowerCase().contains('n/a') || 
+           val.toString().trim().isEmpty || 
+           val.toString().toLowerCase() == 'null') {
+         final f = fallback[key];
+         return f != null ? '$f [ESTIMATED]' : 'Estimated [ESTIMATED]';
+       }
+       return val.toString();
+    }
+
+    meta['kcal_filhote'] = check(json['kcal_puppy'], 'kcal_filhote');
+    meta['kcal_adulto'] = check(json['kcal_adult'], 'kcal_adulto');
+    meta['kcal_senior'] = check(json['kcal_senior'], 'kcal_senior');
+
     return NutricaoEStrutura(
-      metaCalorica: Map<String, String>.from(json['meta_calorica'] ?? {}),
-      nutrientesAlvo: (json['nutrientes_alvo'] as List? ?? []).map((e) => e.toString()).toList(),
-      suplementacaoSugerida: (json['suplementacao_sugerida'] as List? ?? []).map((e) => e.toString()).toList(),
-      segurancaAlimentar: Map<String, dynamic>.from(json['seguranca_alimentar'] ?? {}),
+      metaCalorica: meta,
+      nutrientesAlvo: (json['target_nutrients'] as List? ?? []).map((e) => e.toString()).toList(),
+      suplementacaoSugerida: [],
+      segurancaAlimentar: {},
     );
   }
-
+  
+  factory NutricaoEStrutura.fromJson(Map<String, dynamic> json) => NutricaoEStrutura.empty();
+  factory NutricaoEStrutura.fromSimplifiedJson(Map<String, dynamic> json) => NutricaoEStrutura.empty();
+  factory NutricaoEStrutura.fromUnifiedJson(Map<String, dynamic> json) => NutricaoEStrutura.empty();
   factory NutricaoEStrutura.empty() => NutricaoEStrutura(metaCalorica: {}, nutrientesAlvo: [], suplementacaoSugerida: [], segurancaAlimentar: {});
-
   Map<String, dynamic> toJson() => {
-    'meta_calorica': metaCalorica,
-    'nutrientes_alvo': nutrientesAlvo,
-    'suplementacao_sugerida': suplementacaoSugerida,
-    'seguranca_alimentar': segurancaAlimentar,
+      'kcal_puppy': metaCalorica['kcal_filhote'],
+      'kcal_adult': metaCalorica['kcal_adulto'],
+      'kcal_senior': metaCalorica['kcal_senior'],
+      'target_nutrients': nutrientesAlvo,
   };
 }
 
@@ -249,18 +271,38 @@ class Grooming {
     required this.banhoEHigiene,
   });
 
-  factory Grooming.fromJson(Map<String, dynamic> json) {
+  factory Grooming.fromTotalInference(Map<String, dynamic> json) {
+    String type = json['coat_type']?.toString() ?? 'Normal';
+    
+    String check(dynamic val, String fallback) {
+       if (val == null || 
+           val.toString().toLowerCase().contains('n/a') || 
+           val.toString().trim().isEmpty || 
+           val.toString().toLowerCase() == 'null') {
+         return fallback;
+       }
+       return val.toString();
+    }
+
+    String freq = check(json['grooming_frequency'], '${PetFallbackService.getGroomingFrequency(type)} [ESTIMATED]');
+
     return Grooming(
-      manutencaoPelagem: Map<String, dynamic>.from(json['manutencao_pelagem'] ?? {}),
-      banhoEHigiene: Map<String, dynamic>.from(json['banho_e_higiene'] ?? {}),
+      manutencaoPelagem: {
+        'tipo_pelo': type,
+        'frequencia_escovacao_semanal': freq,
+        'alerta_subpelo': json['grooming_alert'],
+      },
+      banhoEHigiene: {},
     );
   }
-
+  
+  factory Grooming.fromJson(Map<String, dynamic> json) => Grooming.empty();
+  factory Grooming.fromUnifiedJson(Map<String, dynamic> a, Map<String, dynamic> b) => Grooming.empty();
   factory Grooming.empty() => Grooming(manutencaoPelagem: {}, banhoEHigiene: {});
-
   Map<String, dynamic> toJson() => {
-    'manutencao_pelagem': manutencaoPelagem,
-    'banho_e_higiene': banhoEHigiene,
+     'coat_type': manutencaoPelagem['tipo_pelo'],
+     'grooming_frequency': manutencaoPelagem['frequencia_escovacao_semanal'],
+     'grooming_alert': manutencaoPelagem['alerta_subpelo'],
   };
 }
 
@@ -269,30 +311,43 @@ class SaudePreventiva {
   final List<String> pontosCriticosAnatomicos;
   final Map<String, dynamic> checkupVeterinario;
   final Map<String, dynamic> sensibilidadeClimatica;
-
+  
   SaudePreventiva({
-    required this.predisposicaoDoencas,
+    required this.predisposicaoDoencas, 
     required this.pontosCriticosAnatomicos,
     required this.checkupVeterinario,
     required this.sensibilidadeClimatica,
   });
+  
+  factory SaudePreventiva.fromTotalInference(Map<String, dynamic> json) {
+    List<String> predis = (json['predispositions'] as List? ?? []).map((e) => e.toString()).toList();
+    if (predis.isEmpty || (predis.length == 1 && predis[0].contains('N/A'))) {
+      predis = ['Consulte veterinário para predisposições específicas'];
+    }
 
-  factory SaudePreventiva.fromJson(Map<String, dynamic> json) {
     return SaudePreventiva(
-      predisposicaoDoencas: (json['predisposicao_doencas'] as List? ?? []).map((e) => e.toString()).toList(),
-      pontosCriticosAnatomicos: (json['pontos_criticos_anatomicos'] as List? ?? []).map((e) => e.toString()).toList(),
-      checkupVeterinario: Map<String, dynamic>.from(json['checkup_veterinario'] ?? {}),
-      sensibilidadeClimatica: Map<String, dynamic>.from(json['sensibilidade_climatica'] ?? {}),
+      predisposicaoDoencas: predis,
+      pontosCriticosAnatomicos: [],
+      checkupVeterinario: {
+        'exames_obrigatorios_anuais': [json['preventive_checkup'] ?? 'Hemograma e Checkup Geral']
+      },
+      sensibilidadeClimatica: {},
     );
   }
-
-  factory SaudePreventiva.empty() => SaudePreventiva(predisposicaoDoencas: [], pontosCriticosAnatomicos: [], checkupVeterinario: {}, sensibilidadeClimatica: {});
-
+  
+  factory SaudePreventiva.empty() => SaudePreventiva(
+    predisposicaoDoencas: [], 
+    pontosCriticosAnatomicos: [],
+    checkupVeterinario: {},
+    sensibilidadeClimatica: {},
+  );
+  
+  factory SaudePreventiva.fromJson(Map<String, dynamic> json) => SaudePreventiva.empty();
+  factory SaudePreventiva.fromSimplifiedJson(Map<String, dynamic> json) => SaudePreventiva.empty();
+  factory SaudePreventiva.fromUnifiedJson(Map<String, dynamic> json) => SaudePreventiva.empty();
   Map<String, dynamic> toJson() => {
-    'predisposicao_doencas': predisposicaoDoencas,
-    'pontos_criticos_anatomicos': pontosCriticosAnatomicos,
-    'checkup_veterinario': checkupVeterinario,
-    'sensibilidade_climatica': sensibilidadeClimatica,
+      'predispositions': predisposicaoDoencas,
+      'preventive_checkup': (checkupVeterinario['exames_obrigatorios_anuais'] is List && (checkupVeterinario['exames_obrigatorios_anuais'] as List).isNotEmpty) ? (checkupVeterinario['exames_obrigatorios_anuais'] as List).first : null,
   };
 }
 
@@ -300,42 +355,56 @@ class LifestyleEEducacao {
   final Map<String, dynamic> treinamento;
   final Map<String, dynamic> ambienteIdeal;
   final Map<String, dynamic> estimuloMental;
-
-  LifestyleEEducacao({
-    required this.treinamento,
-    required this.ambienteIdeal,
-    required this.estimuloMental,
-  });
-
-  factory LifestyleEEducacao.fromJson(Map<String, dynamic> json) {
+  LifestyleEEducacao({required this.treinamento, required this.ambienteIdeal, required this.estimuloMental});
+  
+  factory LifestyleEEducacao.fromTotalInference(Map<String, dynamic> json) {
     return LifestyleEEducacao(
-      treinamento: Map<String, dynamic>.from(json['treinamento'] ?? {}),
-      ambienteIdeal: Map<String, dynamic>.from(json['ambiente_ideal'] ?? {}),
-      estimuloMental: Map<String, dynamic>.from(json['estimulo_mental'] ?? {}),
+      treinamento: {
+        'dificuldade_adestramento': json['training_intelligence'] ?? 'N/A',
+        'metodos_recomendados': 'Reforço positivo'
+      },
+      ambienteIdeal: {
+        'necessidade_de_espaco_aberto': json['environment_type'] ?? 'N/A',
+        'adaptacao_apartamento_score': (json['environment_type']?.toString().toLowerCase().contains('apart') ?? false) ? 5 : 3
+      },
+      estimuloMental: {
+        'necessidade_estimulo_mental': json['activity_level'] ?? 'N/A',
+        'atividades_sugeridas': 'Brinquedos interativos e passeios'
+      }
     );
   }
 
   factory LifestyleEEducacao.empty() => LifestyleEEducacao(treinamento: {}, ambienteIdeal: {}, estimuloMental: {});
-
+  factory LifestyleEEducacao.fromJson(Map<String, dynamic> json) => LifestyleEEducacao.empty();
+  factory LifestyleEEducacao.fromSimplifiedJson(Map<String, dynamic> json) => LifestyleEEducacao.empty();
+  factory LifestyleEEducacao.fromUnifiedJson(Map<String, dynamic> json) => LifestyleEEducacao.empty();
   Map<String, dynamic> toJson() => {
-    'treinamento': treinamento,
-    'ambiente_ideal': ambienteIdeal,
-    'estimulo_mental': estimuloMental,
+      'training_intelligence': treinamento['dificuldade_adestramento'],
+      'environment_type': ambienteIdeal['necessidade_de_espaco_aberto'],
+      'activity_level': estimuloMental['necessidade_estimulo_mental'],
   };
 }
 
 class DicaEspecialista {
   final String insightExclusivo;
-
   DicaEspecialista({required this.insightExclusivo});
-
-  factory DicaEspecialista.fromJson(Map<String, dynamic> json) {
-    return DicaEspecialista(insightExclusivo: json['insight_exclusivo']?.toString() ?? '');
-  }
-
   factory DicaEspecialista.empty() => DicaEspecialista(insightExclusivo: '');
+  factory DicaEspecialista.fromJson(Map<String, dynamic> json) => DicaEspecialista.empty();
+  factory DicaEspecialista.fromSimplifiedJson(dynamic json) => DicaEspecialista.empty();
+  factory DicaEspecialista.fromUnifiedJson(dynamic json) => DicaEspecialista.empty();
+  Map<String, dynamic> toJson() => {};
+}
 
-  Map<String, dynamic> toJson() => {'insight_exclusivo': insightExclusivo};
+class PerfilComportamental {
+    final int nivelEnergia;
+    final int nivelInteligencia;
+    final String driveAncestral;
+    final int sociabilidadeGeral;
+    PerfilComportamental({required this.nivelEnergia, required this.nivelInteligencia, required this.driveAncestral, required this.sociabilidadeGeral});
+    factory PerfilComportamental.empty() => PerfilComportamental(nivelEnergia: 0, nivelInteligencia: 0, driveAncestral: 'N/A', sociabilidadeGeral: 0);
+    factory PerfilComportamental.fromTotalInference(Map<String, dynamic> json) => PerfilComportamental.empty();
+    factory PerfilComportamental.fromJson(Map<String, dynamic> json) => PerfilComportamental.empty();
+    Map<String, dynamic> toJson() => {};
 }
 
 int _toInt(dynamic value, int defaultValue) {

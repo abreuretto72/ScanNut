@@ -57,6 +57,7 @@ class HistoryService {
       if (imagePath != null) 'image_path': imagePath,
     };
     await box.add(entry);
+    await box.flush(); // Ensure persistence
   }
 
 
@@ -78,6 +79,7 @@ class HistoryService {
     };
     
     await box.put(key, entry);
+    await box.flush(); // Ensure persistence
   }
 
   Future<void> clearHistory() async {

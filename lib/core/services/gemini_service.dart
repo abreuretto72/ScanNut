@@ -145,8 +145,8 @@ class GeminiService {
           }
         ],
         'generationConfig': {
-          'temperature': mode == ScannutMode.plant ? 0.0 : 0.4,
-          'maxOutputTokens': (mode == ScannutMode.petIdentification || mode == ScannutMode.petDiagnosis) ? 300 : 2048,
+          'temperature': mode == ScannutMode.plant ? 0.0 : 0.5,
+          'maxOutputTokens': 4096,
         },
       };
 
@@ -176,6 +176,12 @@ class GeminiService {
 
       // Validate response
       if (response.statusCode != 200) {
+        if (response.statusCode == 400) {
+          throw GeminiException(
+             'Bad Request',
+             type: GeminiErrorType.badRequest, // Maps to errorBadPhoto
+          );
+        }
         throw GeminiException(
           'Erro HTTP: ${response.statusCode}',
           type: GeminiErrorType.serverError,
@@ -343,6 +349,10 @@ class GeminiService {
             ]
           }
         ],
+         'generationConfig': {
+           'temperature': 0.4,
+           'maxOutputTokens': 2048,
+         },
       };
 
       debugPrint('⏳ Enviando para Gemini...');
@@ -657,6 +667,7 @@ enum GeminiErrorType {
   parseError,
   aiError,
   serviceUnavailable,
+  badRequest,
   unknown,
 }
 
@@ -670,11 +681,12 @@ class GeminiException implements Exception {
   String get userMessage {
     switch (type) {
       case GeminiErrorType.timeout:
-        return 'A conexão demorou muito. Verifique seu Wi-Fi/4G.';
+        return 'errorAiTimeout'; // Localized key
       case GeminiErrorType.network:
         return 'Sem conexão com a internet. Verifique sua rede.';
       case GeminiErrorType.parseError:
-        return 'Erro ao processar dados. Tente tirar a foto novamente.';
+      case GeminiErrorType.badRequest:
+        return 'errorBadPhoto'; // Localized key
       case GeminiErrorType.serverError:
         return 'Serviço temporariamente indisponível. Tente mais tarde.';
       case GeminiErrorType.invalidImage:

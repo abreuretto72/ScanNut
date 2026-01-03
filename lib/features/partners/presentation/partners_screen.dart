@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/services/whatsapp_service.dart';
@@ -10,6 +11,7 @@ import '../../../core/widgets/pdf_action_button.dart';
 import '../../pet/models/pet_analysis_result.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
+import 'partner_registration_screen.dart';
 
 class PartnersScreen extends ConsumerStatefulWidget {
   final PetAnalysisResult? suggestionContext;
@@ -107,27 +109,27 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         backgroundColor: Colors.grey.shade900,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Vincular Parceiro', 
+          AppLocalizations.of(context)!.partnersLinkTitle, 
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)
         ),
         content: Text(
-          'Deseja adicionar "' + partner.name + '" à sua Rede de Apoio personalizada?',
+          AppLocalizations.of(context)!.partnersLinkContent(partner.name),
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white38)),
+            child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white38)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(partner.name + ' vinculado com sucesso!'))
+                SnackBar(content: Text(AppLocalizations.of(context)!.partnersLinkSuccess(partner.name)))
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)),
-            child: const Text('Vincular', style: TextStyle(color: Colors.black)),
+            child: Text(AppLocalizations.of(context)!.partnersBtnLink, style: const TextStyle(color: Colors.black)),
           ),
         ],
       ),
@@ -143,7 +145,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
       appBar: AppBar(
         backgroundColor: Colors.grey.shade900,
         title: Text(
-          'Futuros Parceiros',
+          AppLocalizations.of(context)!.partnersTitle,
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -154,8 +156,8 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.add_business, color: Color(0xFF00E676)),
-            onPressed: () => _showAddPartnerDialog(),
-            tooltip: 'Cadastrar Parceiro',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PartnerRegistrationScreen())),
+            tooltip: AppLocalizations.of(context)!.partnerRegisterTitle,
           ),
           const SizedBox(width: 8),
         ],
@@ -178,7 +180,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
             ],
           ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddPartnerDialog(),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PartnerRegistrationScreen())),
         backgroundColor: const Color(0xFF00E676),
         child: const Icon(Icons.add, color: Colors.black),
       ),
@@ -193,7 +195,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           const Icon(Icons.location_on_outlined, color: Colors.white60, size: 16),
           const SizedBox(width: 8),
           Text(
-            'Mostrando parceiros em um raio de ' + radius.toInt().toString() + 'km',
+            AppLocalizations.of(context)!.partnersRadiusInfo(radius.toInt().toString()),
             style: GoogleFonts.poppins(color: Colors.white60, fontSize: 11),
           ),
           const Spacer(),
@@ -215,7 +217,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
             const Icon(Icons.location_off_outlined, color: Colors.white24, size: 64),
             const SizedBox(height: 16),
             Text(
-              'Nenhum parceiro encontrado\nneste raio de busca.',
+              AppLocalizations.of(context)!.partnersEmpty,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(color: Colors.white54),
             ),
@@ -223,7 +225,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
               onPressed: () {
                 // Future navigation to settings
               },
-              child: const Text('Aumentar Raio de Busca', style: TextStyle(color: Color(0xFF00E676))),
+              child: Text(AppLocalizations.of(context)!.partnersIncreaseRadius, style: const TextStyle(color: Color(0xFF00E676))),
             )
           ],
         ),
@@ -246,7 +248,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Baseado na análise do seu pet, encontramos estes especialistas para você.',
+              AppLocalizations.of(context)!.partnersSuggestion,
               style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
             ),
           )
@@ -288,7 +290,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                     children: [
                       const Icon(Icons.directions_walk, size: 12, color: Color(0xFF00E676)),
                       const SizedBox(width: 4),
-                      Text(dist.toStringAsFixed(1) + ' km de você', style: const TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.w600)),
+                      Text(AppLocalizations.of(context)!.partnersKmFromYou(dist.toStringAsFixed(1)), style: const TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.w600)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -333,12 +335,12 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildActionButton(Icons.phone, 'Ligar', () => launchUrl(Uri.parse('tel:' + partner.phone))),
+                    _buildActionButton(Icons.phone, AppLocalizations.of(context)!.partnersCall, () => launchUrl(Uri.parse('tel:' + partner.phone))),
                     const SizedBox(width: 8),
                     if (partner.whatsapp != null)
                       _buildActionButton(Icons.chat_bubble_outline, 'WhatsApp', () => _sendWhatsApp(partner)),
                     const SizedBox(width: 8),
-                    _buildActionButton(Icons.map_outlined, 'Mapa', () {}),
+                    _buildActionButton(Icons.map_outlined, AppLocalizations.of(context)!.partnersMap, () {}),
                   ],
                 ),
               ),
@@ -408,6 +410,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                 final pdf = await ExportService().generatePartnersReport(
                   partners: _partners,
                   region: 'SP (Mock Location)',
+                  strings: AppLocalizations.of(context)!,
                 );
                 return pdf.save();
               },

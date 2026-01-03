@@ -477,6 +477,67 @@ Mantenha as chaves JSON em inglês.
 ''';
   }
 
+  /// Weekly Menu Generation - Specialized Nutritionist Prompt
+  static String getWeeklyMenuPrompt({
+    required String petName,
+    required String breed,
+    required String age,
+    required String weight,
+    required String goal,
+    required String dietType,
+    required String startStr,
+    required String endStr,
+    required int duration,
+    required String historyContext,
+    required String languageName,
+    required String languageInstruction,
+  }) {
+    return '''
+            $languageInstruction
+            
+            [ROLE]
+            ACT AS AN EXCLUSIVE VETERINARY NUTRITIONIST SPECIALIST (SCANNUT METHOD).
+            Generate a personalized menu for: $petName ($breed, $age, $weight kg).
+            Nutritional Goal: $goal.
+            Established Diet: $dietType.
+            Planning Period: $startStr to $endStr ($duration days).
+           
+            $historyContext
+           
+            ⚠️ STRICTOR RULES (SCANNUT PROTOCOLS):
+            1. Maintain biological consistency. Do not suggest toxic foods (grapes, onions, chocolate, etc.).
+            2. The plan must be daily and cover EXACTLY $duration days.
+            3. The 'refeicoes' field must be filled for EVERY day.
+            4. Mandatory Detailing in the 5 PET HEALTH PILLARS in ALL meals:
+               - PROTEIN (Ex: Chicken, Beef, Egg, Fish)
+               - HEALTHY FAT (Ex: Olive Oil, Fish Oil)
+               - FIBER (Ex: Pumpkin, Zucchini, Carrot)
+               - MINERALS (Ex: Specific supplementation, processed eggshell)
+               - HYDRATION (Ex: Water, homemade sugar-free broths)
+           
+            MANDATORY JSON STRUCTURE:
+            {
+              "plano_semanal": [
+                {
+                  "dia": "Day of the Week - DD/MM", 
+                  "refeicoes": [
+                     {
+                       "hora": "HH:MM", 
+                       "titulo": "Short Meal Name", 
+                       "descricao": "Detailed text including the 5 Pillars mentioned above.", 
+                       "tipo_dieta": "$dietType"
+                     }
+                  ]
+                }
+              ],
+              "orientacoes_gerais": "Strategic summary focused on the goal of $goal."
+            }
+            
+            ALL CONTENT (Meal names, descriptions, orientations) MUST BE IN $languageName.
+            DO NOT ADD TEXT OUTSIDE THE JSON.
+        ''';
+  }
+
   static String getPrompt(ScannutMode mode, {String locale = 'pt'}) {
     // Map locale code to full language name and strict instruction
     String languageName;
@@ -499,6 +560,8 @@ Mantenha as chaves JSON em inglês.
       languageName = "Portuguese-BR";
       languageInstruction = "Responda em Português do Brasil.";
     }
+    
+    final isPortuguese = languageName.contains('Portuguese');
 
     switch (mode) {
       case ScannutMode.food:
@@ -511,157 +574,66 @@ Mantenha as chaves JSON em inglês.
         return '''
 $languageInstruction
 
-Atue como um Especialista Multidisciplinar (Médico Veterinário, Nutricionista Animal e Adestrador Canino/Felino). Ao identificar um animal por foto, gere um relatório técnico ultra-detalhado em formato JSON.
+[ROLE]
+You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze the pet image and generate a COMPLETE biological profile.
 
-Responda EXCLUSIVAMENTE em JSON (sem markdown). Use $languageName.
-CRITICAL: All food names, ingredients, and instructions MUST be strictly in $languageName. Never use terms from the source image if they are in a different language.
-URGENT: All "Meal Names" must be translated to $languageName. Example: Instead of "Pizza caseira", use "Homemade Pizza". No Portuguese words allowed in the JSON values.
-Translate Brazilian brands to generic equivalents in $languageName (e.g., "1 tortilla" instead of "1 Rap10").
+[STRICT ZERO N/A POLICY - CRITICAL]
+1. You must Return a Valid JSON. Use $languageName.
+2. "N/A", "Unknown", "Not Estimated", "Não informado", "Desc", "Non-specified" are STRICTLY FORBIDDEN.
+3. MANDATORY INFERENCE: If a value is not visible, you MUST ESTIMATE it based on the breed ($languageName standards).
+   - Example: If Border Collie is identified, "grooming_frequency" MUST be "Weekly" (or "Semanal").
+   - Example: "kcal_puppy" MUST be a numeric estimate (e.g. "1200 kcal") based on size.
+4. CONSISTENCY RULES & TRANSLATIONS:
+   A. IF LANGUAGE IS ENGLISH:
+      - activity_level: Use ONLY "Low", "Moderate", "High", "Athlete".
+      - reproductive_status (if inferred): Use ONLY "Neutered" or "Intact".
+      - coat_type: Use "Short", "Long", "Double", "Wire", "Curly".
+      - grooming_frequency: Use "Daily", "Weekly", "Bi-weekly", "Monthly".
+   B. IF LANGUAGE IS PORTUGUESE:
+      - activity_level: Use APENAS "Baixo", "Moderado", "Alto", "Atleta".
+      - reproductive_status (if inferred): Use APENAS "Castrado" ou "Inteiro".
+      - coat_type: Use "Curto", "Longo", "Duplo", "Duro", "Encaracolado".
+      - grooming_frequency: Use "Diária", "Semanal", "Quinzenal", "Mensal".
+   C. IF LANGUAGE IS SPANISH:
+      - activity_level: Use SOLO "Bajo", "Moderado", "Alto", "Atleta".
+      - reproductive_status (if inferred): Use SOLO "Castrado" o "Entero".
+      - coat_type: Use "Corto", "Largo", "Doble", "Duro", "Rizado".
+      - grooming_frequency: Use "Diaria", "Semanal", "Quincenal", "Mensual".
 
-Estrutura Obrigatória:
+[STRUCTURE]
 {
-  "identificacao": {
-    "raca_predominante": "string",
-    "linhagem_srd_provavel": "string",
-    "porte_estimado": "Pequeno | Médio | Grande | Gigante",
-    "expectativa_vida_media": "string",
-    "curva_crescimento": {
-       "peso_3_meses": "string",
-       "peso_6_meses": "string",
-       "peso_12_meses": "string",
-       "peso_adulto": "string"
-    }
+  "identification": {
+    "breed": "string (Identify breed or 'Mixed/SRD')",
+    "lineage": "string",
+    "size": "string (Small/Medium/Large/Giant)",
+    "longevity": "string (e.g. 12-15 years)"
   },
-  "perfil_comportamental": {
-    "nivel_energia": integer (1-5),
-    "nivel_inteligencia": integer (1-5),
-    "drive_ancestral": "string (guarda/caça/companhia)",
-    "sociabilidade_geral": integer (1-5)
-  },
-  "nutricao_e_dieta_estrategica": {
-    "meta_calorica": {
-      "kcal_filhote": "string",
-      "kcal_adulto": "string",
-      "kcal_senior": "string"
-    },
-    "nutrientes_alvo": ["string"],
-    "suplementacao_sugerida": ["string"],
-    "seguranca_alimentar": {
-      "alergias_comuns_da_raca": ["string"],
-      "alimentos_proibidos_especificos": ["string"],
-      "tendencia_obesidade": boolean
-    }
+  "growth_curve": {
+    "weight_3_months": "string (Estimated kg)",
+    "weight_6_months": "string (Estimated kg)",
+    "weight_12_months": "string (Estimated kg)",
+    "adult_weight": "string (Estimated kg)"
   },
   "grooming": {
-    "manutencao_pelagem": {
-      "tipo_pelo": "string",
-      "frequencia_escovacao_semanal": "string",
-      "necessidade_tosa": "string",
-      "alerta_subpelo": "string (AVISO IMPORTANTE sobre tosa na máquina se aplicável)"
-    },
-    "banho_e_higiene": {
-      "frequencia_ideal_banho": "string",
-      "cuidado_ouvidos": "string",
-      "cuidado_ocular": "string",
-      "produtos_recomendados": ["string"]
-    }
+    "coat_type": "string",
+    "grooming_frequency": "string (Estimated frequency)"
   },
-  "saude_preventiva": {
-    "predisposicao_doencas": ["string"],
-    "pontos_criticos_anatomicos": ["string (ex: coluna, quadril, coração)"],
-    "checkup_veterinario": {
-      "exames_obrigatorios_anuais": ["string"],
-      "sinais_de_alerta_para_o_dono_monitorar": ["string"]
-    },
-    "sensibilidade_climatica": {
-      "tolerancia_calor": "string",
-      "tolerancia_frio": "string"
-    }
+  "nutrition": {
+    "kcal_puppy": "string (Estimated daily kcal)",
+    "kcal_adult": "string (Estimated daily kcal)",
+    "kcal_senior": "string (Estimated daily kcal)",
+    "target_nutrients": ["string"]
   },
-  "protocolo_imunizacao": {
-    "vacinas_essenciais": [
-      {
-        "nome": "string (ex: V10/V8, Antirrábica, Gripe Canina, Giárdia)",
-        "objetivo": "string (proteção contra quais doenças)",
-        "periodicidade_filhote": "string (ex: 3 doses com intervalo de 21 dias)",
-        "reforco_adulto": "string (ex: Anual)",
-        "idade_primeira_dose": "string (ex: 45 dias de vida)"
-      }
-    ],
-    "calendario_preventivo": {
-      "cronograma_filhote": "string (descrição do protocolo completo para filhotes)",
-      "reforco_anual": "string (orientações para manutenção em adultos)"
-    },
-    "prevencao_parasitaria": {
-      "vermifugacao": {
-        "frequencia": "string",
-        "principios_ativos_recomendados": ["string"]
-      },
-      "controle_ectoparasitas": {
-        "pulgas_carrapatos": "string (métodos e frequência)",
-        "produtos_recomendados": ["string"]
-      },
-      "alerta_regional": "string (ex: Leishmaniose em áreas endêmicas, Dirofilariose em regiões litorâneas)"
-    },
-    "saude_bucal_ossea": {
-      "ossos_naturais_permitidos": ["string (ex: Osso bovino cru de tutano, Costela bovina crua)"],
-      "frequencia_semanal": "string",
-      "alerta_seguranca": "⚠️ NUNCA oferecer ossos cozidos (risco de estilhaçamento e perfuração intestinal)",
-      "beneficios": "string (limpeza dental natural, fortalecimento mandibular)"
-    }
+  "health": {
+    "predispositions": ["string", "string"],
+    "preventive_checkup": "string"
   },
-  "lifestyle_e_educacao": {
-    "treinamento": {
-      "dificuldade_adestramento": "string",
-      "comandos_essenciais_para_raca": ["string"]
-    },
-    "ambiente_ideal": {
-      "adaptacao_apartamento_score": integer (1-5),
-      "necessidade_de_espaco_aberto": "string"
-    },
-    "estimulo_mental": {
-      "brinquedos_recomendados": ["string"],
-      "atividades_para_evitar_ansiedade": ["string"]
-    }
-  },
-  "dica_do_especialista": {
-    "insight_exclusivo": "string (segredo técnico ou curiosidade histórica)"
-  },
-  "tabela_benigna": [
-    { "alimento": "string", "beneficio_especifico_raca": "string", "modo_preparo": "string" }
-  ],
-  "tabela_maligna": [
-   { "alimento": "string", "risco_especifico_raca": "string", "efeito_fisiologico": "string" }
-  ],
-  "plano_semanal": [
-    { "dia": "Segunda-feira", "refeicao": "string", "beneficio": "string" }
-  ],
-  "orientacoes_gerais": "string"
+  "lifestyle": {
+    "activity_level": "string (Low/Moderate/High)",
+    "environment_type": "string (Apartment/House)",
+    "training_intelligence": "string"
+  }
 }
-
-⚠️ ATENÇÃO CRÍTICA - POLÍTICA DE ALIMENTAÇÃO NATURAL (AN):
-O sistema Scannut opera EXCLUSIVAMENTE com Alimentação Natural (AN).
-É TERMINANTEMENTE PROIBIDO sugerir:
-- Ração comercial (seca ou úmida)
-- Grãos industrializados
-- Petiscos processados
-- Qualquer alimento ultraprocessado
-
-TODAS as refeições devem usar APENAS ingredientes frescos/reais (comida de verdade).
-
-IMPORTANT: The list below uses Portuguese terms, but you MUST translate and output the selected ingredients in $languageName.
-
-CATEGORIAS PERMITIDAS:
-1. Proteínas: Carnes (bovina, frango, porco, peixe, cordeiro) e ovos
-2. Vísceras: Fígado, rim, baço, coração, moela
-3. Vegetais/Legumes: Cenoura, chuchu, abóbora, brócolis, vagem, abobrinha, espinafre (moderado)
-4. Carboidratos Saudáveis: Arroz integral, batata doce, inhame, mandioca, mandioquinha, aveia
-5. Gorduras/Suplementos: Azeite de oliva, óleo de coco, semente de linhaça, cúrcuma
-
-REGRA DE ROTAÇÃO: Se houver histórico de ingredientes recentes, SUBSTITUA as bases principais.
-Exemplo: Se a semana passada usou Carne Bovina + Arroz, esta semana use Frango + Batata Doce.
-
-Se a imagem for inconclusiva ou não for um pet, retorne {"error": "not_detected"}.
 ''';
 
       case ScannutMode.petDiagnosis:
@@ -677,18 +649,19 @@ Return a STRICT JSON object (no markdown) with:
   "characteristics": "string (Brief description of the area affected)",
   "visual_description": "string (Detailed clinical description of the wound/condition)", 
   "possible_causes": ["list of strings (Potential causes: parasites, trauma, allergy, etc.)"], 
-  "urgency_level": "Verde" | "Amarelo" | "Vermelho", 
+  "urgency_level": "${isPortuguese ? 'Verde' : 'Green'}" | "${isPortuguese ? 'Amarelo' : 'Yellow'}" | "${isPortuguese ? 'Vermelho' : 'Red'}", 
   "immediate_care": "string (First aid advice or recommendation to see a vet)"
 }. 
 
 Urgency Levels:
-- Verde: Healthy/Observation.
-- Amarelo: Attention/Monitor.
-- Vermelho: Emergency/Immediate Action.
+- ${isPortuguese ? 'Verde' : 'Green'}: Healthy/Observation.
+- ${isPortuguese ? 'Amarelo' : 'Yellow'}: Attention/Monitor.
+- ${isPortuguese ? 'Vermelho' : 'Red'}: Emergency/Immediate Action.
 
 IMPORTANT: Include a disclaimer in immediate_care.
 If no condition/wound is found, return {"error": "not_detected"}.
 ''';
     }
   }
+
 }

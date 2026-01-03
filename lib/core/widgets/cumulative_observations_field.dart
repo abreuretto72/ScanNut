@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:intl/intl.dart';
@@ -140,7 +141,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
     if (!_speechAvailable) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reconhecimento de voz não disponível'), backgroundColor: Colors.orange),
+          SnackBar(content: Text(AppLocalizations.of(context)!.voiceNotAvailable), backgroundColor: Colors.orange),
         );
       }
       return;
@@ -200,7 +201,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
   void _showAddObservationDialog() {
     final textController = TextEditingController();
     
-    showDialog(
+        showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
@@ -209,7 +210,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
           children: [
             Icon(widget.icon ?? Icons.note_add, color: widget.accentColor ?? const Color(0xFF00E676)),
             const SizedBox(width: 12),
-            Expanded(child: Text('Nova Observação', style: GoogleFonts.poppins(color: Colors.white, fontSize: 18))),
+            Expanded(child: Text(AppLocalizations.of(context)!.observationNew, style: GoogleFonts.poppins(color: Colors.white, fontSize: 18))),
           ],
         ),
         content: TextField(
@@ -218,7 +219,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
           autofocus: true,
           style: GoogleFonts.poppins(color: Colors.white),
           decoration: InputDecoration(
-            hintText: 'Digite sua observação...',
+            hintText: AppLocalizations.of(context)!.observationHint,
             hintStyle: GoogleFonts.poppins(color: Colors.white54),
             filled: true,
             fillColor: Colors.white.withOpacity(0.05),
@@ -228,7 +229,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white54)),
+            child: Text(AppLocalizations.of(context)!.btnCancel, style: GoogleFonts.poppins(color: Colors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: widget.accentColor ?? const Color(0xFF00E676)),
@@ -238,7 +239,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
                 Navigator.pop(context);
               }
             },
-            child: Text('Adicionar', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.black)),
+            child: Text(AppLocalizations.of(context)!.commonAdd, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.black)),
           ),
         ],
       ),
@@ -256,11 +257,11 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
           children: [
             Icon(widget.icon ?? Icons.history_edu, color: widget.accentColor ?? const Color(0xFF00E676), size: 20),
             const SizedBox(width: 8),
-            Text('Observações e Histórico', style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+            Text(AppLocalizations.of(context)!.petObservationsHistory, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
           ],
         ),
         const SizedBox(height: 8),
-        Text('Registre observações importantes sobre ${widget.sectionName}', style: GoogleFonts.poppins(color: Colors.white60, fontSize: 11)),
+        Text('${AppLocalizations.of(context)!.petRegisterObservations} (${widget.sectionName})', style: GoogleFonts.poppins(color: Colors.white60, fontSize: 11)),
         const SizedBox(height: 12),
         
         // Campo de Texto (Visualização Otimizada)
@@ -281,7 +282,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
                     readOnly: true,
                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, height: 1.6),
                     decoration: InputDecoration(
-                    hintText: 'Nenhuma observação registrada ainda.\nToque no + para adicionar ou no microfone para ditar.',
+                    hintText: AppLocalizations.of(context)!.petNoObservations,
                     hintStyle: GoogleFonts.poppins(color: Colors.white38, fontSize: 11),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.all(16),
@@ -290,19 +291,24 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
                 
                 // Botão "Carregar Mais" (Paginação)
                 if (hasMore)
-                    Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                            border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
-                        ),
-                        child: TextButton.icon(
-                            onPressed: _loadMore,
-                            icon: const Icon(Icons.expand_more, size: 16, color: Colors.white54),
-                            label: Text(
-                                'Carregar antigas (${_allEntries.length - _visibleEntriesCount} restantes)', 
-                                style: GoogleFonts.poppins(fontSize: 11, color: Colors.white54)
+                    Builder(
+                      builder: (context) {
+                        final count = '${_allEntries.length - _visibleEntriesCount}';
+                        return Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                                border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
                             ),
-                        ),
+                            child: TextButton.icon(
+                                onPressed: _loadMore,
+                                icon: const Icon(Icons.expand_more, size: 16, color: Colors.white54),
+                                label: Text(
+                                    AppLocalizations.of(context)!.commonLoadMore(count), 
+                                    style: GoogleFonts.poppins(fontSize: 11, color: Colors.white54)
+                                ),
+                            ),
+                        );
+                      }
                     ),
             ],
           ),
@@ -317,7 +323,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
               child: ElevatedButton.icon(
                 onPressed: _showAddObservationDialog,
                 icon: const Icon(Icons.add, size: 18),
-                label: Text('Adicionar Texto', style: GoogleFonts.poppins(fontSize: 12)),
+                label: Text(AppLocalizations.of(context)!.commonAddText, style: GoogleFonts.poppins(fontSize: 12)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: widget.accentColor ?? const Color(0xFF00E676),
                   foregroundColor: Colors.black,
@@ -330,7 +336,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
             ElevatedButton.icon(
               onPressed: _speechAvailable ? _toggleListening : null,
               icon: Icon(_isListening ? Icons.mic : Icons.mic_none, size: 18),
-              label: Text(_isListening ? 'Ouvindo...' : 'Voz', style: GoogleFonts.poppins(fontSize: 12)),
+              label: Text(_isListening ? AppLocalizations.of(context)!.commonListening : AppLocalizations.of(context)!.commonVoice, style: GoogleFonts.poppins(fontSize: 12)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _isListening ? Colors.red : Colors.blue,
                 foregroundColor: Colors.white,

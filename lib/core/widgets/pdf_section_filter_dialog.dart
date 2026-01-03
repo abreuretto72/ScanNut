@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 
 /// Dialog for selecting which sections to include in the PDF export
 class PdfSectionFilterDialog extends StatefulWidget {
@@ -18,26 +19,28 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
     'parc': false,
   };
 
-  final Map<String, String> _sectionLabels = {
-    'identity': '🐾 Identidade',
-    'health': '💉 Saúde',
-    'nutrition': '🍖 Nutrição',
-    'gallery': '📸 Galeria',
-    'parc': '🤝 Parceiros',
-  };
-
-  final Map<String, String> _sectionDescriptions = {
-    'identity': 'Informações básicas e perfil biológico',
-    'health': 'Histórico de vacinas, peso e exames',
-    'nutrition': 'Plano alimentar semanal e preferências',
-    'gallery': 'Fotos e documentos anexados',
-    'parc': 'Rede de apoio e parceiros vinculados',
-  };
-
   bool get _hasSelection => _selectedSections.values.any((selected) => selected);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    final Map<String, String> sectionLabels = {
+      'identity': '🐾 ${l10n.sectionIdentity}',
+      'health': '💉 ${l10n.sectionHealth}',
+      'nutrition': '🍖 ${l10n.sectionNutrition}',
+      'gallery': '📸 ${l10n.sectionGallery}',
+      'parc': '🤝 ${l10n.sectionPartners}',
+    };
+
+    final Map<String, String> sectionDescriptions = {
+      'identity': l10n.sectionDescIdentity,
+      'health': l10n.sectionDescHealth,
+      'nutrition': l10n.sectionDescNutrition,
+      'gallery': l10n.sectionDescGallery,
+      'parc': l10n.sectionDescPartners,
+    };
+
     return AlertDialog(
       backgroundColor: Colors.grey[900],
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -58,7 +61,7 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Filtrar Seções do PDF',
+              l10n.pdfFilterTitle,
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 18,
@@ -74,7 +77,7 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Selecione as seções que deseja incluir no relatório:',
+              l10n.pdfFilterSubtitle,
               style: GoogleFonts.poppins(
                 color: Colors.white70,
                 fontSize: 13,
@@ -84,8 +87,8 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
             ..._selectedSections.keys.map((section) {
               return _buildSectionCheckbox(
                 section: section,
-                label: _sectionLabels[section]!,
-                description: _sectionDescriptions[section]!,
+                label: sectionLabels[section]!,
+                description: sectionDescriptions[section]!,
                 value: _selectedSections[section]!,
                 onChanged: (value) {
                   setState(() {
@@ -108,7 +111,7 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'O relatório incluirá apenas as seções selecionadas',
+                      l10n.pdfFilterDisclaimer,
                       style: GoogleFonts.poppins(
                         color: Colors.blue[200],
                         fontSize: 11,
@@ -125,7 +128,7 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(
-            'Cancelar',
+            l10n.btnCancel,
             style: GoogleFonts.poppins(color: Colors.white54),
           ),
         ),
@@ -136,7 +139,7 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
             });
           },
           child: Text(
-            'Selecionar Tudo',
+            l10n.pdfSelectAll,
             style: GoogleFonts.poppins(color: const Color(0xFF00E676)),
           ),
         ),
@@ -157,7 +160,7 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
               const Icon(Icons.check, size: 18),
               const SizedBox(width: 4),
               Text(
-                'Gerar PDF',
+                l10n.pdfGenerate,
                 style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
               ),
             ],

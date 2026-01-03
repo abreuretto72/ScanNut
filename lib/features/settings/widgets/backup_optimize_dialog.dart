@@ -51,7 +51,7 @@ class _BackupOptimizeDialogState extends State<BackupOptimizeDialog> {
     try {
       // 1. Load Profile
       final profileMap = await _profileService.getProfile(_selectedPetName!);
-      if (profileMap == null) throw Exception('Perfil não encontrado');
+      if (profileMap == null) throw Exception(strings.backupProfileNotFound);
 
       // Ensure we have a valid Map structure for fromHiveEntry
       // It expects the wrapper map with 'data' key? 
@@ -90,7 +90,7 @@ class _BackupOptimizeDialogState extends State<BackupOptimizeDialog> {
     } catch (e) {
       debugPrint('Error in backup: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${strings.commonError}: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -102,15 +102,15 @@ class _BackupOptimizeDialogState extends State<BackupOptimizeDialog> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: Text('Otimização de Armazenamento', style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.backupOptimizationTitle, style: GoogleFonts.poppins(color: Colors.white)),
         content: Text(
-          'Backup PDF gerado com sucesso!\n\nDeseja remover registros com mais de 2 anos (Observações e Feridas) para liberar espaço no dispositivo? O histórico antigo permanecerá salvo no PDF que você acabou de exportar.',
+          AppLocalizations.of(context)!.backupOptimizationContent,
           style: GoogleFonts.poppins(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Manter Tudo', style: TextStyle(color: Colors.white54)),
+            child: Text(AppLocalizations.of(context)!.backupKeepAll, style: const TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
@@ -118,7 +118,7 @@ class _BackupOptimizeDialogState extends State<BackupOptimizeDialog> {
               Navigator.pop(ctx);
               await _cleanOldData(profile);
             },
-            child: Text('Limpar Antigos', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.backupCleanOld, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -188,11 +188,11 @@ class _BackupOptimizeDialogState extends State<BackupOptimizeDialog> {
 
          await _profileService.saveOrUpdateProfile(updatedProfile.petName, updatedProfile.toJson());
          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Limpeza concluída! App otimizado.'), backgroundColor: Colors.green));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.backupSuccessClean), backgroundColor: Colors.green));
          }
       } else {
          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Nenhum dado antigo encontrado para limpeza.'), backgroundColor: Colors.blue));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.backupNoDataClean), backgroundColor: Colors.blue));
          }
       }
 
@@ -206,28 +206,28 @@ class _BackupOptimizeDialogState extends State<BackupOptimizeDialog> {
     return AlertDialog(
       backgroundColor: Colors.grey[900],
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text('Backup e Otimização', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+      title: Text(AppLocalizations.of(context)!.backupOptimizeTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Gera um PDF completo com todo o histórico do pet (incluindo fotos e anexos) e permite limpar registros antigos para liberar espaço.',
+            AppLocalizations.of(context)!.backupOptimizeDesc,
             style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
           ),
           const SizedBox(height: 20),
           if (_petNames.isEmpty)
-             const Text('Nenhum pet encontrado.', style: TextStyle(color: Colors.white54))
+             Text(AppLocalizations.of(context)!.backupNoPets, style: const TextStyle(color: Colors.white54))
           else
              DropdownButtonFormField<String>(
                value: _selectedPetName,
                dropdownColor: Colors.grey[800],
                style: GoogleFonts.poppins(color: Colors.white),
                decoration: InputDecoration(
-                 labelText: 'Selecione o Pet',
-                 labelStyle: TextStyle(color: Colors.white54),
-                 enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                 focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green)),
+                 labelText: AppLocalizations.of(context)!.backupSelectPet,
+                 labelStyle: const TextStyle(color: Colors.white54),
+                 enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                 focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.green)),
                ),
                items: _petNames.map((name) => DropdownMenuItem(value: name, child: Text(name))).toList(),
                onChanged: (val) => setState(() => _selectedPetName = val),
@@ -237,15 +237,15 @@ class _BackupOptimizeDialogState extends State<BackupOptimizeDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white54)),
         ),
         ElevatedButton.icon(
           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)),
           onPressed: _isLoading || _selectedPetName == null ? null : _performBackupAndOptimize,
           icon: _isLoading 
-             ? Container(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) 
-             : Icon(Icons.cleaning_services, color: Colors.black, size: 18),
-          label: Text(_isLoading ? 'Processando...' : 'Gerar e Otimizar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+             ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)) 
+             : const Icon(Icons.cleaning_services, color: Colors.black, size: 18),
+          label: Text(_isLoading ? AppLocalizations.of(context)!.backupProcessing : AppLocalizations.of(context)!.backupGenerateBtn, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         ),
       ],
     );

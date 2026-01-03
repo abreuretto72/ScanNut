@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
+import 'package:scannut/l10n/app_localizations.dart';
 import '../../models/lab_exam.dart';
 
 /// Expanded Lab Exams Section with Categories, OCR, and AI Explanation
@@ -34,6 +35,17 @@ class _LabExamsSectionState extends State<LabExamsSection> {
       ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
   }
 
+  String _getCategoryName(String id, BuildContext context) {
+      final strings = AppLocalizations.of(context)!;
+      switch (id) {
+          case 'blood': return strings.examBlood;
+          case 'urine': return strings.examUrine;
+          case 'feces': return strings.examFeces;
+          case 'other': return strings.examOther;
+          default: return strings.examOther;
+      }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -44,7 +56,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
             const Icon(Icons.science, color: Color(0xFF00E676), size: 20),
             const SizedBox(width: 8),
             Text(
-              '🧪 Exames Laboratoriais',
+              '🧪 ${AppLocalizations.of(context)!.labExamsTitle}',
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 16,
@@ -55,7 +67,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Organize exames por categoria e obtenha explicações assistidas por IA',
+          AppLocalizations.of(context)!.labExamsSubtitle,
           style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
         ),
         const SizedBox(height: 16),
@@ -88,7 +100,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                 title: Row(
                   children: [
                     Text(
-                      category.name,
+                      _getCategoryName(category.id, context),
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 14,
@@ -118,7 +130,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                 trailing: IconButton(
                   icon: const Icon(Icons.add_circle_outline, color: Color(0xFF00E676)),
                   onPressed: () => _showAddExamDialog(category),
-                  tooltip: 'Adicionar ${category.name}',
+                  tooltip: '${AppLocalizations.of(context)!.agendaAdd} ${_getCategoryName(category.id, context)}',
                 ),
                 iconColor: category.color,
                 collapsedIconColor: Colors.white30,
@@ -127,7 +139,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        'Nenhum exame anexado ainda',
+                        AppLocalizations.of(context)!.petNoDocumentsAttached,
                         style: GoogleFonts.poppins(
                           color: Colors.white30,
                           fontSize: 12,
@@ -216,23 +228,23 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'view',
                     child: Row(
                       children: [
                         Icon(Icons.visibility, color: Colors.white70, size: 18),
                         SizedBox(width: 8),
-                        Text('Visualizar', style: TextStyle(color: Colors.white70)),
+                        Text(AppLocalizations.of(context)!.commonView, style: const TextStyle(color: Colors.white70)),
                       ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
                     child: Row(
                       children: [
                         Icon(Icons.delete, color: Colors.redAccent, size: 18),
                         SizedBox(width: 8),
-                        Text('Excluir', style: TextStyle(color: Colors.redAccent)),
+                        Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.redAccent)),
                       ],
                     ),
                   ),
@@ -250,7 +262,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Processando OCR e análise...',
+              AppLocalizations.of(context)!.processingAnalysis,
               style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
             ),
           ],
@@ -262,7 +274,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
               ElevatedButton.icon(
                 onPressed: () => widget.onExplainExam(exam.id),
                 icon: const Icon(Icons.psychology, size: 16),
-                label: const Text('Explicar Exame'),
+                label: Text(AppLocalizations.of(context)!.explainExam),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: category.color.withOpacity(0.2),
                   foregroundColor: category.color,
@@ -289,8 +301,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     children: [
                       const Icon(Icons.lightbulb, color: Color(0xFF00E676), size: 16),
                       const SizedBox(width: 6),
-                      Text(
-                        'Análise Assistida',
+                        Text(
+                          AppLocalizations.of(context)!.aiAnalysis,
                         style: GoogleFonts.poppins(
                           color: const Color(0xFF00E676),
                           fontSize: 12,
@@ -318,7 +330,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Esta análise é informativa e baseada em processamento automático. Consulte sempre o veterinário vinculado na aba Parc. para um diagnóstico preciso.',
+                            AppLocalizations.of(context)!.aiDisclaimer,
                             style: GoogleFonts.poppins(
                               color: Colors.orange,
                               fontSize: 10,
@@ -353,7 +365,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
   void _viewExam(LabExam exam) {
     // TODO: Implement file viewer
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Visualizar: ${path.basename(exam.filePath)}')),
+      SnackBar(content: Text('${AppLocalizations.of(context)!.commonView}: ${path.basename(exam.filePath)}')),
     );
   }
 }

@@ -12,6 +12,7 @@ import '../../../core/providers/settings_provider.dart'; // Add this line
 import '../../settings/settings_screen.dart';
 
 import 'package:intl/intl.dart';
+import 'package:scannut/l10n/app_localizations.dart';
 
 class PartnerRegistrationScreen extends StatefulWidget {
   final PartnerModel? initialData;
@@ -109,8 +110,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     if (isLinkedToPet) {
         if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Não é possível excluir: Este parceiro está vinculado a um Pet.'),
+                SnackBar(
+                    content: Text(AppLocalizations.of(context)!.partnerCantDeleteLinked),
                     backgroundColor: Colors.redAccent
                 ),
             );
@@ -122,13 +123,13 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Excluir Parceiro', style: GoogleFonts.poppins(color: Colors.white)),
-        content: Text('Deseja remover "${widget.initialData!.name}" da sua rede de apoio?', style: GoogleFonts.poppins(color: Colors.white70)),
+        title: Text(AppLocalizations.of(context)!.partnerDeleteTitle, style: GoogleFonts.poppins(color: Colors.white)),
+        content: Text(AppLocalizations.of(context)!.partnerDeleteContent(widget.initialData!.name), style: GoogleFonts.poppins(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white54))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -139,7 +140,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       await _service.deletePartner(widget.initialData!.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Parceiro removido.'), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(AppLocalizations.of(context)!.partnerDeleted), backgroundColor: Colors.redAccent),
         );
         Navigator.pop(context, true);
       }
@@ -186,7 +187,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Parceiro "${partner.name}" salvo com sucesso!'),
+              content: Text(AppLocalizations.of(context)!.partnerSaved(partner.name)),
               backgroundColor: const Color(0xFF00E676),
             ),
           );
@@ -201,7 +202,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         debugPrint("Erro fatal ao salvar: $e");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.redAccent),
+            SnackBar(content: Text(AppLocalizations.of(context)!.partnerSaveError(e.toString())), backgroundColor: Colors.redAccent),
           );
         }
       }
@@ -224,7 +225,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(widget.initialData != null ? 'Editar Parceiro' : 'Cadastrar Parceiro', style: GoogleFonts.poppins()),
+        title: Text(widget.initialData != null ? AppLocalizations.of(context)!.partnerEditTitle : AppLocalizations.of(context)!.partnerRegisterTitle, style: GoogleFonts.poppins()),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -242,27 +243,27 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
             children: [
               _buildRadarButton(),
               const SizedBox(height: 32),
-              _buildTextField(_nameController, 'Nome do Estabelecimento', Icons.business),
+              _buildTextField(_nameController, AppLocalizations.of(context)!.partnerFieldEstablishment, Icons.business),
               const SizedBox(height: 16),
               _buildCategoryDropdown(),
               const SizedBox(height: 16),
-              _buildTextField(_phoneController, 'Telefone / WhatsApp', Icons.phone),
+              _buildTextField(_phoneController, AppLocalizations.of(context)!.partnerFieldPhone, Icons.phone),
               const SizedBox(height: 16),
-              _buildTextField(_instagramController, 'Instagram (ex: @meupet)', Icons.camera_alt),
+              _buildTextField(_instagramController, AppLocalizations.of(context)!.partnerFieldInstagram, Icons.camera_alt),
               const SizedBox(height: 16),
-              _buildTextField(_openingHoursController, 'Horário de Funcionamento', Icons.access_time),
+              _buildTextField(_openingHoursController, AppLocalizations.of(context)!.partnerFieldHours, Icons.access_time),
               const SizedBox(height: 16),
               _build24hSwitch(),
               const SizedBox(height: 16),
-              _buildTextField(_specialtiesController, 'Especialidades (separe por vírgula)', Icons.stars),
+              _buildTextField(_specialtiesController, AppLocalizations.of(context)!.partnerFieldSpecialties, Icons.stars),
               const SizedBox(height: 16),
-              _buildTextField(_websiteController, 'Website', Icons.language),
+              _buildTextField(_websiteController, AppLocalizations.of(context)!.partnerFieldWebsite, Icons.language),
               const SizedBox(height: 16),
-              _buildTextField(_emailController, 'E-mail', Icons.email),
+              _buildTextField(_emailController, AppLocalizations.of(context)!.partnerFieldEmail, Icons.email),
               const SizedBox(height: 16),
               _buildTeamSection(),
               const SizedBox(height: 16),
-              _buildTextField(_addressController, 'Endereço Completo', Icons.location_on, maxLines: 2),
+              _buildTextField(_addressController, AppLocalizations.of(context)!.partnerFieldAddress, Icons.location_on, maxLines: 2),
               const SizedBox(height: 32),
               
               if (widget.linkedNotes != null) ...[
@@ -279,7 +280,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   elevation: 8,
                 ),
-                child: Text('SALVAR PARCEIRO', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
+                child: Text(AppLocalizations.of(context)!.partnerBtnSave, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
               const SizedBox(height: 32),
               if (widget.initialData != null) _buildDangerZone(),
@@ -306,12 +307,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
             children: [
               const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
               const SizedBox(width: 8),
-              Text('Zona de Perigo', style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(AppLocalizations.of(context)!.partnerDangerZone, style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'Ao excluir este parceiro, ele será removido permanentemente da sua lista. Esta ação é irreversível.',
+            AppLocalizations.of(context)!.partnerDangerZoneDesc,
             style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
           ),
           const SizedBox(height: 16),
@@ -323,7 +324,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               elevation: 0,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: Colors.redAccent)),
             ),
-            child: const Text('EXCLUIR PARCEIRO'),
+            child: Text(AppLocalizations.of(context)!.partnerBtnDelete),
           ),
         ],
       ),
@@ -355,8 +356,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Busca Inteligente por Radar', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('Encontre e importe dados via GPS', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonDesc, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),
@@ -373,8 +374,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: SwitchListTile(
-        title: Text('Plantão 24h / Emergência', style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-        subtitle: const Text('Local funciona ininterruptamente', style: TextStyle(color: Colors.white38, fontSize: 11)),
+        title: Text(AppLocalizations.of(context)!.partnerField24h, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+        subtitle: Text(AppLocalizations.of(context)!.partnerField24hSub, style: const TextStyle(color: Colors.white38, fontSize: 11)),
         value: _is24h,
         activeColor: const Color(0xFF00E676),
         onChanged: (v) => setState(() => _is24h = v),
@@ -397,12 +398,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
       ),
       validator: (v) {
-          if (label == 'Nome do Estabelecimento' && (v == null || v.isEmpty)) return 'Obrigatório';
-          if (label == 'E-mail' && v != null && v.isNotEmpty) {
+          if (label == AppLocalizations.of(context)!.partnerFieldEstablishment && (v == null || v.isEmpty)) return AppLocalizations.of(context)!.agendaRequired;
+          if (label == AppLocalizations.of(context)!.partnerFieldEmail && v != null && v.isNotEmpty) {
               final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
               if (!emailRegex.hasMatch(v)) return 'E-mail inválido';
           }
-          if (label == 'Website' && v != null && v.isNotEmpty) {
+          if (label == AppLocalizations.of(context)!.partnerFieldWebsite && v != null && v.isNotEmpty) {
               if (!v.startsWith('http')) return 'Deve começar com http:// ou https://';
           }
           return null;
@@ -418,7 +419,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               children: [
                 const Icon(Icons.note_alt_outlined, color: Colors.amberAccent),
                 const SizedBox(width: 8),
-                Text('Notas e Observações', style: GoogleFonts.poppins(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(AppLocalizations.of(context)!.partnerNotesTitle, style: GoogleFonts.poppins(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 16),
@@ -431,7 +432,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               child: _notes.isEmpty 
                 ? Center(
                     child: Text(
-                      'Nenhuma anotação ainda.\nEscreva ou grave lembretes sobre este parceiro.',
+                      AppLocalizations.of(context)!.partnerNotesEmpty,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(color: Colors.white30, fontSize: 12),
                     ),
@@ -475,7 +476,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                     controller: _noteController,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'Nova observação...',
+                      hintText: AppLocalizations.of(context)!.partnerNotesHint,
                       hintStyle: const TextStyle(color: Colors.white30),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.05),
@@ -545,7 +546,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                        children: [
                            const Icon(Icons.people, color: Color(0xFF00E676)),
                            const SizedBox(width: 8),
-                           Text('Corpo Clínico / Equipe', style: GoogleFonts.poppins(color: Colors.white70)),
+                           Text(AppLocalizations.of(context)!.partnerTeamTitle, style: GoogleFonts.poppins(color: Colors.white70)),
                        ],
                    ),
                    const SizedBox(height: 8),
@@ -571,7 +572,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                                    controller: _teamController,
                                    style: const TextStyle(color: Colors.white, fontSize: 13),
                                    decoration: InputDecoration(
-                                       hintText: 'Adicionar nome (ex: Dra. Ana)',
+                                       hintText: AppLocalizations.of(context)!.partnerTeamAddHint,
                                        hintStyle: const TextStyle(color: Colors.white24),
                                        isDense: true,
                                        filled: true,
@@ -612,7 +613,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       dropdownColor: Colors.grey.shade900,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
-        labelText: 'Categoria',
+        labelText: AppLocalizations.of(context)!.partnerCategory,
         labelStyle: TextStyle(color: Colors.grey.shade400),
         prefixIcon: const Icon(Icons.category, color: Color(0xFF00E676)),
         filled: true,
@@ -666,10 +667,15 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
       }
 
       // 2. Get Coords with Timeout
-      Position? pos = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 10),
-      ).catchError((_) => Geolocator.getLastKnownPosition());
+      Position? pos;
+      try {
+        pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium,
+          timeLimit: const Duration(seconds: 10),
+        );
+      } catch (_) {
+          pos = await Geolocator.getLastKnownPosition();
+      }
 
       if (pos == null || (pos.latitude == 0.0 && pos.longitude == 0.0)) {
         throw 'GPS não retornou coordenadas válidas. Verifique as permissões.';
@@ -746,8 +752,8 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                         'Radar Geo (${ref.watch(settingsProvider).partnerSearchRadius.toInt()}km)', 
                         style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)
                       ),
-                      const Text(
-                        'Toque para alterar o raio de busca', 
+                      Text(
+                          AppLocalizations.of(context)!.partnerRadarHint, 
                         style: TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.w500)
                       ),
                     ],
@@ -758,7 +764,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          Text('Estabelecimentos reais detectados na sua região:', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
+          Text(AppLocalizations.of(context)!.partnerRadarFoundTitle, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
           const SizedBox(height: 24),
           Expanded(
             child: _isLoading 
@@ -768,14 +774,14 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                     children: [
                       const CircularProgressIndicator(color: Color(0xFF00E676)),
                       const SizedBox(height: 16),
-                      Text('Sintonizando Radar e GPS...', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                      Text(AppLocalizations.of(context)!.partnerRadarScanning, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
                     ],
                   ),
                 )
               : _error.isNotEmpty
                 ? Center(child: Text(_error, style: const TextStyle(color: Colors.redAccent)))
                 : _discovered.isEmpty
-                  ? Center(child: Text('Nenhum local encontrado.', style: GoogleFonts.poppins(color: Colors.white38)))
+                  ? Center(child: Text(AppLocalizations.of(context)!.partnerRadarNoResults, style: GoogleFonts.poppins(color: Colors.white38)))
                   : ListView.builder(
                       itemCount: _discovered.length,
                       itemBuilder: (context, index) {

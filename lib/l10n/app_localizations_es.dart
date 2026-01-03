@@ -84,7 +84,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pdfGallerySection => 'Galería y Documentos';
 
   @override
-  String get pdfParcSection => 'Red de Apoyo y Comportamiento';
+  String get pdfParcSection => 'Centro de Red de Apoyo';
 
   @override
   String get pdfDisclaimerTitle => 'AVISO LEGAL IMPORTANTE';
@@ -245,7 +245,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiDisclaimer =>
-      'Este análisis es informativo y basado en IA. No sustituye el diagnóstico de un veterinario.';
+      'Este análisis es informativo y se basa en el procesamiento automático. Consulte siempre al veterinario vinculado en la pestaña Socios para obtener un diagnóstico preciso.';
 
   @override
   String get onboardingTitle1 => 'Transforme su Nutrición';
@@ -510,6 +510,72 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settingsClearPartnersSubtitle =>
       'Eliminar todos los socios permanentemente.';
+
+  @override
+  String get partnersTitle => 'Futuros Socios';
+
+  @override
+  String get partnersSubtitle => 'Socios registrados en el ecosistema';
+
+  @override
+  String get partnersFilterAll => 'Todos';
+
+  @override
+  String get partnersFilterVet => 'Veterinaria';
+
+  @override
+  String get partnersFilterPetShop => 'PetShop';
+
+  @override
+  String get partnersFilterPharmacy => 'Farmacia';
+
+  @override
+  String get partnersFilterHotel => 'Hotel/Guardería';
+
+  @override
+  String get partnersFilterGrooming => 'Estética';
+
+  @override
+  String get partnersFilterLab => 'Laboratorio';
+
+  @override
+  String get deletePetTitle => 'Eliminar Mascota';
+
+  @override
+  String get deletePetConfirmation =>
+      '¿Está seguro de que desea eliminar permanentemente esta mascota? Esta acción no se puede deshacer.';
+
+  @override
+  String get deletePlantTitle => 'Eliminar Planta';
+
+  @override
+  String get deletePlantConfirm =>
+      '¿Está seguro de que desea eliminar esta planta? Esta acción no se puede deshacer.';
+
+  @override
+  String get delete => 'Excluir';
+
+  @override
+  String get petActivityLow => 'Bajo';
+
+  @override
+  String get petActivityHigh => 'Alto';
+
+  @override
+  String get petActivityAthlete => 'Atleta';
+
+  @override
+  String get petBathWeekly => 'Semanal';
+
+  @override
+  String get petBathMonthly => 'Mensual';
+
+  @override
+  String get petNotOffice => 'Tipo de dieta no especificado';
+
+  @override
+  String get whatsappInitialMessage =>
+      '¡Hola! Vi su perfil en ScanNut y me gustaría más información.';
 
   @override
   String get settingsResetDefaults => 'Restaurar Valores';
@@ -1545,58 +1611,58 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cree menús semanales personalizados basados en sus objetivos y restricciones de dieta.';
 
   @override
-  String get plantHomeSafety => 'Segurança Doméstica';
+  String get plantHomeSafety => 'Seguridad en el Hogar';
 
   @override
-  String get plantDangerPets => 'Pode ser perigoso para animais de estimação.';
+  String get plantDangerPets => 'Peligro para Mascotas';
 
   @override
-  String get plantDangerKids => 'Perigoso para Crianças';
+  String get plantDangerKids => 'Peligro para Niños';
 
   @override
-  String get plantNoAlerts => 'Sem alertas específicos.';
+  String get plantNoAlerts => 'Sin alertas críticas.';
 
   @override
   String get plantBioPower => 'Poderes Biofílicos';
 
   @override
-  String get plantAirScore => 'Pontuação de Ar';
+  String get plantAirScore => 'Puntuación de Purificación';
 
   @override
-  String get plantHumidification => 'Umidificação';
+  String get plantHumidification => 'Humidificación';
 
   @override
-  String get plantWellness => 'Bem-estar';
+  String get plantWellness => 'Impacto en el Bienestar';
 
   @override
-  String get plantPropagationEngine => 'Engenharia de Propagação';
+  String get plantPropagationEngine => 'Ingeniería de Propagación';
 
   @override
   String get plantMethod => 'Método';
 
   @override
-  String get plantDifficulty => 'Dificuldade';
+  String get plantDifficulty => 'Dificultad';
 
   @override
-  String get plantStepByStep => 'Passo a Passo';
+  String get plantStepByStep => 'Paso a Paso';
 
   @override
-  String get plantEcoIntel => 'Inteligência de Ecossistema';
+  String get plantEcoIntel => 'Inteligencia del Ecosistema';
 
   @override
-  String get plantCompanions => 'Plantas Companheiras';
+  String get plantCompanions => 'Compañeros Ideales';
 
   @override
-  String get plantAvoid => 'Evitar';
+  String get plantAvoid => 'Evitar Cerca';
 
   @override
-  String get plantRepellent => 'Repelente';
+  String get plantRepellent => 'Repelente Natural';
 
   @override
-  String get plantFengShui => 'Feng Shui';
+  String get plantFengShui => 'Feng Shui Botánico';
 
   @override
-  String get plantPlacement => 'Posicionamento';
+  String get plantPlacement => 'Dónde Colocar';
 
   @override
   String get plantSymbolism => 'Simbolismo';
@@ -1605,78 +1671,78 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plantLivingAesthetic => 'Estética Viva';
 
   @override
-  String get plantFlowering => 'Floração';
+  String get plantFlowering => 'Floración';
 
   @override
-  String get plantFlowerColor => 'Cor das Flores';
+  String get plantFlowerColor => 'Color de la Flor';
 
   @override
-  String get plantGrowth => 'Crescimento';
+  String get plantGrowth => 'Velocidad de Crecimiento';
 
   @override
-  String get plantMaxSize => 'Tamanho Máximo';
+  String get plantMaxSize => 'Tamaño Máximo';
 
   @override
-  String get plantNeedSun => 'Luminosidade';
+  String get plantNeedSun => 'LUZ';
 
   @override
-  String get plantNeedWater => 'Rega';
+  String get plantNeedWater => 'AGUA';
 
   @override
-  String get plantNeedSoil => 'Solo';
+  String get plantNeedSoil => 'SUELO';
 
   @override
-  String get plantSeasonAdjust => 'Ajuste Sazonal';
+  String get plantSeasonAdjust => 'Ajustes Estacionales';
 
   @override
-  String get seasonWinter => 'Inverno';
+  String get seasonWinter => 'Invierno (Dormancia)';
 
   @override
-  String get seasonSummer => 'Verão';
+  String get seasonSummer => 'Verano (Crecimiento)';
 
   @override
   String get plantClinicalDiagnosis => 'Diagnóstico Clínico';
 
   @override
-  String get plantRecoveryPlan => 'Plano de Recuperação';
+  String get plantRecoveryPlan => 'Plan de Recuperación';
 
   @override
-  String get plantUrgency => 'Urgência';
+  String get plantUrgency => 'Urgencia';
 
   @override
-  String get plantBuyTreatment => 'Comprar Tratamento';
+  String get plantBuyTreatment => 'COMPRAR TRATAMIENTO SUGERIDO';
 
   @override
-  String get fallbackNoInfo => 'Sem informação';
+  String get fallbackNoInfo => 'Sin información';
 
   @override
-  String get fallbackDirectWatering => 'Rega direta no solo';
+  String get fallbackDirectWatering => 'Riego directo';
 
   @override
-  String get fallbackAsNeeded => 'Conforme necessário';
+  String get fallbackAsNeeded => 'Según sea necesario';
 
   @override
-  String get advancedDiagnosis => 'Diagnóstico Avançado';
+  String get advancedDiagnosis => 'Diagnóstico Avanzado';
 
   @override
   String get advancedDiagnosisDesc =>
-      'Acesse diagnósticos clínicos detalhados e guias de recuperação passo a passo.';
+      'Acceda a diagnósticos clínicos detallados y guías de recuperación paso a paso.';
 
   @override
-  String get biosTitle => 'Segurança e Biofília';
+  String get biosTitle => 'Seguridad y Biofilia';
 
   @override
   String get biosDesc =>
-      'Saiba detalhes sobre toxicidade para pets/crianças e benefícios biófilicos da planta.';
+      'Conozca detalles sobre toxicidad para mascotas/niños y beneficios biofílicos de la planta.';
 
   @override
-  String get noInformation => 'Sem informação';
+  String get noInformation => 'Sin información';
 
   @override
-  String get directSoilWatering => 'Rega direta no solo';
+  String get directSoilWatering => 'Riego directo al suelo';
 
   @override
-  String get asNeeded => 'Conforme necessário';
+  String get asNeeded => 'Según sea necesario';
 
   @override
   String get plantFamily => 'Família';
@@ -1709,8 +1775,1666 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plantToxicityDetails => 'Detalhes de Toxicidade';
 
   @override
-  String get safetyAlert => 'Alerta de Segurança';
+  String get safetyAlert => 'Alerta de Seguridad';
 
   @override
-  String get close => 'Fechar';
+  String get close => 'Cerrar';
+
+  @override
+  String get editPetTitle => 'Editar Perfil';
+
+  @override
+  String get newPetTitle => 'Nueva Mascota';
+
+  @override
+  String get petNameLabel => 'Nombre de la Mascota';
+
+  @override
+  String get petNameRequired => 'El nombre es obligatorio';
+
+  @override
+  String get petBreedLabel => 'Raza';
+
+  @override
+  String get petAgeLabel => 'Edad Exacta (ej: 2 años 3 meses)';
+
+  @override
+  String get petBiologicalProfile => 'Perfil Biológico';
+
+  @override
+  String get petActivityLevelLabel => 'Nivel de Actividad';
+
+  @override
+  String get petReproductiveStatusLabel => 'Estado Reproductivo';
+
+  @override
+  String get petIdentity => 'Identidad';
+
+  @override
+  String get petHealth => '💉 Salud';
+
+  @override
+  String get petNutrition => '🍖 Nutrición';
+
+  @override
+  String get petGallery => 'Galería';
+
+  @override
+  String get petPartners => 'Red de Apoyo';
+
+  @override
+  String get petWeightControl => 'Control de Peso Inteligente';
+
+  @override
+  String get petWeightAutoAnalysis =>
+      'Análisis automático basado en raza y tamaño';
+
+  @override
+  String get petCurrentWeight => 'Peso Actual (kg)';
+
+  @override
+  String get petVaccinationHistory => 'Historial de Vacunación';
+
+  @override
+  String get petLastV10 => 'Última V10/V8';
+
+  @override
+  String get petLastRabies => 'Última Rabia';
+
+  @override
+  String get petHygiene => '🛁 Higiene';
+
+  @override
+  String get petBathFrequency => 'Frecuencia de Baños';
+
+  @override
+  String get petMedicalDocs => 'Otros Documentos Médicos';
+
+  @override
+  String get petPrescriptions => 'Recetas Veterinarias';
+
+  @override
+  String get petVaccineCard => 'Carnet de Vacunación';
+
+  @override
+  String get petWoundHistory => 'Historial de Análisis de Heridas';
+
+  @override
+  String get petNoWounds => 'Aún no hay análisis de heridas registrados';
+
+  @override
+  String petWoundsCount(Object count) {
+    return '$count análisis registrados';
+  }
+
+  @override
+  String get petFoodAllergies => 'Alergias Alimentarias';
+
+  @override
+  String get petFoodAllergiesDesc => 'Ingredientes a evitar';
+
+  @override
+  String get petAddAllergy => 'Añadir Alergia';
+
+  @override
+  String get petFoodPreferences => 'Preferencias Alimentarias';
+
+  @override
+  String get petFoodPreferencesDesc => 'Alimentos que la mascota más ama';
+
+  @override
+  String get petAddPreference => 'Añadir Preferencia';
+
+  @override
+  String get petDietRecipes => 'Recetas y Dietas';
+
+  @override
+  String get petDeleteTitle => '¿Eliminar Mascota?';
+
+  @override
+  String petDeleteContent(Object name) {
+    return '¿Desea eliminar a $name y todo su historial? Esta acción no se puede deshacer.';
+  }
+
+  @override
+  String get petDeleteConfirm => 'Eliminar Permanentemente';
+
+  @override
+  String get petChangePhoto => 'Cambiar Foto de Perfil';
+
+  @override
+  String get petTakePhoto => 'Tomar Foto';
+
+  @override
+  String get petChooseGallery => 'Elegir de la Galería';
+
+  @override
+  String get petAddMedia => 'Añadir Multimedia';
+
+  @override
+  String get petAttachDoc => 'Adjuntar Documento';
+
+  @override
+  String get petCameraPhoto => 'Cámara (Foto)';
+
+  @override
+  String get petGalleryPhoto => 'Galería (Foto)';
+
+  @override
+  String get petCameraVideo => 'Cámara (Video)';
+
+  @override
+  String get petGalleryVideo => 'Galería (Video)';
+
+  @override
+  String get petEmptyGallery => 'La galería está vacía';
+
+  @override
+  String get petEmptyGalleryDesc => 'Fotos y videos de los mejores momentos';
+
+  @override
+  String get petAddToGallery => 'Añadir a la Galería';
+
+  @override
+  String get petDocAttached => '¡Documento adjuntado!';
+
+  @override
+  String get petDeleteAttachment => '¿Eliminar Adjunto?';
+
+  @override
+  String get petDeleteAttachmentContent => 'Esta acción no se puede deshacer.';
+
+  @override
+  String get petSaveSuccess => '¡Guardado!';
+
+  @override
+  String get petUndoChanges => 'Deshacer cambios';
+
+  @override
+  String get petAllSaved => 'Todo guardado';
+
+  @override
+  String get petBasicInfo => 'Información Básica';
+
+  @override
+  String get petPartnersNoPartners =>
+      'No hay socios registrados. Añada socios mediante el Partners Hub en la pantalla principal.';
+
+  @override
+  String get petPartnersNotFound =>
+      'No se encontraron socios en esta categoría.';
+
+  @override
+  String get petPartnersLinked => 'Vinculado';
+
+  @override
+  String get petPartnersNoAddress => 'Dirección no informada';
+
+  @override
+  String get petPartnersPhoneHint => 'Teléfono';
+
+  @override
+  String get petPartnersCall => 'Llamar';
+
+  @override
+  String get petPartnersSchedule => 'Programar';
+
+  @override
+  String get petPartnersObs => 'Prac (Red de Apoyo)';
+
+  @override
+  String get agendaToday => 'Hoy';
+
+  @override
+  String get agendaYesterday => 'Ayer';
+
+  @override
+  String get agendaNewEvent => 'Nuevo Evento';
+
+  @override
+  String get agendaTitle => 'Agenda';
+
+  @override
+  String get agendaDate => 'Fecha';
+
+  @override
+  String get agendaTime => 'Hora';
+
+  @override
+  String get agendaObservations => 'Observaciones';
+
+  @override
+  String get agendaAdd => 'Añadir Evento';
+
+  @override
+  String get agendaTitleHint => 'Título (ej: Consulta, Baño)';
+
+  @override
+  String get agendaEmpty =>
+      'Sin eventos registrados.\nAñada citas, vacunas o notas.';
+
+  @override
+  String get petDiagnosis => 'Diagnóstico';
+
+  @override
+  String get petSeverity => 'Gravedad';
+
+  @override
+  String get petRecommendations => 'Recomendaciones';
+
+  @override
+  String get petBiometricAnalysis => 'Análisis Biométrico';
+
+  @override
+  String get petLineage => 'Linaje';
+
+  @override
+  String get petSize => 'Tamaño';
+
+  @override
+  String get petLongevity => 'Longevidad';
+
+  @override
+  String get petGrowthCurve => 'Curva de Crecimiento Estimada';
+
+  @override
+  String get petMonth3 => '3 Meses';
+
+  @override
+  String get petMonth6 => '6 Meses';
+
+  @override
+  String get petMonth12 => '12 Meses';
+
+  @override
+  String get petAdult => 'Adulto';
+
+  @override
+  String get petEnergy => 'Energía';
+
+  @override
+  String get petIntelligence => 'Inteligencia';
+
+  @override
+  String get petSociability => 'Sociabilidad';
+
+  @override
+  String get petDrive => 'Impulso Ancestral';
+
+  @override
+  String get petSuggestedPlan => 'Plan Alimentario Sugerido';
+
+  @override
+  String get petDailyCaloricGoals => 'Metas Calóricas Diarias';
+
+  @override
+  String get petPuppy => 'Cachorro';
+
+  @override
+  String get petSenior => 'Senior';
+
+  @override
+  String get petSecuritySupplements => 'Seguridad y Suplementos';
+
+  @override
+  String get petTargetNutrients => 'Nutrientes Objetivo';
+
+  @override
+  String get petSupplementation => 'Suplementación';
+
+  @override
+  String get petObesityTendency => 'Tendencia a la Obesidad';
+
+  @override
+  String get petCoatGrooming => 'Pelaje y Estética';
+
+  @override
+  String get petType => 'Tipo';
+
+  @override
+  String get petFrequency => 'Frecuencia';
+
+  @override
+  String get petPreventiveHealth => 'Salud Preventiva';
+
+  @override
+  String get petPredisposition => 'Predisposición';
+
+  @override
+  String get petCheckup => 'Checkup';
+
+  @override
+  String get petTrainingEnvironment => 'Entrenamiento y Entorno';
+
+  @override
+  String get petTraining => 'Entrenamiento';
+
+  @override
+  String get petApartmentRef => 'Apartamento';
+
+  @override
+  String get petExclusiveInsight => 'Insight Exclusivo';
+
+  @override
+  String get petRaceAnalysis => 'Análisis de Raza';
+
+  @override
+  String get petReliability => 'Fiabilidad';
+
+  @override
+  String get petReliabilityLow => 'Baja';
+
+  @override
+  String get petReliabilityMedium => 'Media';
+
+  @override
+  String get petReliabilityHigh => 'Alta';
+
+  @override
+  String get petNotIdentified => 'No identificado';
+
+  @override
+  String get petNotEstimated => 'No estimado';
+
+  @override
+  String get petVariable => 'Variable';
+
+  @override
+  String get petNeutered => 'Castrado';
+
+  @override
+  String get petIntact => 'Entero';
+
+  @override
+  String get petActivityModerate => 'Moderado';
+
+  @override
+  String get petBathBiweekly => 'Quincenal';
+
+  @override
+  String get petGenerateWeeklyMenu => 'Generar Menú Semanal';
+
+  @override
+  String get petNoDocumentsAttached => 'Sin documentos adjuntos';
+
+  @override
+  String get petSeeFull => 'Ver Completo';
+
+  @override
+  String get petObservationsHistory => 'Historial de Observaciones';
+
+  @override
+  String get petRegisterObservations =>
+      'Registre observaciones importantes aquí...';
+
+  @override
+  String get petNoObservations => 'Aún no hay observaciones registradas.';
+
+  @override
+  String get commonAddText => 'Añadir Texto';
+
+  @override
+  String get commonVoice => 'Voz';
+
+  @override
+  String get commonListening => 'Escuchando...';
+
+  @override
+  String commonLoadMore(Object count) {
+    return 'Cargar anteriores ($count restantes)';
+  }
+
+  @override
+  String get petWeeklyPlanTitle => 'Plan Alimentario Semanal';
+
+  @override
+  String get petNutritionPillarsDesc =>
+      'Cada comida se enfoca en los 5 Pilares (Proteína, Grasa, Fibra, Minerales, Hidratación)';
+
+  @override
+  String get backButton => 'Volver';
+
+  @override
+  String get generateReportButton => 'Generar Informe';
+
+  @override
+  String get reportDetailLevelLabel => 'Nivel de Detalle';
+
+  @override
+  String get reportHubTitle => 'Informe de Socios';
+
+  @override
+  String get noPartnersForFilters =>
+      'No se encontraron socios para este filtro';
+
+  @override
+  String get reportSummary => 'Resumen';
+
+  @override
+  String get reportDetailed => 'Detallado';
+
+  @override
+  String get reportDescription => 'Informe PDF completo de la red de socios.';
+
+  @override
+  String get exportPdfTitle => 'Exportar PDF';
+
+  @override
+  String get partnerTypeLabel => 'Categoría';
+
+  @override
+  String get petActivityLevel => 'Nivel de Actividad';
+
+  @override
+  String get petReproductiveStatus => 'Estado Reproductivo';
+
+  @override
+  String get errorBadPhoto =>
+      '¡Ups! La foto no fue lo suficientemente clara. ¡Pruebe un nuevo ángulo!';
+
+  @override
+  String get errorAiTimeout =>
+      'Nuestra IA está analizando cuidadosamente... ¡un momento!';
+
+  @override
+  String get aiCalculatingMetrics => 'Calculando métricas personalizadas...';
+
+  @override
+  String get examBlood => 'Análisis de Sangre';
+
+  @override
+  String get examUrine => 'Análisis de Orina';
+
+  @override
+  String get examFeces => 'Análisis de Heces';
+
+  @override
+  String get examOther => 'Otros Exámenes';
+
+  @override
+  String get petSeverityLow => 'Baja';
+
+  @override
+  String get petSeverityMedium => 'Media';
+
+  @override
+  String get petSeverityHigh => 'Alta';
+
+  @override
+  String get petDiagnosisDefault => 'Sin diagnóstico';
+
+  @override
+  String get examDeleteTitle => 'Eliminar Examen';
+
+  @override
+  String get examDeleteContent =>
+      '¿Está seguro de que desea eliminar este examen? Esta acción no se puede deshacer.';
+
+  @override
+  String get petLifeExpectancy => 'Esperanza de Vida';
+
+  @override
+  String get petTypicalWeight => 'Peso Típico';
+
+  @override
+  String get petTemperament => 'Temperamento';
+
+  @override
+  String get petOrigin => 'Origen e Historia';
+
+  @override
+  String get petCuriosities => 'Curiosidades';
+
+  @override
+  String errorAddingExam(Object error) {
+    return 'Erro ao adicionar exame: $error';
+  }
+
+  @override
+  String get ocrSuccess =>
+      'Texto extraído com sucesso! Clique em \'Explicar Exame\' para análise.';
+
+  @override
+  String errorGeneratingExplanation(Object error) {
+    return 'Erro ao gerar explicação: $error';
+  }
+
+  @override
+  String get petEstimatedByBreed => 'Estimado según la raza';
+
+  @override
+  String menuTitle(String petName) {
+    return 'Menú de $petName';
+  }
+
+  @override
+  String get menuLastWeek => 'Semana Pasada';
+
+  @override
+  String get menuCurrentWeek => 'Semana Actual';
+
+  @override
+  String get menuNextWeek => 'Próxima Semana';
+
+  @override
+  String get menuNoHistory => 'No hay historial disponible.';
+
+  @override
+  String get menuNoCurrent => 'No hay menú para esta semana.';
+
+  @override
+  String get menuNoFuture => 'No hay menú futuro planeado.';
+
+  @override
+  String get menuGenerateEdit => 'Generar/Editar Menú';
+
+  @override
+  String get menuMainNutrients => 'Nutrientes Principales';
+
+  @override
+  String get menuNoDetails => 'No hay detalles disponibles.';
+
+  @override
+  String get menuExportTitle => 'Exportar Menú';
+
+  @override
+  String get menuExportSelectPeriod => 'Seleccionar períodos';
+
+  @override
+  String get menuExportReport => 'Exportar Informe';
+
+  @override
+  String get menuNoPeriodSelected => 'Ningún período seleccionado.';
+
+  @override
+  String get menuPeriodCustom => 'Personalizado';
+
+  @override
+  String get menuPeriodFull => 'Plan Completo';
+
+  @override
+  String get petChangesDiscarded => 'Cambios descartados.';
+
+  @override
+  String get agendaNoEventsTitle =>
+      'Sin eventos registrados.\nAñada citas, vacunas o notas.';
+
+  @override
+  String get errorOpeningApp => 'No se pudo abrir la aplicación';
+
+  @override
+  String get pdfFieldLabel => 'Campo';
+
+  @override
+  String get pdfFieldValue => 'Información';
+
+  @override
+  String get pdfFieldName => 'Nombre Completo';
+
+  @override
+  String get pdfFieldBreed => 'Raza';
+
+  @override
+  String get pdfFieldAge => 'Edad Exacta';
+
+  @override
+  String get pdfFieldSex => 'Sexo';
+
+  @override
+  String get pdfFieldMicrochip => 'Microchip';
+
+  @override
+  String get pdfFieldCurrentWeight => 'Peso Actual';
+
+  @override
+  String get pdfFieldIdealWeight => 'Peso Ideal';
+
+  @override
+  String get pdfFieldReproductiveStatus => 'Estado Reproductivo';
+
+  @override
+  String get pdfFieldActivityLevel => 'Nivel de Actividad';
+
+  @override
+  String get pdfFieldBathFrequency => 'Frecuencia de Baños';
+
+  @override
+  String get pdfPreferenciasAlimentares => 'Preferencias Alimentarias';
+
+  @override
+  String get pdfHistClinico =>
+      'Historial Clínico (Vacunas, Meds, Procedimientos)';
+
+  @override
+  String get pdfExamesLab => 'Exámenes de Laboratorio';
+
+  @override
+  String get pdfAnaliseFeridas => 'Historial de Análisis de Heridas';
+
+  @override
+  String get pdfCardapioDetalhado => 'Menú Semanal Detallado';
+
+  @override
+  String get pdfRefeicao => 'Comida';
+
+  @override
+  String get pdfKcal => 'kcal';
+
+  @override
+  String get pdfSemDescricao => 'Sin descripción';
+
+  @override
+  String get pdfPesoStatusUnder => 'Bajo peso';
+
+  @override
+  String get pdfPesoStatusOver => 'Sobrepeso';
+
+  @override
+  String get pdfPesoStatusIdeal => 'Ideal';
+
+  @override
+  String get pdfPesoStatusNormal => 'Peso normal';
+
+  @override
+  String get pdfPesoStatusMeta => 'Meta';
+
+  @override
+  String get pdfVacinaV10 => 'V10/V8 (Polivalente)';
+
+  @override
+  String get pdfVacinaAntirrabica => 'Antirrábica';
+
+  @override
+  String get pdfVacinaNaoRegistrada => 'No registrada';
+
+  @override
+  String pdfAlergiasAviso(Object allergies) {
+    return 'ATENCIÓN: $allergies';
+  }
+
+  @override
+  String get pdfAlergiasNenhuma => '✓ No hay alergias conocidas registradas';
+
+  @override
+  String pdfExtractedText(Object text) {
+    return 'Texto extraído: $text';
+  }
+
+  @override
+  String pdfAiAnalysis(Object analysis) {
+    return 'Análisis de IA: $analysis';
+  }
+
+  @override
+  String pdfDiagnosis(Object diagnosis) {
+    return 'Diagnóstico: $diagnosis';
+  }
+
+  @override
+  String get pdfRecommendations => 'Recomendaciones';
+
+  @override
+  String get pdfAgendaTitle => 'Control de Agenda';
+
+  @override
+  String get pdfObservationsTitle => 'HISTORIAL DE OBSERVACIONES:';
+
+  @override
+  String get pdfMetric => 'Métrica';
+
+  @override
+  String get pdfStatus => 'Estado';
+
+  @override
+  String get pdfWeightControl => 'Control de Peso';
+
+  @override
+  String get pdfWeightHistory => 'Historial de Peso';
+
+  @override
+  String get pdfType => 'Tipo';
+
+  @override
+  String get pdfDescription => 'Descripción';
+
+  @override
+  String get pdfCompleted => 'Completado';
+
+  @override
+  String get pdfPending => 'Pendiente';
+
+  @override
+  String get pdfEstimatedNote => '* Estimado/Calculado';
+
+  @override
+  String get pdfNoPlan => 'No hay plan de alimentación registrado.';
+
+  @override
+  String get pdfAgendaReport => 'Informe de Agenda de la Mascota';
+
+  @override
+  String get pdfTotalEvents => 'Eventos Totales';
+
+  @override
+  String get pdfCompletedEvents => 'Completados';
+
+  @override
+  String get pdfPendingEvents => 'Pendientes';
+
+  @override
+  String get pdfFieldTime => 'Hora';
+
+  @override
+  String get pdfFieldEvent => 'Evento';
+
+  @override
+  String get pdfFieldPet => 'Mascota';
+
+  @override
+  String get pdfFieldCategory => 'Categoría';
+
+  @override
+  String get pdfPartnersGuide => 'Guía de Socios';
+
+  @override
+  String get pdfRegion => 'Región';
+
+  @override
+  String get pdfTotalFound => 'Total Encontrados';
+
+  @override
+  String get pdfEstablishment => 'Establecimiento';
+
+  @override
+  String get pdfPhone => 'Teléfono';
+
+  @override
+  String get pdfRating => 'Calificación';
+
+  @override
+  String get pdfStars => 'Estrellas';
+
+  @override
+  String get pdfAgendaToday => 'Hoy';
+
+  @override
+  String get pdfObservations => 'Observaciones';
+
+  @override
+  String get pdfSummaryReport => 'Informe Resumido - Tabla Omitida';
+
+  @override
+  String get pdfNoImages => 'No se encontraron imágenes en la galería.';
+
+  @override
+  String get pdfAttachedDocs => 'Documentos Adjuntos (PDFs/Archivos):';
+
+  @override
+  String get pdfLinkedPartners => 'Socios Vinculados:';
+
+  @override
+  String pdfPartnerLoadError(Object count) {
+    return '⚠️ $count socio(s) vinculado(s), pero no se pudieron cargar los detalles.';
+  }
+
+  @override
+  String get pdfServiceHistory => 'Historial de Servicios:';
+
+  @override
+  String get pdfNoPartners => 'No hay socios vinculados a este perfil.';
+
+  @override
+  String get pdfAgendaEvents => 'Agenda y Eventos';
+
+  @override
+  String get pdfHistoryUpcoming => 'Historial y Citas Próximas';
+
+  @override
+  String get pdfUpcomingEvents => 'Próximos Eventos';
+
+  @override
+  String get pdfRecentHistory => 'Historial Reciente';
+
+  @override
+  String get partnersSelectTitle => 'Seleccionar Socio';
+
+  @override
+  String get partnersExportPdf => 'Exportar PDF';
+
+  @override
+  String get partnersCategory => 'Categoría';
+
+  @override
+  String get partnersDetailLevel => 'Nivel de Detalle';
+
+  @override
+  String get partnersSummary => 'Resumen';
+
+  @override
+  String get partnersDetailed => 'Detallado';
+
+  @override
+  String get partnersExportDisclaimer =>
+      'Informe PDF completo de su red de socios.';
+
+  @override
+  String get partnersGenerateReport => 'Generar Informe';
+
+  @override
+  String get partnersBack => 'Volver';
+
+  @override
+  String get partnersRegister => 'Registrar';
+
+  @override
+  String get partnersNoneFound =>
+      'No se encontraron socios en la base de datos.';
+
+  @override
+  String partnersNoneInCategory(Object category) {
+    return 'No hay socios en la categoría $category.';
+  }
+
+  @override
+  String get partnersRadarHint =>
+      'Use el botón \'Radar\' para encontrar ubicaciones reales.';
+
+  @override
+  String get partnersLocationDenied => 'Permiso de ubicación denegado.';
+
+  @override
+  String get partnersLocationPermanentlyDenied =>
+      'Permiso denegado permanentemente en ajustes.';
+
+  @override
+  String get partnersLocationError => 'No se pudo obtener su ubicación actual.';
+
+  @override
+  String get partnersRadarDetecting =>
+      'Detectando establecimientos reales en su región...';
+
+  @override
+  String get partnersRadarTracking => 'Rastreando establecimientos vía GPS...';
+
+  @override
+  String get partnersRadarNoResults => 'Sin ubicaciones en esta categoría.';
+
+  @override
+  String get menuDietType => 'Tipo de Dieta';
+
+  @override
+  String get pdfError => 'Error al generar PDF:';
+
+  @override
+  String get petWoundDeleteTitle => 'Eliminar Análisis';
+
+  @override
+  String get petWoundDeleteConfirm =>
+      '¿Está seguro de que desea eliminar este análisis de herida? Esta acción no se puede deshacer.';
+
+  @override
+  String get petWoundDeleteSuccess => 'Análisis de herida eliminado con éxito';
+
+  @override
+  String get petWoundDeleteError => 'Error al eliminar análisis:';
+
+  @override
+  String get selectRegime => 'Seleccione al menos un régimen.';
+
+  @override
+  String get selectDatesError => 'Seleccione las fechas.';
+
+  @override
+  String get menuPlannedSuccess => '✅ ¡Menú Inteligente Planificado!';
+
+  @override
+  String get goalWeightMaintenance => 'Mantenimiento de Peso';
+
+  @override
+  String get goalWeightLoss => 'Pérdida de Peso';
+
+  @override
+  String get goalMuscleGain => 'Ganancia Muscular';
+
+  @override
+  String get goalRecovery => 'Recuperación/Convalecencia';
+
+  @override
+  String get menuProfileHeader => '⚠️ PERFIL ESPECÍFICO DE LA MASCOTA:';
+
+  @override
+  String get menuAllergiesForbidden => '- ALERGIAS (PROHIBIDO)';
+
+  @override
+  String get menuPreferences => '- PREFERENCIAS';
+
+  @override
+  String get menuRecentMeals => '- COMIDAS RECIENTES (PARA VARIACIÓN)';
+
+  @override
+  String get petSizeSmall => 'Pequeño';
+
+  @override
+  String get petSizeMedium => 'Mediano';
+
+  @override
+  String get petSizeLarge => 'Grande';
+
+  @override
+  String get petSizeGiant => 'Gigante';
+
+  @override
+  String get petCoatShort => 'Pelo corto';
+
+  @override
+  String get petCoatLong => 'Pelo largo';
+
+  @override
+  String get petCoatDouble => 'Manto doble';
+
+  @override
+  String get petCoatWire => 'Pelo duro';
+
+  @override
+  String get petCoatCurly => 'Pelo rizado';
+
+  @override
+  String get petFullAnalysisTitle => 'Análisis Completo de Raza';
+
+  @override
+  String get petGeneticAnalysisSub => 'Análisis Genético Detallado';
+
+  @override
+  String get petGeneticId => '🧬 Identificación Genética';
+
+  @override
+  String get petPrimaryRace => 'Raza Predominante';
+
+  @override
+  String get petSecondaryRaces => 'Razas Secundarias';
+
+  @override
+  String get petPhysicalChars => '📏 Características Físicas';
+
+  @override
+  String get petWeightEstimated => 'Peso Estimado';
+
+  @override
+  String get petHeight => 'Altura';
+
+  @override
+  String get petExpectancy => 'Esperanza de Vida';
+
+  @override
+  String get petCoatType => 'Tipo de Pelaje';
+
+  @override
+  String get petCommonColors => 'Colores Comunes';
+
+  @override
+  String get petTemperamentTitle => '🎭 Temperamento y Personalidad';
+
+  @override
+  String get petPersonality => 'Personalidad';
+
+  @override
+  String get petSocialBehavior => 'Comportamiento Social';
+
+  @override
+  String get petEnergyLevel => 'Nivel de Energía';
+
+  @override
+  String get petRecommendedCare => '💚 Cuidados Recomendados';
+
+  @override
+  String get petExercise => '🏃 Ejercicio';
+
+  @override
+  String get petOriginHistory => '📜 Origen e Historia';
+
+  @override
+  String get petCuriositiesTitle => '✨ Curiosidades';
+
+  @override
+  String get petNotIdentifiedPlural => 'No identificados';
+
+  @override
+  String get petVaried => 'Variado';
+
+  @override
+  String get petDetailsUnavailable =>
+      'Detalles completos no disponibles. Realice un nuevo análisis.';
+
+  @override
+  String get agendaExportTitle => 'Exportar Agenda';
+
+  @override
+  String get agendaReportType => 'Tipo de Informe:';
+
+  @override
+  String get agendaReportSummary => 'Resumen';
+
+  @override
+  String get agendaReportDetail => 'Detallado';
+
+  @override
+  String get agendaNoEventsDay => 'Sin eventos en este día';
+
+  @override
+  String agendaEventsCount(Object count) {
+    return '$count eventos';
+  }
+
+  @override
+  String get agendaGeneratePDF => 'Generar PDF';
+
+  @override
+  String get agendaGlobalTitle => 'Agenda Global';
+
+  @override
+  String get agendaViewCalendar => 'Ver Calendario';
+
+  @override
+  String get agendaViewAll => 'Ver Todos los Eventos';
+
+  @override
+  String get agendaNoEventsRegistered => 'Sin eventos registrados.';
+
+  @override
+  String get agendaNoEventsTodayDetail => 'Sin eventos para este día.';
+
+  @override
+  String get agendaAllPets => 'Todas las Mascotas';
+
+  @override
+  String get agendaExportPDF => 'Exportar Informe PDF';
+
+  @override
+  String get agendaReportingPeriod => 'Período del Informe';
+
+  @override
+  String get agendaFilterPet => 'Filtrar por Mascota';
+
+  @override
+  String get agendaFilterCategory => 'Filtrar por Categoría';
+
+  @override
+  String get agendaDetailLevel => 'Nivel de Detalle';
+
+  @override
+  String get agendaDetailedTable => 'Detallado (Con Tabla)';
+
+  @override
+  String get agendaSummaryOnly => 'Resumen (Solo Indicadores)';
+
+  @override
+  String get agendaButtonGenerate => 'GENERAR INFORME';
+
+  @override
+  String get agendaAllCategories => 'Todas las Categorías';
+
+  @override
+  String get agendaNoPartnerLinked =>
+      'Este evento no tiene un socio vinculado para mostrar detalles.';
+
+  @override
+  String agendaProfileNotFound(Object name) {
+    return 'Perfil de $name no encontrado.';
+  }
+
+  @override
+  String get agendaServiceRecord => 'Registro de Servicio';
+
+  @override
+  String get agendaAppointmentDetails => 'Detalles de la Cita';
+
+  @override
+  String get agendaResponsiblePartner => 'Socio Responsable';
+
+  @override
+  String get agendaPartnerNotFound => 'Socio no encontrado o eliminado.';
+
+  @override
+  String get agendaMarkCompleted => 'MARCAR COMO COMPLETADO';
+
+  @override
+  String get agendaEventCompleted => '¡Evento marcado como completado!';
+
+  @override
+  String get agendaEventUpdated => '¡Evento actualizado con éxito!';
+
+  @override
+  String get agendaViewRegistration => 'Toque para ver el registro';
+
+  @override
+  String get agendaWhatsAppChat => 'Chat vía WhatsApp';
+
+  @override
+  String get agendaWebsiteError => 'Error al abrir el sitio web';
+
+  @override
+  String get agendaViewProfile => '(Toque para ver el perfil)';
+
+  @override
+  String get agendaOriginalDataMissing =>
+      'Datos originales del evento no encontrados para edición.';
+
+  @override
+  String get agendaEditEvent => 'Editar Evento';
+
+  @override
+  String get agendaChange => 'Cambiar';
+
+  @override
+  String get agendaAttendantSpecialist => 'Especialista / Atendente';
+
+  @override
+  String get agendaSelectAttendant => 'Seleccione el atendente';
+
+  @override
+  String get agendaEventTitle => 'Título del Evento';
+
+  @override
+  String get agendaTitleExample => 'ej: Vacuna Polivalente V10';
+
+  @override
+  String get agendaObservationsHint => 'Escriba o use el micrófono...';
+
+  @override
+  String get agendaAttachmentsFull => 'Adjuntos (PDF o Fotos)';
+
+  @override
+  String get agendaEnterTitle => 'Por favor, ingrese un título';
+
+  @override
+  String get agendaSaveChanges => 'GUARDAR CAMBIOS';
+
+  @override
+  String get agendaConfirmEvent => 'CONFIRMAR EVENTO';
+
+  @override
+  String get commonCamera => 'Cámara';
+
+  @override
+  String get commonGallery => 'Galería';
+
+  @override
+  String get commonPDFFile => 'Archivo PDF';
+
+  @override
+  String get petConsultVet =>
+      'Consulte al veterinario para predisposiciones específicas';
+
+  @override
+  String get petHemogramaCheckup => 'Hemograma y chequeo general';
+
+  @override
+  String get petPositiveReinforcement => 'Refuerzo positivo';
+
+  @override
+  String get petInteractiveToys => 'Juguetes interactivos y paseos';
+
+  @override
+  String get petConsultVetCare => 'Consulte a un Vet.';
+
+  @override
+  String get pdfFieldAddress => 'Dirección';
+
+  @override
+  String get pdfFieldEmail => 'Correo electrónico';
+
+  @override
+  String get pdfFieldPhone => 'Teléfono';
+
+  @override
+  String get pdfFieldObservations => 'Observaciones';
+
+  @override
+  String get petBreedMixed => 'Raza Mixta';
+
+  @override
+  String get petAllergies => 'Alergias';
+
+  @override
+  String get explainExam => 'Explicar Examen';
+
+  @override
+  String get attendantName => 'Nombre del Asistente';
+
+  @override
+  String get partnerDetailsRole => 'Rol';
+
+  @override
+  String get btnCancel => 'Cancelar';
+
+  @override
+  String get processingAnalysis => 'Procesando Análisis...';
+
+  @override
+  String get labExamsSubtitle => 'Historial y Resultados';
+
+  @override
+  String get labExamsTitle => 'Exámenes de Laboratorio';
+
+  @override
+  String get pdfFilterTitle => 'Filtrar Secciones PDF';
+
+  @override
+  String get pdfFilterSubtitle =>
+      'Seleccione las secciones a incluir en el informe:';
+
+  @override
+  String get pdfFilterDisclaimer =>
+      'El informe incluirá solo las secciones seleccionadas';
+
+  @override
+  String get pdfSelectAll => 'Seleccionar Todo';
+
+  @override
+  String get pdfGenerate => 'Generar PDF';
+
+  @override
+  String get sectionIdentity => 'Identidad';
+
+  @override
+  String get sectionHealth => 'Salud';
+
+  @override
+  String get sectionNutrition => 'Nutrición';
+
+  @override
+  String get sectionGallery => 'Galería';
+
+  @override
+  String get sectionPartners => 'Socios';
+
+  @override
+  String get sectionDescIdentity => 'Información básica y perfil biológico';
+
+  @override
+  String get sectionDescHealth => 'Historial de vacunas, peso y exámenes';
+
+  @override
+  String get sectionDescNutrition =>
+      'Plan de alimentación semanal y preferencias';
+
+  @override
+  String get sectionDescGallery => 'Fotos y documentos adjuntos';
+
+  @override
+  String get sectionDescPartners => 'Red de apoyo y socios vinculados';
+
+  @override
+  String get observationNew => 'Nueva Observación';
+
+  @override
+  String get observationHint => 'Escriba su observación...';
+
+  @override
+  String get commonAdd => 'Añadir';
+
+  @override
+  String get voiceNotAvailable => 'Reconocimiento de voz no disponible';
+
+  @override
+  String shopItems(int count) {
+    return '$count Ítems';
+  }
+
+  @override
+  String get shopSyncPlan => 'Sincronizar Plan';
+
+  @override
+  String get shopClearDone => 'Limpiar Completados';
+
+  @override
+  String get shopEmptyTitle => 'Tu lista está vacía';
+
+  @override
+  String get shopEmptySubtitle =>
+      'Añade ítems manualmente o\ngenera desde tu menú.';
+
+  @override
+  String get shopGenerateFromMenu => 'Generar del Menú Semanal';
+
+  @override
+  String get shopNoMenuError => '¡Crea un menú primero!';
+
+  @override
+  String get shopReplaceTitle => '¿Reemplazar lista?';
+
+  @override
+  String get shopReplaceContent =>
+      'Esto borrará la lista actual y creará una nueva basada en el menú.';
+
+  @override
+  String get shopGenerateBtn => 'Generar Lista';
+
+  @override
+  String get shopGeneratedSuccess => '✅ ¡Lista generada con éxito!';
+
+  @override
+  String get shopAddItemTitle => 'Añadir Ítem';
+
+  @override
+  String get shopItemName => 'Nombre del Ítem';
+
+  @override
+  String get shopItemQty => 'Cantidad (ej: 2kg, 1 un)';
+
+  @override
+  String get shopDefaultQty => '1 porción';
+
+  @override
+  String get backupOptimizeTitle => 'Respaldo y Optimización';
+
+  @override
+  String get backupOptimizeDesc =>
+      'Genera un PDF completo con todo el historial de la mascota (incluyendo fotos) y permite limpiar registros antiguos para liberar espacio.';
+
+  @override
+  String get backupNoPets => 'No se encontraron mascotas.';
+
+  @override
+  String get backupSelectPet => 'Seleccionar Mascota';
+
+  @override
+  String get backupProcessing => 'Procesando...';
+
+  @override
+  String get backupGenerateBtn => 'Generar y Optimizar';
+
+  @override
+  String get backupOptimizationTitle => 'Optimización de Almacenamiento';
+
+  @override
+  String get backupOptimizationContent =>
+      '¡Respaldo PDF generado con éxito!\n\n¿Desea eliminar registros de más de 2 años (Observaciones y Heridas) para liberar espacio? El historial antiguo permanecerá guardado en el PDF exportado.';
+
+  @override
+  String get backupKeepAll => 'Mantener Todo';
+
+  @override
+  String get backupCleanOld => 'Limpiar Antiguos';
+
+  @override
+  String get backupSuccessClean => '¡Limpieza completa! App optimizada.';
+
+  @override
+  String get backupNoDataClean =>
+      'No se encontraron datos antiguos para limpiar.';
+
+  @override
+  String get backupProfileNotFound => 'Perfil no encontrado';
+
+  @override
+  String commonSyncError(String error) {
+    return 'Error de sincronización: $error';
+  }
+
+  @override
+  String get petDefaultName => 'esta mascota';
+
+  @override
+  String get diagnosisPending => 'Sin diagnóstico';
+
+  @override
+  String get severityLow => 'Baja';
+
+  @override
+  String get severityMedium => 'Media';
+
+  @override
+  String get severityHigh => 'Alta';
+
+  @override
+  String get commonSaveNameFirst =>
+      'Guarde la mascota o ingrese el nombre primero.';
+
+  @override
+  String get commonFilePrefix => 'Archivo: ';
+
+  @override
+  String get commonNoAttachments => 'Ningún documento adjunto.';
+
+  @override
+  String get commonView => 'Ver';
+
+  @override
+  String get aiAnalysis => 'Análisis de IA';
+
+  @override
+  String get commonError => 'Error';
+
+  @override
+  String get commonEdit => 'Editar';
+
+  @override
+  String get agendaTabUpcoming => 'Próximos';
+
+  @override
+  String get agendaTabPast => 'Pasados';
+
+  @override
+  String get agendaTabAll => 'Todos';
+
+  @override
+  String get agendaNoUpcoming => 'No hay eventos próximos';
+
+  @override
+  String get agendaNoPast => 'No hay eventos pasados';
+
+  @override
+  String get agendaNoEvents => 'No hay eventos registrados';
+
+  @override
+  String get agendaNoFiltered => 'No hay eventos de este tipo';
+
+  @override
+  String get agendaDeleteTitle => '¿Eliminar Evento?';
+
+  @override
+  String agendaDeleteContent(String title) {
+    return '¿Seguro que desea eliminar \"$title\"?';
+  }
+
+  @override
+  String get agendaDeleted => 'Evento eliminado';
+
+  @override
+  String get agendaCreated => '¡Evento creado!';
+
+  @override
+  String get agendaUpdated => '¡Evento actualizado!';
+
+  @override
+  String get agendaStatusOverdue => 'ATRASADO';
+
+  @override
+  String get agendaStatusToday => 'HOY';
+
+  @override
+  String get agendaFieldTitle => 'Título';
+
+  @override
+  String get agendaFieldType => 'Tipo';
+
+  @override
+  String get agendaFieldVaccineSelect => 'Seleccionar Vacuna';
+
+  @override
+  String get agendaFieldVaccineName => 'Nombre de la Vacuna';
+
+  @override
+  String get agendaVaccineOther => 'Otra vacuna';
+
+  @override
+  String get agendaRequired => 'Obligatorio';
+
+  @override
+  String get btnDelete => 'Eliminar';
+
+  @override
+  String get partnerRegisterTitle => 'Registrar Socio';
+
+  @override
+  String get partnerEditTitle => 'Editar Socio';
+
+  @override
+  String get partnerDeleteTitle => 'Eliminar Socio';
+
+  @override
+  String partnerDeleteContent(String name) {
+    return '¿Desea eliminar \"$name\" de su red de apoyo?';
+  }
+
+  @override
+  String get partnerDeleted => 'Socio eliminado.';
+
+  @override
+  String partnerSaved(String name) {
+    return '¡Socio \"$name\" guardado con éxito!';
+  }
+
+  @override
+  String partnerSaveError(String error) {
+    return 'Error al guardar: $error';
+  }
+
+  @override
+  String get partnerCantDeleteLinked =>
+      'No se puede eliminar: Este socio está vinculado a una mascota.';
+
+  @override
+  String get partnerBtnSave => 'GUARDAR SOCIO';
+
+  @override
+  String get partnerBtnDelete => 'ELIMINAR SOCIO';
+
+  @override
+  String get partnerDangerZone => 'Zona de Peligro';
+
+  @override
+  String get partnerDangerZoneDesc => 'Eliminar este socio es irreversible.';
+
+  @override
+  String get partnerRadarTitle => 'Radar Geo';
+
+  @override
+  String get partnerRadarHint => 'Toque para cambiar el radio de búsqueda';
+
+  @override
+  String get partnerRadarScanning => 'Sintonizando Radar y GPS...';
+
+  @override
+  String get partnerRadarNoResults => 'No se encontraron lugares.';
+
+  @override
+  String get partnerRadarPermission => 'Permiso de ubicación requerido.';
+
+  @override
+  String get partnerRadarGPSCallbackError =>
+      'GPS devolvió coordenadas inválidas. Verifique permisos.';
+
+  @override
+  String get partnerRadarFoundTitle =>
+      'Establecimientos reales detectados en su región:';
+
+  @override
+  String get partnerFieldEstablishment => 'Nombre del Establecimiento';
+
+  @override
+  String get partnerFieldPhone => 'Teléfono / WhatsApp';
+
+  @override
+  String get partnerFieldInstagram => 'Instagram (ej: @mipet)';
+
+  @override
+  String get partnerFieldHours => 'Horario de Atención';
+
+  @override
+  String get partnerField24h => '24h / Emergencia';
+
+  @override
+  String get partnerField24hSub => 'Local funciona ininterrumpidamente';
+
+  @override
+  String get partnerFieldSpecialties => 'Especialidades (separar por coma)';
+
+  @override
+  String get partnerFieldWebsite => 'Sitio Web';
+
+  @override
+  String get partnerFieldEmail => 'E-mail';
+
+  @override
+  String get partnerFieldAddress => 'Dirección Completa';
+
+  @override
+  String get partnerTeamTitle => 'Cuerpo Clínico / Equipo';
+
+  @override
+  String get partnerTeamAddHint => 'Añadir nombre (ej: Dra. Ana)';
+
+  @override
+  String get partnerCategory => 'Categoría';
+
+  @override
+  String get partnerNotesTitle => 'Notas y Observaciones';
+
+  @override
+  String get partnerNotesEmpty =>
+      'Sin notas aún.\nEscriba o grabe recordatorios sobre este socio.';
+
+  @override
+  String get partnerNotesHint => 'Nueva observación...';
+
+  @override
+  String get partnerRadarButtonTitle => 'Búsqueda Inteligente por Radar';
+
+  @override
+  String get partnerRadarButtonDesc => 'Encuentre e importe datos vía GPS';
+
+  @override
+  String partnersRadiusInfo(String radius) {
+    return 'Mostrando socios en un radio de ${radius}km';
+  }
+
+  @override
+  String get partnersEmpty =>
+      'No se encontraron socios\nen este radio de búsqueda.';
+
+  @override
+  String get partnersIncreaseRadius => 'Aumentar Radio de Búsqueda';
+
+  @override
+  String get partnersSuggestion =>
+      'Basado en el análisis de su mascota, encontramos estos especialistas.';
+
+  @override
+  String partnersKmFromYou(String dist) {
+    return '$dist km de usted';
+  }
+
+  @override
+  String get partnersCall => 'Llamar';
+
+  @override
+  String get partnersMap => 'Mapa';
+
+  @override
+  String get partnersLinkTitle => 'Vincular Socio';
+
+  @override
+  String partnersLinkContent(String name) {
+    return '¿Desea añadir \"$name\" a su Red de Apoyo personalizada?';
+  }
+
+  @override
+  String partnersLinkSuccess(String name) {
+    return '¡\"$name\" vinculado con éxito!';
+  }
+
+  @override
+  String get partnersBtnLink => 'Vincular';
 }

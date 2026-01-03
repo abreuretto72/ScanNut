@@ -18,6 +18,13 @@ import '../../nutrition/data/models/plan_day.dart';
 import '../../features/plant/models/plant_analysis_model.dart';
 import '../services/partner_service.dart';
 
+// Helper class to replace record syntax for Dart compatibility
+class _CleanedValue {
+  final String value;
+  final bool isEstimated;
+  _CleanedValue(this.value, this.isEstimated);
+}
+
 class ExportService {
   static final ExportService _instance = ExportService._internal();
   factory ExportService() => _instance;
@@ -149,6 +156,7 @@ class ExportService {
 
   /// INDICATOR BLOCK HELPER
   pw.Widget _buildIndicator(String label, String value, PdfColor color) {
+    final cleaned = _cleanValue(value);
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: pw.BoxDecoration(
@@ -159,15 +167,31 @@ class ExportService {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+          pw.Row(
+             children: [
+                pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                if (cleaned.isEstimated) ...[
+                   pw.SizedBox(width: 4),
+                   pw.Text('*', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.amber700)),
+                ]
+             ],
+          ),
           pw.SizedBox(height: 2),
-          pw.Text(value, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: color)),
+          pw.Text(cleaned.value, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: color)),
         ],
       ),
     );
   }
 
-  pw.Widget _buildObservationsBlock(String observations) {
+  _CleanedValue _cleanValue(String? value) {
+    if (value == null) return _CleanedValue('---', false);
+    if (value.contains('[ESTIMATED]')) {
+      return _CleanedValue(value.replaceAll('[ESTIMATED]', '').trim(), true);
+    }
+    return _CleanedValue(value, false);
+  }
+
+  pw.Widget _buildObservationsBlock(String observations, AppLocalizations strings) {
     if (observations.isEmpty) return pw.SizedBox.shrink();
 
     return pw.Container(
@@ -183,7 +207,7 @@ class ExportService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            'HISTÓRICO DE OBSERVAÇÕES:',
+            strings.pdfObservationsTitle,
             style: pw.TextStyle(
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
@@ -209,7 +233,8 @@ class ExportService {
     required DateTime end,
     String? petFilter,
     String? categoryFilter,
-    String reportType = 'Detalhamento',
+    required String reportType,
+    required AppLocalizations strings,
   }) async {
     final pdf = pw.Document();
     final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
@@ -221,15 +246,15 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Relatório de Agenda Pet', timestampStr),
+        header: (context) => _buildHeader(strings.pdfAgendaReport, timestampStr),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              _buildIndicator('Total de Eventos:', totalCount.toString(), PdfColors.black),
-              _buildIndicator('Concluídos:', completedCount.toString(), PdfColors.green700),
-              _buildIndicator('Pendentes:', pendingCount.toString(), PdfColors.red700),
+              _buildIndicator('${strings.pdfTotalEvents}:', totalCount.toString(), PdfColors.black),
+              _buildIndicator('${strings.pdfCompletedEvents}:', completedCount.toString(), PdfColors.green700),
+              _buildIndicator('${strings.pdfPendingEvents}:', pendingCount.toString(), PdfColors.red700),
             ],
           ),
           pw.SizedBox(height: 25),
@@ -239,19 +264,19 @@ class ExportService {
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
               headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 9),
               cellStyle: const pw.TextStyle(fontSize: 7.5),
-              headers: ['Data/Hora', 'Título do Evento', 'Nome do Pet', 'Parceiro/Local', 'Observações', 'Status'],
+              headers: ['${strings.pdfDate}/${strings.pdfFieldTime}', strings.pdfFieldEvent, strings.pdfFieldPet, strings.pdfFieldCategory, strings.pdfObservations, strings.pdfStatus],
               data: events.map((e) => [
                 DateFormat('dd/MM HH:mm').format(e.dateTime),
                 e.title,
                 e.petName,
                 e.attendant ?? ' - ',
                 e.notes ?? ' - ',
-                e.completed ? 'Concluído' : 'Pendente',
+                e.completed ? strings.pdfCompleted : strings.pdfPending,
               ]).toList(),
             )
           else
             pw.Center(
-              child: pw.Text('Relatório Resumido - Tabela Omitida', 
+              child: pw.Text(strings.pdfSummaryReport, 
                 style: pw.TextStyle(color: PdfColors.grey500, fontStyle: pw.FontStyle.italic, fontSize: 10)),
             ),
         ],
@@ -261,7 +286,11 @@ class ExportService {
   }
 
   /// 2. PARTNERS REPORT (UNIFIED LAYOUT)
-  Future<pw.Document> generatePartnersReport({required List<PartnerModel> partners, required String region}) async {
+  Future<pw.Document> generatePartnersReport({
+    required List<PartnerModel> partners, 
+    required String region,
+    required AppLocalizations strings,
+  }) async {
     final pdf = pw.Document();
     final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
     
@@ -269,14 +298,14 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Guia de Parceiros', timestampStr),
+        header: (context) => _buildHeader(strings.pdfPartnersGuide, timestampStr),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              _buildIndicator('Região:', region, PdfColors.black),
-              _buildIndicator('Total Encontrado:', partners.length.toString(), PdfColors.blue700),
+              _buildIndicator('${strings.pdfRegion}:', region, PdfColors.black),
+              _buildIndicator('${strings.pdfTotalFound}:', partners.length.toString(), PdfColors.blue700),
             ],
           ),
           pw.SizedBox(height: 25),
@@ -285,12 +314,12 @@ class ExportService {
             headerDecoration: const pw.BoxDecoration(color: PdfColors.blue),
             headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10),
             cellStyle: const pw.TextStyle(fontSize: 9),
-            headers: ['Estabelecimento', 'Categoria', 'Telefone', 'Avaliação'],
+            headers: [strings.pdfEstablishment, strings.pdfFieldCategory, strings.pdfPhone, strings.pdfRating],
             data: partners.map((p) => [
               p.name,
               p.category,
               p.phone,
-              '${p.rating} Estrelas',
+              '${p.rating} ${strings.pdfStars}',
             ]).toList(),
           ),
         ],
@@ -1230,7 +1259,7 @@ class ExportService {
                   child: pw.Column(
                     children: [
                       pw.Text(
-                        profile.raca ?? 'Raça não especificada',
+                        profile.raca ?? strings.petBreedMixed,
                         style: pw.TextStyle(
                           fontSize: 18,
                           color: PdfColors.blue900,
@@ -1239,7 +1268,7 @@ class ExportService {
                       ),
                       pw.SizedBox(height: 8),
                       pw.Text(
-                        'Gerado em: $timestampStr',
+                        '${strings.pdfGeneratedOn}: $timestampStr',
                         style: pw.TextStyle(
                           fontSize: 12,
                           color: PdfColors.grey700,
@@ -1251,7 +1280,7 @@ class ExportService {
                 pw.Spacer(),
                 // Footer
                 pw.Text(
-                  'ScanNut - Nutrição Inteligente para Pets',
+                  'ScanNut - ${strings.appTitle}',
                   style: pw.TextStyle(
                     fontSize: 14,
                     color: PdfColors.grey600,
@@ -1269,7 +1298,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Dossiê Digital: ${profile.petName}', timestampStr),
+        header: (context) => _buildHeader('${strings.pdfReportTitle}: ${profile.petName}', timestampStr, dateLabel: strings.pdfGeneratedOn),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           // ========== IDENTITY SECTION ==========
@@ -1281,25 +1310,25 @@ class ExportService {
               headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellPadding: const pw.EdgeInsets.all(6),
-              headers: ['Campo', 'Informação'],
+              headers: [strings.pdfFieldLabel, strings.pdfFieldValue],
               data: [
-                ['Nome Completo', profile.petName],
-                ['Raça', profile.raca ?? 'Não informado'],
-                ['Idade Exata', profile.idadeExata ?? 'Não informado'],
-                ['Sexo', profile.rawAnalysis?['identificacao']?['sexo'] ?? profile.statusReprodutivo ?? 'Não informado'],
-                ['Microchip', profile.rawAnalysis?['identificacao']?['microchip'] ?? 'Não informado'],
-                ['Peso Atual', profile.pesoAtual != null ? '${profile.pesoAtual} kg' : 'Não informado'],
-                ['Peso Ideal', profile.pesoIdeal != null ? '${profile.pesoIdeal} kg' : 'Não informado'],
-                ['Status Reprodutivo', profile.statusReprodutivo ?? 'Não informado'],
-                ['Nível de Atividade', profile.nivelAtividade ?? 'Moderado'],
-                ['Frequência de Banho', profile.frequenciaBanho ?? 'Não informado'],
+                [strings.pdfFieldName, profile.petName],
+                [strings.pdfFieldBreed, profile.raca ?? strings.petNotIdentified],
+                [strings.pdfFieldAge, profile.idadeExata ?? strings.petNotOffice],
+                [strings.pdfFieldSex, profile.rawAnalysis?['identificacao']?['sexo'] ?? profile.statusReprodutivo ?? strings.petNotOffice],
+                [strings.pdfFieldMicrochip, profile.rawAnalysis?['identificacao']?['microchip'] ?? strings.petNotOffice],
+                [strings.pdfFieldCurrentWeight, profile.pesoAtual != null ? '${profile.pesoAtual} kg' : strings.petNotOffice],
+                [strings.pdfFieldIdealWeight, profile.pesoIdeal != null ? '${profile.pesoIdeal} kg' : strings.petNotOffice],
+                [strings.pdfFieldReproductiveStatus, profile.statusReprodutivo ?? strings.petNotOffice],
+                [strings.pdfFieldActivityLevel, profile.nivelAtividade ?? strings.petActivityModerate],
+                [strings.pdfFieldBathFrequency, profile.frequenciaBanho ?? strings.petNotOffice],
               ],
             ),
             
             // Preferências Alimentares
             if (profile.preferencias.isNotEmpty) ...[
               pw.SizedBox(height: 15),
-              pw.Text('Preferências Alimentares:', 
+              pw.Text('${strings.pdfPreferenciasAlimentares}:', 
                 style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.green700)),
               pw.SizedBox(height: 5),
               pw.Container(
@@ -1354,7 +1383,7 @@ class ExportService {
                  pw.SizedBox(height: 10),
             ],
 
-            _buildObservationsBlock(profile.observacoesIdentidade),
+            _buildObservationsBlock(profile.observacoesIdentidade, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -1363,7 +1392,7 @@ class ExportService {
             _buildSectionHeader(strings.pdfHealthSection),
             
             // Controle de Peso
-            pw.Text('Controle de Peso:', 
+            pw.Text('${strings.pdfWeightControl}:', 
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
             pw.SizedBox(height: 5),
             pw.Table.fromTextArray(
@@ -1371,20 +1400,20 @@ class ExportService {
               headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellPadding: const pw.EdgeInsets.all(6),
-              headers: ['Métrica', 'Valor', 'Status'],
+              headers: [strings.pdfMetric, strings.pdfFieldValue, strings.pdfStatus],
               data: [
                 [
-                  'Peso Atual',
-                  profile.pesoAtual != null ? '${profile.pesoAtual} kg' : 'Não informado',
+                  strings.pdfFieldCurrentWeight,
+                  profile.pesoAtual != null ? '${profile.pesoAtual} kg' : strings.petNotOffice,
                   profile.pesoAtual != null && profile.pesoIdeal != null
-                    ? (profile.pesoAtual! > profile.pesoIdeal! ? 'Acima do ideal' : 
-                       profile.pesoAtual! < profile.pesoIdeal! ? 'Abaixo do ideal' : 'Ideal')
+                    ? (profile.pesoAtual! > profile.pesoIdeal! ? strings.pdfPesoStatusOver : 
+                       profile.pesoAtual! < profile.pesoIdeal! ? strings.pdfPesoStatusUnder : strings.pdfPesoStatusIdeal)
                     : 'N/A'
                 ],
                 [
-                  'Peso Ideal',
-                  profile.pesoIdeal != null ? '${profile.pesoIdeal} kg' : 'Não informado',
-                  'Meta'
+                  strings.pdfFieldIdealWeight,
+                  profile.pesoIdeal != null ? '${profile.pesoIdeal} kg' : strings.petNotOffice,
+                  strings.pdfPesoStatusMeta
                 ],
               ],
             ),
@@ -1392,7 +1421,7 @@ class ExportService {
             // Histórico de Peso
             if (profile.weightHistory.isNotEmpty) ...[
               pw.SizedBox(height: 10),
-              pw.Text('Histórico de Pesagens:', 
+              pw.Text('${strings.pdfWeightHistory}:', 
                 style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 5),
               pw.Table.fromTextArray(
@@ -1401,11 +1430,11 @@ class ExportService {
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
                 cellStyle: const pw.TextStyle(fontSize: 8),
                 cellPadding: const pw.EdgeInsets.all(4),
-                headers: ['Data', 'Peso (kg)', 'Status'],
+                headers: [strings.pdfDate, 'Peso (kg)', strings.pdfStatus],
                 data: profile.weightHistory.take(10).map((entry) => [
                   DateFormat('dd/MM/yyyy').format(DateTime.parse(entry['date'])),
                   '${entry['weight']} kg',
-                  entry['status_label'] ?? 'Normal',
+                  entry['status_label'] ?? strings.pdfPesoStatusNormal,
                 ]).toList(),
               ),
             ],
@@ -1413,7 +1442,7 @@ class ExportService {
             pw.SizedBox(height: 15),
             
             // Vacinas
-            pw.Text('Histórico de Vacinas:', 
+            pw.Text('${strings.pdfVacinaV10} & ${strings.pdfVacinaAntirrabica}:', 
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
             pw.SizedBox(height: 5),
             pw.Table.fromTextArray(
@@ -1422,22 +1451,22 @@ class ExportService {
               headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellPadding: const pw.EdgeInsets.all(6),
-              headers: ['Vacina', 'Última Aplicação', 'Próxima Dose'],
+              headers: [strings.pdfFieldLabel, 'Última Aplicação', 'Próxima Dose'],
               data: [
                 [
-                  'V10/V8 (Polivalente)',
+                  strings.pdfVacinaV10,
                   profile.dataUltimaV10 != null 
                     ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaV10!)
-                    : 'Não registrado',
+                    : strings.pdfVacinaNaoRegistrada,
                   profile.dataUltimaV10 != null
                     ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaV10!.add(const Duration(days: 365)))
                     : 'N/A',
                 ],
                 [
-                  'Antirrábica',
+                  strings.pdfVacinaAntirrabica,
                   profile.dataUltimaAntirrabica != null
                     ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaAntirrabica!)
-                    : 'Não registrado',
+                    : strings.pdfVacinaNaoRegistrada,
                   profile.dataUltimaAntirrabica != null
                     ? DateFormat('dd/MM/yyyy').format(profile.dataUltimaAntirrabica!.add(const Duration(days: 365)))
                     : 'N/A',
@@ -1448,7 +1477,7 @@ class ExportService {
             pw.SizedBox(height: 15),
             
             // Alergias e Restrições
-            pw.Text('Alergias e Restrições Alimentares:', 
+            pw.Text('${strings.petAllergies}:', 
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.red700)),
             pw.SizedBox(height: 5),
             pw.Container(
@@ -1463,8 +1492,8 @@ class ExportService {
               ),
               child: pw.Text(
                 profile.alergiasConhecidas.isEmpty 
-                  ? '✓ Nenhuma alergia conhecida registrada'
-                  : '⚠️ ATENÇÃO: ${profile.alergiasConhecidas.join(', ')}',
+                  ? strings.pdfAlergiasNenhuma
+                  : strings.pdfAlergiasAviso(profile.alergiasConhecidas.join(', ')),
                 style: pw.TextStyle(
                   fontSize: 9,
                   fontWeight: pw.FontWeight.bold,
@@ -1477,7 +1506,7 @@ class ExportService {
             // --- Histórico Clínico ---
             if (medicalEvents.isNotEmpty) ...[
                 pw.SizedBox(height: 15),
-                pw.Text('Histórico Clínico (Vacinas, Medicamentos, Procedimentos):', 
+                pw.Text('${strings.pdfHistClinico}:', 
                   style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
                 pw.SizedBox(height: 5),
                 pw.Table.fromTextArray(
@@ -1486,12 +1515,12 @@ class ExportService {
                     headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black),
                     cellStyle: const pw.TextStyle(fontSize: 9),
                     cellPadding: const pw.EdgeInsets.all(4),
-                    headers: ['Data', 'Tipo', 'Descrição', 'Status'],
+                    headers: [strings.pdfDate, strings.pdfType, strings.pdfDescription, strings.pdfStatus],
                     data: medicalEvents.map((e) => [
                         DateFormat('dd/MM/yy').format(e.dateTime),
                         e.typeLabel,
                         e.title,
-                        e.completed ? 'Realizado' : 'Pendente'
+                        e.completed ? strings.pdfCompleted : strings.pdfPending
                     ]).toList(),
                 ),
                 pw.SizedBox(height: 15),
@@ -1499,7 +1528,7 @@ class ExportService {
 
             if (profile.labExams.isNotEmpty) ...[
               pw.SizedBox(height: 15),
-              pw.Text('Exames Laboratoriais:', 
+              pw.Text('${strings.pdfExamesLab}:', 
                 style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
               pw.SizedBox(height: 5),
               ...profile.labExams.map((examJson) {
@@ -1531,7 +1560,7 @@ class ExportService {
                       if (exam.extractedText != null && exam.extractedText!.isNotEmpty) ...[
                         pw.SizedBox(height: 4),
                         pw.Text(
-                          'Texto extraído: ${exam.extractedText!.substring(0, exam.extractedText!.length > 200 ? 200 : exam.extractedText!.length)}${exam.extractedText!.length > 200 ? '...' : ''}',
+                          strings.pdfExtractedText(exam.extractedText!.substring(0, exam.extractedText!.length > 200 ? 200 : exam.extractedText!.length) + (exam.extractedText!.length > 200 ? '...' : '')),
                           style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey800),
                         ),
                       ],
@@ -1544,7 +1573,7 @@ class ExportService {
                             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
                           ),
                           child: pw.Text(
-                            'Análise IA: ${exam.aiExplanation}',
+                            strings.pdfAiAnalysis(exam.aiExplanation!),
                             style: const pw.TextStyle(fontSize: 7),
                           ),
                         ),
@@ -1558,20 +1587,20 @@ class ExportService {
             // Histórico de Análises de Feridas
             if (woundsWithImages.isNotEmpty) ...[
               pw.SizedBox(height: 15),
-              pw.Text('Histórico de Análises de Feridas:', 
+              pw.Text('${strings.pdfAnaliseFeridas}:', 
                 style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.red700)),
               pw.SizedBox(height: 5),
               ...woundsWithImages.map((analysis) {
                 final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(analysis['date']));
                 final severity = analysis['severity'] ?? 'N/A';
-                final diagnosis = analysis['diagnosis'] ?? 'Sem diagnóstico';
+                final diagnosis = analysis['diagnosis'] ?? strings.petDiagnosisDefault;
                 final recommendations = (analysis['recommendations'] as List?)?.cast<String>() ?? [];
                 
                 final pdfImage = analysis['pdfImage'] as pw.ImageProvider?;
                 
                 PdfColor severityColor = PdfColors.green700;
-                if (severity == 'Alta') severityColor = PdfColors.red700;
-                else if (severity == 'Média') severityColor = PdfColors.orange700;
+                if (severity == 'Alta' || severity.toLowerCase().contains('high')) severityColor = PdfColors.red700;
+                else if (severity == 'Média' || severity.toLowerCase().contains('medium') || severity.toLowerCase().contains('moderate')) severityColor = PdfColors.orange700;
 
                 return pw.Container(
                   margin: const pw.EdgeInsets.only(bottom: 8),
@@ -1625,10 +1654,10 @@ class ExportService {
                                     ],
                                   ),
                                   pw.SizedBox(height: 4),
-                                  pw.Text('Diagnóstico: $diagnosis', style: const pw.TextStyle(fontSize: 9)),
+                                  pw.Text(strings.pdfDiagnosis(diagnosis), style: const pw.TextStyle(fontSize: 9)),
                                   if (recommendations.isNotEmpty) ...[
                                     pw.SizedBox(height: 4),
-                                    pw.Text('Recomendações:', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                    pw.Text('${strings.pdfRecommendations}:', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
                                     ...recommendations.map((rec) => pw.Padding(
                                       padding: const pw.EdgeInsets.only(left: 4, top: 1),
                                       child: pw.Text('• $rec', style: const pw.TextStyle(fontSize: 8)),
@@ -1643,7 +1672,7 @@ class ExportService {
               }).toList(),
             ],
             
-            _buildObservationsBlock(profile.observacoesSaude),
+            _buildObservationsBlock(profile.observacoesSaude, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -1656,7 +1685,6 @@ class ExportService {
               pw.Container(
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
-                  // Eco-mode
                   border: pw.Border.all(color: PdfColors.grey700),
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                 ),
@@ -1664,11 +1692,11 @@ class ExportService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      'Tipo de Dieta:',
+                      '${strings.dietType}:',
                       style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
                     ),
                     pw.Text(
-                      profile.rawAnalysis!['tipo_dieta']?.toString() ?? 'Não especificado',
+                      profile.rawAnalysis!['tipo_dieta']?.toString() ?? strings.petNotOffice,
                       style: const pw.TextStyle(fontSize: 10),
                     ),
                   ],
@@ -1679,7 +1707,7 @@ class ExportService {
             
             // Plano Semanal Completo
             if (profile.rawAnalysis != null && profile.rawAnalysis!['plano_semanal'] != null) ...[
-              pw.Text('Cardápio Semanal Detalhado:', 
+              pw.Text('${strings.pdfCardapioDetalhado}:', 
                 style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
               pw.SizedBox(height: 8),
               
@@ -1689,7 +1717,7 @@ class ExportService {
                   
                   final dateForDay = startData.add(Duration(days: index));
                   final dateStr = DateFormat('dd/MM').format(dateForDay);
-                  final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay);
+                  final weekDayName = DateFormat('EEEE', strings.localeName).format(dateForDay);
                   final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
                   final diaLabel = "$weekDayCap - $dateStr";
                   
@@ -1756,7 +1784,7 @@ class ExportService {
                                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                                         children: [
                                           pw.Text(
-                                            '${meal['hora'] ?? 'REFEIÇÃO'}${meal['titulo'] != null ? ' - ${meal['titulo']}' : ''}',
+                                            '${meal['hora'] ?? strings.pdfRefeicao}${meal['titulo'] != null ? ' - ${meal['titulo']}' : ''}',
                                             style: pw.TextStyle(
                                               fontWeight: pw.FontWeight.bold,
                                               fontSize: 9,
@@ -1771,7 +1799,7 @@ class ExportService {
                                                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
                                               ),
                                               child: pw.Text(
-                                                '${meal['kcal']} Kcal',
+                                                '${meal['kcal']} ${strings.pdfKcal}',
                                                 style: pw.TextStyle(
                                                   fontSize: 8,
                                                   fontWeight: pw.FontWeight.bold,
@@ -1784,7 +1812,7 @@ class ExportService {
                                       pw.SizedBox(height: 4),
                                       // Descrição Completa
                                       pw.Text(
-                                        meal['descricao']?.toString() ?? 'Sem descrição',
+                                        meal['descricao']?.toString() ?? strings.pdfSemDescricao,
                                         style: const pw.TextStyle(fontSize: 8),
                                       ),
                                     ],
@@ -1795,7 +1823,8 @@ class ExportService {
                       )
                   );
               }).toList(),
-            ] else ...[
+            ]
+ else ...[
               pw.Container(
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
@@ -1804,13 +1833,13 @@ class ExportService {
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                 ),
                 child: pw.Text(
-                  'Nenhum plano alimentar cadastrado.',
+                  strings.pdfNoPlan,
                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
                 ),
               ),
             ],
             
-            _buildObservationsBlock(profile.observacoesNutricao),
+            _buildObservationsBlock(profile.observacoesNutricao, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -1854,7 +1883,7 @@ class ExportService {
                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                   ),
                   child: pw.Text(
-                    'Nenhuma imagem encontrada na galeria.',
+                    strings.pdfNoImages,
                     style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
                   ),
                 ),
@@ -1862,7 +1891,7 @@ class ExportService {
             
             if (otherDocNames.isNotEmpty) ...[
                 pw.SizedBox(height: 15),
-                pw.Text('Documentos Anexados (PDFs/Arquivos):', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue900)),
+                pw.Text(strings.pdfAttachedDocs, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue900)),
                 pw.SizedBox(height: 5),
                 ...otherDocNames.map((name) => pw.Container(
                     margin: const pw.EdgeInsets.only(bottom: 4),
@@ -1876,7 +1905,7 @@ class ExportService {
                 pw.SizedBox(height: 10),
             ],
 
-            _buildObservationsBlock(profile.observacoesGaleria),
+            _buildObservationsBlock(profile.observacoesGaleria, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -1886,7 +1915,7 @@ class ExportService {
             
             // Parceiros Vinculados
             if (profile.linkedPartnerIds.isNotEmpty) ...[
-              pw.Text('Parceiros Vinculados:', 
+              pw.Text(strings.pdfLinkedPartners, 
                 style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
               pw.SizedBox(height: 8),
               
@@ -1966,7 +1995,7 @@ class ExportService {
                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                   ),
                   child: pw.Text(
-                    '⚠️ ${profile.linkedPartnerIds.length} parceiro(s) vinculado(s), mas não foi possível carregar os detalhes.',
+                    strings.pdfPartnerLoadError(profile.linkedPartnerIds.length),
                     style: const pw.TextStyle(fontSize: 9),
                   ),
                 ),
@@ -1975,7 +2004,7 @@ class ExportService {
               // Notas dos Parceiros
               if (profile.partnerNotes.isNotEmpty) ...[
                 pw.SizedBox(height: 12),
-                pw.Text('Histórico de Atendimentos:', 
+                pw.Text(strings.pdfServiceHistory, 
                   style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 5),
                 ...profile.partnerNotes.entries.expand((entry) {
@@ -1997,7 +2026,7 @@ class ExportService {
                           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                           children: [
                             pw.Text(
-                              note['title'] ?? 'Atendimento',
+                              note['title'] ?? strings.petPartnersSchedule,
                               style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
                             ),
                             pw.Text(
@@ -2027,22 +2056,22 @@ class ExportService {
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                 ),
                 child: pw.Text(
-                  'Nenhum parceiro vinculado a este perfil.',
+                  strings.pdfNoPartners,
                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
                 ),
               ),
             ],
             
-            _buildObservationsBlock(profile.observacoesPrac),
+            _buildObservationsBlock(profile.observacoesPrac, strings),
             pw.SizedBox(height: 20),
           ],
           
           // ========== AGENDA & EVENTS SECTION ==========
           if (allAgendaEvents.isNotEmpty) ...[
-            _buildSectionHeader('📅 Agenda e Eventos'),
+            _buildSectionHeader(strings.pdfAgendaEvents),
             
             pw.Text(
-              'Histórico e Próximos Compromissos',
+              strings.pdfHistoryUpcoming,
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700),
             ),
             pw.SizedBox(height: 8),
@@ -2063,7 +2092,7 @@ class ExportService {
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
                     ),
                     child: pw.Text(
-                      '🔔 Próximos Eventos (${upcomingEvents.length})',
+                      '🔔 ${strings.pdfUpcomingEvents} (${upcomingEvents.length})',
                       style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.green900),
                     ),
                   ),
@@ -2081,7 +2110,7 @@ class ExportService {
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
                     ),
                     child: pw.Text(
-                      '📋 Histórico Recente (${pastEvents.length > 15 ? '15 de ${pastEvents.length}' : pastEvents.length})',
+                      '📋 ${strings.pdfRecentHistory} (${pastEvents.length > 15 ? '15 de ${pastEvents.length}' : pastEvents.length})',
                       style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800),
                     ),
                   ),
@@ -2135,7 +2164,8 @@ class ExportService {
   /// 6. PARTNERS HUB REPORT (UNIFIED LAYOUT)
   Future<pw.Document> generatePartnersHubReport({
     required List<PartnerModel> partners,
-    required String reportType, // 'Resumo' ou 'Detalhamento'
+    required String reportType,
+    required AppLocalizations strings,
   }) async {
     final pdf = pw.Document();
     final String timestampStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
@@ -2158,14 +2188,14 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader('Relatório: Hub de Apoio', timestampStr),
+        header: (context) => _buildHeader('${strings.pdfReportTitle}: ${strings.pdfParcSection}', timestampStr, dateLabel: strings.pdfGeneratedOn),
         footer: (context) => _buildFooter(context),
         build: (context) => [
           // INDICADORES
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              _buildIndicator('Total de Parceiros', partners.length.toString(), PdfColors.blue800),
+              _buildIndicator(strings.partnersTitle, partners.length.toString(), PdfColors.blue800),
               ...counts.entries.take(2).map((e) => _buildIndicator(e.key, e.value.toString(), PdfColors.black)).toList(),
             ],
           ),
@@ -2188,11 +2218,11 @@ class ExportService {
             headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
             headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 9),
             cellStyle: const pw.TextStyle(fontSize: 8),
-            headers: reportType == 'Resumo' 
-              ? ['Nome do Parceiro', 'Tipo / Categoria', 'Telefone']
-              : ['Nome', 'Tipo', 'Telefone', 'Endereço', 'E-mail', 'Observações'],
+            headers: reportType == strings.partnersSummary 
+              ? [strings.pdfFieldName, strings.partnersCategory, strings.pdfFieldPhone]
+              : [strings.pdfFieldName, strings.partnersCategory, strings.pdfFieldPhone, strings.pdfFieldAddress, strings.pdfFieldEmail, strings.pdfFieldObservations],
             data: sortedPartners.map((p) {
-              if (reportType == 'Resumo') {
+              if (reportType == strings.partnersSummary) {
                 return [p.name, p.category, p.phone];
               } else {
                 return [

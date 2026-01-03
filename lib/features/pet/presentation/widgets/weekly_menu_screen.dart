@@ -62,7 +62,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
           
           if (profile != null && profile['data'] != null) {
               final pData = profile['data'];
-              _dietType = pData['tipo_dieta']?.toString() ?? 'Não informado';
+              _dietType = pData['tipo_dieta']?.toString() ?? AppLocalizations.of(context)!.petNotOffice;
               
               if (pData['nutricao'] != null && pData['nutricao']['metaCalorica'] != null) {
                   final meta = pData['nutricao']['metaCalorica'];
@@ -102,7 +102,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                       // Só adicionar se ainda não tivermos esse dia no allItems ou for de semana diferente
                       // Simplificação: vamos adicionar todos os históricos que não conflitem exatamente
                       allItems.add({
-                          'dia': "${DateFormat('EEEE', 'pt_BR').format(itemDate)} - $dayKey",
+                          'dia': "${DateFormat('EEEE', AppLocalizations.of(context)!.localeName).format(itemDate)} - $dayKey",
                           'refeicoes': [
                               {'hora': m.time, 'titulo': m.title, 'descricao': m.description}
                           ],
@@ -171,7 +171,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
               itemDate = _savedStartDate!.add(Duration(days: i));
               // Corrigir o label se estiver faltando a data
               if (!diaOriginal.contains('/')) {
-                  final weekDayName = DateFormat('EEEE', 'pt_BR').format(itemDate);
+                  final weekDayName = DateFormat('EEEE', AppLocalizations.of(context)!.localeName).format(itemDate);
                   final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
                   item['dia'] = "$weekDayCap - ${DateFormat('dd/MM').format(itemDate)}";
               }
@@ -225,7 +225,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Cardápio de ${widget.petName}',
+              AppLocalizations.of(context)!.menuTitle(widget.petName),
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 18,
@@ -247,10 +247,10 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
           labelColor: const Color(0xFF00E676),
           unselectedLabelColor: Colors.white54,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
-          tabs: const [
-            Tab(text: 'Semana Passada'),
-            Tab(text: 'Semana Atual'),
-            Tab(text: 'Próxima Semana'),
+          tabs: [
+            Tab(text: AppLocalizations.of(context)!.menuLastWeek),
+            Tab(text: AppLocalizations.of(context)!.menuCurrentWeek),
+            Tab(text: AppLocalizations.of(context)!.menuNextWeek),
           ],
         ),
       ),
@@ -259,9 +259,9 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
         : TabBarView(
             controller: _tabController,
             children: [
-               _buildPeriodView(_pastPlan, "Nenhum histórico recente."),
-               _buildPeriodView(_currentPlan, "Nenhum cardápio para esta semana."),
-               _buildPeriodView(_nextPlan, "Nenhum planejamento futuro."),
+               _buildPeriodView(_pastPlan, AppLocalizations.of(context)!.menuNoHistory),
+               _buildPeriodView(_currentPlan, AppLocalizations.of(context)!.menuNoCurrent),
+               _buildPeriodView(_nextPlan, AppLocalizations.of(context)!.menuNoFuture),
             ],
         ),
     );
@@ -301,7 +301,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                           }
                       },
                       icon: const Icon(Icons.edit_calendar, color: Colors.black),
-                      label: const Text('Gerar/Editar no Perfil'),
+                      label: Text(AppLocalizations.of(context)!.menuGenerateEdit),
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
                    ),
                  ],
@@ -343,7 +343,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
           // Precisamos calcular o offset baseado no tipo de período (-1, 0, 1)
           final dateForDay = _savedStartDate!.add(Duration(days: index + (periodType * 7))); 
           final dateStr = DateFormat('dd/MM').format(dateForDay);
-          final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay);
+          final weekDayName = DateFormat('EEEE', AppLocalizations.of(context)!.localeName).format(dateForDay);
           final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
           dia = "$weekDayCap - $dateStr";
       }
@@ -355,7 +355,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
           final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
           for (var k in keysRaw) {
              if (item[k] != null) {
-                refeicoes.add({'hora': k.toUpperCase(), 'titulo': 'Refeição', 'descricao': item[k].toString()});
+                refeicoes.add({'hora': k.toUpperCase(), 'titulo': AppLocalizations.of(context)!.pdfRefeicao, 'descricao': item[k].toString()});
              }
           }
       }
@@ -393,7 +393,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                                    children: [
                                       Text('${r['hora'] ?? '--:--'}', style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12)),
                                       const SizedBox(width: 8),
-                                      Text(r['titulo'] ?? 'Refeição', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                                      Text(r['titulo'] ?? AppLocalizations.of(context)!.pdfRefeicao, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                                    ],
                                 ),
                                 if (_kcalTarget != null)
@@ -406,7 +406,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                              Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                   Text('Principais Nutrientes', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
+                                   Text(AppLocalizations.of(context)!.menuMainNutrients, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
                                    Text('$_kcalTarget', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w600, fontSize: 12)),
                                 ],
                              ),
@@ -421,7 +421,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                     ),
                  )).toList(),
                  if (refeicoes.isEmpty)
-                   const Text('Sem detalhes registrados.', style: TextStyle(color: Colors.white24, fontSize: 12)),
+                   Text(AppLocalizations.of(context)!.menuNoDetails, style: const TextStyle(color: Colors.white24, fontSize: 12)),
               ],
            ),
         ),
@@ -440,30 +440,30 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
         builder: (ctx, setModalState) => AlertDialog(
           backgroundColor: Colors.grey[900],
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xFF00E676))),
-          title: Text('Exportar Cardápio', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: Text(AppLocalizations.of(context)!.menuExportTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Selecione os períodos para incluir no PDF:', style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+              Text(AppLocalizations.of(context)!.menuExportSelectPeriod, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 16),
               Theme(
                 data: ThemeData.dark(),
                 child: Column(
                   children: [
                     CheckboxListTile(
-                      title: const Text('Semana Anterior'),
+                      title: Text(AppLocalizations.of(context)!.menuLastWeek),
                       activeColor: const Color(0xFF00E676),
                       value: includePast,
                       onChanged: (v) => setModalState(() => includePast = v!),
                     ),
                     CheckboxListTile(
-                      title: const Text('Semana Atual'),
+                      title: Text(AppLocalizations.of(context)!.menuCurrentWeek),
                       activeColor: const Color(0xFF00E676),
                       value: includeCurrent,
                       onChanged: (v) => setModalState(() => includeCurrent = v!),
                     ),
                     CheckboxListTile(
-                      title: const Text('Próxima Semana'),
+                      title: Text(AppLocalizations.of(context)!.menuNextWeek),
                       activeColor: const Color(0xFF00E676),
                       value: includeNext,
                       onChanged: (v) => setModalState(() => includeNext = v!),
@@ -474,14 +474,14 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white54))),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
                 _proceedWithPDF(includePast, includeCurrent, includeNext);
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
-              child: const Text('Gerar Relatório'),
+              child: Text(AppLocalizations.of(context)!.menuExportReport),
             ),
           ],
         ),
@@ -497,7 +497,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
         if (next) finalPlan.addAll(_nextPlan);
 
         if (finalPlan.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nenhum período selecionado.')));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.menuNoPeriodSelected)));
             return;
         }
 
@@ -509,7 +509,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                 final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
                 for (var k in keysRaw) {
                     if (d[k] != null) {
-                        refs.add({'hora': k.toUpperCase(), 'titulo': 'Refeição', 'descricao': d[k].toString()});
+                        refs.add({'hora': k.toUpperCase(), 'titulo': AppLocalizations.of(context)!.pdfRefeicao, 'descricao': d[k].toString()});
                     }
                 }
                 d['refeicoes'] = refs;
@@ -518,23 +518,23 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
         }).toList();
 
         // Calculate period for header
-        String periodDesc = 'Personalizado';
-        if (past && !current && !next) periodDesc = 'Semana Passada';
-        else if (!past && current && !next) periodDesc = 'Semana Atual';
-        else if (!past && !current && next) periodDesc = 'Próxima Semana';
-        else if (past && current && next) periodDesc = 'Plano Completo';
+        String periodDesc = AppLocalizations.of(context)!.menuPeriodCustom;
+        if (past && !current && !next) periodDesc = AppLocalizations.of(context)!.menuLastWeek;
+        else if (!past && current && !next) periodDesc = AppLocalizations.of(context)!.menuCurrentWeek;
+        else if (!past && !current && next) periodDesc = AppLocalizations.of(context)!.menuNextWeek;
+        else if (past && current && next) periodDesc = AppLocalizations.of(context)!.menuPeriodFull;
 
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => PdfPreviewScreen(
-              title: 'Cardápio: ${widget.petName}',
+              title: '${AppLocalizations.of(context)!.menuTitle('')} ${widget.petName}',
               buildPdf: (format) async {
                 final pdf = await ExportService().generateWeeklyMenuReport(
                   petName: widget.petName,
                   raceName: widget.raceName,
                   strings: AppLocalizations.of(context)!,
-                  dietType: _dietType ?? 'Não Informado',
+                  dietType: _dietType ?? AppLocalizations.of(context)!.petNotOffice,
                   plan: normalizedPlan,
                   guidelines: _guidelines,
                   dailyKcal: _kcalTarget,

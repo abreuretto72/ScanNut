@@ -154,7 +154,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         if (_cameras != null && _cameras!.isNotEmpty) {
           _controller = CameraController(
             _cameras![0],
-            ResolutionPreset.high,
+            ResolutionPreset.medium,
             enableAudio: false,
           );
           await _controller!.initialize();
@@ -404,6 +404,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         case 'analysisErrorAiFailure': errorMessage = l10n.analysisErrorAiFailure; break;
         case 'analysisErrorJsonFormat': errorMessage = l10n.analysisErrorJsonFormat; break;
         case 'analysisErrorUnexpected': errorMessage = l10n.analysisErrorUnexpected; break;
+        case 'errorBadPhoto': errorMessage = l10n.errorBadPhoto; break;
+        case 'errorAiTimeout': errorMessage = l10n.errorAiTimeout; break;
         default: errorMessage = state.message;
       }
 
@@ -441,7 +443,6 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     final activeData = data ?? (state is AnalysisSuccess ? state.data : null);
 
     if (activeData == null) {
-      debugPrint('❌ SAVE FAILED: No data available. Provider state: ${state.runtimeType}');
       return;
     }
 
@@ -449,12 +450,17 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       final petData = activeData;
       final petName = petData.petName ?? _petName;
 
-      if (petName != null && petName.isNotEmpty) {
+      if (petName != null && petName.trim().isNotEmpty) {
         final dataMap = petData.toJson();
         if (_capturedImage != null) {
           dataMap['image_path'] = _capturedImage!.path;
         }
-        await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap);
+        
+        try {
+          await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap);
+        } catch (e) {
+            debugPrint('Error saving pet: $e');
+        }
          if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.petSavedSuccess(petName))),
