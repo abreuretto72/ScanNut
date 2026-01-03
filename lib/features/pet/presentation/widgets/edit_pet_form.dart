@@ -1033,7 +1033,7 @@ class _EditPetFormState extends State<EditPetForm>
                               _linkedPartnerIds.remove(partner.id);
                               _linkedPartnerModels.removeWhere((p) => p.id == partner.id);
                             });
-                            await PetProfileService().updateLinkedPartners(_nameController.text.trim(), _linkedPartnerIds);
+                            _markDirty(); // Trigger auto-save
                           },
                           onUpdate: (updated) async {
                             setState(() {
@@ -1078,7 +1078,7 @@ class _EditPetFormState extends State<EditPetForm>
                                       _linkedPartnerIds.add(partner.id);
                                       _linkedPartnerModels.add(partner);
                                     });
-                                    await PetProfileService().updateLinkedPartners(_nameController.text.trim(), _linkedPartnerIds);
+                                    _markDirty(); // Trigger auto-save
                                   }
                                 },
                               )
