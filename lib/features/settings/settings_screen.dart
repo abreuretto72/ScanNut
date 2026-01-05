@@ -262,9 +262,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.1),
+              color: Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,9 +366,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
+              color: Colors.blue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
             child: Row(
               children: [
@@ -402,9 +402,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: TextField(
         controller: controller,
@@ -444,11 +444,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         color: isSelected ? Colors.black : Colors.white70,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
-      backgroundColor: Colors.white.withValues(alpha: 0.05),
+      backgroundColor: Colors.white.withOpacity(0.05),
       selectedColor: Colors.green,
       checkmarkColor: Colors.black,
       side: BorderSide(
-        color: isSelected ? Colors.green : Colors.white.withValues(alpha: 0.2),
+        color: isSelected ? Colors.green : Colors.white.withOpacity(0.2),
       ),
     );
   }
@@ -461,9 +461,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: SwitchListTile(
         title: Text(
@@ -491,9 +491,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,9 +580,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.1),
+          color: Colors.red.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+          border: Border.all(color: Colors.red.withOpacity(0.2)),
         ),
         child: Row(
           children: [

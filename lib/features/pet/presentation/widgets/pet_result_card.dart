@@ -70,7 +70,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: Colors.blueGrey.shade900.withValues(alpha: 0.9),
+          backgroundColor: Colors.blueGrey.shade900.withOpacity(0.9),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25), side: const BorderSide(color: Colors.cyanAccent, width: 2)),
           title: Row(
             children: [
@@ -862,7 +862,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       children: [
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: _urgencyColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16), border: Border.all(color: _urgencyColor)),
+          decoration: BoxDecoration(color: _urgencyColor.withOpacity(0.2), borderRadius: BorderRadius.circular(16), border: Border.all(color: _urgencyColor)),
           child: Row(
             children: [
               Icon(_isEmergency ? Icons.warning : Icons.info, color: _urgencyColor),
@@ -1059,7 +1059,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(icon, color: color, size: 18), const SizedBox(width: 10), Expanded(child: Text(title, style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 13), overflow: TextOverflow.ellipsis))]),
         const SizedBox(height: 12),
@@ -1087,7 +1087,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
   Widget _buildToggleInfo(String label, bool value) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)), Icon(value ? Icons.report_problem : Icons.check_circle, color: value ? Colors.redAccent : Colors.greenAccent, size: 16)]);
 
-  Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text("💡 ${AppLocalizations.of(context)!.petExclusiveInsight}", style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
+  Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withOpacity(0.2), Colors.blue.withOpacity(0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text("💡 ${AppLocalizations.of(context)!.petExclusiveInsight}", style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
   Widget _buildCaloricRow(String label, String value, Color color) {
     final isEstimated = value.contains('[ESTIMATED]');
     final cleanValue = value
@@ -1104,7 +1104,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(isEstimated ? Icons.auto_awesome : Icons.label_important, color: color.withValues(alpha: 0.5), size: 14),
+          Icon(isEstimated ? Icons.auto_awesome : Icons.label_important, color: color.withOpacity(0.5), size: 14),
           const SizedBox(width: 10),
           SizedBox(
             width: 85,

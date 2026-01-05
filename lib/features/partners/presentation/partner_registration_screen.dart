@@ -553,9 +553,14 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                   backgroundColor: Colors.white.withOpacity(0.1),
                   child: IconButton(
                     icon: const Icon(Icons.mic, color: Colors.amberAccent, size: 20),
-                    onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gravação de voz: Em breve')));
-                    },
+                     onPressed: () {
+                         ScaffoldMessenger.of(context).showSnackBar(
+                           const SnackBar(
+                             content: Text('Gravação de voz: Em breve'),
+                             backgroundColor: Color(0xFF5E4B6B),
+                           ),
+                         );
+                     },
                   ),
                 ),
               ],

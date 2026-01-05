@@ -524,7 +524,7 @@ class _EditPetFormState extends State<EditPetForm>
               shape: BoxShape.circle,
               border: Border.all(color: const Color(0xFF00E676), width: 3),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF00E676).withValues(alpha: 0.3), blurRadius: 15, spreadRadius: 2),
+                BoxShadow(color: const Color(0xFF00E676).withOpacity(0.3), blurRadius: 15, spreadRadius: 2),
               ],
               image: _profileImage != null
                   ? DecorationImage(image: FileImage(_profileImage!), fit: BoxFit.cover)
@@ -643,7 +643,7 @@ class _EditPetFormState extends State<EditPetForm>
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.white10),
             ),
@@ -761,7 +761,7 @@ class _EditPetFormState extends State<EditPetForm>
       margin: const EdgeInsets.symmetric(vertical: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -980,7 +980,7 @@ class _EditPetFormState extends State<EditPetForm>
                         label: Text(cat),
                         selected: isSelected,
                         onSelected: (v) => setState(() => _selectedPartnerFilter = cat),
-                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        backgroundColor: Colors.white.withOpacity(0.05),
                         selectedColor: const Color(0xFF00E676),
                         labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white),
                         checkmarkColor: Colors.black,
@@ -1854,7 +1854,7 @@ class _EditPetFormState extends State<EditPetForm>
           labelStyle: const TextStyle(color: Colors.white60),
           prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
           filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.1),
+          fillColor: Colors.white.withOpacity(0.1),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -1887,7 +1887,7 @@ class _EditPetFormState extends State<EditPetForm>
           labelStyle: const TextStyle(color: Colors.white60),
           prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
           filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.1),
+          fillColor: Colors.white.withOpacity(0.1),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -1936,7 +1936,7 @@ class _EditPetFormState extends State<EditPetForm>
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -1997,7 +1997,7 @@ class _EditPetFormState extends State<EditPetForm>
                   labelStyle: const TextStyle(color: Colors.white60),
                   prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
                   filled: true,
-                  fillColor: Colors.white.withValues(alpha: 0.1),
+                  fillColor: Colors.white.withOpacity(0.1),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -2030,7 +2030,7 @@ class _EditPetFormState extends State<EditPetForm>
               label: Text(entry.value),
               deleteIcon: const Icon(Icons.close, size: 18),
               onDeleted: () => onDelete(entry.key),
-              backgroundColor: chipColor.withValues(alpha: 0.2),
+              backgroundColor: chipColor.withOpacity(0.2),
               labelStyle: GoogleFonts.poppins(color: Colors.white),
               deleteIconColor: Colors.white,
             );
@@ -2555,11 +2555,11 @@ class _EditPetFormState extends State<EditPetForm>
           }
 
           return Card(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: Colors.white.withOpacity(0.05),
             margin: const EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                side: BorderSide(color: Colors.white.withOpacity(0.1)),
             ),
             child: Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),

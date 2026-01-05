@@ -176,11 +176,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                 }
 
                 return Card(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: Colors.white.withOpacity(0.05),
                   margin: const EdgeInsets.only(bottom: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    side: BorderSide(color: Colors.white.withOpacity(0.1)),
                   ),
                   child: Stack(
                     children: [
@@ -189,7 +189,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                     leading: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withValues(alpha: 0.2),
+                        color: Colors.orangeAccent.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.pets, color: Colors.orangeAccent),
@@ -304,9 +304,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withValues(alpha: 0.2),
+                                    color: Colors.blue.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
                                   ),
                                   child: const Icon(Icons.calendar_today, color: Colors.blueAccent, size: 18),
                                 ),
@@ -364,9 +364,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.2),
+                                    color: Colors.green.withOpacity(0.2),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                                    border: Border.all(color: Colors.green.withOpacity(0.3)),
                                   ),
                                   child: const Icon(Icons.restaurant_menu, color: Colors.greenAccent, size: 18),
                                 ),
@@ -452,9 +452,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
+                                    color: Colors.white.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                                    border: Border.all(color: Colors.white.withOpacity(0.2)),
                                   ),
                                   child: const Icon(Icons.edit, color: Colors.white, size: 18),
                                 ),

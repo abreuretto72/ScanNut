@@ -56,6 +56,13 @@ dependencies:
   google_mlkit_text_recognition: ^0.13.0
   purchases_flutter: ^9.10.2
   auto_size_text: ^3.0.0
+  cryptography: ^2.9.0
+  archive: ^4.0.7
+  
+  # --- Autenticação Local ---
+  flutter_secure_storage: ^9.2.2
+  crypto: ^3.0.3
+  local_auth: ^2.3.0
 
 dev_dependencies:
   flutter_test:

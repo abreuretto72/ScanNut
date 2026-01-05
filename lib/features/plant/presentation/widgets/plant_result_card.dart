@@ -147,9 +147,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -290,9 +290,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _statusColor.withValues(alpha: 0.2),
+                        color: _statusColor.withOpacity(0.2),
                         shape: BoxShape.circle,
-                        border: Border.all(color: _statusColor.withValues(alpha: 0.5)),
+                        border: Border.all(color: _statusColor.withOpacity(0.5)),
                       ),
                       child: Icon(_statusIcon, color: _statusColor, size: 24),
                     ),
@@ -305,7 +305,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               // TabBar
               Container(
                 decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+                  border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
                 ),
                 child: TabBar(
                   controller: _tabController,
@@ -554,7 +554,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.3))),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -585,7 +585,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
+      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

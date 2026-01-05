@@ -136,10 +136,10 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
         constraints: const BoxConstraints(minHeight: 120),
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade900.withValues(alpha: 0.8),
+          color: Colors.grey.shade900.withOpacity(0.8),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: item.isUltraprocessed ? Colors.redAccent.withValues(alpha: 0.3) : Colors.greenAccent.withValues(alpha: 0.2),
+            color: item.isUltraprocessed ? Colors.redAccent.withOpacity(0.3) : Colors.greenAccent.withOpacity(0.2),
           ),
         ),
         // Removed IntrinsicHeight to fix layout error
