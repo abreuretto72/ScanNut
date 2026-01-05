@@ -13,10 +13,10 @@ class PetHealthService {
   static const String _healthBoxName = 'pet_health_records';
   Box? _healthBox;
 
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     if (!Hive.isBoxOpen(_healthBoxName)) {
-      _healthBox = await Hive.openBox(_healthBoxName);
-      debugPrint('✅ PetHealthService initialized');
+      _healthBox = await Hive.openBox(_healthBoxName, encryptionCipher: cipher);
+      debugPrint('✅ PetHealthService initialized (Secure)');
     }
   }
 

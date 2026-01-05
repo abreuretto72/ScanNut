@@ -179,6 +179,12 @@ abstract class AppLocalizations {
   /// **'Nome do pet não fornecido. Pet mode cancelado.'**
   String get petNameEmptyError;
 
+  /// No description provided for @petUnknown.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pet Desconhecido'**
+  String get petUnknown;
+
   /// No description provided for @settingsTitle.
   ///
   /// In pt, this message translates to:
@@ -634,6 +640,114 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Erro inesperado. Tente novamente.'**
   String get analysisErrorUnexpected;
+
+  /// No description provided for @analysisErrorInvalidCategory.
+  ///
+  /// In pt, this message translates to:
+  /// **'A foto difere da categoria. A IA pode errar!'**
+  String get analysisErrorInvalidCategory;
+
+  /// No description provided for @analysisErrorNotDetected.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma alteração ou problema detectado na imagem.'**
+  String get analysisErrorNotDetected;
+
+  /// No description provided for @errorNoInternet.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem conexão com a internet. Verifique sua rede.'**
+  String get errorNoInternet;
+
+  /// No description provided for @errorTimeout.
+  ///
+  /// In pt, this message translates to:
+  /// **'A operação demorou muito. Tente novamente.'**
+  String get errorTimeout;
+
+  /// No description provided for @errorAuthentication.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro de autenticação. Verifique suas credenciais.'**
+  String get errorAuthentication;
+
+  /// No description provided for @errorNotFound.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recurso não encontrado. Tente novamente.'**
+  String get errorNotFound;
+
+  /// No description provided for @errorServer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro no servidor. Tente novamente em alguns instantes.'**
+  String get errorServer;
+
+  /// No description provided for @errorImageTooLarge.
+  ///
+  /// In pt, this message translates to:
+  /// **'Imagem muito grande. Tente com uma foto menor.'**
+  String get errorImageTooLarge;
+
+  /// No description provided for @errorInvalidImage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Imagem inválida. Tire uma nova foto.'**
+  String get errorInvalidImage;
+
+  /// No description provided for @errorConfiguration.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro de configuração. Entre em contato com o suporte.'**
+  String get errorConfiguration;
+
+  /// No description provided for @errorPermissionDenied.
+  ///
+  /// In pt, this message translates to:
+  /// **'Permissão negada. Verifique as configurações.'**
+  String get errorPermissionDenied;
+
+  /// No description provided for @errorNoStorage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Espaço insuficiente no dispositivo.'**
+  String get errorNoStorage;
+
+  /// No description provided for @errorCamera.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao acessar a câmera.'**
+  String get errorCamera;
+
+  /// No description provided for @errorLocation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao acessar localização.'**
+  String get errorLocation;
+
+  /// No description provided for @errorDatabase.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao salvar dados localmente.'**
+  String get errorDatabase;
+
+  /// No description provided for @errorJsonParse.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao processar resposta da IA.'**
+  String get errorJsonParse;
+
+  /// No description provided for @errorIncompleteData.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados incompletos recebidos.'**
+  String get errorIncompleteData;
+
+  /// No description provided for @errorGeneric.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ops! Algo deu errado. Seus dados estão seguros. Tente novamente.'**
+  String get errorGeneric;
 
   /// No description provided for @loadingFood.
   ///
@@ -1906,6 +2020,18 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Excluir'**
   String get commonDelete;
+
+  /// No description provided for @commonYes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sim'**
+  String get commonYes;
+
+  /// No description provided for @commonNo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não'**
+  String get commonNo;
 
   /// No description provided for @linkError.
   ///
@@ -4328,7 +4454,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiCalculatingMetrics.
   ///
   /// In pt, this message translates to:
-  /// **'Calculando métricas personalizadas...'**
+  /// **'Gerando cardápio da semana...'**
   String get aiCalculatingMetrics;
 
   /// No description provided for @examBlood.
@@ -7090,6 +7216,672 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Vincular'**
   String get partnersBtnLink;
+
+  /// No description provided for @backupGoogleDrive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Backup no Google Drive'**
+  String get backupGoogleDrive;
+
+  /// No description provided for @backupSignIn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conectar ao Google Drive'**
+  String get backupSignIn;
+
+  /// No description provided for @backupSignOut.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desconectar'**
+  String get backupSignOut;
+
+  /// No description provided for @backupCreate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fazer Backup Agora'**
+  String get backupCreate;
+
+  /// No description provided for @backupRestore.
+  ///
+  /// In pt, this message translates to:
+  /// **'Restaurar Dados'**
+  String get backupRestore;
+
+  /// No description provided for @backupDelete.
+  ///
+  /// In pt, this message translates to:
+  /// **'Eliminar Backup'**
+  String get backupDelete;
+
+  /// No description provided for @backupDeleteAll.
+  ///
+  /// In pt, this message translates to:
+  /// **'Eliminar Todos os Dados'**
+  String get backupDeleteAll;
+
+  /// No description provided for @backupStatus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Status do Backup'**
+  String get backupStatus;
+
+  /// No description provided for @backupLastBackup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Último backup'**
+  String get backupLastBackup;
+
+  /// No description provided for @backupNoBackup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum backup encontrado'**
+  String get backupNoBackup;
+
+  /// No description provided for @backupSignedInAs.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conectado como'**
+  String get backupSignedInAs;
+
+  /// No description provided for @backupNotSignedIn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não conectado'**
+  String get backupNotSignedIn;
+
+  /// No description provided for @backupInProgress.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fazendo backup...'**
+  String get backupInProgress;
+
+  /// No description provided for @backupSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Backup concluído com sucesso!'**
+  String get backupSuccess;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha no backup. Tente novamente.'**
+  String get backupFailed;
+
+  /// No description provided for @backupRestoreInProgress.
+  ///
+  /// In pt, this message translates to:
+  /// **'Restaurando dados...'**
+  String get backupRestoreInProgress;
+
+  /// No description provided for @backupRestoreSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados restaurados com sucesso! Reinicie o app para garantir total integridade.'**
+  String get backupRestoreSuccess;
+
+  /// No description provided for @backupRestoreFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha na restauração. Tente novamente.'**
+  String get backupRestoreFailed;
+
+  /// No description provided for @backupDeleteConfirmTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Eliminar Backup?'**
+  String get backupDeleteConfirmTitle;
+
+  /// No description provided for @backupDeleteConfirmBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tem certeza que deseja eliminar o backup do Google Drive?'**
+  String get backupDeleteConfirmBody;
+
+  /// No description provided for @backupDeleteSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Backup eliminado do Google Drive'**
+  String get backupDeleteSuccess;
+
+  /// No description provided for @backupDeleteFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha ao eliminar backup'**
+  String get backupDeleteFailed;
+
+  /// No description provided for @backupDeleteAllConfirmTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Eliminar TODOS os Dados?'**
+  String get backupDeleteAllConfirmTitle;
+
+  /// No description provided for @backupDeleteAllConfirmBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tem certeza? Esta ação apagará permanentemente todos os seus pets e histórico do telemóvel e do Google Drive. Esta ação não pode ser desfeita.'**
+  String get backupDeleteAllConfirmBody;
+
+  /// No description provided for @backupDeleteAllSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Todos os dados foram eliminados'**
+  String get backupDeleteAllSuccess;
+
+  /// No description provided for @backupDeleteAllFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha ao eliminar dados'**
+  String get backupDeleteAllFailed;
+
+  /// No description provided for @backupLoginCancelled.
+  ///
+  /// In pt, this message translates to:
+  /// **'Login cancelado'**
+  String get backupLoginCancelled;
+
+  /// No description provided for @backupDriveFullError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Google Drive cheio. Libere espaço e tente novamente.'**
+  String get backupDriveFullError;
+
+  /// No description provided for @backupNetworkError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem conexão com a internet. Verifique sua rede.'**
+  String get backupNetworkError;
+
+  /// No description provided for @backupDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seus dados são salvos de forma segura e privada na pasta oculta do app no seu Google Drive. Apenas você tem acesso.'**
+  String get backupDescription;
+
+  /// No description provided for @petBreedUnknown.
+  ///
+  /// In pt, this message translates to:
+  /// **'Raça não identificada'**
+  String get petBreedUnknown;
+
+  /// No description provided for @petSRD.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem Raça Definida (SRD)'**
+  String get petSRD;
+
+  /// No description provided for @agendaNoAttendants.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem membros na equipe'**
+  String get agendaNoAttendants;
+
+  /// No description provided for @petAnalysisResults.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resultados Análise'**
+  String get petAnalysisResults;
+
+  /// No description provided for @petAnalysisEmpty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma análise registrada.'**
+  String get petAnalysisEmpty;
+
+  /// No description provided for @petAnalysisDateUnknown.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data não registrada'**
+  String get petAnalysisDateUnknown;
+
+  /// No description provided for @petAnalysisProfileDate.
+  ///
+  /// In pt, this message translates to:
+  /// **' (Data do Perfil)'**
+  String get petAnalysisProfileDate;
+
+  /// No description provided for @petAnalysisViewImage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver Imagem Analisada'**
+  String get petAnalysisViewImage;
+
+  /// No description provided for @commonFileNotFound.
+  ///
+  /// In pt, this message translates to:
+  /// **'Arquivo não encontrado no dispositivo.'**
+  String get commonFileNotFound;
+
+  /// No description provided for @petAnalysisDefaultTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'ANÁLISE'**
+  String get petAnalysisDefaultTitle;
+
+  /// No description provided for @errorScreenTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ops! Tivemos um imprevisto.'**
+  String get errorScreenTitle;
+
+  /// No description provided for @errorScreenBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ocorreu um erro ao processar sua solicitação. Não se preocupe, seus dados estão seguros.'**
+  String get errorScreenBody;
+
+  /// No description provided for @errorScreenButton.
+  ///
+  /// In pt, this message translates to:
+  /// **'Voltar'**
+  String get errorScreenButton;
+
+  /// No description provided for @errorScreenTechnicalDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Detalhes técnicos:'**
+  String get errorScreenTechnicalDetails;
+
+  /// No description provided for @backupSectionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'💾 Backup do Banco de Dados'**
+  String get backupSectionTitle;
+
+  /// No description provided for @helpBackupRestoreSecurity.
+  ///
+  /// In pt, this message translates to:
+  /// **'🔒 Segurança: O backup está criptografado. Para restaurar, você deve estar logado com a mesma conta que criou o arquivo.'**
+  String get helpBackupRestoreSecurity;
+
+  /// No description provided for @helpSecurityEndToEnd.
+  ///
+  /// In pt, this message translates to:
+  /// **'Criptografia de Ponta a Ponta'**
+  String get helpSecurityEndToEnd;
+
+  /// No description provided for @helpSecurityAes.
+  ///
+  /// In pt, this message translates to:
+  /// **'✅ Banco de Dados AES-256 (Padrão Bancário)'**
+  String get helpSecurityAes;
+
+  /// No description provided for @helpSecurityKey.
+  ///
+  /// In pt, this message translates to:
+  /// **'✅ Chave derivada da sua senha pessoal'**
+  String get helpSecurityKey;
+
+  /// No description provided for @helpSecurityAccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'✅ Somente você (o proprietário do login) acessa os dados'**
+  String get helpSecurityAccess;
+
+  /// No description provided for @helpSecurityBackupProtection.
+  ///
+  /// In pt, this message translates to:
+  /// **'✅ Mesma proteção aplicada aos backups exportados'**
+  String get helpSecurityBackupProtection;
+
+  /// No description provided for @backupSuccessTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Backup Concluído!'**
+  String get backupSuccessTitle;
+
+  /// No description provided for @backupSuccessBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seu arquivo de backup foi salvo com sucesso. Você pode encontrá-lo na pasta que selecionou.'**
+  String get backupSuccessBody;
+
+  /// No description provided for @backupErrorGeneric.
+  ///
+  /// In pt, this message translates to:
+  /// **'Operação cancelada ou falha. Tente selecionar outra pasta (como Downloads) ou use Compartilhar.'**
+  String get backupErrorGeneric;
+
+  /// No description provided for @backupSecurityNotice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Os backups são criptografados com sua senha atual. Apenas o proprietário do login original pode restaurar estes dados.'**
+  String get backupSecurityNotice;
+
+  /// No description provided for @backupTechnicalErrorTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro Técnico'**
+  String get backupTechnicalErrorTitle;
+
+  /// No description provided for @backupTechnicalErrorBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha ao exportar:\n\n{error}\n\nVerifique as permissões do sistema.'**
+  String backupTechnicalErrorBody(String error);
+
+  /// No description provided for @backupExcellent.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excelente'**
+  String get backupExcellent;
+
+  /// No description provided for @backupShare.
+  ///
+  /// In pt, this message translates to:
+  /// **'Compartilhar'**
+  String get backupShare;
+
+  /// No description provided for @backupSave.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvar'**
+  String get backupSave;
+
+  /// No description provided for @backupImport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Importar Backup'**
+  String get backupImport;
+
+  /// No description provided for @backupLocalTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Backup Local'**
+  String get backupLocalTitle;
+
+  /// No description provided for @backupDescriptionText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exporte seus dados para um arquivo ou restaure de um backup anterior. Recomendamos salvar na pasta Downloads.'**
+  String get backupDescriptionText;
+
+  /// No description provided for @backupPermissionError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Permissão de arquivos necessária para exportar.'**
+  String get backupPermissionError;
+
+  /// No description provided for @backupRestoreConfirmTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Restaurar Backup?'**
+  String get backupRestoreConfirmTitle;
+
+  /// No description provided for @backupRestoreConfirmBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esta ação irá substituir todos os dados atuais pelos dados do arquivo. Deseja continuar?'**
+  String get backupRestoreConfirmBody;
+
+  /// No description provided for @backupRestoreError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha ao importar backup. Verifique se o arquivo é válido.'**
+  String get backupRestoreError;
+
+  /// No description provided for @helpBackupExportTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exportar Backup'**
+  String get helpBackupExportTitle;
+
+  /// No description provided for @helpBackupExportDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'1. Vá em Ajustes → Backup Local\n2. Clique em \"Exportar\"\n3. Escolha a pasta \"Downloads\" e salve o arquivo .scannut\n\n✅ Seus dados ficam salvos em um arquivo seguro no seu celular'**
+  String get helpBackupExportDesc;
+
+  /// No description provided for @helpBackupImportTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Restaurar Backup'**
+  String get helpBackupImportTitle;
+
+  /// No description provided for @helpBackupImportDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'1. Vá em Ajustes → Backup Local\n2. Clique em \"Importar\"\n3. Selecione o arquivo .scannut'**
+  String get helpBackupImportDesc;
+
+  /// No description provided for @helpSecurityTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'PROTEÇÃO E CRIPTOGRAFIA'**
+  String get helpSecurityTitle;
+
+  /// No description provided for @helpSecuritySubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'O banco de dados é protegido localmente. Mantenha seu backup em dia para evitar perda da chave de acesso.'**
+  String get helpSecuritySubtitle;
+
+  /// No description provided for @helpSecurityAesItem.
+  ///
+  /// In pt, this message translates to:
+  /// **'🔒 Criptografia AES-256: Seus dados são embaralhados para garantir que ninguém consiga ler o arquivo fora deste app.'**
+  String get helpSecurityAesItem;
+
+  /// No description provided for @helpSecurityKeyItem.
+  ///
+  /// In pt, this message translates to:
+  /// **'🔑 Chave de Segurança: O app gera uma chave única salva no armazenamento seguro do seu celular.'**
+  String get helpSecurityKeyItem;
+
+  /// No description provided for @helpSecurityWarningItem.
+  ///
+  /// In pt, this message translates to:
+  /// **'⚠️ Atenção: Se você limpar todos os dados do sistema ou formatar o celular sem um backup externo, a chave pode ser perdida e os dados ficarão inacessíveis.'**
+  String get helpSecurityWarningItem;
+
+  /// No description provided for @helpProSection.
+  ///
+  /// In pt, this message translates to:
+  /// **'💎 ScanNut Pro'**
+  String get helpProSection;
+
+  /// No description provided for @helpPrivacySection.
+  ///
+  /// In pt, this message translates to:
+  /// **'🔒 Privacidade e Segurança'**
+  String get helpPrivacySection;
+
+  /// No description provided for @helpProBenefitsTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Benefícios da Assinatura'**
+  String get helpProBenefitsTitle;
+
+  /// No description provided for @helpProBenefitsList.
+  ///
+  /// In pt, this message translates to:
+  /// **'✅ Análises ilimitadas\n✅ Relatórios PDF completos\n✅ Planos alimentares personalizados\n✅ Rede de parceiros expandida\n✅ Suporte prioritário'**
+  String get helpProBenefitsList;
+
+  /// No description provided for @helpAppBarTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ajuda e Documentação'**
+  String get helpAppBarTitle;
+
+  /// No description provided for @helpWelcomeTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Bem-vindo ao ScanNut!'**
+  String get helpWelcomeTitle;
+
+  /// No description provided for @helpWelcomeSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seu assistente visual de IA para alimentos, plantas e pets'**
+  String get helpWelcomeSubtitle;
+
+  /// No description provided for @helpPetModule.
+  ///
+  /// In pt, this message translates to:
+  /// **'🐾 Módulo Pet'**
+  String get helpPetModule;
+
+  /// No description provided for @helpPlantModule.
+  ///
+  /// In pt, this message translates to:
+  /// **'🌿 Módulo Plantas'**
+  String get helpPlantModule;
+
+  /// No description provided for @helpFoodModule.
+  ///
+  /// In pt, this message translates to:
+  /// **'🍎 Módulo Alimentos'**
+  String get helpFoodModule;
+
+  /// No description provided for @helpFaqSection.
+  ///
+  /// In pt, this message translates to:
+  /// **'❓ Perguntas Frequentes'**
+  String get helpFaqSection;
+
+  /// No description provided for @helpSupportSection.
+  ///
+  /// In pt, this message translates to:
+  /// **'📞 Suporte'**
+  String get helpSupportSection;
+
+  /// No description provided for @helpFooter.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desenvolvido com ❤️ por Abreu Retto\n© 2026 ScanNut'**
+  String get helpFooter;
+
+  /// No description provided for @helpPetBreedTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificação de Raça'**
+  String get helpPetBreedTitle;
+
+  /// No description provided for @helpPetBreedDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tire uma foto do seu pet e receba:\n• Identificação da raça\n• Perfil biológico completo\n• Recomendações de cuidados\n• Plano alimentar personalizado'**
+  String get helpPetBreedDesc;
+
+  /// No description provided for @helpPetWoundTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise de Feridas'**
+  String get helpPetWoundTitle;
+
+  /// No description provided for @helpPetWoundDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Triagem visual de lesões:\n• Descrição clínica detalhada\n• Possíveis causas\n• Nível de urgência (Verde/Amarelo/Vermelho)\n• Primeiros socorros\n⚠️ NÃO substitui consulta veterinária!'**
+  String get helpPetWoundDesc;
+
+  /// No description provided for @helpPetDossierTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Prontuário Completo'**
+  String get helpPetDossierTitle;
+
+  /// No description provided for @helpPetDossierDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerencie a saúde do seu pet:\n• Histórico de vacinas\n• Controle de peso\n• Exames laboratoriais (OCR)\n• Agenda de eventos\n• Rede de parceiros (vets, pet shops)'**
+  String get helpPetDossierDesc;
+
+  /// No description provided for @helpPlantIdTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificação Botânica'**
+  String get helpPlantIdTitle;
+
+  /// No description provided for @helpPlantIdDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Descubra tudo sobre plantas:\n• Nome científico e popular\n• Família botânica\n• Cuidados necessários (água, luz, solo)\n• Toxicidade para pets e crianças\n• Poderes biofílicos'**
+  String get helpPlantIdDesc;
+
+  /// No description provided for @helpFoodAnalysisTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Nutricional'**
+  String get helpFoodAnalysisTitle;
+
+  /// No description provided for @helpFoodAnalysisDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informações nutricionais instantâneas:\n• Calorias, proteínas, carboidratos, gorduras\n• Comparação com metas diárias\n• Histórico de análises\n• Planejamento semanal'**
+  String get helpFoodAnalysisDesc;
+
+  /// No description provided for @helpNeedSupportTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Precisa de Ajuda?'**
+  String get helpNeedSupportTitle;
+
+  /// No description provided for @helpSupportDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'📧 Email: abreuretto72@gmail.com\n🌐 GitHub: github.com/abreuretto72/ScanNut\n📱 Versão: 1.0.0'**
+  String get helpSupportDesc;
+
+  /// No description provided for @faqOfflineQ.
+  ///
+  /// In pt, this message translates to:
+  /// **'O app funciona offline?'**
+  String get faqOfflineQ;
+
+  /// No description provided for @faqOfflineA.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não. O ScanNut precisa de internet para enviar as fotos para a IA do Google Gemini e receber as análises.'**
+  String get faqOfflineA;
+
+  /// No description provided for @faqPhotosQ.
+  ///
+  /// In pt, this message translates to:
+  /// **'Minhas fotos ficam salvas?'**
+  String get faqPhotosQ;
+
+  /// No description provided for @faqPhotosA.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não. As fotos são enviadas para análise e deletadas automaticamente após o processamento. Apenas os resultados são salvos no histórico.'**
+  String get faqPhotosA;
+
+  /// No description provided for @faqDevicesQ.
+  ///
+  /// In pt, this message translates to:
+  /// **'Posso usar em vários celulares?'**
+  String get faqDevicesQ;
+
+  /// No description provided for @faqDevicesA.
+  ///
+  /// In pt, this message translates to:
+  /// **'No momento, o ScanNut salva os dados localmente no seu dispositivo.'**
+  String get faqDevicesA;
+
+  /// No description provided for @faqWoundQ.
+  ///
+  /// In pt, this message translates to:
+  /// **'A análise de feridas substitui o veterinário?'**
+  String get faqWoundQ;
+
+  /// No description provided for @faqWoundA.
+  ///
+  /// In pt, this message translates to:
+  /// **'NÃO! A análise é apenas uma triagem informativa. SEMPRE consulte um veterinário para diagnóstico e tratamento.'**
+  String get faqWoundA;
+
+  /// No description provided for @privacySecurityTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Segurança e Proteção de Dados'**
+  String get privacySecurityTitle;
+
+  /// No description provided for @privacySecurityBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'O ScanNut prioriza a privacidade do usuário através de uma arquitetura de dados local. Utilizamos criptografia de nível militar (AES-256) para cifrar o banco de dados armazenado no seu dispositivo. As chaves de segurança são mantidas em ambiente isolado (Keystore/Keychain), garantindo que, mesmo em caso de perda do aparelho, os dados permaneçam inacessíveis sem as devidas credenciais ou chaves do sistema.\n\nO usuário está ciente de que, por não utilizarmos armazenamento em nuvem (Cloud), a manutenção e segurança dos arquivos de Backup Local exportados são de sua inteira responsabilidade.'**
+  String get privacySecurityBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1,0 +1,317 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../l10n/app_localizations.dart';
+
+/// Help screen with comprehensive app documentation
+class HelpScreen extends StatelessWidget {
+  const HelpScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.grey.shade900,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          l10n.helpAppBarTitle,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          _buildWelcomeCard(l10n),
+          const SizedBox(height: 24),
+          
+          _buildSectionTitle(l10n.helpPetModule),
+          _buildHelpCard(
+            title: l10n.helpPetBreedTitle,
+            description: l10n.helpPetBreedDesc,
+            icon: Icons.pets,
+            color: Colors.purple,
+          ),
+          const SizedBox(height: 12),
+          _buildHelpCard(
+            title: l10n.helpPetWoundTitle,
+            description: l10n.helpPetWoundDesc,
+            icon: Icons.healing,
+            color: Colors.red,
+          ),
+          const SizedBox(height: 12),
+          _buildHelpCard(
+            title: l10n.helpPetDossierTitle,
+            description: l10n.helpPetDossierDesc,
+            icon: Icons.folder_special,
+            color: Colors.blue,
+          ),
+          
+          const SizedBox(height: 24),
+          _buildSectionTitle(l10n.helpPlantModule),
+          _buildHelpCard(
+            title: l10n.helpPlantIdTitle,
+            description: l10n.helpPlantIdDesc,
+            icon: Icons.eco,
+            color: Colors.green,
+          ),
+          
+          const SizedBox(height: 24),
+          _buildSectionTitle(l10n.helpFoodModule),
+          _buildHelpCard(
+            title: l10n.helpFoodAnalysisTitle,
+            description: l10n.helpFoodAnalysisDesc,
+            icon: Icons.restaurant,
+            color: Colors.orange,
+          ),
+          
+          const SizedBox(height: 24),
+          _buildSectionTitle(l10n.backupSectionTitle),
+          _buildHelpCard(
+            title: l10n.helpBackupExportTitle,
+            description: l10n.helpBackupExportDesc,
+            icon: Icons.upload_file,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 12),
+          _buildHelpCard(
+            title: l10n.helpBackupImportTitle,
+            description: '${l10n.helpBackupImportDesc}\n\n'
+                '${l10n.helpBackupRestoreSecurity}',
+            icon: Icons.file_download,
+            color: Colors.amber,
+          ),
+          const SizedBox(height: 12),
+          _buildHelpCard(
+            title: l10n.helpSecurityTitle,
+            description: '${l10n.helpSecuritySubtitle}\n\n'
+                '${l10n.helpSecurityAesItem}\n'
+                '${l10n.helpSecurityKeyItem}\n'
+                '${l10n.helpSecurityWarningItem}',
+            icon: Icons.security,
+            color: Colors.cyanAccent,
+          ),
+          const SizedBox(height: 24),
+          _buildSectionTitle(l10n.helpProSection),
+          _buildHelpCard(
+            title: l10n.helpProBenefitsTitle,
+            description: l10n.helpProBenefitsList,
+            icon: Icons.workspace_premium,
+            color: Colors.amber,
+          ),
+          
+          const SizedBox(height: 24),
+          _buildSectionTitle(l10n.helpPrivacySection),
+          _buildHelpCard(
+            title: l10n.helpSecurityEndToEnd,
+            description: '${l10n.helpSecurityAes}\n'
+                '${l10n.helpSecurityKey}\n'
+                '${l10n.helpSecurityAccess}\n'
+                '${l10n.helpSecurityBackupProtection}',
+            icon: Icons.security,
+            color: Colors.indigo,
+          ),
+          
+          const SizedBox(height: 24),
+          _buildSectionTitle(l10n.helpFaqSection),
+          _buildFAQ(
+            question: l10n.faqOfflineQ,
+            answer: l10n.faqOfflineA,
+          ),
+          _buildFAQ(
+            question: l10n.faqPhotosQ,
+            answer: l10n.faqPhotosA,
+          ),
+          _buildFAQ(
+            question: l10n.faqDevicesQ,
+            answer: l10n.faqDevicesA,
+          ),
+          _buildFAQ(
+            question: l10n.faqWoundQ,
+            answer: l10n.faqWoundA,
+          ),
+          
+          const SizedBox(height: 24),
+          _buildSectionTitle(l10n.helpSupportSection),
+          _buildHelpCard(
+            title: l10n.helpNeedSupportTitle,
+            description: l10n.helpSupportDesc,
+            icon: Icons.support_agent,
+            color: Colors.pink,
+          ),
+          
+          const SizedBox(height: 40),
+          Center(
+            child: Text(
+              l10n.helpFooter,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white38,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWelcomeCard(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.purple.shade700, Colors.blue.shade700],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.help_outline, size: 48, color: Colors.white),
+          const SizedBox(height: 12),
+          Text(
+            l10n.helpWelcomeTitle,
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.helpWelcomeSubtitle,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.white70,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: GoogleFonts.poppins(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHelpCard({
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  description,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.white70,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFAQ({
+    required String question,
+    required String answer,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.help, color: Color(0xFF00E676), size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  question,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            answer,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              color: Colors.white70,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

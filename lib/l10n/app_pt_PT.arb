@@ -455,5 +455,7 @@
   "plantCareGuide": "Guia de Tratamento",
   "toxicityWarning": "Atenção: Tóxica para Pets",
   "featureMenuPlanTitle": "Planeamento de Ementa Inteligente",
-  "featureMenuPlanDesc": "Crie ementas semanais personalizadas baseadas nas suas metas e restrições alimentares."
+  "featureMenuPlanDesc": "Crie ementas semanais personalizadas baseadas nas suas metas e restrições alimentares.",
+  "privacySecurityTitle": "Segurança e Proteção de Dados",
+  "privacySecurityBody": "O ScanNut prioriza a privacidade do utilizador através de uma arquitetura de dados local. Utilizamos criptografia de nível militar (AES-256) para cifrar a base de dados armazenada no seu dispositivo. As chaves de segurança são mantidas em ambiente isolado (Keystore/Keychain), garantindo que, mesmo em caso de perda do telemóvel, os dados permaneçam inacessíveis sem as devidas credenciais ou chaves do sistema.\n\nO utilizador está ciente de que, por não utilizarmos armazenamento na nuvem (Cloud), a manutenção e segurança dos ficheiros de Cópia de Segurança Local exportados são da sua inteira responsabilidade."
 }

@@ -10,16 +10,16 @@ class UserProfileService {
   static const String boxName = 'box_user_profile';
   Box<UserProfile>? _box;
 
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return;
     try {
       if (!Hive.isAdapterRegistered(23)) {
         Hive.registerAdapter(UserProfileAdapter());
       }
-      _box = await Hive.openBox<UserProfile>(boxName);
-      debugPrint('✅ UserProfileService initialized.');
+      _box = await Hive.openBox<UserProfile>(boxName, encryptionCipher: cipher);
+      debugPrint('✅ UserProfileService initialized (Secure).');
     } catch (e) {
-      debugPrint('❌ Error initializing UserProfileService: $e');
+      debugPrint('❌ Error initializing Secure UserProfileService: $e');
     }
   }
 

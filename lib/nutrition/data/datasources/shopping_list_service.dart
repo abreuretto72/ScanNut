@@ -10,12 +10,12 @@ class ShoppingListService {
   Box<ShoppingListItem>? _box;
 
   /// Inicializa o box
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     try {
-      _box = await Hive.openBox<ShoppingListItem>(_boxName);
-      debugPrint('✅ ShoppingListService initialized. Box Open: ${_box?.isOpen}');
+      _box = await Hive.openBox<ShoppingListItem>(_boxName, encryptionCipher: cipher);
+      debugPrint('✅ ShoppingListService initialized (Secure). Box Open: ${_box?.isOpen}');
     } catch (e) {
-      debugPrint('❌ Error initializing ShoppingListService: $e');
+      debugPrint('❌ Error initializing Secure ShoppingListService: $e');
       rethrow;
     }
   }

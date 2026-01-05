@@ -118,6 +118,7 @@ Mandatory Structure:
 }
 
 If the image is not a plant, return {"error": "not_plant"}.
+If the image has no detectable features or information (e.g., a blank wall), return {"error": "not_detected"}.
 ''';
   }
 }

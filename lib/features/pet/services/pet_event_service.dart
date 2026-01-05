@@ -17,17 +17,17 @@ class PetEventService {
   static const String _boxName = 'pet_events';
   Box<PetEvent>? _box;
 
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return;
     try {
         if (!Hive.isBoxOpen(_boxName)) {
-            _box = await Hive.openBox<PetEvent>(_boxName);
+            _box = await Hive.openBox<PetEvent>(_boxName, encryptionCipher: cipher);
         } else {
             _box = Hive.box<PetEvent>(_boxName);
         }
-        debugPrint('✅ PetEventService initialized (Singleton). Box Open: ${_box?.isOpen}');
+        debugPrint('✅ PetEventService initialized (Secure). Box Open: ${_box?.isOpen}');
     } catch (e, stack) {
-        debugPrint('❌ CRITICAL: Failed to open Pet Event Box: $e\n$stack');
+        debugPrint('❌ CRITICAL: Failed to open Secure Pet Event Box: $e\n$stack');
     }
   }
 

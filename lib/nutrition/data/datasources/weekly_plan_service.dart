@@ -19,21 +19,21 @@ class WeeklyPlanService {
   ValueListenable<Box<WeeklyPlan>>? get listenable => _box?.listenable();
 
   /// Ensure box is open
-  Future<Box<WeeklyPlan>> _ensureBox() async {
+  Future<Box<WeeklyPlan>> _ensureBox({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return _box!;
     try {
-      _box = await Hive.openBox<WeeklyPlan>(_boxName);
-      debugPrint('✅ WeeklyPlanService initialized/re-opened. Box Open: ${_box?.isOpen}');
+      _box = await Hive.openBox<WeeklyPlan>(_boxName, encryptionCipher: cipher);
+      debugPrint('✅ WeeklyPlanService initialized/re-opened (Secure). Box Open: ${_box?.isOpen}');
       return _box!;
     } catch (e) {
-      debugPrint('❌ Error initializing WeeklyPlanService: $e');
+      debugPrint('❌ Error initializing Secure WeeklyPlanService: $e');
       rethrow;
     }
   }
 
   /// Inicializa o box
-  Future<void> init() async {
-    await _ensureBox();
+  Future<void> init({HiveCipher? cipher}) async {
+    await _ensureBox(cipher: cipher);
   }
 
   /// Salva um plano semanal

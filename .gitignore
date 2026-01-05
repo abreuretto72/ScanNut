@@ -15,6 +15,9 @@ client_secret*.json
 GoogleService-Info.plist
 
 # Build outputs
+*.apk
+*.aab
+*.ipa
 build/
 .dart_tool/
 .flutter-plugins

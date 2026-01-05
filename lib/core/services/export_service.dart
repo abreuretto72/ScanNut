@@ -834,9 +834,9 @@ class ExportService {
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Expanded(child: _buildIndicator('Preservação', analysis.gastronomia.preservacaoNutrientes, PdfColors.black)),
+              pw.Expanded(child: _buildIndicator(strings.foodPreservation, analysis.gastronomia.preservacaoNutrientes, PdfColors.black)),
               pw.SizedBox(width: 10),
-              pw.Expanded(child: _buildIndicator('Smart Swap', analysis.gastronomia.smartSwap, PdfColors.black)),
+              pw.Expanded(child: _buildIndicator(strings.foodSmartSwap, analysis.gastronomia.smartSwap, PdfColors.black)),
             ],
           ),
           pw.SizedBox(height: 10),
@@ -846,7 +846,7 @@ class ExportService {
             child: pw.Column(
                crossAxisAlignment: pw.CrossAxisAlignment.start,
                children: [
-                 pw.Row(children: [pw.Icon(const pw.IconData(0xe80e), color: PdfColors.amber, size: 12), pw.SizedBox(width: 5), pw.Text('Dica do Especialista', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.amber800))]),
+                 pw.Row(children: [pw.Icon(const pw.IconData(0xe80e), color: PdfColors.amber, size: 12), pw.SizedBox(width: 5), pw.Text(strings.recipesExpertTip, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.amber800))]),
                  pw.SizedBox(height: 4),
                  pw.Text(analysis.gastronomia.dicaEspecialista, style: const pw.TextStyle(fontSize: 9)),
                ]
@@ -994,8 +994,8 @@ class ExportService {
           // 4. SEGURANÇA E BIOFILIA (BIOS)
           _buildSectionHeader('4. ${strings.tabBios} (${strings.plantHomeSafety})'),
           pw.Row(children: [
-            pw.Expanded(child: pw.Text('${strings.plantDangerPets}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true) ? "YES ⚠️" : "NO ✅"}')),
-            pw.Expanded(child: pw.Text('${strings.plantDangerKids}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_children'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true) ? "YES ⚠️" : "NO ✅"}')),
+            pw.Expanded(child: pw.Text('${strings.plantDangerPets}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true) ? "${strings.commonYes} ⚠️" : "${strings.commonNo} ✅"}')),
+            pw.Expanded(child: pw.Text('${strings.plantDangerKids}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_children'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true) ? "${strings.commonYes} ⚠️" : "${strings.commonNo} ✅"}')),
           ]),
           pw.Text('${strings.plantToxicityDetails}: ${analysis.segurancaBiofilia.segurancaDomestica['toxicity_details'] ?? analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao'] ?? strings.plantNoAlerts}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.red700)),
           pw.SizedBox(height: 10),
@@ -1029,6 +1029,72 @@ class ExportService {
       ),
     );
     return pdf;
+  }
+
+  pw.Widget _buildRecursivePDFMap(Map<dynamic, dynamic> map, {double indent = 0}) {
+     return pw.Column(
+       crossAxisAlignment: pw.CrossAxisAlignment.start,
+       children: map.entries.where((e) => e.value != null).map((e) {
+          final key = e.key.toString();
+          // Filter technical/redundant keys inside sub-maps if needed
+          if (['tabela_benigna', 'tabela_maligna'].contains(key)) return pw.Container();
+          
+          if (e.value is Map) {
+             return pw.Column(
+               crossAxisAlignment: pw.CrossAxisAlignment.start,
+               children: [
+                 pw.SizedBox(height: 4),
+                 pw.Padding(
+                   padding: pw.EdgeInsets.only(left: indent),
+                   child: pw.Text(
+                     key.replaceAll('_', ' ').toUpperCase(),
+                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue800)
+                   )
+                 ),
+                 pw.Divider(color: PdfColors.grey300, thickness: 0.5, indent: indent, endIndent: 20),
+                 _buildRecursivePDFMap(e.value as Map, indent: indent + 10),
+                 pw.SizedBox(height: 6),
+               ]
+             );
+          }
+          // Simple Value
+          String val = e.value.toString();
+          // Truncate overly long values
+          if (val.length > 800) val = val.substring(0, 800) + '...';
+          
+          return pw.Padding(
+            padding: pw.EdgeInsets.only(left: indent, bottom: 3),
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                 pw.SizedBox(
+                   width: 120, 
+                   child: pw.Text('${key.replaceAll('_', ' ').toUpperCase()}:', 
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black))
+                 ),
+                 pw.Expanded(child: pw.Text(val, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800))),
+              ]
+            )
+          );
+       }).toList()
+     );
+  }
+
+  pw.Widget _buildAnalysisResultSection(Map<String, dynamic> data, AppLocalizations strings) {
+    // Filter top-level
+    final filteredData = Map<String, dynamic>.from(data);
+    filteredData.removeWhere((key, value) => 
+        ['pet_name', 'analysis_type', 'last_updated', 'image_path', 'plano_semanal', 'tabela_benigna', 'tabela_maligna'].contains(key));
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+         _buildSectionHeader(strings.petAnalysisResults.toUpperCase()),
+         pw.SizedBox(height: 10),
+         _buildRecursivePDFMap(filteredData),
+         pw.SizedBox(height: 20),
+      ]
+    );
   }
 
   /// 5. COMPREHENSIVE PET PROFILE REPORT - COMPLETE VETERINARY DOSSIER
@@ -1354,41 +1420,11 @@ class ExportService {
             ],
             
             // Análise da Raça e Perfil (Dados Estendidos)
-            if (profile.rawAnalysis != null) ...[
-                 pw.SizedBox(height: 10),
-                 ...profile.rawAnalysis!.entries.where((e) {
-                      final key = e.key.toLowerCase();
-                      final val = e.value;
-                      if (['identificacao', 'plano_semanal', 'analise_nutricional', 'data_inicio_semana'].contains(key)) return false;
-                      if (val is String && val.length > 5) return true;
-                      if (val is Map) return true; 
-                      return false;
-                 }).expand((e) {
-                      if (e.value is Map) {
-                          return (e.value as Map).entries.map((sub) => pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [
-                                  pw.Text('${e.key.replaceAll('_', ' ').toUpperCase()} - ${sub.key.replaceAll('_', ' ').toUpperCase()}:', 
-                                      style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
-                                  pw.Text(sub.value.toString(), style: const pw.TextStyle(fontSize: 9)),
-                                  pw.SizedBox(height: 4),
-                              ]
-                          ));
-                      } else {
-                          return [
-                              pw.Column(
-                                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                  children: [
-                                      pw.Text('${e.key.replaceAll('_', ' ').toUpperCase()}:', 
-                                          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
-                                      pw.Text(e.value.toString(), style: const pw.TextStyle(fontSize: 9)),
-                                      pw.SizedBox(height: 4),
-                                  ]
-                              )
-                          ];
-                      }
-                 }).toList(),
-                 pw.SizedBox(height: 10),
+            if (profile.analysisHistory.isNotEmpty || profile.rawAnalysis != null) ...[
+                 _buildAnalysisResultSection(
+                     profile.analysisHistory.isNotEmpty ? profile.analysisHistory.last : profile.rawAnalysis!, 
+                     strings
+                 ),
             ],
 
             _buildObservationsBlock(profile.observacoesIdentidade, strings),

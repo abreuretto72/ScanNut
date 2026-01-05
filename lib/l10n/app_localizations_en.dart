@@ -50,6 +50,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petNameEmptyError => 'Pet name not provided. Pet mode cancelled.';
 
   @override
+  String get petUnknown => 'Unknown Pet';
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -289,6 +292,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get analysisErrorUnexpected => 'Unexpected error. Please try again.';
+
+  @override
+  String get analysisErrorInvalidCategory =>
+      'The photo differs from the category. AI can make mistakes!';
+
+  @override
+  String get analysisErrorNotDetected =>
+      'No changes or problems detected in the image.';
+
+  @override
+  String get errorNoInternet =>
+      'No internet connection. Please check your network.';
+
+  @override
+  String get errorTimeout => 'Operation timed out. Please try again.';
+
+  @override
+  String get errorAuthentication =>
+      'Authentication error. Check your credentials.';
+
+  @override
+  String get errorNotFound => 'Resource not found. Please try again.';
+
+  @override
+  String get errorServer => 'Server error. Please try again in a few moments.';
+
+  @override
+  String get errorImageTooLarge => 'Image too large. Try with a smaller photo.';
+
+  @override
+  String get errorInvalidImage => 'Invalid image. Please take a new photo.';
+
+  @override
+  String get errorConfiguration => 'Configuration error. Contact support.';
+
+  @override
+  String get errorPermissionDenied => 'Permission denied. Check settings.';
+
+  @override
+  String get errorNoStorage => 'Insufficient storage on device.';
+
+  @override
+  String get errorCamera => 'Error accessing camera.';
+
+  @override
+  String get errorLocation => 'Error accessing location.';
+
+  @override
+  String get errorDatabase => 'Error saving data locally.';
+
+  @override
+  String get errorJsonParse => 'Error processing AI response.';
+
+  @override
+  String get errorIncompleteData => 'Incomplete data received.';
+
+  @override
+  String get errorGeneric =>
+      'Oops! Something went wrong. Your data is safe. Try again.';
 
   @override
   String get loadingFood => 'Analyzing food...';
@@ -973,6 +1035,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonDelete => 'Delete';
+
+  @override
+  String get commonYes => 'Yes';
+
+  @override
+  String get commonNo => 'No';
 
   @override
   String get linkError => 'Could not open link.';
@@ -2239,7 +2307,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Our AI is analyzing carefully... just a moment!';
 
   @override
-  String get aiCalculatingMetrics => 'Calculating personalized metrics...';
+  String get aiCalculatingMetrics => 'Generating weekly menu...';
 
   @override
   String get examBlood => 'Blood Test';
@@ -3687,4 +3755,374 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get partnersBtnLink => 'Link';
+
+  @override
+  String get backupGoogleDrive => 'Google Drive Backup';
+
+  @override
+  String get backupSignIn => 'Connect to Google Drive';
+
+  @override
+  String get backupSignOut => 'Disconnect';
+
+  @override
+  String get backupCreate => 'Backup Now';
+
+  @override
+  String get backupRestore => 'Restore Data';
+
+  @override
+  String get backupDelete => 'Delete Backup';
+
+  @override
+  String get backupDeleteAll => 'Delete All Data';
+
+  @override
+  String get backupStatus => 'Backup Status';
+
+  @override
+  String get backupLastBackup => 'Last backup';
+
+  @override
+  String get backupNoBackup => 'No backup found';
+
+  @override
+  String get backupSignedInAs => 'Signed in as';
+
+  @override
+  String get backupNotSignedIn => 'Not connected';
+
+  @override
+  String get backupInProgress => 'Backing up...';
+
+  @override
+  String get backupSuccess => 'Backup completed successfully!';
+
+  @override
+  String get backupFailed => 'Backup failed. Please try again.';
+
+  @override
+  String get backupRestoreInProgress => 'Restoring data...';
+
+  @override
+  String get backupRestoreSuccess =>
+      'Data restored successfully! Restart the app to ensure full integrity.';
+
+  @override
+  String get backupRestoreFailed => 'Restore failed. Please try again.';
+
+  @override
+  String get backupDeleteConfirmTitle => 'Delete Backup?';
+
+  @override
+  String get backupDeleteConfirmBody =>
+      'Are you sure you want to delete the backup from Google Drive?';
+
+  @override
+  String get backupDeleteSuccess => 'Backup deleted from Google Drive';
+
+  @override
+  String get backupDeleteFailed => 'Failed to delete backup';
+
+  @override
+  String get backupDeleteAllConfirmTitle => 'Delete ALL Data?';
+
+  @override
+  String get backupDeleteAllConfirmBody =>
+      'Are you sure? This action will permanently delete all your pets and history from your phone and Google Drive. This action cannot be undone.';
+
+  @override
+  String get backupDeleteAllSuccess => 'All data has been deleted';
+
+  @override
+  String get backupDeleteAllFailed => 'Failed to delete data';
+
+  @override
+  String get backupLoginCancelled => 'Login cancelled';
+
+  @override
+  String get backupDriveFullError =>
+      'Google Drive is full. Free up space and try again.';
+
+  @override
+  String get backupNetworkError =>
+      'No internet connection. Check your network.';
+
+  @override
+  String get backupDescription =>
+      'Your data is saved securely and privately in the app\'s hidden folder on your Google Drive. Only you have access.';
+
+  @override
+  String get petBreedUnknown => 'Unknown Breed';
+
+  @override
+  String get petSRD => 'Mixed Breed';
+
+  @override
+  String get agendaNoAttendants => 'No team members available';
+
+  @override
+  String get petAnalysisResults => 'Analysis Results';
+
+  @override
+  String get petAnalysisEmpty => 'No analysis recorded.';
+
+  @override
+  String get petAnalysisDateUnknown => 'Date not recorded';
+
+  @override
+  String get petAnalysisProfileDate => ' (Profile Date)';
+
+  @override
+  String get petAnalysisViewImage => 'View Analyzed Image';
+
+  @override
+  String get commonFileNotFound => 'File not found on device.';
+
+  @override
+  String get petAnalysisDefaultTitle => 'ANALYSIS';
+
+  @override
+  String get errorScreenTitle => 'Oops! Something went wrong.';
+
+  @override
+  String get errorScreenBody =>
+      'An error occurred while processing your request. Don\'t worry, your data is safe.';
+
+  @override
+  String get errorScreenButton => 'Go Back';
+
+  @override
+  String get errorScreenTechnicalDetails => 'Technical details:';
+
+  @override
+  String get backupSectionTitle => '💾 Database Backup';
+
+  @override
+  String get helpBackupRestoreSecurity =>
+      '🔒 Security: The backup is encrypted. To restore, you must be logged in with the same account that created the file.';
+
+  @override
+  String get helpSecurityEndToEnd => 'End-to-End Encryption';
+
+  @override
+  String get helpSecurityAes => '✅ AES-256 Database (Bank Standard)';
+
+  @override
+  String get helpSecurityKey => '✅ Key derived from your personal password';
+
+  @override
+  String get helpSecurityAccess =>
+      '✅ Only you (the login owner) access the data';
+
+  @override
+  String get helpSecurityBackupProtection =>
+      '✅ Same protection applied to exported backups';
+
+  @override
+  String get backupSuccessTitle => 'Backup Completed!';
+
+  @override
+  String get backupSuccessBody =>
+      'Your backup file has been saved successfully. You can find it in the folder you selected.';
+
+  @override
+  String get backupErrorGeneric =>
+      'Operation cancelled or failed. Try selecting another folder (like Downloads) or use Share.';
+
+  @override
+  String get backupSecurityNotice =>
+      'Backups are encrypted with your current password. Only the original login owner can restore this data.';
+
+  @override
+  String get backupTechnicalErrorTitle => 'Technical Error';
+
+  @override
+  String backupTechnicalErrorBody(String error) {
+    return 'Failed to export:\n\n$error\n\nCheck system permissions.';
+  }
+
+  @override
+  String get backupExcellent => 'Excellent';
+
+  @override
+  String get backupShare => 'Share';
+
+  @override
+  String get backupSave => 'Save';
+
+  @override
+  String get backupImport => 'Import Backup';
+
+  @override
+  String get backupLocalTitle => 'Local Backup';
+
+  @override
+  String get backupDescriptionText =>
+      'Export your data to a file or restore from a previous backup. We recommend saving to the Downloads folder.';
+
+  @override
+  String get backupPermissionError => 'File permission required to export.';
+
+  @override
+  String get backupRestoreConfirmTitle => 'Restore Backup?';
+
+  @override
+  String get backupRestoreConfirmBody =>
+      'This action will replace all current data with the file\'s data. Do you want to continue?';
+
+  @override
+  String get backupRestoreError =>
+      'Failed to import backup. Check if the file is valid.';
+
+  @override
+  String get helpBackupExportTitle => 'Export Backup';
+
+  @override
+  String get helpBackupExportDesc =>
+      '1. Go to Settings → Local Backup\n2. Click \"Export\"\n3. Choose \"Downloads\" folder and save the .scannut file\n\n✅ Your data is saved in a secure file on your phone';
+
+  @override
+  String get helpBackupImportTitle => 'Restore Backup';
+
+  @override
+  String get helpBackupImportDesc =>
+      '1. Go to Settings → Local Backup\n2. Click \"Import\"\n3. Select the .scannut file';
+
+  @override
+  String get helpSecurityTitle => 'PROTECTION AND ENCRYPTION';
+
+  @override
+  String get helpSecuritySubtitle =>
+      'The database is locally protected. Keep your backup up to date to avoid losing the access key.';
+
+  @override
+  String get helpSecurityAesItem =>
+      '🔒 AES-256 Encryption: Your data is scrambled to ensure no one can read the file outside this app.';
+
+  @override
+  String get helpSecurityKeyItem =>
+      '🔑 Security Key: The app generates a unique key saved in your phone\'s secure storage.';
+
+  @override
+  String get helpSecurityWarningItem =>
+      '⚠️ Warning: If you clear all system data or format the phone without an external backup, the key may be lost and the data will be inaccessible.';
+
+  @override
+  String get helpProSection => '💎 ScanNut Pro';
+
+  @override
+  String get helpPrivacySection => '🔒 Privacy and Security';
+
+  @override
+  String get helpProBenefitsTitle => 'Subscription Benefits';
+
+  @override
+  String get helpProBenefitsList =>
+      '✅ Unlimited analyses\n✅ Complete PDF reports\n✅ Personalized meal plans\n✅ Expanded partner network\n✅ Priority support';
+
+  @override
+  String get helpAppBarTitle => 'Help & Documentation';
+
+  @override
+  String get helpWelcomeTitle => 'Welcome to ScanNut!';
+
+  @override
+  String get helpWelcomeSubtitle =>
+      'Your AI visual assistant for food, plants, and pets';
+
+  @override
+  String get helpPetModule => '🐾 Pet Module';
+
+  @override
+  String get helpPlantModule => '🌿 Plant Module';
+
+  @override
+  String get helpFoodModule => '🍎 Food Module';
+
+  @override
+  String get helpFaqSection => '❓ Frequently Asked Questions';
+
+  @override
+  String get helpSupportSection => '📞 Support';
+
+  @override
+  String get helpFooter => 'Developed with ❤️ by Abreu Retto\n© 2026 ScanNut';
+
+  @override
+  String get helpPetBreedTitle => 'Breed Identification';
+
+  @override
+  String get helpPetBreedDesc =>
+      'Take a photo of your pet and receive:\n• Breed identification\n• Complete biological profile\n• Care recommendations\n• Personalized meal plan';
+
+  @override
+  String get helpPetWoundTitle => 'Wound Analysis';
+
+  @override
+  String get helpPetWoundDesc =>
+      'Visual screening of lesions:\n• Detailed clinical description\n• Possible causes\n• Urgency level (Green/Yellow/Red)\n• First aid\n⚠️ DOES NOT replace veterinary consultation!';
+
+  @override
+  String get helpPetDossierTitle => 'Complete Medical Record';
+
+  @override
+  String get helpPetDossierDesc =>
+      'Manage your pet\'s health:\n• Vaccination history\n• Weight monitoring\n• Lab tests (OCR)\n• Event agenda\n• Support network (vets, pet shops)';
+
+  @override
+  String get helpPlantIdTitle => 'Botanical Identification';
+
+  @override
+  String get helpPlantIdDesc =>
+      'Discover everything about plants:\n• Scientific and common name\n• Botanical family\n• Necessary care (water, light, soil)\n• Toxicity for pets and children\n• Biophilic powers';
+
+  @override
+  String get helpFoodAnalysisTitle => 'Nutritional Analysis';
+
+  @override
+  String get helpFoodAnalysisDesc =>
+      'Instant nutritional information:\n• Calories, proteins, carbs, fats\n• Comparison with daily goals\n• Analysis history\n• Weekly planning';
+
+  @override
+  String get helpNeedSupportTitle => 'Need Help?';
+
+  @override
+  String get helpSupportDesc =>
+      '📧 Email: abreuretto72@gmail.com\n🌐 GitHub: github.com/abreuretto72/ScanNut\n📱 Version: 1.0.0';
+
+  @override
+  String get faqOfflineQ => 'Does the app work offline?';
+
+  @override
+  String get faqOfflineA =>
+      'No. ScanNut needs internet to send photos to Google Gemini AI and receive analyses.';
+
+  @override
+  String get faqPhotosQ => 'Are my photos saved?';
+
+  @override
+  String get faqPhotosA =>
+      'No. Photos are sent for analysis and automatically deleted after processing. Only the results are saved in the history.';
+
+  @override
+  String get faqDevicesQ => 'Can I use it on multiple phones?';
+
+  @override
+  String get faqDevicesA =>
+      'Currently, ScanNut saves data locally on your device.';
+
+  @override
+  String get faqWoundQ => 'Does wound analysis replace the vet?';
+
+  @override
+  String get faqWoundA =>
+      'NO! The analysis is only an informative screening. ALWAYS consult a veterinarian for diagnosis and treatment.';
+
+  @override
+  String get privacySecurityTitle => 'Security and Data Protection';
+
+  @override
+  String get privacySecurityBody =>
+      'ScanNut prioritizes user privacy through a local data architecture. We use military-grade encryption (AES-256) to encrypt the database stored on your device. Security keys are kept in an isolated environment (Keystore/Keychain), ensuring that even if the device is lost, the data remains inaccessible without the proper credentials or system keys.\n\nThe user is aware that, since we do not use cloud storage, the maintenance and security of exported Local Backup files are their sole responsibility.';
 }

@@ -9,8 +9,11 @@ import '../models/pet_profile_extended.dart';
 import 'widgets/edit_pet_form.dart';
 import '../services/pet_profile_service.dart';
 import '../../../core/services/history_service.dart';
+import '../../../core/services/file_upload_service.dart';
 import '../../../core/widgets/pro_access_wrapper.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 final petResultProvider = StateProvider<PetAnalysisResult?>((ref) => null);
 
@@ -25,6 +28,7 @@ class PetResultScreen extends ConsumerStatefulWidget {
 
 class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   bool _isLoading = true;
+  File? _permanentImage;
 
   @override
   void initState() {
@@ -37,6 +41,26 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       final service = ref.read(petAnalysisServiceProvider);
       final result = await service.analyzePet(widget.imageFile, ScannutMode.petIdentification);
       
+      // 📸 MOVER PARA PERMANENTE IMEDIATAMENTE (Organizado por Pet)
+      try {
+          final fileService = FileUploadService();
+          final savedPath = await fileService.saveMedicalDocument(
+            file: widget.imageFile,
+            petName: result.petName ?? 'Unknown',
+            attachmentType: 'analysis',
+          );
+          
+          if (savedPath != null) {
+              _permanentImage = File(savedPath);
+              debugPrint('✅ Imagem salva permanentemente via FileService: $savedPath');
+          } else {
+              _permanentImage = widget.imageFile;
+          }
+      } catch (e) {
+          debugPrint('⚠️ Erro ao mover imagem para permanente: $e');
+          _permanentImage = widget.imageFile; // Fallback
+      }
+
       if (mounted) {
         ref.read(petResultProvider.notifier).state = result;
         setState(() {
@@ -86,7 +110,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.file(
-                          widget.imageFile,
+                          _permanentImage ?? widget.imageFile,
                           height: 250,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -295,7 +319,14 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   }
 
   void _navigateToEdit(BuildContext context, PetAnalysisResult result) {
-     final profile = PetProfileExtended.fromAnalysisResult(result, widget.imageFile.path);
+     // 🛡️ Usar a imagem PERMANENTE se disponível, senão a original (cache)
+     final imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
+     
+     // CRITICAL: Ensure the analysis payload also reflects the permanent path
+     // Some UI parts look inside rawAnalysis for the image.
+     result.imagePath = imagePathToUse;
+
+     final profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
 
      Navigator.push(
         context, 
@@ -309,13 +340,17 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                     await profileService.init();
                     await profileService.saveOrUpdateProfile(savedProfile.petName, savedProfile.toJson());
                     
-                    // 2. Update History (Legacy List Support)
+                    // 2. Update History (Legacy List Support) NOVO: FLUSH IMEDIATO
                     final historyService = HistoryService();
-                     await historyService.savePetAnalysis(
+                    await historyService.savePetAnalysis(
                         savedProfile.petName, 
                         savedProfile.rawAnalysis ?? {}, 
                         imagePath: savedProfile.imagePath
                     );
+                    
+                    // FORÇAR PERSISTÊNCIA VISUAL
+                    final box = Hive.box(HistoryService.boxName);
+                    if (box.isOpen) await box.flush();
                     
                     if (context.mounted) {
                         Navigator.pop(context); // Close Edit

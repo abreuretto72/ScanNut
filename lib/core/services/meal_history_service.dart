@@ -6,10 +6,9 @@ final mealHistoryServiceProvider = Provider((ref) => MealHistoryService());
 class MealHistoryService {
   static const String boxName = 'scannut_meal_history';
 
-  Future<void> init() async {
-    // Ensuring Hive is initialized (usually done in main, but safe to check)
+  Future<void> init({HiveCipher? cipher}) async {
     if (!Hive.isBoxOpen(boxName)) {
-      await Hive.openBox(boxName);
+      await Hive.openBox(boxName, encryptionCipher: cipher);
     }
   }
 

@@ -5,136 +5,150 @@ import '../enums/scannut_mode.dart';
 
 class PromptFactory {
   /// Master System Prompt - Data Architecture and Routing Logic
-  static String getMasterSystemPrompt() {
+  static String getMasterSystemPrompt({String locale = 'pt'}) {
+    final normalizedLocale = locale.replaceAll('-', '_');
+    String title = "VOCÊ É O ARQUITETO DE DADOS E MOTOR DE IA DO SCANNUT.";
+    String mission = "**MISSÃO CRÍTICA:** Processar imagens de pets e categorizá-las nos CONJUNTOS DE DADOS corretos, garantindo SEMPRE o vínculo pelo nome_do_pet.";
+    String langInstr = "Responda SEMPRE em Português do Brasil (PT-BR) para os valores.";
+
+    if (normalizedLocale.startsWith('en')) {
+      title = "YOU ARE THE DATA ARCHITECT AND AI ENGINE OF SCANNUT.";
+      mission = "**CRITICAL MISSION:** Process pet images and categorize them into the CORRECT DATA SETS, ALWAYS ensuring the link via name_of_pet.";
+      langInstr = "ALWAYS respond in English for the values.";
+    } else if (normalizedLocale.startsWith('es')) {
+      title = "ERES EL ARQUITECTO DE DATOS Y MOTOR DE IA DE SCANNUT.";
+      mission = "**MISIÓN CRÍTICA:** Procesar imágenes de mascotas y categorizarlas en los CONJUNTOS DE DATOS correctos, garantizando SIEMPRE el vínculo por el nombre_de_la_mascota.";
+      langInstr = "Responda SIEMPRE en Español para los valores.";
+    }
+
     return '''
-VOCÊ É O ARQUITETO DE DADOS E MOTOR DE IA DO SCANNUT.
+$title
 
-**MISSÃO CRÍTICA:** Processar imagens de pets e categorizá-las nos 4 CONJUNTOS DE DADOS corretos, 
-garantindo SEMPRE o vínculo pelo nome_do_pet.
+$mission
 
 ═══════════════════════════════════════════════════════════════
-📋 LÓGICA DE ROTEAMENTO (Input Analysis)
+📋 ROUTING LOGIC (Input Analysis)
 ═══════════════════════════════════════════════════════════════
 
-1️⃣ **RAÇA & ID (Animal saudável/corpo inteiro)**
-   → Extraia características da raça e informações de identificação
-   → Verifique se nome_do_pet já existe
-   → Se SIM: Atualize o conjunto RACA_ID
-   → Se NÃO: Crie novo perfil
+1️⃣ BREED & ID (Healthy animal/full body)
+   → Extract breed features and ID information
+   → Check if pet name already exists
+   → If YES: Update BREED_ID set
+   → If NO: Create new profile
    
-2️⃣ **SAÚDE (Feridas/Sintomas/Diagnóstico)**
-   → Gere diagnóstico, grau de urgência e plano de recuperação
-   → Vincule OBRIGATORIAMENTE ao nome_do_pet
-   → Se houver dados RACA_ID pré-existentes, use-os para personalizar
-     (ex: sensibilidades raciais, predisposições genéticas)
+2️⃣ HEALTH (Wounds/Symptoms/Diagnosis)
+   → Generate diagnosis, urgency level and recovery plan
+   → MANDATORY link to pet name
+   → Use pre-existing BREED_ID data for personalization
    
-3️⃣ **CARDÁPIO (Solicitação de plano alimentar)**
-   → Gere plano de 7 dias (Alimentação Natural)
-   → Consulte histórico de ingredientes para NÃO REPETIR
-   → Grave no conjunto CARDAPIO vinculado ao pet
+3️⃣ MENU (Meal plan request)
+   → Generate 7-day plan (Natural Food)
+   → Consult ingredient history to NOT REPEAT
+   → Record in MENU set linked to pet
    
-4️⃣ **AGENDA (Datas de vacinas/vermífugos/exercícios)**
-   → Extraia datas e eventos
-   → Grave no conjunto AGENDA vinculado ao pet
+4️⃣ AGENDA (Vaccine dates/deworming/exercises)
+   → Extract dates and events
+   → Record in AGENDA set linked to pet
 
 ═══════════════════════════════════════════════════════════════
-📦 ESTRUTURA DE SAÍDA (JSON Unificado)
+📦 OUTPUT STRUCTURE (Unified JSON)
 ═══════════════════════════════════════════════════════════════
 
-SEMPRE retorne este envelope unificado:
+ALWAYS return this unified envelope:
 
 {
-  "target_pet": "Nome do Pet",
+  "target_pet": "Pet Name",
   "category": "RACA_ID | SAUDE | CARDAPIO | AGENDA",
   "data_payload": {
-    // Dados específicos da categoria aqui
+    // Category specific data here
   },
   "metadata": {
     "has_existing_profile": true|false,
     "timestamp": "ISO-8601",
-    "linked_breed_data": "Informações da raça se for scan de saúde",
+    "linked_breed_data": "Breed info if health scan",
     "confidence_score": 0.0-1.0
   }
 }
 
 ═══════════════════════════════════════════════════════════════
-🔗 REGRAS DE INTEGRAÇÃO
+🔗 INTEGRATION RULES
 ═══════════════════════════════════════════════════════════════
 
-✅ Query no Dashboard une os 4 conjuntos onde target_pet seja igual
-✅ Se scan de SAUDE sem RACA_ID: Sugira scan de identificação
-✅ Use dados de raça para personalizar diagnósticos e cardápios
-✅ NUNCA perca o vínculo com o nome do pet
+✅ Dashboard queries join the 4 sets where target_pet matches
+✅ If HEALTH scan without BREED_ID: Suggest ID scan
+✅ Use breed data to personalize diagnoses and menus
+✅ NEVER lose the link to the pet name
 
-Responda SEMPRE em Português do Brasil (PT-BR) para os valores.
+$langInstr
 Mantenha as chaves JSON em inglês conforme especificado.
 ''';
   }
 
   /// Edit Profile Mode - Structured data collection and intelligent recalculation
-  static String getEditProfilePrompt(Map<String, dynamic> currentData) {
-    return '''
-MODO: GERENCIADOR DE PERFIL DO SCANNUT - EDIÇÃO ESTRUTURADA
+  static String getEditProfilePrompt(Map<String, dynamic> currentData, {String locale = 'pt'}) {
+    final normalizedLocale = locale.replaceAll('-', '_');
+    String langInstr = "Responda em Português do Brasil (PT-BR).";
+    
+    if (normalizedLocale.startsWith('en')) {
+      langInstr = "Respond in English.";
+    } else if (normalizedLocale.startsWith('es')) {
+      langInstr = "Responda en Español.";
+    }
 
-**MISSÃO**: Coletar e organizar informações completas do pet para refinamento do perfil biológico.
+    return '''
+MODE: SCANNUT PROFILE MANAGER - STRUCTURED EDIT
+
+**MISSION**: Collect and organize complete pet information for biological profile refinement.
 
 ═══════════════════════════════════════════════════════════════
-📋 DADOS ATUAIS DO PET
+📋 CURRENT PET DATA
 ═══════════════════════════════════════════════════════════════
 
 ${_formatCurrentData(currentData)}
 
 ═══════════════════════════════════════════════════════════════
-🔬 BIO-INFORMAÇÕES CRUCIAIS (Coletar/Atualizar)
+🔬 CRITICAL BIO-INFORMATION (Collect/Update)
 ═══════════════════════════════════════════════════════════════
 
-1. **Identidade Biológica:**
-   - idade_exata: (Meses ou anos - precisão para vacinas)
-   - peso_atual: (Em kg - cálculo de gramatura da marmita)
-   - nivel_atividade: (Sedentário|Moderado|Ativo - ajuste calórico)
-   - status_reprodutivo: (Castrado|Inteiro - metabolismo ±20%)
+1. Biological Identity:
+   - exact_age: (Months or years - precision for vaccines)
+   - current_weight: (In kg)
+   - activity_level: (Sedentary|Moderate|Active)
+   - reproductive_status: (Neutered|Intact)
 
-2. **Restrições Alimentares:**
-   - alergias_conhecidas: [Lista de proteínas/vegetais a banir]
-   - preferencias: [Alimentos favoritos para priorizar]
+2. Dietary Restrictions:
+   - known_allergies: [List of proteins/vegetables to ban]
+   - preferences: [Favorite foods to prioritize]
 
-3. **Configurações de Lifestyle:**
-   - data_ultima_v10: (Para alerta automático na Agenda)
-   - data_ultima_antirrabica: (Para alerta automático na Agenda)
-   - frequencia_banho: (Para sugestões de grooming)
-
-═══════════════════════════════════════════════════════════════
-🧠 LÓGICA DE RECÁLCULO INTELIGENTE
-═══════════════════════════════════════════════════════════════
-
-**Análise de Mudanças:**
-- Se PESO mudou significativamente (>10%):
-  → Recalcular Cardápio Semanal
-  → Sugerir ajuste de porções
-  → Alerta de saúde se fora do ideal
-
-- Se RAÇA foi alterada:
-  → Regenerar Tabelas Benignos/Malignos
-  → Atualizar sensibilidades raciais
-  → Revisar protocolo de vacinação
-
-- Se ALERGIAS foram adicionadas:
-  → Filtrar ingredientes banidos do próximo cardápio
-  → Sugerir substituições seguras
-
-- Se DATA DE VACINA está próxima (30 dias):
-  → Criar evento na Agenda automaticamente
-  → Notificação push
+3. Lifestyle Settings:
+   - last_v10_date: (For automatic Agenda alert)
+   - last_rabies_date: (For automatic Agenda alert)
+   - bath_frequency: (For grooming suggestions)
 
 ═══════════════════════════════════════════════════════════════
-📦 ESTRUTURA DE SAÍDA
+🧠 INTELLIGENT RECALCULATION LOGIC
+═══════════════════════════════════════════════════════════════
+
+**Analysis of Changes:**
+- If WEIGHT changed significantly (>10%):
+  → Suggest portion adjustment
+  → Health alert if outside ideal
+- If BREED was altered:
+  → Update breed sensitivities
+- If ALLERGIES were added:
+  → Filter banned ingredients from next menu
+- If VACCINE DATE is near (30 days):
+  → Create event in Agenda automatically
+
+═══════════════════════════════════════════════════════════════
+📦 OUTPUT STRUCTURE
 ═══════════════════════════════════════════════════════════════
 
 {
   "mode": "EDIT_PROFILE",
-  "target_pet": "Nome do Pet",
+  "target_pet": "Pet Name",
   "updated_data": {
-    // Campos atualizados pelo usuário
+    // Fields updated by user
   },
   "triggers": {
     "recalculate_menu": true|false,
@@ -142,28 +156,15 @@ ${_formatCurrentData(currentData)}
     "schedule_vaccine_alert": true|false
   },
   "recommendations": [
-    "Mensagem inteligente sobre a mudança"
+    "Smart message about the change"
   ],
   "metadata": {
-    "fields_changed": ["peso_atual", "alergias_conhecidas"],
+    "fields_changed": ["current_weight", "known_allergies"],
     "timestamp": "ISO-8601"
   }
 }
 
-═══════════════════════════════════════════════════════════════
-💬 MENSAGENS INTELIGENTES (Exemplos)
-═══════════════════════════════════════════════════════════════
-
-Se peso aumentou:
-→ "Notei que {nome} ganhou peso. Deseja ajustar as porções do próximo cardápio?"
-
-Se nova alergia detectada:
-→ "Identifiquei {alergia} na lista. Vou remover automaticamente dos próximos cardápios."
-
-Se vacina vencida:
-→ "A última {vacina} foi há mais de 1 ano. Agendei um lembrete para você!"
-
-Responda em Português do Brasil (PT-BR).
+$langInstr
 Mantenha as chaves JSON em inglês.
 ''';
   }
@@ -177,303 +178,99 @@ Mantenha as chaves JSON em inglês.
   }
 
   /// Medical Attachment Management - OCR and Document Indexing
-  static String getMedicalAttachmentPrompt(String petName, String attachmentType) {
+  static String getMedicalAttachmentPrompt(String type, String petName, {String locale = 'pt'}) {
+    final normalizedLocale = locale.replaceAll('-', '_');
+    String langInstr = "Responda em Português do Brasil (PT-BR).";
+    
+    if (normalizedLocale.startsWith('en')) {
+      langInstr = "Respond in English.";
+    } else if (normalizedLocale.startsWith('es')) {
+      langInstr = "Responda en Español.";
+    }
+
     return '''
-MODO: GESTOR DE PRONTUÁRIO VETERINÁRIO - PROCESSAMENTO DE ANEXOS MÉDICOS
+MODE: SCANNUT MEDICAL DOCUMENT PROCESSOR
 
-**PET**: $petName
-**TIPO DE ANEXO**: $attachmentType
+**MISSION**: Extract medical technical information from documents attached to the pet's profile ($petName).
 
-═══════════════════════════════════════════════════════════════
-📋 MISSÃO: PROCESSAMENTO INTELIGENTE DE DOCUMENTOS
-═══════════════════════════════════════════════════════════════
-
-Você está processando um anexo médico (receita, exame ou laudo).
-Extraia todas as informações relevantes e estruture para integração ao prontuário.
+DOCUMENT CATEGORY: $type
 
 ═══════════════════════════════════════════════════════════════
-🔬 LÓGICA DE PROCESSAMENTO POR TIPO
+📋 EXTRACTION LOGIC
 ═══════════════════════════════════════════════════════════════
 
-**Se RECEITA MÉDICA:**
-→ Realize OCR para extrair:
-  • Medicamentos prescritos
-  • Dosagem (mg, ml, comprimidos)
-  • Frequência (a cada X horas)
-  • Duração do tratamento (dias)
-  • Veterinário responsável
-  • Data da prescrição
-
-→ Pergunte se deseja criar lembretes automáticos na Agenda
-
-**Se EXAME (Sangue, Urina, Imagem):**
-→ Identifique:
-  • Tipo de exame
-  • Data de realização
-  • Resultados principais
-  • Valores de referência
-  • Alterações críticas (destacar em vermelho)
-  • Recomendações do veterinário
-
-→ Compare com exames anteriores se disponíveis
-
-**Se LAUDO/DIAGNÓSTICO:**
-→ Extraia:
-  • Diagnóstico principal
-  • CID veterinário (se houver)
-  • Tratamento recomendado
-  • Prognóstico
-  • Próximos passos
-  • Data de retorno sugerida
+1. VACCINES:
+   - Identify Name, Date and Batch
+   - Identify Expiration/Next Dose
+2. LAB EXAMS (OCR Context):
+   - Extract altered values (High/Low)
+   - Explain what each marker means for the pet
+3. PRESCRIPTIONS:
+   - Identify Drug, Dosage and Duration
+   - Detect if it's for a current symptom (Wound/Health Scan)
 
 ═══════════════════════════════════════════════════════════════
-📦 ESTRUTURA DE SAÍDA (JSON)
+📦 OUTPUT STRUCTURE
 ═══════════════════════════════════════════════════════════════
 
 {
-  "target_pet": "$petName",
-  "category": "SAUDE",
-  "attachment_data": {
-    "type": "RECEITA | EXAME | LAUDO",
-    "file_url": "caminho_do_arquivo",
-    "date": "ISO-8601",
-    "summary": "Resumo executivo do documento",
-    "extracted_details": {
-      // Para RECEITA:
-      "medicamentos": [
-        {
-          "nome": "Nome do medicamento",
-          "dosagem": "10mg",
-          "frequencia": "A cada 12 horas",
-          "duracao": "7 dias",
-          "via": "Oral",
-          "observacoes": "Dar com alimento"
-        }
-      ],
-      
-      // Para EXAME:
-      "tipo_exame": "Hemograma Completo",
-      "resultados": [
-        {
-          "parametro": "Hemoglobina",
-          "valor": "15 g/dL",
-          "referencia": "12-18 g/dL",
-          "status": "NORMAL | ALTERADO"
-        }
-      ],
-      "alertas_medicos": "Discreta elevação de enzimas hepáticas",
-      
-      // Para LAUDO:
-      "diagnostico": "Gastroenterite leve",
-      "tratamento": "Dieta branda + medicação",
-      "proximo_passo": "Retorno em 7 dias se não melhorar"
-    },
-    "veterinarian": {
-      "name": "Nome do veterinário",
-      "crmv": "CRMV-XX XXXXX"
-    }
+  "category": "$type",
+  "extracted_data": {
+    // Structured data here
   },
-  "sync_agenda": {
-    "create_reminder": true|false,
-    "reminders": [
-      {
-        "title": "Antibiótico para $petName",
-        "description": "Dar 1 comprimido de Amoxicilina",
-        "frequency": "A cada 12 horas",
-        "duration_days": 7,
-        "start_date": "ISO-8601"
-      }
-    ]
-  },
-  "timeline_event": {
-    "title": "Receita - Tratamento {problema}",
-    "date": "ISO-8601",
-    "category": "medication | exam | diagnosis"
-  },
-  "metadata": {
-    "ocr_confidence": 0.0-1.0,
-    "requires_review": true|false,
-    "extracted_at": "ISO-8601"
-  }
+  "explanation": "Clear explanation for the owner",
+  "alerts": ["Clinical alerts if values are critical"]
 }
 
-═══════════════════════════════════════════════════════════════
-🧠 INTELIGÊNCIA ADICIONAL
-═══════════════════════════════════════════════════════════════
-
-**Detecção de Padrões:**
-- Se for a 3ª receita do mesmo medicamento em 6 meses → Alerta de problema crônico
-- Se exame mostrar piora comparado ao anterior → Destaque "ATENÇÃO"
-- Se medicamento tiver interação com alergias conhecidas → ALERTA VERMELHO
-
-**Sugestões Proativas:**
-- "Notei que este medicamento deve ser dado por 7 dias. Gostaria que eu criasse 14 lembretes (manhã e noite)?"
-- "Este exame mostra melhora em relação ao anterior de [data]. Parabéns!"
-- "Recomendo repetir este exame em 6 meses conforme orientação médica."
-
-**Vínculo com Histórico:**
-- Se houver foto de ferida anterior → Vincular receita a ela
-- Se for exame de acompanhamento → Criar thread de evolução
-- Se for novo diagnóstico → Marcar como evento importante
-
-Responda SEMPRE em Português do Brasil (PT-BR).
+$langInstr
 Mantenha as chaves JSON em inglês.
 ''';
   }
 
   /// Biometric Time Series - Weight/Height tracking and trend analysis
-  static String getBiometricTimeSeriesPrompt(String petName, Map<String, dynamic>? previousData) {
+  static String getBiometricTimeSeriesPrompt(List<Map<String, dynamic>> weightHistory, {String locale = 'pt'}) {
+    final normalizedLocale = locale.replaceAll('-', '_');
+    String langInstr = "Responda em Português do Brasil (PT-BR).";
+    
+    if (normalizedLocale.startsWith('en')) {
+      langInstr = "Respond in English.";
+    } else if (normalizedLocale.startsWith('es')) {
+      langInstr = "Responda en Español.";
+    }
+
     return '''
-MODO: ARQUITETO DE BANCO DE DADOS E ANALISTA DE BIOMETRIA
+MODE: SCANNUT BIOMETRIC ENGINE - WEIGHT TREND ANALYSIS
 
-**PET**: $petName
-**HISTÓRICO ANTERIOR**: ${previousData != null ? _formatCurrentData(previousData) : 'Primeira medição'}
-
-═══════════════════════════════════════════════════════════════
-📊 MISSÃO: GESTÃO DE DADOS TEMPORAIS E ANÁLISE DE TENDÊNCIAS
-═══════════════════════════════════════════════════════════════
-
-Configure o sistema para tratar campos de crescimento e biometria (Peso, Altura, Medidas) 
-como **SÉRIES TEMPORAIS**.
+**MISSION**: Analyze the history of weight variations and generate health projections.
 
 ═══════════════════════════════════════════════════════════════
-🔬 LÓGICA DE ARMAZENAMENTO CRONOLÓGICO
+📊 DATA FOR ANALYSIS
 ═══════════════════════════════════════════════════════════════
 
-**REGRA FUNDAMENTAL:**
-❌ NUNCA sobrescreva dados de peso, altura ou medidas
-✅ SEMPRE crie nova entrada com timestamp
-
-**Organização**:
-- Ordenar cronologicamente
-- Vincular ao nome_do_pet
-- Armazenar em SAUDE_BIOMETRIA
-
-**Contextos de Medição**:
-- Rotina - Check-up regular
-- Pós-Doença - Recuperação/acompanhamento
-- Crescimento - Fase de desenvolvimento
-- Controle - Dieta/obesidade
+$weightHistory
 
 ═══════════════════════════════════════════════════════════════
-📦 ESTRUTURA DE SAÍDA (JSON)
+📈 ANALYSIS LOGIC
+═══════════════════════════════════════════════════════════════
+
+1. TREND: (Gaining | Losing | Stable)
+2. VELOCITY: (% of change per month)
+3. PROJECTION: Estimated weight in 3 months if trend continues
+4. CALORIC ADJUSTMENT: Recommended change in % of daily kcal
+
+═══════════════════════════════════════════════════════════════
+📦 OUTPUT STRUCTURE
 ═══════════════════════════════════════════════════════════════
 
 {
-  "target_pet": "$petName",
-  "category": "SAUDE_BIOMETRIA",
-  "entry": {
-    "data_coleta": "YYYY-MM-DD",
-    "hora_coleta": "HH:MM",
-    "peso_kg": 10.5,
-    "altura_cm": 45,
-    "comprimento_cm": 60,
-    "circunferencia_abdominal_cm": 50,
-    "circunferencia_toracica_cm": 48,
-    "contexto": "Rotina | Pós-Doença | Crescimento | Controle",
-    "observacoes": "Notas adicionais sobre a medição"
-  },
-  "trend_analysis": {
-    "variacao_peso": {
-      "valor_anterior": 10.0,
-      "valor_atual": 10.5,
-      "diferenca_kg": 0.5,
-      "diferenca_percentual": 5.0,
-      "periodo_dias": 30,
-      "tendencia": "GANHO | PERDA | ESTAVEL"
-    },
-    "status_peso": {
-      "classificacao": "IDEAL | ABAIXO | ACIMA | OBESIDADE",
-      "peso_ideal_min": 9.0,
-      "peso_ideal_max": 11.0,
-      "desvio_percentual": 0.0
-    },
-    "insights": [
-      "O pet ganhou 500g desde a última pesagem há 30 dias.",
-      "Crescimento está dentro da curva esperada para a raça.",
-      "Continue com o plano alimentar atual."
-    ],
-    "alertas": [
-      // Se houver problemas
-      "⚠️ Perda de peso súbita detectada. Recomendo consulta veterinária."
-    ],
-    "recomendacoes": {
-      "ajustar_cardapio": true|false,
-      "tipo_ajuste": "AUMENTAR | REDUZIR | MANTER",
-      "percentual_ajuste": 10,
-      "proximo_controle": "2024-02-20"
-    }
-  },
-  "growth_curve": {
-    "fase": "Filhote | Adulto | Idoso",
-    "percentil": 50,
-    "dentro_da_curva": true,
-    "previsao_peso_adulto": 12.0
-  },
-  "metadata": {
-    "timestamp": "ISO-8601",
-    "total_medicoes": 5,
-    "primeira_medicao": "2024-01-01"
-  }
+  "trend": "Gaining | Losing | Stable",
+  "percentage_change": "X%",
+  "health_status": "Healthy | Warning | Critical",
+  "recommendations": ["Advice based on trend"],
+  "next_target_weight": "Value in kg"
 }
 
-═══════════════════════════════════════════════════════════════
-🧠 INTELIGÊNCIA DE ANÁLISE
-═══════════════════════════════════════════════════════════════
-
-**Com 2+ Medições - Comparação Simples**:
-- Calcule diferença entre última e penúltima
-- Identifique tendência (ganho/perda/estável)
-- Sugira se está dentro do esperado
-
-**Com 3+ Medições - Análise de Padrão**:
-- Detecte padrões sazonais
-- Identifique tendências de longo prazo
-- Compare com curva de crescimento da raça
-
-**Com 5+ Medições - Análise Avançada**:
-- Calcule taxa de crescimento
-- Projete peso futuro
-- Detecte anomalias (pico súbito)
-- Gere gráfico de evolução
-
-**Detecção de Alertas**:
-- Perda > 10% em 30 dias → ALERTA VERMELHO
-- Ganho > 15% em 30 dias → ALERTA AMARELO
-- Variação < 5% em 30 dias → ESTÁVEL ✅
-- Peso fora da faixa ideal → Ajustar cardápio
-
-**Ajuste Automático de Cardápio**:
-```
-SE peso_atual > peso_ideal + 10%:
-  → Recalcular cardápio com -15% de calorias
-  → Sugerir aumento de atividade física
-
-SE peso_atual < peso_ideal - 10%:
-  → Recalcular cardápio com +15% de calorias
-  → Verificar se há problema de saúde
-```
-
-═══════════════════════════════════════════════════════════════
-💬 MENSAGENS INTELIGENTES
-═══════════════════════════════════════════════════════════════
-
-**Crescimento Saudável**:
-→ "$petName cresceu perfeitamente! Ganhou 500g em 30 dias, exatamente na curva esperada."
-
-**Obesidade Detectada**:
-→ "⚠️ $petName está 2kg acima do ideal. Ajustei o cardápio para redução gradual."
-
-**Perda Preocupante**:
-→ "🚨 $petName perdeu 15% do peso em 2 semanas. URGENTE: Consulte veterinário!"
-
-**Filhote em Crescimento**:
-→ "Crescimento acelerado detectado! $petName está no percentil 75 para a raça."
-
-**Idoso Estável**:
-→ "Peso estável há 6 meses. Continue com os cuidados atuais. 👍"
-
-Responda SEMPRE em Português do Brasil (PT-BR).
+$langInstr
 Mantenha as chaves JSON em inglês.
 ''';
   }

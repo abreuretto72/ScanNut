@@ -7,15 +7,13 @@ final historyServiceProvider = Provider((ref) => HistoryService());
 class HistoryService {
   static const String boxName = 'scannut_history';
 
-  Future<void> init() async {
-    await Hive.initFlutter();
-    await Hive.openBox(boxName);
+  Future<void> init({HiveCipher? cipher}) async {
+    await Hive.openBox(boxName, encryptionCipher: cipher);
   }
 
   static Future<List<Map<String, dynamic>>> getHistory() async {
     if (!Hive.isBoxOpen(boxName)) {
-      await Hive.initFlutter();
-      await Hive.openBox(boxName);
+      throw Exception('Database not ready. Please login.');
     }
     final box = Hive.box(boxName);
     return box.values.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -46,8 +44,7 @@ class HistoryService {
 
   Future<void> saveAnalysis(Map<String, dynamic> analysis, String mode, {String? imagePath}) async {
     if (!Hive.isBoxOpen(boxName)) {
-      await Hive.initFlutter();
-      await Hive.openBox(boxName);
+      throw Exception('Database not ready. Please login.');
     }
     final box = Hive.box(boxName);
     final entry = {
@@ -63,8 +60,7 @@ class HistoryService {
 
   Future<void> savePetAnalysis(String petName, Map<String, dynamic> analysis, {String? imagePath}) async {
     if (!Hive.isBoxOpen(boxName)) {
-      await Hive.initFlutter();
-      await Hive.openBox(boxName);
+      throw Exception('Database not ready. Please login.');
     }
     final box = Hive.box(boxName);
     final key = 'pet_${petName.toLowerCase().trim()}';

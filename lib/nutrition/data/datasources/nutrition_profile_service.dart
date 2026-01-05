@@ -11,10 +11,10 @@ class NutritionProfileService {
   Box<UserNutritionProfile>? _box;
 
   /// Inicializa o box
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     try {
-      _box = await Hive.openBox<UserNutritionProfile>(_boxName);
-      debugPrint('✅ NutritionProfileService initialized. Box Open: ${_box?.isOpen}');
+      _box = await Hive.openBox<UserNutritionProfile>(_boxName, encryptionCipher: cipher);
+      debugPrint('✅ NutritionProfileService initialized (Secure). Box Open: ${_box?.isOpen}');
       
       // Criar perfil padrão se não existir
       if (_box!.isEmpty) {
@@ -22,7 +22,7 @@ class NutritionProfileService {
         debugPrint('📝 Created default nutrition profile');
       }
     } catch (e) {
-      debugPrint('❌ Error initializing NutritionProfileService: $e');
+      debugPrint('❌ Error initializing Secure NutritionProfileService: $e');
       rethrow;
     }
   }

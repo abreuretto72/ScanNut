@@ -26,6 +26,7 @@ class PetProfileExtended {
   final List<Map<String, dynamic>> weightHistory; // [{date: iso, weight: 10.5, status: 'normal'}]
   final List<Map<String, dynamic>> labExams; // Lab exams with OCR and AI analysis
   final List<Map<String, dynamic>> woundAnalysisHistory; // Wound/injury analysis history [{date, imagePath, diagnosis, severity, recommendations}]
+  final List<Map<String, dynamic>> analysisHistory; // Completed AI Analysis Result History
   
   // Observações Cumulativas por Seção (com timestamps)
   final String observacoesIdentidade;
@@ -57,6 +58,7 @@ class PetProfileExtended {
     this.weightHistory = const [],
     this.labExams = const [],
     this.woundAnalysisHistory = const [],
+    this.analysisHistory = const [],
     this.observacoesIdentidade = '',
     this.observacoesSaude = '',
     this.observacoesNutricao = '',
@@ -92,6 +94,7 @@ class PetProfileExtended {
       weightHistory: (json['weight_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
       labExams: (json['lab_exams'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
       woundAnalysisHistory: (json['wound_analysis_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
+      analysisHistory: (json['analysis_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
       observacoesIdentidade: (json['observacoes_identidade'] ?? '') as String,
       observacoesSaude: (json['observacoes_saude'] ?? '') as String,
       observacoesNutricao: (json['observacoes_nutricao'] ?? '') as String,
@@ -152,6 +155,7 @@ class PetProfileExtended {
   factory PetProfileExtended.fromAnalysisResult(PetAnalysisResult result, String imagePath) {
      // Use full serialization as base to ensure all data is preserved for reconstruction
      Map<String, dynamic> rawAnalysis = result.toJson();
+     rawAnalysis['last_updated'] = DateTime.now().toIso8601String(); // Fix: Add timestamp
 
      // Inject UI Compatibility Keys (Adapters for EditPetForm specific widgets)
      rawAnalysis['caracteristicas_fisicas'] = {
@@ -174,7 +178,7 @@ class PetProfileExtended {
      
      return PetProfileExtended(
          petName: result.petName ?? '',
-         raca: result.identificacao.racaPredominante != 'N/A' ? result.identificacao.racaPredominante : null,
+         raca: normalizeBreed(result.identificacao.racaPredominante, null),
          nivelAtividade: nivelAtiv,
          rawAnalysis: rawAnalysis,
          imagePath: imagePath,
@@ -186,6 +190,8 @@ class PetProfileExtended {
          partnerNotes: {},
          weightHistory: [],
          labExams: [],
+         woundAnalysisHistory: [],
+         analysisHistory: [rawAnalysis],
      );
   }
 
@@ -208,6 +214,7 @@ class PetProfileExtended {
       'weight_history': weightHistory,
       'lab_exams': labExams,
       'wound_analysis_history': woundAnalysisHistory,
+      'analysis_history': analysisHistory,
       'observacoes_identidade': observacoesIdentidade,
       'observacoes_saude': observacoesSaude,
       'observacoes_nutricao': observacoesNutricao,
@@ -266,6 +273,7 @@ class PetProfileExtended {
     List<Map<String, dynamic>>? weightHistory,
     List<Map<String, dynamic>>? labExams,
     List<Map<String, dynamic>>? woundAnalysisHistory,
+    List<Map<String, dynamic>>? analysisHistory, // New
     String? observacoesIdentidade,
     String? observacoesSaude,
     String? observacoesNutricao,
@@ -293,6 +301,7 @@ class PetProfileExtended {
       weightHistory: weightHistory ?? this.weightHistory,
       labExams: labExams ?? this.labExams,
       woundAnalysisHistory: woundAnalysisHistory ?? this.woundAnalysisHistory,
+      analysisHistory: analysisHistory ?? this.analysisHistory, // New
       observacoesIdentidade: observacoesIdentidade ?? this.observacoesIdentidade,
       observacoesSaude: observacoesSaude ?? this.observacoesSaude,
       observacoesNutricao: observacoesNutricao ?? this.observacoesNutricao,
@@ -302,6 +311,31 @@ class PetProfileExtended {
       imagePath: imagePath ?? this.imagePath,
       rawAnalysis: rawAnalysis ?? this.rawAnalysis,
     );
+  }
+  static String? normalizeBreed(String? raw, String? species) {
+      if (raw == null) return null;
+      var processed = raw.trim();
+      final invalidValues = [
+        'N/A', 'NA', 'N/A.', 'UNKNOWN', 'DESCONHECIDO', 
+        'DESCONHECIDA', 'NÃO IDENTIFICADO', 'NÃO IDENTIFICADA',
+        'RAÇA NÃO IDENTIFICADA', 'NULL'
+      ];
+      if (processed.isEmpty || invalidValues.contains(processed.toUpperCase())) {
+          if (species != null) {
+              final s = species.toUpperCase();
+              if (s.contains('CÃO') || s.contains('CAO') || s.contains('DOG') || s.contains('CACHORRO')) {
+                  return 'Sem Raça Definida (SRD)';
+              }
+              if (s.contains('GATO') || s.contains('CAT') || s.contains('FELINO')) {
+                  return 'Sem Raça Definida (SRD)';
+              }
+          }
+          return null;
+      }
+      if (!processed.contains(' ')) {
+          return processed.toLowerCase();
+      }
+      return processed; 
   }
 }
 

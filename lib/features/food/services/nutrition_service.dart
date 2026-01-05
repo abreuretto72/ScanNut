@@ -20,21 +20,21 @@ class NutritionService {
   static const String boxName = 'box_nutrition_human';
   Box<NutritionHistoryItem>? _box;
 
-  Future<void> init() async {
-    await _ensureBox();
+  Future<void> init({HiveCipher? cipher}) async {
+    await _ensureBox(cipher: cipher);
   }
 
-  Future<Box<NutritionHistoryItem>> _ensureBox() async {
+  Future<Box<NutritionHistoryItem>> _ensureBox({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return _box!;
     try {
       if (!Hive.isAdapterRegistered(20)) {
         Hive.registerAdapter(NutritionHistoryItemAdapter());
       }
-      _box = await Hive.openBox<NutritionHistoryItem>(boxName);
-      debugPrint('✅ NutritionService initialized/re-opened.');
+      _box = await Hive.openBox<NutritionHistoryItem>(boxName, encryptionCipher: cipher);
+      debugPrint('✅ NutritionService initialized/re-opened (Secure).');
       return _box!;
     } catch (e) {
-      debugPrint('❌ Error initializing NutritionService: $e');
+      debugPrint('❌ Error initializing Secure NutritionService: $e');
       rethrow;
     }
   }

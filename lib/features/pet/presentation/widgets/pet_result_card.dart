@@ -102,7 +102,10 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   }
 
   Color get _urgencyColor => ColorHelper.getPetThemeColor(widget.analysis.urgenciaNivel);
-  bool get _isEmergency => widget.analysis.urgenciaNivel.toLowerCase() == 'vermelho';
+  bool get _isEmergency {
+    final level = widget.analysis.urgenciaNivel.toLowerCase();
+    return level.contains('vermelho') || level.contains('red') || level.contains('rojo');
+  }
   
   String get _localizedRaca {
     final raca = widget.analysis.raca;

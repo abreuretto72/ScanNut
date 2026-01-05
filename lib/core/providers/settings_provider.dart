@@ -12,6 +12,7 @@ class AppSettings {
   final double partnerSearchRadius;
   final String? languageCode; // null = System Default
   final String weightUnit; // 'kg' or 'lbs'
+  final bool developerMode;
 
   const AppSettings({
     this.dailyCalorieGoal = 2000,
@@ -23,6 +24,7 @@ class AppSettings {
     this.partnerSearchRadius = 20.0,
     this.languageCode,
     this.weightUnit = 'kg',
+    this.developerMode = false,
   });
 
   AppSettings copyWith({
@@ -35,6 +37,7 @@ class AppSettings {
     double? partnerSearchRadius,
     String? languageCode,
     String? weightUnit,
+    bool? developerMode,
   }) {
     return AppSettings(
       dailyCalorieGoal: dailyCalorieGoal ?? this.dailyCalorieGoal,
@@ -46,6 +49,7 @@ class AppSettings {
       partnerSearchRadius: partnerSearchRadius ?? this.partnerSearchRadius,
       languageCode: languageCode ?? this.languageCode,
       weightUnit: weightUnit ?? this.weightUnit,
+      developerMode: developerMode ?? this.developerMode,
     );
   }
 }
@@ -67,7 +71,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       partnerSearchRadius: (prefs.getDouble('partnerSearchRadius') ?? 20.0).clamp(1.0, 100.0),
       languageCode: prefs.getString('languageCode'),
       weightUnit: prefs.getString('weightUnit') ?? 'kg',
+      developerMode: prefs.getBool('developerMode') ?? false,
     );
+  }
+
+  Future<void> setDeveloperMode(bool active) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('developerMode', active);
+    state = state.copyWith(developerMode: active);
   }
   
   Future<void> setWeightUnit(String unit) async {

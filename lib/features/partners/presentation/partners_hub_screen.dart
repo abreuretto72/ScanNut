@@ -12,6 +12,9 @@ import 'partner_registration_screen.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import '../../../core/services/export_service.dart';
+import '../../../core/utils/app_logger.dart';
+import '../../../core/utils/auth_trace_logger.dart';
+import 'package:flutter/services.dart';
 
 class PartnersHubScreen extends ConsumerStatefulWidget {
   final bool isSelectionMode;
@@ -510,12 +513,20 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
       _errorMessage = '';
     });
 
+    authTrace.clearTrace();
+    authTrace.startStep('RadarDiscovery.start');
+    logger.info('🛰️ Iniciando protocolo de busca inteligente (Radar)');
+
     try {
-      // 1. Check/Request Permissions
+      // 1. Check Permissions
+      authTrace.startStep('GPS.checkPermission');
       LocationPermission permission = await Geolocator.checkPermission();
+      logger.info('📍 Status Permissão GPS: $permission');
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
+          authTrace.endStep('GPS.checkPermission', success: false, details: 'Permission Denied');
           setState(() {
             _isLoading = false;
             _errorMessage = AppLocalizations.of(context)!.partnersLocationDenied;
@@ -523,6 +534,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
           return;
         }
       }
+      authTrace.endStep('GPS.checkPermission');
 
       if (permission == LocationPermission.deniedForever) {
         setState(() {
@@ -533,28 +545,40 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
       }
 
       // 2. Get Position
+      authTrace.startStep('GPS.getPosition');
       Position position;
       try {
         position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium,
           timeLimit: const Duration(seconds: 10),
         );
+        logger.info('📍 Coordenadas capturadas: Lat: ${position.latitude}, Lng: ${position.longitude}');
+        authTrace.endStep('GPS.getPosition', details: 'Lat: ${position.latitude}, Lng: ${position.longitude}');
       } catch (e) {
+        logger.warning('⚠️ Falha ao obter posição atual, tentando última conhecida: $e');
         final lastPos = await Geolocator.getLastKnownPosition();
         if (lastPos != null) {
           position = lastPos;
+          logger.info('📍 Usando última posição conhecida: Lat: ${position.latitude}, Lng: ${position.longitude}');
+          authTrace.endStep('GPS.getPosition', details: 'Using last known pos');
         } else {
+          authTrace.endStep('GPS.getPosition', success: false, details: e.toString());
           throw AppLocalizations.of(context)!.partnersLocationError;
         }
       }
 
       // 3. Search real data
+      authTrace.startStep('GooglePlaces.search');
       final radius = ref.read(settingsProvider).partnerSearchRadius;
+      logger.info('📡 Chamando API de busca num raio de ${radius}km');
+      
       final results = await _service.discoverNearbyPartners(
         lat: position.latitude,
         lng: position.longitude,
         radiusKm: radius,
       );
+      
+      authTrace.endStep('GooglePlaces.search', details: 'Found ${results.length} results');
 
       if (mounted) {
         setState(() {
@@ -562,11 +586,24 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
           _isLoading = false;
         });
       }
-    } catch (e) {
+      authTrace.endStep('RadarDiscovery.start', details: 'Flow Completed Successfully');
+    } catch (e, stack) {
+      String technicalDetails = e.toString();
+      bool isAuthError = technicalDetails.contains('10') || technicalDetails.contains('DEVELOPER_ERROR') || technicalDetails.contains('AUTH');
+      
+      authTrace.endStep('RadarDiscovery.start', success: false, details: technicalDetails);
+      logger.error('❌ Erro na busca por radar', error: e, stackTrace: stack);
+
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Erro ao buscar dados: $e';
+          if (isAuthError) {
+             _errorMessage = 'Erro de Autenticação Google (ApiException 10).\n'
+                             'Verifique as credenciais SHA-1 no console do Firebase.\n\n'
+                             'Detalhes: $technicalDetails';
+          } else {
+             _errorMessage = 'Erro ao buscar dados: $e';
+          }
         });
       }
     }
@@ -665,11 +702,55 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                       ],
                     ),
                   )
-                : _errorMessage.isNotEmpty
-                  ? Center(child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent)),
-                    ))
+                  : _errorMessage.isNotEmpty
+                   ? Center(child: Padding(
+                       padding: const EdgeInsets.all(20),
+                       child: Column(
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                           const SizedBox(height: 16),
+                           Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                           const SizedBox(height: 24),
+                           ElevatedButton.icon(
+                             onPressed: _startDiscovery,
+                             icon: const Icon(Icons.refresh, size: 18),
+                             label: const Text('Tentar Novamente'),
+                             style: ElevatedButton.styleFrom(backgroundColor: Colors.white10),
+                           ),
+                           const SizedBox(height: 12),
+                           TextButton.icon(
+                             onPressed: () {
+                               showDialog(
+                                 context: context,
+                                 builder: (context) => AlertDialog(
+                                   backgroundColor: Colors.grey[900],
+                                   title: const Text('Trace de Diagnóstico', style: TextStyle(color: Colors.white)),
+                                   content: SizedBox(
+                                     width: double.maxFinite,
+                                     child: SingleChildScrollView(
+                                       child: Text(authTrace.getTraceAsString(), style: const TextStyle(color: Colors.white70, fontSize: 10, fontFamily: 'monospace')),
+                                     ),
+                                   ),
+                                   actions: [
+                                     TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+                                     TextButton(
+                                       onPressed: () {
+                                         Clipboard.setData(ClipboardData(text: authTrace.getTraceAsString()));
+                                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logs copiados!')));
+                                       }, 
+                                       child: const Text('Copiar')
+                                     ),
+                                   ],
+                                 ),
+                               );
+                             },
+                             icon: const Icon(Icons.bug_report_outlined, size: 18, color: Colors.blueAccent),
+                             label: const Text('Ver Detalhes Técnicos', style: TextStyle(color: Colors.blueAccent)),
+                           ),
+                         ],
+                       ),
+                     ))
                   : _filteredResults.isEmpty 
                     ? Center(child: Text(AppLocalizations.of(context)!.partnersRadarNoResults, style: GoogleFonts.poppins(color: Colors.white38)))
                     : ListView.builder(

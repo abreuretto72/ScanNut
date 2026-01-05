@@ -286,36 +286,66 @@ class _AddEventModalState extends State<AddEventModal> {
               ),
               const SizedBox(height: 16),
 
-              if (widget.partner.teamMembers.isNotEmpty) ...[
-                Text(AppLocalizations.of(context)!.agendaAttendantSpecialist, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white10),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedAttendant,
-                      isExpanded: true,
-                      dropdownColor: Colors.grey[850],
-                      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00E676)),
-                      hint: Row(
-                        children: [
-                          const Icon(Icons.person, color: Colors.white54, size: 18),
-                          const SizedBox(width: 12),
-                          Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 14)),
-                        ],
-                      ),
-                      items: widget.partner.teamMembers.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(color: Colors.white)))).toList(),
-                      onChanged: (val) => setState(() => _selectedAttendant = val),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
+              // ATENDENTE / ESPECIALISTA (BLINDADO)
+              Builder(
+                builder: (context) {
+                   // 1. Garantir lista segura
+                   final validMembers = widget.partner.teamMembers.where((m) => m.trim().isNotEmpty).toList();
+                   final hasMembers = validMembers.isNotEmpty;
+                   
+                   // 2. Se não houver membros, usar lista fallback para evitar erro items.isNotEmpty
+                   final safeItems = hasMembers ? validMembers : [AppLocalizations.of(context)!.agendaNoAttendants];
+                   
+                   // 3. Garantir value seguro
+                   String? safeValue = _selectedAttendant;
+                   if (hasMembers) {
+                      if (safeValue != null && !validMembers.contains(safeValue)) {
+                         safeValue = null; // Reset se não estiver na lista
+                      }
+                   } else {
+                      safeValue = safeItems.first; // Selecionar o fallback
+                   }
+
+                   return Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                        Text(AppLocalizations.of(context)!.agendaAttendantSpecialist, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: safeValue,
+                              isExpanded: true,
+                              dropdownColor: Colors.grey[850],
+                              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00E676)),
+                              hint: Row(
+                                children: [
+                                  const Icon(Icons.person, color: Colors.white54, size: 18),
+                                  const SizedBox(width: 12),
+                                  Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 14)),
+                                ],
+                              ),
+                              // 🛡️ PROTEÇÃO: Se não há membros, desabilitar ou mostrar mensagem informativa
+                              items: safeItems.map((name) => DropdownMenuItem(
+                                value: name, 
+                                enabled: hasMembers, // Desabilitar se for mensagem de erro
+                                child: Text(name, style: TextStyle(color: hasMembers ? Colors.white : Colors.white54))
+                              )).toList(),
+                              onChanged: hasMembers ? (val) => setState(() => _selectedAttendant = val) : null,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                     ],
+                   );
+                }
+              ),
 
               TextField(
                 controller: _titleController,

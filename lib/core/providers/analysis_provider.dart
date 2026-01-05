@@ -97,6 +97,21 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         }
       }
       
+      // 4. Verificação de Erro na Resposta (Não é Pet/Planta/Comida)
+      if (jsonResponse.containsKey('error')) {
+        final errorVal = jsonResponse['error'].toString().toLowerCase();
+        if (errorVal.contains('not_pet') || 
+            errorVal.contains('not_food') || 
+            errorVal.contains('not_plant')) {
+          state = AnalysisError('analysisErrorInvalidCategory');
+          return;
+        }
+        if (errorVal.contains('not_detected')) {
+          state = AnalysisError('analysisErrorNotDetected');
+          return;
+        }
+      }
+
       // Save to history
       await _historyService.saveAnalysis(jsonResponse, mode.toString());
 
@@ -161,9 +176,13 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       }
       debugPrint('DEBUG ERROR: $e');
       debugPrint('STACKTRACE: $stack');
-      final msg = e.toString();
-      final displayMsg = msg.length > 100 ? msg.substring(0, 100) : msg;
-      state = AnalysisError('ERRO TÉCNICO: $displayMsg');
+      
+      final msg = e.toString().toLowerCase();
+      if (msg.contains('400') || msg.contains('bad request') || msg.contains('invalid category')) {
+        state = AnalysisError('analysisErrorInvalidCategory');
+      } else {
+        state = AnalysisError('analysisErrorUnexpected');
+      }
     }
   }
 

@@ -78,7 +78,7 @@ class GroqApiService {
   }
 
   void _showErrorSnackBar(DioException e) {
-    String message = 'Ocorreu um erro na conexão.';
+    String message = 'Imagem difere da categoria ou sem conexão';
     if (e.type == DioExceptionType.connectionTimeout) {
       message = 'Tempo de conexão esgotado. Verifique sua internet.';
     } else if (e.response?.statusCode == 401) {

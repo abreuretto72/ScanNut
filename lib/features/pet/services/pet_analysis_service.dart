@@ -72,7 +72,7 @@ class PetAnalysisService {
         racaDiag: "Não identificada",
         caracteristicasDiag: "Erro na análise",
         descricaoVisualDiag: "Erro ao processar a resposta da IA.",
-        possiveisCausasDiag: ["Erro de conexão ou formato inválido"],
+        possiveisCausasDiag: ["Imagem difere da categoria ou sem conexão"],
         urgenciaNivelDiag: "Amarelo",
         orientacaoImediataDiag: "Tente novamente ou procure um veterinário se houver dúvidas.",
       );

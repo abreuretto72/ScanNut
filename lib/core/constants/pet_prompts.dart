@@ -39,7 +39,8 @@ Urgency Levels Definitions:
 
 IMPORTANT:
 - Include a legal disclaimer in 'immediate_care' stating that this is not a substitute for professional veterinary advice.
-- If no condition or wound is detected in the image, return: {"error": "not_detected"}.
+- IF THE IMAGE IS NOT A PET (ANIMAL), return: {"error": "not_pet"}.
+- If the image is a pet but no condition or wound is detected, return: {"error": "not_detected"}.
 ''';
   }
 
@@ -106,6 +107,9 @@ You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze
     "training_intelligence": "string (in $languageName)"
   }
 }
+
+CRITICAL: IF THE IMAGE IS NOT A PET (ANIMAL), return: {"error": "not_pet"}.
+If the image has no detectable features or information (e.g., a blank wall), return: {"error": "not_detected"}.
 ''';
   }
 }

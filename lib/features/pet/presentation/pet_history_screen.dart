@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,11 +33,22 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
   List<Map<String, dynamic>> _history = [];
   Map<String, PartnerModel?> _petVets = {};
   bool _isLoading = true;
+  Directory? _appDocsDir;
 
   @override
   void initState() {
     super.initState();
-    _loadHistory();
+    // Pre-load docs dir for image recovery
+    getApplicationDocumentsDirectory().then((dir) {
+        if (mounted) setState(() => _appDocsDir = dir);
+    });
+
+    // 🛡️ Delay mínimo para garantir que o contexto esteja pronto
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _loadHistory();
+      }
+    });
   }
 
   Future<void> _loadHistory() async {
@@ -161,18 +175,49 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                 final item = petHistory[index];
                 final data = item['data'] ?? {};
                 final date = DateTime.tryParse(item['timestamp'] ?? '') ?? DateTime.now();
-                final petName = item['pet_name'] ?? 'Pet Desconhecido';
+                final petName = item['pet_name'] ?? l10n.petUnknown;
                 
                 // Extract breed/species for subtitle
-                String subtitle = 'Carregando...';
+                // 🛡️ SAFE SUBTITLE with Zero N/A Policy
+                String subtitle;
                 try {
+                  String rawBreed = '';
                   if (data['analysis_type'] == 'diagnosis') {
-                    subtitle = "${data['breed'] ?? l10n.petBreed} • Saúde";
+                    rawBreed = data['breed']?.toString() ?? '';
                   } else {
-                    subtitle = "${data['identificacao']?['raca_predominante'] ?? l10n.petBreed} • ID";
+                    // Robust Deep Search for Breed
+                    rawBreed = data['identificacao']?['raca_predominante']?.toString() ?? 
+                               data['identificacao']?['raca']?.toString() ?? 
+                               data['identificacao']?['breed']?.toString() ?? // Fix: English Object Key
+                               data['identification']?['breed']?.toString() ?? // Fix: English Root Key
+                               data['breed']?.toString() ?? // Fix: Root Key
+                               '';
                   }
+
+                  // 1. Limpeza e Validação
+                  String displayBreed = rawBreed.trim();
+                  if (displayBreed.isEmpty || 
+                      displayBreed.toUpperCase() == 'N/A' || 
+                      displayBreed.toUpperCase() == 'NULL' ||
+                      displayBreed == 'Raça não identificada' ||
+                      displayBreed.contains('unknown') ||
+                      displayBreed == 'Unknown Breed') {
+                      displayBreed = l10n.petBreedUnknown;  
+                  }
+
+                  // 2. Tradução de SRD (Adapter para I18N de dados)
+                  if (displayBreed.toUpperCase() == 'SRD' || 
+                      displayBreed.toUpperCase() == 'MISTIÇO' ||
+                      displayBreed == 'Sem Raça Definida (SRD)') {
+                      displayBreed = l10n.petSRD;
+                  }
+
+                  // 3. Sufixo de Tipo
+                  String typeSuffix = (data['analysis_type'] == 'diagnosis') ? 'Saúde' : 'ID';
+                  
+                  subtitle = "$displayBreed • $typeSuffix";
                 } catch (e) {
-                   subtitle = 'Info indisponível';
+                   subtitle = l10n.petBreedUnknown;
                 }
 
                 return Card(
@@ -186,14 +231,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                     children: [
                       ListTile(
                     contentPadding: const EdgeInsets.all(16),
-                    leading: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orangeAccent.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.pets, color: Colors.orangeAccent),
-                    ),
+                    leading: _buildPetAvatar(item),
                     title: Text(
                       petName,
                       maxLines: 1,
@@ -229,27 +267,37 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                               // 1. AGENDA
                               InkWell(
                                 onTap: () async {
-                                  final partner = _petVets[petName];
-                                  if (partner != null) {
-                                    final service = PetProfileService();
-                                    await service.init();
-                                    final profileData = await service.getProfile(petName);
-                                    
-                                    final agendaEvents = profileData?['data']?['agendaEvents'] as List? ?? [];
+                                  // 🛡️ FRESH DATA FETCH: Garantir dados atualizados do Hive
+                                  final profileService = PetProfileService();
+                                  await profileService.init();
+                                  final freshProfile = await profileService.getProfile(petName);
+
+                                  PartnerModel? freshPartner;
+                                  if (freshProfile != null && freshProfile['data'] != null) {
+                                      final linked = freshProfile['data']['linked_partner_ids'] as List?;
+                                      if (linked != null && linked.isNotEmpty) {
+                                          final pService = PartnerService();
+                                          await pService.init();
+                                          freshPartner = pService.getPartner(linked.first);
+                                      }
+                                  }
+
+                                  if (freshPartner != null) {
+                                    final agendaEvents = freshProfile?['data']?['agendaEvents'] as List? ?? [];
                                     final eventsList = agendaEvents.map((e) => Map<String, dynamic>.from(e as Map)).toList();
                                     
                                     if (context.mounted) {
-                                      Navigator.push(
+                                      await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => PartnerAgendaScreen(
-                                            partner: partner,
+                                            partner: freshPartner!,
                                             initialEvents: eventsList,
                                             onSave: (events) async {
-                                              if (profileData != null) {
-                                                final data = Map<String, dynamic>.from(profileData['data'] as Map);
+                                              if (freshProfile != null) {
+                                                final data = Map<String, dynamic>.from(freshProfile['data'] as Map);
                                                 data['agendaEvents'] = events;
-                                                await service.saveOrUpdateProfile(petName, data);
+                                                await profileService.saveOrUpdateProfile(petName, data);
                                                 
                                                 try {
                                                     final eventService = PetEventService();
@@ -288,6 +336,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                           ),
                                         ),
                                       );
+                                      if (mounted) _loadHistory(); // Refresh on return
                                     }
                                   } else {
                                     if (context.mounted) {
@@ -341,17 +390,18 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                       }).toList();
 
                                     if (context.mounted) {
-                                        Navigator.push(
+                                        await Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) => WeeklyMenuScreen(
                                                 currentWeekPlan: formattedPlan,
                                                 generalGuidelines: guidelines,
                                                 petName: petName,
-                                                raceName: data['breed'] ?? data['identificacao']?['raca'] ?? 'Raça não informada',
+                                                raceName: data['breed'] ?? data['identificacao']?['raca'] ?? l10n.petNotIdentified,
                                               ),
                                           ),
                                         );
+                                        if (mounted) _loadHistory(); // Refresh on return
                                     }
                                   } else {
                                     if (context.mounted) {
@@ -448,6 +498,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                       ),
                                     ),
                                   );
+                                  if (mounted) _loadHistory(); // Refresh
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -483,6 +534,98 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
   ),
 );
 }
+
+  
+  /// 🛡️ Builds pet avatar with photo or fallback (PADRÃO OBRIGATÓRIO)
+  Widget _buildPetAvatar(Map<String, dynamic> item) {
+    String? imagePath = item['image_path'] as String?;
+    
+    // Fallback: Check inside data payload
+    if (imagePath == null && item['data'] != null && item['data'] is Map) {
+        imagePath = item['data']['image_path']?.toString();
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    final petName = item['pet_name'] as String? ?? l10n.petUnknown;
+    
+    // 🛡️ Verificar se imagem existe e é válida
+    bool hasValidImage = imagePath != null &&
+                          imagePath.isNotEmpty &&
+                          File(imagePath).existsSync();
+    
+    // 🚑 RECOVERY STRATEGY: Global Search for file in Documents
+    if (!hasValidImage && imagePath != null && _appDocsDir != null) {
+        try {
+            final filename = path.basename(imagePath);
+            
+            // 🔍 SEARCH 1: Root of Documents (Common for Analysis photos)
+            var rPath = path.join(_appDocsDir!.path, filename);
+            var rFile = File(rPath);
+            
+            // 🔍 SEARCH 2: medical_docs/$petName/ (Common for Profile photos)
+            if (!rFile.existsSync()) {
+                rPath = path.join(_appDocsDir!.path, 'medical_docs', petName, filename);
+                rFile = File(rPath);
+            }
+
+            if (rFile.existsSync()) {
+                debugPrint('🚑 Rescued image for $petName at: $rPath');
+                imagePath = rPath;
+                hasValidImage = true;
+            }
+        } catch (e) {
+            debugPrint('Error recovering history image: $e');
+        }
+    }
+    
+    if (hasValidImage) {
+      debugPrint('   ✅ Valid image found');
+    } else {
+      debugPrint('   ℹ️ No valid image - using fallback');
+    }
+    
+    // 🎨 Obter iniciais do nome para placeholder
+    String getInitials(String name) {
+      final words = name.trim().split(' ');
+      if (words.isEmpty) return '?';
+      if (words.length == 1) return words[0][0].toUpperCase();
+      return '${words[0][0]}${words[1][0]}'.toUpperCase();
+    }
+    
+    // ✅ PADRÃO OBRIGATÓRIO: CircleAvatar com proteções
+    return CircleAvatar(
+      radius: 28,
+      backgroundColor: Colors.orangeAccent.withValues(alpha: 0.2),
+      // 🛡️ backgroundImage APENAS se imagem válida
+      backgroundImage: hasValidImage
+          ? FileImage(File(imagePath!))
+          : null,
+      // 🛡️ onBackgroundImageError para proteção extra
+      onBackgroundImageError: hasValidImage
+          ? (exception, stackTrace) {
+              debugPrint('   ❌ Error loading image: $exception');
+            }
+          : null,
+      // 🎨 child APENAS se não houver imagem (fallback)
+      child: !hasValidImage
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.pets, color: Colors.orangeAccent, size: 24),
+                const SizedBox(height: 2),
+                Text(
+                  getInitials(petName),
+                  style: const TextStyle(
+                    color: Colors.orangeAccent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+          : null,
+    );
+  }
 
   Future<void> _confirmDelete(BuildContext context, String petName) async {
     final l10n = AppLocalizations.of(context)!;

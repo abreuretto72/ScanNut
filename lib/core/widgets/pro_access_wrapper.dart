@@ -25,8 +25,13 @@ class ProAccessWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final subscriptionState = ref.watch(subscriptionProvider);
 
-    // If Pro, show the original content
-    if (subscriptionState.isPro) {
+    // ⚠️ MODO SCREENSHOT - TEMPORÁRIO! ⚠️
+    // TODO: REVERTER ANTES DE PUBLICAR NA LOJA!
+    // Forçando isPro = true para captura de telas
+    const bool SCREENSHOT_MODE = true; // ← MUDAR PARA false ANTES DE PUBLICAR!
+    
+    // If Pro OR in screenshot mode, show the original content
+    if (subscriptionState.isPro || SCREENSHOT_MODE) {
       return child;
     }
 

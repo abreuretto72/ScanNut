@@ -74,9 +74,9 @@ class _EditPetFormState extends State<EditPetForm>
   late TextEditingController _alergiasController;
   late TextEditingController _preferenciasController;
 
-  // Dropdown values
+  // Dropdown values (initialized with default Portuguese values)
   String _nivelAtividade = 'Moderado';
-  String _statusReprodutivo = 'Castrado';
+  String _statusReprodutivo = 'Não informado';
   String _frequenciaBanho = 'Quinzenal';
 
   // Dates
@@ -101,6 +101,7 @@ class _EditPetFormState extends State<EditPetForm>
   String _observacoesPrac = '';
 
   // File Upload
+  List<Map<String, dynamic>> _analysisHistory = [];
   final FileUploadService _fileService = FileUploadService();
   Map<String, List<File>> _attachments = {
     'identity': [],
@@ -192,7 +193,7 @@ class _EditPetFormState extends State<EditPetForm>
 
        final profile = PetProfileExtended(
         petName: _nameController.text.trim(),
-        raca: _racaController.text.trim().isEmpty ? null : _racaController.text.trim(),
+        raca: PetProfileExtended.normalizeBreed(_racaController.text, null),
         idadeExata: _idadeController.text.trim().isEmpty ? null : _idadeController.text.trim(),
         pesoAtual: double.tryParse(_pesoController.text.trim()),
         pesoIdeal: double.tryParse(_pesoIdealController.text.trim()),
@@ -208,6 +209,7 @@ class _EditPetFormState extends State<EditPetForm>
         weightHistory: _getUpdatedWeightHistory(),
         labExams: _labExams.map((e) => e.toJson()).toList(),
         woundAnalysisHistory: _woundHistory,
+        analysisHistory: _analysisHistory,
         observacoesIdentidade: _observacoesIdentidade,
         observacoesSaude: _observacoesSaude,
         observacoesNutricao: _observacoesNutricao,
@@ -277,15 +279,42 @@ class _EditPetFormState extends State<EditPetForm>
     final existing = widget.existingProfile;
     
     // Load existing profile image
+    // Load existing profile image with Fallback Recovery
     _initialImagePath = existing?.imagePath;
     if (_initialImagePath != null) {
       final file = File(_initialImagePath!);
       if (file.existsSync()) {
         _profileImage = file;
+      } else {
+        // 🚑 Attempt Recovery async (for path changes)
+        getApplicationDocumentsDirectory().then((dir) {
+            final filename = path.basename(_initialImagePath!);
+            final petName = _nameController.text.trim();
+            
+            // 🔍 SEARCH 1: Root of Documents
+            var rPath = path.join(dir.path, filename);
+            var rFile = File(rPath);
+            
+            // 🔍 SEARCH 2: medical_docs/$petName/
+            if (!rFile.existsSync() && petName.isNotEmpty) {
+                rPath = path.join(dir.path, 'medical_docs', petName, filename);
+                rFile = File(rPath);
+            }
+
+            if (rFile.existsSync()) {
+                debugPrint('🚑 EditForm recovered image: $rPath');
+                if (mounted) {
+                    setState(() {
+                        _profileImage = rFile;
+                        _initialImagePath = rPath; // Update baseline to avoid duplicate save
+                    });
+                }
+            }
+        }).catchError((e) => debugPrint('Image recovery failed: $e'));
       }
     }
 
-    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTabIndex);
+    _tabController = TabController(length: 6, vsync: this, initialIndex: widget.initialTabIndex);
     
     if (existing != null) {
         _petBackup = _deepCopyProfile(existing);
@@ -303,9 +332,11 @@ class _EditPetFormState extends State<EditPetForm>
     _alergiasController = TextEditingController();
     _preferenciasController = TextEditingController();
 
+    // 🛡️ NÃO acessar AppLocalizations aqui!
+    // Valores padrão fixos em português (serão atualizados em didChangeDependencies)
     if (existing != null) {
       _nivelAtividade = existing.nivelAtividade ?? 'Moderado';
-      _statusReprodutivo = existing.statusReprodutivo ?? 'Castrado';
+      _statusReprodutivo = existing.statusReprodutivo ?? 'Não informado';
       _frequenciaBanho = existing.frequenciaBanho ?? 'Quinzenal';
       _dataUltimaV10 = existing.dataUltimaV10;
       _dataUltimaAntirrabica = existing.dataUltimaAntirrabica;
@@ -316,6 +347,30 @@ class _EditPetFormState extends State<EditPetForm>
       _weightHistory = List.from(existing.weightHistory);
       _labExams = (existing.labExams).map((json) => LabExam.fromJson(json)).toList();
       _woundHistory = (existing.woundAnalysisHistory).map((e) => Map<String, dynamic>.from(e)).toList();
+      _analysisHistory = List.from(existing.analysisHistory);
+      
+      // FIX: Auto-fill Breed from Analysis (Aggressive & Comprehensive)
+      final currentBreed = _racaController.text.trim().toUpperCase();
+      final isGeneric = currentBreed.isEmpty || 
+                        currentBreed == 'N/A' || 
+                        currentBreed == 'SRD' || 
+                        currentBreed.contains('SEM RAÇA') ||
+                        currentBreed.contains('UNKNOWN') ||
+                        currentBreed.contains('DESCONHECIDO');
+
+      // Determine source of analysis data (History OR Single Raw Analysis)
+      final sourceData = _analysisHistory.isNotEmpty 
+          ? _analysisHistory.last 
+          : (existing.rawAnalysis != null ? Map<String, dynamic>.from(existing.rawAnalysis!) : null);
+
+      if (isGeneric && sourceData != null) {
+          final breed = _findBreedRecursive(sourceData);
+          if (breed != null && 
+              !breed.toLowerCase().contains('null') && 
+              !breed.toLowerCase().contains('n/a')) {
+              _racaController.text = breed;
+          }
+      }
       _observacoesIdentidade = existing.observacoesIdentidade;
       _observacoesSaude = existing.observacoesSaude;
       _observacoesNutricao = existing.observacoesNutricao;
@@ -341,11 +396,51 @@ class _EditPetFormState extends State<EditPetForm>
     _preferenciasController.addListener(_onUserTyping);
   }
 
+  // 🛡️ Flag para garantir que didChangeDependencies rode apenas uma vez
+  bool _depsReady = false;
+  late AppLocalizations l10n;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    
+    // 🛡️ Executar apenas uma vez
+    if (_depsReady) return;
+    _depsReady = true;
+
+    // ✅ AGORA é seguro acessar AppLocalizations
+    l10n = AppLocalizations.of(context)!;
+    
+    // Atualizar filtro de parceiros com localização
     if (_selectedPartnerFilter == 'Todos' || _selectedPartnerFilter.isEmpty) {
-        _selectedPartnerFilter = AppLocalizations.of(context)!.partnersFilterAll;
+        _selectedPartnerFilter = l10n.partnersFilterAll;
+    }
+    
+    // 🛡️ Atualizar valores padrão com localização (apenas se não existir perfil)
+    if (widget.existingProfile == null) {
+      if (_nivelAtividade == 'Moderado') {
+        _nivelAtividade = l10n.petActivityModerate;
+      }
+      if (_statusReprodutivo == 'Não informado') {
+        _statusReprodutivo = l10n.petNeutered;
+      }
+      if (_frequenciaBanho == 'Quinzenal') {
+        _frequenciaBanho = l10n.petBathBiweekly;
+      }
+    }
+  }
+
+  /// 🛡️ PROTEÇÃO: Retorna lista localizada ou fallback se não estiver pronta
+  List<String> _getLocalizedItems(List<String> Function(AppLocalizations) getter) {
+    if (!_depsReady) {
+      return ['Carregando...'];  // Fallback temporário
+    }
+    try {
+      final items = getter(l10n);
+      return items.isEmpty ? ['Não informado'] : items;
+    } catch (e) {
+      debugPrint('⚠️ Erro ao obter items localizados: $e');
+      return ['Não informado'];
     }
   }
 
@@ -877,6 +972,7 @@ class _EditPetFormState extends State<EditPetForm>
               Tab(icon: const Icon(Icons.restaurant), text: AppLocalizations.of(context)!.petNutrition),
               Tab(icon: const Icon(Icons.perm_media), text: AppLocalizations.of(context)!.petGallery),
               Tab(icon: const Icon(Icons.handshake_outlined), text: AppLocalizations.of(context)!.petPartners),
+              Tab(icon: const Icon(Icons.analytics_outlined), text: AppLocalizations.of(context)!.petAnalysisResults),
             ],
           ),
           actions: [
@@ -938,6 +1034,7 @@ class _EditPetFormState extends State<EditPetForm>
               _buildNutritionTab(),
               _buildGalleryTab(),
               _buildPartnersTab(),
+              _buildAnalysisTab(),
             ],
           ),
         ),
@@ -947,6 +1044,253 @@ class _EditPetFormState extends State<EditPetForm>
 
   // --- PARTNERS TAB IMPLEMENTATION ---
   
+
+  // Helper for deep search (public within class)
+  String? _findBreedRecursive(Map map) {
+      if (map['breed'] != null) return map['breed'].toString();
+      if (map['raca'] != null) return map['raca'].toString();
+      for (var v in map.values) {
+          if (v is Map) {
+              final found = _findBreedRecursive(v);
+              if (found != null) return found;
+          }
+      }
+      return null;
+  }
+
+  Widget _buildAnalysisTab() {
+    final history = _analysisHistory;
+    final current = _currentRawAnalysis;
+    final hasData = history.isNotEmpty || (current != null && current.isNotEmpty);
+
+    if (!hasData) {
+       return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+         const Icon(Icons.analytics_outlined, size: 60, color: Colors.white24),
+         const SizedBox(height: 16),
+         Text(AppLocalizations.of(context)!.petAnalysisEmpty, style: GoogleFonts.poppins(color: Colors.white54)),
+       ]));
+    }
+
+    // Show List of Analyses
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: history.length + (current != null && current.isNotEmpty && history.isEmpty ? 1 : 0) + 1, // +1 for the disclaimer
+      itemBuilder: (context, index) {
+          if (index == 0) {
+              // AI Disclaimer
+              return Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.amberAccent, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        Localizations.localeOf(context).languageCode == 'pt' 
+                           ? "Este conteúdo é gerado por IA e deve ser usado apenas como referência informativa. Não substitui o diagnóstico veterinário profissional."
+                           : "This content is AI-generated and should be used for informational reference only. It does not replace professional veterinary diagnosis.",
+                        style: GoogleFonts.poppins(color: Colors.amberAccent, fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+          }
+          
+          final actualIndex = index - 1;
+          // If history empty but current exists
+          Map<String, dynamic> data;
+          if (history.isEmpty) {
+              data = current!;
+          } else {
+              // Reverse order
+              data = history[history.length - 1 - actualIndex];
+          }
+          
+          final type = data['analysis_type']?.toString().toUpperCase() ?? AppLocalizations.of(context)!.petAnalysisDefaultTitle;
+          
+          // Date Parsing Logic with Fallback
+          String dateStr = AppLocalizations.of(context)!.petAnalysisDateUnknown;
+          DateTime? dt;
+          if (data['last_updated'] != null) {
+             try {
+                 dt = DateTime.parse(data['last_updated'].toString());
+             } catch (_) {}
+          } else if (widget.existingProfile != null) {
+             // Fallback to Profile Last Updated
+             dt = widget.existingProfile!.lastUpdated;
+          }
+
+          if (dt != null) {
+             dateStr = '${dt.day.toString().padLeft(2,'0')}/${dt.month.toString().padLeft(2,'0')}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2,'0')}';
+             if (data['last_updated'] == null) {
+                 dateStr += AppLocalizations.of(context)!.petAnalysisProfileDate;
+             }
+          }
+
+          // Deep Search for Breed (Using class helper)
+          String? extractedBreed = data['breed']?.toString() ?? _findBreedRecursive(data);
+          
+          // Last Resort: Regex Search in toString() if still null
+          if (extractedBreed == null) {
+              final str = data.toString();
+              // Try 'breed: Value' pattern (Dart Map toString uses key: value)
+              final match = RegExp(r'(?:breed|raca)[:]\s*([^,}\]]+)', caseSensitive: false).firstMatch(str);
+              if (match != null) extractedBreed = match.group(1)?.trim();
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10)
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                    Text(type, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+                    const Icon(Icons.history, size: 16, color: Colors.white30)
+                ]),
+                
+                // Show Breed explicitly
+                if (extractedBreed != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                        extractedBreed, 
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)
+                    ),
+                ],
+                
+                const SizedBox(height: 8),
+                Text(dateStr, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                const Divider(color: Colors.white10),
+                
+                // Structured Data View
+                ...data.entries.where((e) {
+                    final k = e.key;
+                    // Filter out technical keys and null values
+                    if (['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification'].contains(k)) return false;
+                    if (e.value == null) return false;
+                    return true;
+                }).map((e) {
+                   final val = e.value;
+                   
+                   // Special: Clickable Image
+                   // Special: Clickable Image with Recovery
+                   if (e.key.contains('image_path') && val is String) {
+                       return InkWell(
+                           onTap: () async {
+                               String finalPath = val;
+                               
+                               // 🩹 Recovery Strategy if original path fails
+                               if (!File(finalPath).existsSync()) {
+                                   try {
+                                       final dir = await getApplicationDocumentsDirectory();
+                                       final filename = path.basename(finalPath);
+                                       final petName = _nameController.text.trim();
+                                       
+                                       // Try Root
+                                       var rPath = path.join(dir.path, filename);
+                                       if (File(rPath).existsSync()) {
+                                           finalPath = rPath;
+                                       } else if (petName.isNotEmpty) {
+                                           // Try Medical Docs EXACT MATCH
+                                           rPath = path.join(dir.path, 'medical_docs', petName, filename);
+                                           if (File(rPath).existsSync()) {
+                                               finalPath = rPath;
+                                           } else {
+                                               // 🕵️ FUZZY RECOVERY: If filename changed (cache -> permanent), 
+                                               // try to find ANY analysis image in that pet folder
+                                               final d = Directory(path.join(dir.path, 'medical_docs', petName));
+                                               if (d.existsSync()) {
+                                                   final files = d.listSync().whereType<File>().where((f) => 
+                                                       f.path.contains('analysis') || f.path.contains('pet_')
+                                                   ).toList();
+                                                   
+                                                   if (files.isNotEmpty) {
+                                                       // Pick the one closest to the current file basename's implied intent
+                                                       // or simply the first one if only one exists
+                                                       files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+                                                       finalPath = files.first.path;
+                                                   }
+                                               }
+                                           }
+                                       }
+                                   } catch (e) {
+                                       debugPrint('Recovery error: $e');
+                                   }
+                               }
+
+                               if (File(finalPath).existsSync()) {
+                                   if (!context.mounted) return;
+                                   showDialog(context: context, builder: (_) => Dialog(
+                                       backgroundColor: Colors.transparent,
+                                       child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                           Image.file(File(finalPath)),
+                                           TextButton(
+                                               onPressed: () => Navigator.pop(context), 
+                                               child: Text(AppLocalizations.of(context)!.commonClose, style: const TextStyle(color: Colors.white))
+                                           )
+                                       ])
+                                   ));
+                               } else {
+                                   if (!context.mounted) return;
+                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commonFileNotFound)));
+                               }
+                           },
+                           child: Container(
+                               margin: const EdgeInsets.symmetric(vertical: 8),
+                               padding: const EdgeInsets.all(8),
+                               decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white12)),
+                               child: Row(children: [
+                                   const Icon(Icons.image, color: Color(0xFF00E676), size: 20),
+                                   const SizedBox(width: 8),
+                                   Expanded(child: Text(AppLocalizations.of(context)!.petAnalysisViewImage, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12))),
+                                   const Icon(Icons.open_in_new, color: Colors.white30, size: 16)
+                               ]),
+                           )
+                       );
+                   }
+
+                   if (val is Map) {
+                       return ExpansionTile(
+                           title: Text(e.key.toUpperCase().replaceAll('_', ' '), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                           childrenPadding: const EdgeInsets.only(left: 16, bottom: 8),
+                           children: (val as Map).entries.map((sub) => Padding(
+                               padding: const EdgeInsets.only(bottom: 4),
+                               child: Row(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                       Text('${sub.key}: ', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                                       Expanded(child: Text(sub.value.toString(), style: const TextStyle(color: Colors.white, fontSize: 11))),
+                                   ]
+                               ),
+                           )).toList(),
+                       );
+                   }
+                   return Padding(
+                       padding: const EdgeInsets.symmetric(vertical: 4),
+                       child: Row(
+                           crossAxisAlignment: CrossAxisAlignment.start,
+                           children: [
+                               Text('${e.key.toUpperCase().replaceAll('_', ' ')}: ', style: const TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.bold)),
+                               Expanded(child: Text(val.toString(), style: const TextStyle(color: Colors.white70, fontSize: 11))),
+                           ]
+                       ),
+                   );
+                }).toList(),
+            ]),
+          );
+      }
+    );
+  }
 
   Widget _buildPartnersTab() {
     return FutureBuilder<List<PartnerModel>>(
@@ -1166,32 +1510,32 @@ class _EditPetFormState extends State<EditPetForm>
         ),
         
         const SizedBox(height: 24),
-        _buildSectionTitle('⚙️ ${AppLocalizations.of(context)!.petBiologicalProfile}'),
-        const SizedBox(height: 16),
-        
-        _buildDropdown(
-          value: _localizeValue(_nivelAtividade),
-          label: AppLocalizations.of(context)!.petActivityLevel,
-          icon: Icons.directions_run,
-          items: [
-             AppLocalizations.of(context)!.petActivityLow,
-             AppLocalizations.of(context)!.petActivityModerate,
-             AppLocalizations.of(context)!.petActivityHigh,
-             AppLocalizations.of(context)!.petActivityAthlete
-          ],
-          onChanged: (val) { setState(() => _nivelAtividade = val!); _onUserInteractionGeneric(); },
-        ),
-        
-        _buildDropdown(
-            value: _localizeValue(_statusReprodutivo),
-            label: AppLocalizations.of(context)!.petReproductiveStatus,
-            icon: Icons.medical_services,
-            items: [
-               AppLocalizations.of(context)!.petNeutered,
-               AppLocalizations.of(context)!.petIntact
-            ],
-            onChanged: (val) { setState(() => _statusReprodutivo = val!); _onUserInteractionGeneric(); },
-        ),
+      _buildSectionTitle('⚙️ ${l10n.petBiologicalProfile}'),
+      const SizedBox(height: 16),
+      
+      _buildDropdown(
+        value: _localizeValue(_nivelAtividade),
+        label: l10n.petActivityLevel,
+        icon: Icons.directions_run,
+        items: _getLocalizedItems((l) => [
+           l.petActivityLow,
+           l.petActivityModerate,
+           l.petActivityHigh,
+           l.petActivityAthlete
+        ]),
+        onChanged: (val) { setState(() => _nivelAtividade = val!); _onUserInteractionGeneric(); },
+      ),
+      
+      _buildDropdown(
+          value: _localizeValue(_statusReprodutivo),
+          label: l10n.petReproductiveStatus,
+          icon: Icons.medical_services,
+          items: _getLocalizedItems((l) => [
+             l.petNeutered,
+             l.petIntact
+          ]),
+          onChanged: (val) { setState(() => _statusReprodutivo = val!); _onUserInteractionGeneric(); },
+      ),
 
 
         const SizedBox(height: 24),
@@ -1252,20 +1596,20 @@ class _EditPetFormState extends State<EditPetForm>
         ),
         
         const SizedBox(height: 24),
-        _buildSectionTitle('🛁 ${AppLocalizations.of(context)!.petHygiene}'),
-        const SizedBox(height: 16),
-        
-        _buildDropdown(
-          value: _localizeValue(_frequenciaBanho),
-          label: AppLocalizations.of(context)!.petBathFrequency,
-          icon: Icons.water_drop,
-          items: [
-             AppLocalizations.of(context)!.petBathBiweekly,
-             AppLocalizations.of(context)!.petBathWeekly,
-             AppLocalizations.of(context)!.petBathMonthly
-          ],
-          onChanged: (val) { setState(() => _frequenciaBanho = val!); _onUserInteractionGeneric(); },
-        ),
+      _buildSectionTitle('🛁 ${l10n.petHygiene}'),
+      const SizedBox(height: 16),
+      
+      _buildDropdown(
+        value: _localizeValue(_frequenciaBanho),
+        label: l10n.petBathFrequency,
+        icon: Icons.water_drop,
+        items: _getLocalizedItems((l) => [
+           l.petBathBiweekly,
+           l.petBathWeekly,
+           l.petBathMonthly
+        ]),
+        onChanged: (val) { setState(() => _frequenciaBanho = val!); _onUserInteractionGeneric(); },
+      ),
 
         const SizedBox(height: 24),
         
@@ -1876,10 +2220,14 @@ class _EditPetFormState extends State<EditPetForm>
     required List<String> items,
     required Function(String?) onChanged,
   }) {
+    // 🛡️ PROTEÇÃO TOTAL: Garantir que value está em items
+    final safeValue = items.isEmpty || !items.contains(value) ? null : value;
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value,
+        // 🛡️ PROTEÇÃO: value null se lista vazia OU value não está em items
+        value: safeValue,
         dropdownColor: Colors.grey[800],
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
@@ -1893,13 +2241,15 @@ class _EditPetFormState extends State<EditPetForm>
             borderSide: BorderSide.none,
           ),
         ),
-        items: items.map((item) {
+        // 🛡️ PROTEÇÃO: items null se lista vazia (NUNCA [])
+        items: items.isEmpty ? null : items.map((item) {
           return DropdownMenuItem(
             value: item,
             child: Text(item),
           );
         }).toList(),
-        onChanged: onChanged,
+        // 🛡️ PROTEÇÃO: onChanged null se lista vazia
+        onChanged: items.isEmpty ? null : onChanged,
       ),
     );
   }
@@ -2052,13 +2402,14 @@ class _EditPetFormState extends State<EditPetForm>
      );
      bool isNatural = true;
      bool isKibble = false;
-     String goal = AppLocalizations.of(context)!.goalWeightMaintenance;
-     final goals = [
-        AppLocalizations.of(context)!.goalWeightMaintenance,
-        AppLocalizations.of(context)!.goalWeightLoss,
-        AppLocalizations.of(context)!.goalMuscleGain,
-        AppLocalizations.of(context)!.goalRecovery
-     ];
+     
+     final goals = _getLocalizedItems((l) => [
+        l.goalWeightMaintenance,
+        l.goalWeightLoss,
+        l.goalMuscleGain,
+        l.goalRecovery
+     ]);
+     String goal = goals.isNotEmpty ? goals.first : 'Manter Peso';
 
      final confirmed = await showDialog<bool>(
         context: context,
@@ -2145,12 +2496,15 @@ class _EditPetFormState extends State<EditPetForm>
                                 decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
                                 child: DropdownButtonHideUnderline(
                                    child: DropdownButton<String>(
-                                      value: goal,
+                                      // 🛡️ PROTEÇÃO: value null se lista vazia
+                                      value: goals.isEmpty ? null : goal,
                                       dropdownColor: Colors.grey[850],
                                       isExpanded: true,
                                       style: const TextStyle(color: Colors.white),
-                                      items: goals.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
-                                      onChanged: (v) => setDialogState(() => goal = v!),
+                                      // 🛡️ PROTEÇÃO: items null se lista vazia
+                                      items: goals.isEmpty ? null : goals.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                                      // 🛡️ PROTEÇÃO: onChanged null se lista vazia
+                                      onChanged: goals.isEmpty ? null : (v) => setDialogState(() => goal = v!),
                                    ),
                                 ),
                              ),
@@ -2195,7 +2549,15 @@ class _EditPetFormState extends State<EditPetForm>
                  children: [
                     const CircularProgressIndicator(color: Color(0xFF00E676)),
                     const SizedBox(height: 16),
-                    Text(AppLocalizations.of(context)!.aiCalculatingMetrics, style: const TextStyle(color: Colors.white)),
+                    Text(
+                      AppLocalizations.of(context)!.aiCalculatingMetrics,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
                  ],
               ),
            ),
@@ -2437,27 +2799,13 @@ class _EditPetFormState extends State<EditPetForm>
   }
 
    void _openFullAnalysis() {
-      if (_currentRawAnalysis == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.petDetailsUnavailable),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
+      // Switch to Analysis Tab (Index 5)
+      if (_tabController.length > 5) {
+          _tabController.animateTo(5); 
+      } else {
+          // Fallback if tabs change structure
+          debugPrint('TabController index 5 out of bounds');
       }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RaceAnalysisDetailScreen(
-            raceAnalysis: _currentRawAnalysis!,
-            petName: _nameController.text.trim().isEmpty 
-              ? 'Pet' 
-              : _nameController.text.trim(),
-          ),
-        ),
-      );
    }
 
   Widget _buildInfoRow(String label, String value) {
@@ -2476,7 +2824,10 @@ class _EditPetFormState extends State<EditPetForm>
 
   Widget _buildWeeklyPlanSection() {
     final raw = _currentRawAnalysis;
-    if (raw == null || raw['plano_semanal'] == null) {
+    // Support for multiple keys (Legacy PT vs New EN)
+    final rawPlan = raw?['plano_semanal'] ?? raw?['weekly_plan'] ?? raw?['nutrition_plan'];
+    
+    if (raw == null || rawPlan == null) {
       return Padding(
           padding: const EdgeInsets.symmetric(vertical: 20),
           child: Center(
@@ -2490,7 +2841,15 @@ class _EditPetFormState extends State<EditPetForm>
       );
     }
 
-    final List<dynamic> plano = raw['plano_semanal'];
+    // Ensure it is a list
+    List<dynamic> plano = [];
+    if (rawPlan is List) {
+        plano = rawPlan;
+    } else if (rawPlan is Map) {
+        // Handle case where plan is a Map wrapper (e.g. { "days": [...] })
+        if (rawPlan['days'] is List) plano = rawPlan['days'];
+        else if (rawPlan['menu'] is List) plano = rawPlan['menu'];
+    }
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2523,9 +2882,9 @@ class _EditPetFormState extends State<EditPetForm>
           DateTime? startData = raw['data_inicio_semana'] != null ? DateTime.tryParse(raw['data_inicio_semana']) : null;
           
           if (startData == null) {
-              // FALLBACK: Se não tem data salva, assumimos a segunda-feira da semana em que foi atualizado (ou hoje)
-              final baseDate = widget.existingProfile?.lastUpdated ?? DateTime.now();
-              startData = DateTime(baseDate.year, baseDate.month, baseDate.day).subtract(Duration(days: baseDate.weekday - 1));
+              // FALLBACK: If no date saved, assume plan starts TODAY so it covers upcoming days
+              final now = DateTime.now();
+              startData = DateTime(now.year, now.month, now.day);
           }
 
           final dateForDay = startData.add(Duration(days: index));
@@ -3018,9 +3377,10 @@ class _EditPetFormState extends State<EditPetForm>
           _pesoController.text = b.pesoAtual?.toString() ?? '';
           _pesoIdealController.text = b.pesoIdeal?.toString() ?? '';
           
-          _nivelAtividade = b.nivelAtividade ?? 'Moderado';
-          _statusReprodutivo = b.statusReprodutivo ?? 'Castrado';
-          _frequenciaBanho = b.frequenciaBanho ?? 'Quinzenal';
+          final l10n = AppLocalizations.of(context)!;
+          _nivelAtividade = b.nivelAtividade ?? l10n.petActivityModerate;
+          _statusReprodutivo = b.statusReprodutivo ?? l10n.petNeutered;
+          _frequenciaBanho = b.frequenciaBanho ?? l10n.petBathBiweekly;
           
           _dataUltimaV10 = b.dataUltimaV10;
           _dataUltimaAntirrabica = b.dataUltimaAntirrabica;

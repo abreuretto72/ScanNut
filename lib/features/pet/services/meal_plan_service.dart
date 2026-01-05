@@ -17,11 +17,11 @@ class MealPlanService {
   static const String _boxName = 'weekly_meal_plans';
   Box<WeeklyMealPlan>? _box;
 
-  Future<void> init() async {
-    await _ensureBox();
+  Future<void> init({HiveCipher? cipher}) async {
+    await _ensureBox(cipher: cipher);
   }
 
-  Future<Box<WeeklyMealPlan>> _ensureBox() async {
+  Future<Box<WeeklyMealPlan>> _ensureBox({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return _box!;
     try {
       // Register Adapters if not already registered
@@ -36,11 +36,11 @@ class MealPlanService {
         Hive.registerAdapter(NutrientMetadataAdapter());
       }
 
-      _box = await Hive.openBox<WeeklyMealPlan>(_boxName);
-      debugPrint('✅ MealPlanService initialized/re-opened (Box: $_boxName)');
+      _box = await Hive.openBox<WeeklyMealPlan>(_boxName, encryptionCipher: cipher);
+      debugPrint('✅ MealPlanService initialized/re-opened (Secure Box: $_boxName)');
       return _box!;
     } catch (e, stack) {
-      debugPrint('❌ MealPlanService init failed: $e\n$stack');
+      debugPrint('❌ Secure MealPlanService init failed: $e\n$stack');
       rethrow;
     }
   }

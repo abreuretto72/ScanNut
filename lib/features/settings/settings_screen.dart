@@ -7,7 +7,6 @@ import '../../core/providers/settings_provider.dart';
 import '../../core/services/history_service.dart';
 import '../../core/utils/snackbar_helper.dart';
 import '../../core/providers/partner_provider.dart';
-import 'widgets/backup_optimize_dialog.dart';
 import '../../core/models/user_profile.dart';
 import '../../core/services/user_profile_service.dart';
 import '../../l10n/app_localizations.dart';
@@ -15,6 +14,10 @@ import '../../features/food/services/nutrition_service.dart';
 import '../../nutrition/presentation/controllers/nutrition_providers.dart';
 import '../../core/providers/vaccine_status_provider.dart';
 import '../../core/providers/pet_event_provider.dart';
+import 'widgets/local_backup_widget.dart';
+import '../../core/utils/app_logger.dart';
+import 'screens/diagnostics_screen.dart';
+import 'screens/auth_certificates_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -28,6 +31,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _calorieController = TextEditingController();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
+  int _devTapCount = 0;
 
   @override
   void initState() {
@@ -187,30 +191,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           const SizedBox(height: 32),
 
-          // Preferences Section
-          Text(
-            l10n.settingsPreferences,
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Show Tips Toggle
-          _buildSwitchTile(
-            title: l10n.settingsShowTips,
-            subtitle: l10n.settingsShowTipsSubtitle,
-            value: settings.showTips,
-            onChanged: (value) {
-              ref.read(settingsProvider.notifier).setShowTips(value);
-              HapticFeedback.selectionClick();
-            },
-          ),
-
-          const SizedBox(height: 32),
-
           // Partners Section
           Text(
             l10n.settingsPartnerManagement,
@@ -225,36 +205,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _buildRadiusSlider(settings.partnerSearchRadius),
 
           const SizedBox(height: 32),
-
-          // Backup & Optimization
-          Text(
-            l10n.settingsSystemMaintenance,
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
           
-          ListTile(
-            onTap: () {
-               showDialog(context: context, builder: (_) => const BackupOptimizeDialog());
-            },
-            tileColor: Colors.white.withOpacity(0.05),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.security, color: Colors.amber),
-            ),
-            title: Text(l10n.settingsBackupOptimize, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-            subtitle: Text(l10n.settingsBackupOptimizeSubtitle, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
-            trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
-          ),
+          const LocalBackupWidget(),
+
+          const SizedBox(height: 32),
+
+          // Danger Zone
 
           const SizedBox(height: 32),
 
@@ -386,6 +342,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
           ),
+          
+          const SizedBox(height: 48),
+
+          // Version Number with hidden Dev Mode
+          Center(
+            child: GestureDetector(
+              onTap: () {
+                _devTapCount++;
+                if (_devTapCount >= 7) {
+                  ref.read(settingsProvider.notifier).setDeveloperMode(true);
+                  logger.setDeveloperMode(true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Developer Mode Activated! 🛠️')),
+                  );
+                  _devTapCount = 0;
+                }
+              },
+              child: Column(
+                children: [
+                  Text(
+                    'ScanNut v1.0.0+1',
+                    style: GoogleFonts.poppins(color: Colors.white24, fontSize: 12),
+                  ),
+                  if (settings.developerMode) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => DiagnosticsScreen()));
+                          },
+                          icon: const Icon(Icons.bug_report, size: 16),
+                          label: Text('Conectividade', style: GoogleFonts.poppins(fontSize: 11)),
+                          style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => AuthCertificatesScreen()));
+                          },
+                          icon: const Icon(Icons.security, size: 16),
+                          label: Text('Certificados & Auth', style: GoogleFonts.poppins(fontSize: 11)),
+                          style: TextButton.styleFrom(foregroundColor: Colors.amber),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );

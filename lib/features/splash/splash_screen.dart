@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../home/presentation/home_view.dart';
 import '../onboarding/presentation/onboarding_screen.dart';
+import '../auth/presentation/login_screen.dart';
+import '../../core/services/simple_auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -50,10 +52,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
         
         if (mounted) {
+           // Tenta recuperar sessão persistente e chave mestra
+           final bool isLoggedIn = await simpleAuthService.checkPersistentSession();
+           
+           Widget nextScreen;
+           if (!onboardingCompleted) {
+             nextScreen = const OnboardingScreen();
+           } else if (!isLoggedIn) {
+             nextScreen = const LoginScreen();
+           } else {
+             nextScreen = const HomeView();
+           }
+
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => 
-                onboardingCompleted ? const HomeView() : const OnboardingScreen(),
+              pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
               transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 return FadeTransition(opacity: animation, child: child);
               },

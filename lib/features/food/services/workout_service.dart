@@ -17,16 +17,16 @@ class WorkoutService {
   static const String boxName = 'box_workouts';
   Box<WorkoutItem>? _box;
 
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return;
     try {
       if (!Hive.isAdapterRegistered(22)) {
         Hive.registerAdapter(WorkoutItemAdapter());
       }
-      _box = await Hive.openBox<WorkoutItem>(boxName);
-      debugPrint('✅ WorkoutService initialized.');
+      _box = await Hive.openBox<WorkoutItem>(boxName, encryptionCipher: cipher);
+      debugPrint('✅ WorkoutService initialized (Secure).');
     } catch (e) {
-      debugPrint('❌ Error initializing WorkoutService: $e');
+      debugPrint('❌ Error initializing Secure WorkoutService: $e');
     }
   }
 

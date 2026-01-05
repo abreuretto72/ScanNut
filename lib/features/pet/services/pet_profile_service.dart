@@ -18,19 +18,19 @@ class PetProfileService {
   static const String _profileBoxName = 'box_pets_master';
   Box? _profileBox;
 
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     // Prevent multiple opens if already ready
     if (_profileBox != null && _profileBox!.isOpen) return;
     
     try {
         if (!Hive.isBoxOpen(_profileBoxName)) {
-            _profileBox = await Hive.openBox(_profileBoxName);
+            _profileBox = await Hive.openBox(_profileBoxName, encryptionCipher: cipher);
         } else {
             _profileBox = Hive.box(_profileBoxName);
         }
-        debugPrint('✅ PetProfileService initialized (Singleton). Box Open: ${_profileBox?.isOpen}');
+        debugPrint('✅ PetProfileService initialized (Secure). Box Open: ${_profileBox?.isOpen}');
     } catch (e, stack) {
-        debugPrint('❌ CRITICAL: Failed to open Pet Profile Box: $e\n$stack');
+        debugPrint('❌ CRITICAL: Failed to open Secure Pet Profile Box: $e\n$stack');
     }
   }
 

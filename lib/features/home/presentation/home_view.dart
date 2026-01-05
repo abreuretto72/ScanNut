@@ -191,12 +191,26 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   Future<void> _disposeCamera() async {
     if (_controller != null) {
-      await _controller!.dispose();
+      debugPrint('🔴 _disposeCamera: Starting disposal sequence...');
+      
+      // 1. Immediately update state to remove CameraPreview from tree
+      if (mounted) {
+        setState(() {
+          _isCameraInitialized = false;
+          _currentIndex = -1; // Reset mode selection
+        });
+      }
+
+      // 2. Perform actual disposal in background
+      final controllerToDispose = _controller;
       _controller = null;
-      setState(() {
-        _isCameraInitialized = false;
-        _currentIndex = -1; // Reset mode selection
-      });
+      
+      try {
+        await controllerToDispose!.dispose();
+        debugPrint('✅ _disposeCamera: Controller successfully disposed');
+      } catch (e) {
+        debugPrint('⚠️ _disposeCamera: Error during dispose: $e');
+      }
     }
   }
 
@@ -322,6 +336,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     } catch (e, stackTrace) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
       debugPrint('📚 Stack trace: $stackTrace');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro na captura: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -405,6 +424,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         case 'analysisErrorAiFailure': errorMessage = l10n.analysisErrorAiFailure; break;
         case 'analysisErrorJsonFormat': errorMessage = l10n.analysisErrorJsonFormat; break;
         case 'analysisErrorUnexpected': errorMessage = l10n.analysisErrorUnexpected; break;
+        case 'analysisErrorInvalidCategory': errorMessage = l10n.analysisErrorInvalidCategory; break;
         case 'errorBadPhoto': errorMessage = l10n.errorBadPhoto; break;
         case 'errorAiTimeout': errorMessage = l10n.errorAiTimeout; break;
         default: errorMessage = state.message;
@@ -586,12 +606,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         children: [
           // 1. Camera Layer - Only show when mode is selected
           if (_currentIndex != -1) ...[
-            if (_isCameraInitialized && _controller != null)
+            if (_isCameraInitialized && _controller != null && _controller!.value.isInitialized)
               CameraPreview(_controller!)
             else
               Container(color: Colors.black),
+          ],
 
-            // 2. Scan Frame Overlay
+          // 2. Scan Frame Overlay - Show when mode selected OR when we have a captured image
+          if (_currentIndex != -1 || _capturedImage != null)
             Center(
               child: Container(
                 width: 280,
@@ -737,9 +759,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     ],
                   ),
                 ),
-              ),
             ),
-          ],
+          ),
 
 
           // 3. Menu Button (Top Left)

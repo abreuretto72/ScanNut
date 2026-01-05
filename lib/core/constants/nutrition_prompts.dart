@@ -79,6 +79,7 @@ Mandatory Structure:
 }
 
 If the image is not food, return {"error": "not_food"}.
+If the image has no detectable features or information (e.g., a blank wall), return {"error": "not_detected"}.
 ''';
   }
 

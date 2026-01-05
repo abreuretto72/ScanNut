@@ -51,6 +51,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Nombre de la mascota no proporcionado. Modo Mascota cancelado.';
 
   @override
+  String get petUnknown => 'Mascota Desconocida';
+
+  @override
   String get settingsTitle => 'Ajustes';
 
   @override
@@ -291,6 +294,68 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get analysisErrorUnexpected => 'Error inesperado. Inténtelo de nuevo.';
+
+  @override
+  String get analysisErrorInvalidCategory =>
+      '¡La foto difiere de la categoría. La IA puede fallar!';
+
+  @override
+  String get analysisErrorNotDetected =>
+      'No se detectaron cambios o problemas en la imagen.';
+
+  @override
+  String get errorNoInternet => 'Sin conexión a internet. Verifique su red.';
+
+  @override
+  String get errorTimeout => 'La operación tardó demasiado. Inténtelo de novo.';
+
+  @override
+  String get errorAuthentication =>
+      'Error de autenticación. Verifique sus credenciais.';
+
+  @override
+  String get errorNotFound => 'Recurso no encontrado. Inténtelo de novo.';
+
+  @override
+  String get errorServer =>
+      'Error en el servidor. Inténtelo de novo en unos momentos.';
+
+  @override
+  String get errorImageTooLarge =>
+      'Imagen demasiado grande. Intente con una foto más pequeña.';
+
+  @override
+  String get errorInvalidImage => 'Imagen inválida. Tome una nueva foto.';
+
+  @override
+  String get errorConfiguration =>
+      'Error de configuración. Contacte con soporte.';
+
+  @override
+  String get errorPermissionDenied =>
+      'Permiso denegado. Verifique la configuración.';
+
+  @override
+  String get errorNoStorage => 'Espacio insuficiente en el dispositivo.';
+
+  @override
+  String get errorCamera => 'Error al acceder a la cámara.';
+
+  @override
+  String get errorLocation => 'Error al acceder a la ubicación.';
+
+  @override
+  String get errorDatabase => 'Error al guardar datos localmente.';
+
+  @override
+  String get errorJsonParse => 'Error al procesar la respuesta de la IA.';
+
+  @override
+  String get errorIncompleteData => 'Datos incompletos recibidos.';
+
+  @override
+  String get errorGeneric =>
+      '¡Ups! Algo salió mal. Sus datos están seguros. Inténtelo de novo.';
 
   @override
   String get loadingFood => 'Analizando alimento...';
@@ -979,6 +1044,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get commonDelete => 'Eliminar';
+
+  @override
+  String get commonYes => 'Sí';
+
+  @override
+  String get commonNo => 'No';
 
   @override
   String get linkError => 'No se pudo abrir el enlace.';
@@ -2249,7 +2320,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Nuestra IA está analizando cuidadosamente... ¡un momento!';
 
   @override
-  String get aiCalculatingMetrics => 'Calculando métricas personalizadas...';
+  String get aiCalculatingMetrics => 'Generando menú semanal...';
 
   @override
   String get examBlood => 'Análisis de Sangre';
@@ -3702,4 +3773,376 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get partnersBtnLink => 'Vincular';
+
+  @override
+  String get backupGoogleDrive => 'Copia de Seguridad en Google Drive';
+
+  @override
+  String get backupSignIn => 'Conectar a Google Drive';
+
+  @override
+  String get backupSignOut => 'Desconectar';
+
+  @override
+  String get backupCreate => 'Hacer Copia Ahora';
+
+  @override
+  String get backupRestore => 'Restaurar Datos';
+
+  @override
+  String get backupDelete => 'Eliminar Copia';
+
+  @override
+  String get backupDeleteAll => 'Eliminar Todos los Datos';
+
+  @override
+  String get backupStatus => 'Estado de la Copia';
+
+  @override
+  String get backupLastBackup => 'Última copia';
+
+  @override
+  String get backupNoBackup => 'No se encontró ninguna copia';
+
+  @override
+  String get backupSignedInAs => 'Conectado como';
+
+  @override
+  String get backupNotSignedIn => 'No conectado';
+
+  @override
+  String get backupInProgress => 'Haciendo copia...';
+
+  @override
+  String get backupSuccess => '¡Copia completada con éxito!';
+
+  @override
+  String get backupFailed => 'Fallo en la copia. Inténtelo de nuevo.';
+
+  @override
+  String get backupRestoreInProgress => 'Restaurando datos...';
+
+  @override
+  String get backupRestoreSuccess =>
+      '¡Datos restaurados con éxito! Reinicie la aplicación para garantizar la integridad total.';
+
+  @override
+  String get backupRestoreFailed =>
+      'Fallo en la restauración. Inténtelo de nuevo.';
+
+  @override
+  String get backupDeleteConfirmTitle => '¿Eliminar Copia?';
+
+  @override
+  String get backupDeleteConfirmBody =>
+      '¿Está seguro de que desea eliminar la copia de Google Drive?';
+
+  @override
+  String get backupDeleteSuccess => 'Copia eliminada de Google Drive';
+
+  @override
+  String get backupDeleteFailed => 'Fallo al eliminar copia';
+
+  @override
+  String get backupDeleteAllConfirmTitle => '¿Eliminar TODOS los Datos?';
+
+  @override
+  String get backupDeleteAllConfirmBody =>
+      '¿Está seguro? Esta acción eliminará permanentemente todas sus mascotas e historial del móvil y de Google Drive. Esta acción no se puede deshacer.';
+
+  @override
+  String get backupDeleteAllSuccess => 'Todos los datos han sido eliminados';
+
+  @override
+  String get backupDeleteAllFailed => 'Fallo al eliminar datos';
+
+  @override
+  String get backupLoginCancelled => 'Login cancelado';
+
+  @override
+  String get backupDriveFullError =>
+      'Google Drive lleno. Libere espacio e inténtelo de nuevo.';
+
+  @override
+  String get backupNetworkError => 'Sin conexión a internet. Verifique su red.';
+
+  @override
+  String get backupDescription =>
+      'Sus datos se guardan de forma segura y privada en la carpeta oculta de la app en su Google Drive. Solo usted tiene acceso.';
+
+  @override
+  String get petBreedUnknown => 'Raça não identificada';
+
+  @override
+  String get petSRD => 'Sem Raça Definida (SRD)';
+
+  @override
+  String get agendaNoAttendants => 'Sem membros na equipe';
+
+  @override
+  String get petAnalysisResults => 'Resultados Análise';
+
+  @override
+  String get petAnalysisEmpty => 'Nenhuma análise registrada.';
+
+  @override
+  String get petAnalysisDateUnknown => 'Data não registrada';
+
+  @override
+  String get petAnalysisProfileDate => ' (Data do Perfil)';
+
+  @override
+  String get petAnalysisViewImage => 'Ver Imagem Analisada';
+
+  @override
+  String get commonFileNotFound => 'Arquivo não encontrado no dispositivo.';
+
+  @override
+  String get petAnalysisDefaultTitle => 'ANÁLISIS';
+
+  @override
+  String get errorScreenTitle => '¡Vaya! Algo salió mal.';
+
+  @override
+  String get errorScreenBody =>
+      'Se produjo un error al procesar su solicitud. No se preocupe, sus datos están seguros.';
+
+  @override
+  String get errorScreenButton => 'Volver';
+
+  @override
+  String get errorScreenTechnicalDetails => 'Detalles técnicos:';
+
+  @override
+  String get backupSectionTitle => '💾 Copia de Seguridad';
+
+  @override
+  String get helpBackupRestoreSecurity =>
+      '🔒 Seguridad: La copia está cifrada. Para restaurar, debe haber iniciado sesión con la misma cuenta que creó el archivo.';
+
+  @override
+  String get helpSecurityEndToEnd => 'Cifrado de Extremo a Extremo';
+
+  @override
+  String get helpSecurityAes => '✅ Base de Datos AES-256 (Estándar Bancario)';
+
+  @override
+  String get helpSecurityKey => '✅ Clave derivada de su contraseña personal';
+
+  @override
+  String get helpSecurityAccess =>
+      '✅ Solo usted (el propietario del inicio de sesión) accede a los datos';
+
+  @override
+  String get helpSecurityBackupProtection =>
+      '✅ Misma protección aplicada a las copias exportadas';
+
+  @override
+  String get backupSuccessTitle => '¡Copia de Seguridad Completada!';
+
+  @override
+  String get backupSuccessBody =>
+      'Su archivo de copia de seguridad se ha guardado correctamente. Puede encontrarlo en la carpeta seleccionada.';
+
+  @override
+  String get backupErrorGeneric =>
+      'Operación cancelada o fallida. Intente seleccionar otra carpeta (como Descargas) o use Compartir.';
+
+  @override
+  String get backupSecurityNotice =>
+      'Las copias están cifradas con su contraseña actual. Solo el propietario del inicio de sesión original puede restaurar estos datos.';
+
+  @override
+  String get backupTechnicalErrorTitle => 'Error Técnico';
+
+  @override
+  String backupTechnicalErrorBody(String error) {
+    return 'Error al exportar:\n\n$error\n\nVerifique los permisos del sistema.';
+  }
+
+  @override
+  String get backupExcellent => 'Excelente';
+
+  @override
+  String get backupShare => 'Compartir';
+
+  @override
+  String get backupSave => 'Guardar';
+
+  @override
+  String get backupImport => 'Importar Copia';
+
+  @override
+  String get backupLocalTitle => 'Copia de Seguridad Local';
+
+  @override
+  String get backupDescriptionText =>
+      'Exporte sus datos a un archivo o restaure desde una copia anterior. Recomendamos guardar en la carpeta Descargas.';
+
+  @override
+  String get backupPermissionError =>
+      'Se requiere permiso de archivos para exportar.';
+
+  @override
+  String get backupRestoreConfirmTitle => '¿Restaurar Copia?';
+
+  @override
+  String get backupRestoreConfirmBody =>
+      'Esta acción reemplazará todos los datos actuales con los datos do arquivo. ¿Desea continuar?';
+
+  @override
+  String get backupRestoreError =>
+      'Error al importar la copia de seguridad. Verifique si el archivo es válido.';
+
+  @override
+  String get helpBackupExportTitle => 'Exportar Copia de Seguridad';
+
+  @override
+  String get helpBackupExportDesc =>
+      '1. Vaya a Ajustes → Copia de Seguridad\n2. Haga clic en \"Exportar\"\n3. Elija la carpeta \"Descargas\" y guarde el archivo .scannut\n\n✅ Sus datos están guardados en un archivo seguro en su móvil';
+
+  @override
+  String get helpBackupImportTitle => 'Restaurar Copia de Seguridad';
+
+  @override
+  String get helpBackupImportDesc =>
+      '1. Vaya a Ajustes → Copia de Seguridad\n2. Haga clic en \"Importar\"\n3. Seleccione el archivo .scannut';
+
+  @override
+  String get helpSecurityTitle => 'PROTECCIÓN Y CIFRADO';
+
+  @override
+  String get helpSecuritySubtitle =>
+      'La base de datos está protegida localmente. Mantenga su copia de seguridad actualizada para evitar la pérdida de la clave de acceso.';
+
+  @override
+  String get helpSecurityAesItem =>
+      '🔒 Cifrado AES-256: Sus datos se mezclan para garantizar que nadie pueda leer el archivo fuera de esta aplicación.';
+
+  @override
+  String get helpSecurityKeyItem =>
+      '🔑 Clave de Seguridad: La aplicación genera una clave única guardada en el almacenamiento seguro de su teléfono.';
+
+  @override
+  String get helpSecurityWarningItem =>
+      '⚠️ Atención: Si borra todos los datos del sistema o formatea el teléfono sin una copia de seguridad externa, la clave puede perderse y los datos serán inaccesibles.';
+
+  @override
+  String get helpProSection => '💎 ScanNut Pro';
+
+  @override
+  String get helpPrivacySection => '🔒 Privacidad y Seguridad';
+
+  @override
+  String get helpProBenefitsTitle => 'Beneficios de la Suscripción';
+
+  @override
+  String get helpProBenefitsList =>
+      '✅ Análisis ilimitados\n✅ Informes PDF completos\n✅ Planes de alimentación personalizados\n✅ Red de socios ampliada\n✅ Soporte prioritario';
+
+  @override
+  String get helpAppBarTitle => 'Ayuda y Documentación';
+
+  @override
+  String get helpWelcomeTitle => '¡Bienvenido a ScanNut!';
+
+  @override
+  String get helpWelcomeSubtitle =>
+      'Su asistente visual de IA para alimentos, plantas y mascotas';
+
+  @override
+  String get helpPetModule => '🐾 Módulo de Mascotas';
+
+  @override
+  String get helpPlantModule => '🌿 Módulo de Plantas';
+
+  @override
+  String get helpFoodModule => '🍎 Módulo de Alimentos';
+
+  @override
+  String get helpFaqSection => '❓ Preguntas Frecuentes';
+
+  @override
+  String get helpSupportSection => '📞 Soporte';
+
+  @override
+  String get helpFooter =>
+      'Desarrollado con ❤️ por Abreu Retto\n© 2026 ScanNut';
+
+  @override
+  String get helpPetBreedTitle => 'Identificación de Raza';
+
+  @override
+  String get helpPetBreedDesc =>
+      'Tome una foto de su mascota y reciba:\n• Identificación de la raza\n• Perfil biológico completo\n• Recomendaciones de cuidado\n• Plan de alimentación personalizado';
+
+  @override
+  String get helpPetWoundTitle => 'Análisis de Heridas';
+
+  @override
+  String get helpPetWoundDesc =>
+      'Triaje visual de lesiones:\n• Descripción clínica detallada\n• Posibles causas\n• Nivel de urgencia (Verde/Amarillo/Rojo)\n• Primeros auxilios\n⚠️ ¡NO sustituye la consulta veterinaria!';
+
+  @override
+  String get helpPetDossierTitle => 'Expediente Médico Completo';
+
+  @override
+  String get helpPetDossierDesc =>
+      'Gestione la salud de su mascota:\n• Historial de vacunas\n• Monitoreo de peso\n• Análisis de laboratorio (OCR)\n• Agenda de eventos\n• Red de apoyo (vets, pet shops)';
+
+  @override
+  String get helpPlantIdTitle => 'Identificación Botánica';
+
+  @override
+  String get helpPlantIdDesc =>
+      'Descubra todo sobre las plantas:\n• Nombre científico y popular\n• Familia botánica\n• Cuidados necesarios (agua, luz, suelo)\n• Toxicidad para mascotas y niños\n• Poderes biofílicos';
+
+  @override
+  String get helpFoodAnalysisTitle => 'Análisis Nutricional';
+
+  @override
+  String get helpFoodAnalysisDesc =>
+      'Información nutricional instantánea:\n• Calorías, proteínas, carbohidratos, grasas\n• Comparación con metas diarias\n• Historial de análisis\n• Planificación semanal';
+
+  @override
+  String get helpNeedSupportTitle => '¿Necesita Ayuda?';
+
+  @override
+  String get helpSupportDesc =>
+      '📧 Email: abreuretto72@gmail.com\n🌐 GitHub: github.com/abreuretto72/ScanNut\n📱 Versión: 1.0.0';
+
+  @override
+  String get faqOfflineQ => '¿La aplicación funciona sin conexión?';
+
+  @override
+  String get faqOfflineA =>
+      'No. ScanNut necesita internet para enviar fotos a la IA de Google Gemini y recibir análisis.';
+
+  @override
+  String get faqPhotosQ => '¿Se guardan mis fotos?';
+
+  @override
+  String get faqPhotosA =>
+      'No. Las fotos se envían para su análisis y se eliminan automáticamente después del procesamiento. Solo los resultados se guardan en el historial.';
+
+  @override
+  String get faqDevicesQ => '¿Puedo usarlo en varios teléfonos?';
+
+  @override
+  String get faqDevicesA =>
+      'Actualmente, ScanNut guarda los datos localmente en su dispositivo.';
+
+  @override
+  String get faqWoundQ => '¿El análisis de heridas sustituye al veterinario?';
+
+  @override
+  String get faqWoundA =>
+      '¡NO! El análisis es solo un triaje informativo. SIEMPRE consulte a un veterinario para el diagnóstico y tratamiento.';
+
+  @override
+  String get privacySecurityTitle => 'Seguridad y Protección de Datos';
+
+  @override
+  String get privacySecurityBody =>
+      'ScanNut prioriza la privacidad del usuario a través de una arquitectura de datos local. Utilizamos cifrado de grado militar (AES-256) para cifrar la base de datos almacenada en su dispositivo. Las claves de seguridad se mantienen en un entorno aislado (Keystore/Keychain), lo que garantiza que, incluso en caso de pérdida del dispositivo, los datos permaneciam inaccesibles sin las credenciales o claves del sistema adecuadas.\n\nEl usuario es consciente de que, dado que no utilizamos almacenamiento en la nube, el mantenimiento y la seguridad de los archivos de Copia de Seguridad Local exportados son de su exclusiva responsabilidad.';
 }

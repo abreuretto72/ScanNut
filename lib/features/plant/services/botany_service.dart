@@ -21,23 +21,23 @@ class BotanyService {
   Box<BotanyHistoryItem>? _box;
 
   /// Guaranteed Opening Pattern
-  Future<Box<BotanyHistoryItem>> _ensureBox() async {
+  Future<Box<BotanyHistoryItem>> _ensureBox({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return _box!;
     try {
       if (!Hive.isAdapterRegistered(21)) {
         Hive.registerAdapter(BotanyHistoryItemAdapter());
       }
-      _box = await Hive.openBox<BotanyHistoryItem>(boxName);
-      debugPrint('✅ BotanyService: box_plants_history initialized.');
+      _box = await Hive.openBox<BotanyHistoryItem>(boxName, encryptionCipher: cipher);
+      debugPrint('✅ BotanyService: box_plants_history initialized (Secure).');
       return _box!;
     } catch (e) {
-      debugPrint('❌ Error initializing BotanyService: $e');
+      debugPrint('❌ Error initializing Secure BotanyService: $e');
       rethrow;
     }
   }
 
-  Future<void> init() async {
-    await _ensureBox();
+  Future<void> init({HiveCipher? cipher}) async {
+    await _ensureBox(cipher: cipher);
   }
 
   ValueListenable<Box<BotanyHistoryItem>>? get listenable => _box?.listenable();

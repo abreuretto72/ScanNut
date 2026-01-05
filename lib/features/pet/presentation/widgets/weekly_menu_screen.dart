@@ -92,26 +92,32 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
              _guidelines ??= widget.generalGuidelines;
           }
 
-          // AGORA: Suplementar com dados do MealPlanService (Usando petId = petName norm)
+          // AGORA: Suplementar com dados do MealPlanService (Histórico)
+          // Mas manter separado do plano ativo para evitar confusão
+          List<Map<String, dynamic>> historyItems = [];
           try {
               final mealPlanService = MealPlanService();
               await mealPlanService.init();
               final historicalPlans = await mealPlanService.getPlansForPet(widget.petName.trim().toLowerCase());
               
               for (var plan in historicalPlans) {
-                  // Converter model para o formato Map esperado pela UI/Export
+                  // Se o plano histórico coincide com o plano salvo no perfil (mesma data de início), ignoramos
+                  if (_savedStartDate != null && plan.startDate.day == _savedStartDate!.day && plan.startDate.month == _savedStartDate!.month) {
+                      continue; 
+                  }
+
                   for (var m in plan.meals) {
                       final itemDate = plan.startDate.add(Duration(days: m.dayOfWeek - 1));
                       final dayKey = DateFormat('dd/MM').format(itemDate);
                       
-                      // Só adicionar se ainda não tivermos esse dia no allItems ou for de semana diferente
-                      // Simplificação: vamos adicionar todos os históricos que não conflitem exatamente
-                      allItems.add({
+                      historyItems.add({
                           'dia': "${DateFormat('EEEE', AppLocalizations.of(context)!.localeName).format(itemDate)} - $dayKey",
                           'refeicoes': [
                               {'hora': m.time, 'titulo': m.title, 'descricao': m.description}
                           ],
                           'beneficio': m.benefit,
+                          'is_history': true, // Mark as history
+                          'date_link': itemDate,
                       });
                   }
               }
@@ -119,7 +125,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
               debugPrint('Error loading historical plans: $e');
           }
 
-          _splitPlanByWeeks(allItems);
+          _splitPlanByWeeks(allItems, historyItems);
 
       } catch (e) {
           debugPrint('Error loading menu: $e');
@@ -128,7 +134,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
       }
   }
 
-  void _splitPlanByWeeks(List<Map<String, dynamic>> allItems) {
+  void _splitPlanByWeeks(List<Map<String, dynamic>> mainPlan, List<Map<String, dynamic>> historyItems) {
       _pastPlan = [];
       _currentPlan = [];
       _nextPlan = [];
@@ -136,67 +142,96 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       
-      // Calculate Current Week boundaries (Monday to Sunday)
-      final currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
-      
-      // FALLBACK: Se não temos data salva no perfil, assumimos que o cardápio atual começa na segunda desta semana
-      _savedStartDate ??= currentWeekStart;
+      // Calculate Current Week boundaries
+      // Se hoje for domingo, a "Semana Atual" para visualização de planejamento costuma ser a que começa AMANHÃ
+      // ou a que está terminando hoje. Para o ScanNut, se temos um plano para amanhã, ele deve ser o "Current".
+      DateTime currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
+      if (today.weekday == 7) { 
+          // Se hoje é domingo, e temos dados para amanhã (Segunda), vamos considerar a semana que inicia amanhã como Current
+          currentWeekStart = today.add(const Duration(days: 1));
+      }
       
       final currentWeekEnd = currentWeekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
       
-      final List<Map<String, dynamic>> sortedItems = [];
-      
-      for (int i = 0; i < allItems.length; i++) {
-          final item = Map<String, dynamic>.from(allItems[i]);
-          String diaOriginal = item['dia']?.toString() ?? '';
-          
-          DateTime? itemDate;
-          
-          // 1. Tentar extrair de DD/MM no campo 'dia'
-          final regex = RegExp(r'(\d{1,2})\s*/\s*(\d{1,2})');
-          final match = regex.firstMatch(diaOriginal);
-          
-          if (match != null) {
-              final day = int.parse(match.group(1)!);
-              final month = int.parse(match.group(2)!);
-              int year = today.year;
-              
-              if (_savedStartDate != null) {
-                  year = _savedStartDate!.year;
-                  if (month < _savedStartDate!.month && (_savedStartDate!.month - month) > 6) year++;
-                  if (month > _savedStartDate!.month && (month - _savedStartDate!.month) > 6) year--;
-              } else {
-                  if (today.month == 12 && month == 1) year++;
-                  if (today.month == 1 && month == 12) year--;
-              }
-              itemDate = DateTime(year, month, day);
-          } 
-          // 2. Se não encontrou, mas temos data_inicio_semana e o item é novo
-          else if (_savedStartDate != null) {
-              itemDate = _savedStartDate!.add(Duration(days: i));
-              // Corrigir o label se estiver faltando a data
-              if (!diaOriginal.contains('/')) {
-                  final weekDayName = DateFormat('EEEE', AppLocalizations.of(context)!.localeName).format(itemDate);
-                  final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
-                  item['dia'] = "$weekDayCap - ${DateFormat('dd/MM').format(itemDate)}";
-              }
-          } else {
-              itemDate = today; // Fallback
-          }
+      // 1. Process Main Plan (Priority for Current/Next)
+      for (int i = 0; i < mainPlan.length; i++) {
+          final item = Map<String, dynamic>.from(mainPlan[i]);
+          DateTime? itemDate = _parseDateFromItem(item, i, _savedStartDate ?? today);
 
-          if (itemDate.isBefore(currentWeekStart)) {
-              _pastPlan.add(item);
-          } else if (itemDate.isAfter(currentWeekEnd)) {
-              _nextPlan.add(item);
-          } else {
-              _currentPlan.add(item);
+          if (itemDate != null) {
+              if (itemDate.isBefore(currentWeekStart)) {
+                  _pastPlan.add(item);
+              } else if (itemDate.isAfter(currentWeekEnd)) {
+                  _nextPlan.add(item);
+              } else {
+                  _currentPlan.add(item);
+              }
+          }
+      }
+
+      // 2. Process History Items (Only for Past or Next if strictly applicable)
+      for (var item in historyItems) {
+          DateTime? itemDate = item['date_link'] as DateTime?;
+          
+          if (itemDate != null) {
+              if (itemDate.isBefore(currentWeekStart)) {
+                  _pastPlan.add(item);
+              } else if (itemDate.isAfter(currentWeekEnd)) {
+                  // Evitar poluir o 'Next' com lixo histórico, a menos que seja realmente no futuro
+                  if (itemDate.isAfter(today.add(const Duration(days: 7)))) {
+                      _nextPlan.add(item);
+                  }
+              } else {
+                  // Se o histórico cai na semana atual, mas não está no Main Plan, ignoramos para evitar "fantasmia"
+                  // A menos que o Main Plan esteja vazio.
+                  if (_currentPlan.isEmpty) {
+                      _currentPlan.add(item);
+                  }
+              }
           }
       }
       
-      // Ordenar cada balde por data
-      _pastPlan.sort((a,b) => _extractDate(a).compareTo(_extractDate(b)));
-      _currentPlan.sort((a,b) => _extractDate(a).compareTo(_extractDate(b)));
-      _nextPlan.sort((a,b) => _extractDate(a).compareTo(_extractDate(b)));
+      // Ordenar e remover duplicados por dia/mês
+      _pastPlan = _deduplicateAndSort(_pastPlan);
+      _currentPlan = _deduplicateAndSort(_currentPlan);
+      _nextPlan = _deduplicateAndSort(_nextPlan);
+  }
+
+  List<Map<String, dynamic>> _deduplicateAndSort(List<Map<String, dynamic>> items) {
+      final Map<String, Map<String, dynamic>> unique = {};
+      for (var item in items) {
+          final date = _parseDateFromItem(item, 0, DateTime.now());
+          if (date != null) {
+              final key = DateFormat('yyyyMMdd').format(date);
+              // Preferir o item do plano ativo (sem is_history)
+              if (!unique.containsKey(key) || (item['is_history'] != true && unique[key]?['is_history'] == true)) {
+                  unique[key] = item;
+              }
+          }
+      }
+      final sorted = unique.values.toList();
+      sorted.sort((a, b) => _extractDate(a).compareTo(_extractDate(b)));
+      return sorted;
+  }
+
+  DateTime? _parseDateFromItem(Map<String, dynamic> item, int indexOffset, DateTime anchor) {
+      if (item['date_link'] != null) return item['date_link'] as DateTime;
+      
+      String diaOriginal = item['dia']?.toString() ?? '';
+      final regex = RegExp(r'(\d{1,2})\s*/\s*(\d{1,2})');
+      final match = regex.firstMatch(diaOriginal);
+      
+      if (match != null) {
+          final day = int.parse(match.group(1)!);
+          final month = int.parse(match.group(2)!);
+          int year = anchor.year;
+          // Ajuste básico de virada de ano
+          if (anchor.month == 12 && month == 1) year++;
+          if (anchor.month == 1 && month == 12) year--;
+          return DateTime(year, month, day);
+      }
+      
+      return anchor.add(Duration(days: indexOffset));
   }
 
   DateTime _extractDate(Map<String, dynamic> item) {

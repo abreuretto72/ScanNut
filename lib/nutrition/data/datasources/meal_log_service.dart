@@ -10,12 +10,12 @@ class MealLogService {
   Box<MealLog>? _box;
 
   /// Inicializa o box
-  Future<void> init() async {
+  Future<void> init({HiveCipher? cipher}) async {
     try {
-      _box = await Hive.openBox<MealLog>(_boxName);
-      debugPrint('✅ MealLogService initialized. Box Open: ${_box?.isOpen}');
+      _box = await Hive.openBox<MealLog>(_boxName, encryptionCipher: cipher);
+      debugPrint('✅ MealLogService initialized (Secure). Box Open: ${_box?.isOpen}');
     } catch (e) {
-      debugPrint('❌ Error initializing MealLogService: $e');
+      debugPrint('❌ Error initializing Secure MealLogService: $e');
       rethrow;
     }
   }

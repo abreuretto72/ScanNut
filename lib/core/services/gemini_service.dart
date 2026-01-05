@@ -4,11 +4,13 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import '../enums/scannut_mode.dart';
 import '../utils/prompt_factory.dart';
 
 class GeminiService {
   late final Dio _dio;
+  static String? _cachedModel;
   final String _apiKey;
   final String _baseUrl = 'https://generativelanguage.googleapis.com';
 
@@ -25,6 +27,8 @@ class GeminiService {
 
   /// Find working model
   Future<String?> _findWorkingModel() async {
+    if (_cachedModel != null) return _cachedModel;
+
     final modelsToTry = [
       'gemini-1.5-flash',
       'gemini-2.0-flash-exp',
@@ -33,6 +37,7 @@ class GeminiService {
 
     for (final model in modelsToTry) {
       try {
+        debugPrint('🔍 Testando modelo: $model');
         final response = await _dio.post(
           '/v1beta/models/$model:generateContent',
           queryParameters: {'key': _apiKey},
@@ -45,18 +50,52 @@ class GeminiService {
               }
             ],
           },
-        ).timeout(const Duration(seconds: 10));
+        ).timeout(const Duration(seconds: 8));
 
         if (response.statusCode == 200) {
-          debugPrint('✅ Modelo disponível: $model');
+          debugPrint('✅ Modelo selecionado e cacheado: $model');
+          _cachedModel = model;
           return model;
         }
       } catch (e) {
+        debugPrint('⚠️ Modelo $model indisponível: $e');
         continue;
       }
     }
 
     return null;
+  }
+
+  /// 🛡️ Compress image ALWAYS to prevent 400 errors
+  Future<Uint8List> _compressImage(File imageFile, Uint8List originalBytes) async {
+    try {
+      final sizeKB = originalBytes.length / 1024;
+      
+      debugPrint('🗜️ Comprimindo imagem de ${sizeKB.toStringAsFixed(2)} KB...');
+      
+      // 🛡️ SEMPRE comprimir para 1024px para evitar erro 400
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        imageFile.absolute.path,
+        quality: 85,
+        minWidth: 1024,  // ← Reduzido de 1920 para 1024
+        minHeight: 1024, // ← Reduzido de 1920 para 1024
+        format: CompressFormat.jpeg,
+      );
+
+      if (compressedBytes == null) {
+        debugPrint('⚠️ Falha na compressão, usando original');
+        return originalBytes;
+      }
+
+      final newSizeKB = compressedBytes.length / 1024;
+      final reduction = ((sizeKB - newSizeKB) / sizeKB * 100).toStringAsFixed(1);
+      debugPrint('✅ Comprimido para ${newSizeKB.toStringAsFixed(2)} KB (${reduction}% redução)');
+      
+      return compressedBytes;
+    } catch (e) {
+      debugPrint('⚠️ Erro na compressão: $e. Usando imagem original.');
+      return originalBytes;
+    }
   }
 
   /// Analyze image with robust error handling
@@ -84,7 +123,7 @@ class GeminiService {
       }
 
       // Read and validate image
-      final imageBytes = await imageFile.readAsBytes();
+      var imageBytes = await imageFile.readAsBytes();
       if (imageBytes.isEmpty) {
         throw GeminiException(
           'Imagem vazia ou corrompida',
@@ -100,7 +139,10 @@ class GeminiService {
         );
       }
 
-      debugPrint('📦 Imagem: ${sizeKB.toStringAsFixed(2)} KB');
+      debugPrint('📦 Imagem original: ${sizeKB.toStringAsFixed(2)} KB');
+
+      // Compress image if larger than 1MB
+      imageBytes = await _compressImage(imageFile, imageBytes);
 
       // Find working model
       final workingModel = await _findWorkingModel();
@@ -174,18 +216,44 @@ class GeminiService {
       final duration = DateTime.now().difference(startTime);
       debugPrint('⚡ Resposta em: ${duration.inMilliseconds}ms');
 
-      // Validate response
+      // 🛡️ BLINDAGEM TOTAL - Nunca expor códigos técnicos
       if (response.statusCode != 200) {
-        if (response.statusCode == 400) {
-          throw GeminiException(
-             'Bad Request',
-             type: GeminiErrorType.badRequest, // Maps to errorBadPhoto
-          );
+        debugPrint('❌ HTTP Error: ${response.statusCode}');
+        
+        // Mapear TODOS os códigos para mensagens amigáveis
+        String userMessage;
+        GeminiErrorType errorType;
+        
+        switch (response.statusCode) {
+          case 400:
+            userMessage = 'A foto não ficou clara o suficiente. Tente tirar outra com mais luz e foco!';
+            errorType = GeminiErrorType.badRequest;
+            break;
+          case 401:
+          case 403:
+            userMessage = 'Erro de autenticação. Verifique sua conexão e tente novamente.';
+            errorType = GeminiErrorType.authError;
+            break;
+          case 404:
+            userMessage = 'Serviço temporariamente indisponível. Tente novamente em alguns instantes.';
+            errorType = GeminiErrorType.serverError;
+            break;
+          case 429:
+            userMessage = 'Muitas requisições. Aguarde alguns segundos e tente novamente.';
+            errorType = GeminiErrorType.rateLimitError;
+            break;
+          case 500:
+          case 502:
+          case 503:
+            userMessage = 'Servidor temporariamente indisponível. Tente novamente em alguns instantes.';
+            errorType = GeminiErrorType.serverError;
+            break;
+          default:
+            userMessage = 'Não foi possível completar a análise. Verifique sua conexão e tente novamente.';
+            errorType = GeminiErrorType.serverError;
         }
-        throw GeminiException(
-          'Erro HTTP: ${response.statusCode}',
-          type: GeminiErrorType.serverError,
-        );
+        
+        throw GeminiException(userMessage, type: errorType);
       }
 
       final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
@@ -206,24 +274,10 @@ class GeminiService {
 
       // Parse JSON with error handling
       try {
-        String jsonString = text;
-        
-        if (jsonString.contains('```json')) {
-          jsonString = jsonString.split('```json').last.split('```').first.trim();
-        } else if (jsonString.contains('```')) {
-          jsonString = jsonString.split('```').last.split('```').first.trim();
-        } else {
-          jsonString = jsonString.trim();
-        }
-
-
-        final jsonResponse = jsonDecode(jsonString) as Map<String, dynamic>;
+        final jsonResponse = _extractJson(text);
 
         if (jsonResponse.containsKey('error')) {
-          throw GeminiException(
-            'Erro da IA: ${jsonResponse['error']}',
-            type: GeminiErrorType.aiError,
-          );
+          debugPrint('⚠️ domain error: ${jsonResponse['error']}');
         }
 
         debugPrint('✅ JSON parseado com sucesso');
@@ -270,8 +324,8 @@ class GeminiService {
       
       if (e.response?.statusCode == 404) {
         throw GeminiException(
-          'Modelo não encontrado',
-          type: GeminiErrorType.notFound,
+          'Serviço temporariamente indisponível. Tente novamente em alguns instantes.',
+          type: GeminiErrorType.serverError,
         );
       }
       
@@ -351,7 +405,7 @@ class GeminiService {
         ],
          'generationConfig': {
            'temperature': 0.4,
-           'maxOutputTokens': 2048,
+           'maxOutputTokens': 4096, // Increased for longer menus
          },
       };
 
@@ -397,24 +451,10 @@ class GeminiService {
 
       // Parse JSON with error handling
       try {
-        String jsonString = text;
-        
-        if (jsonString.contains('```json')) {
-          jsonString = jsonString.split('```json').last.split('```').first.trim();
-        } else if (jsonString.contains('```')) {
-          jsonString = jsonString.split('```').last.split('```').first.trim();
-        } else {
-          jsonString = jsonString.trim();
-        }
-
-
-        final jsonResponse = jsonDecode(jsonString) as Map<String, dynamic>;
+        final jsonResponse = _extractJson(text);
 
         if (jsonResponse.containsKey('error')) {
-          throw GeminiException(
-            'Erro da IA: ${jsonResponse['error']}',
-            type: GeminiErrorType.aiError,
-          );
+          debugPrint('⚠️ domain error: ${jsonResponse['error']}');
         }
 
         debugPrint('✅ JSON parseado com sucesso');
@@ -461,8 +501,8 @@ class GeminiService {
       
       if (e.response?.statusCode == 404) {
         throw GeminiException(
-          'Modelo não encontrado',
-          type: GeminiErrorType.notFound,
+          'Serviço temporariamente indisponível. Tente novamente em alguns instantes.',
+          type: GeminiErrorType.serverError,
         );
       }
       
@@ -652,6 +692,33 @@ class GeminiService {
       );
     }
   }
+
+  /// 📐 Robust JSON Extraction Helper
+  Map<String, dynamic> _extractJson(String text) {
+    try {
+      String jsonString = text;
+      
+      // 1. Try to find content between first { and last }
+      if (jsonString.contains('{')) {
+        final firstBrace = jsonString.indexOf('{');
+        final lastBrace = jsonString.lastIndexOf('}');
+        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+          jsonString = jsonString.substring(firstBrace, lastBrace + 1);
+        }
+      }
+      
+      // 2. Remove markdown code blocks if still present
+      jsonString = jsonString
+          .replaceAll('```json', '')
+          .replaceAll('```', '')
+          .trim();
+
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('❌ Failed to extract/decode JSON: $e');
+      throw const FormatException('Invalid JSON format');
+    }
+  }
 }
 
 /// Error types
@@ -660,11 +727,12 @@ enum GeminiErrorType {
   invalidImage,
   timeout,
   network,
-  serverError,
-  notFound,
-  rateLimitExceeded,
   emptyResponse,
   parseError,
+  serverError,
+  rateLimitExceeded,
+  rateLimitError, // Alias para rateLimitExceeded
+  authError, // Erro de autenticação
   aiError,
   serviceUnavailable,
   badRequest,
@@ -685,8 +753,9 @@ class GeminiException implements Exception {
       case GeminiErrorType.network:
         return 'Sem conexão com a internet. Verifique sua rede.';
       case GeminiErrorType.parseError:
+        return 'Erro ao processar resposta da IA. Tente novamente.';
       case GeminiErrorType.badRequest:
-        return 'errorBadPhoto'; // Localized key
+        return 'errorBadPhoto'; // Localized key for image issues
       case GeminiErrorType.serverError:
         return 'Serviço temporariamente indisponível. Tente mais tarde.';
       case GeminiErrorType.invalidImage:

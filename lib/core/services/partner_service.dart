@@ -1,11 +1,11 @@
 import 'dart:math';
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/partner_model.dart';
 import '../../features/pet/models/pet_analysis_result.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:google_maps_apis/places.dart';
+import '../utils/app_logger.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_google_places_sdk/flutter_google_places_sdk.dart' as sdk;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -16,24 +16,31 @@ class PartnerService {
 
   static const String _boxName = 'partners_box';
   Box? _box;
+  sdk.FlutterGooglePlacesSdk? _places;
 
-  Future<void> init() async {
-    if (_box != null && _box!.isOpen) return;
+  Future<void> init({HiveCipher? cipher}) async {
+    if (_box != null && _box!.isOpen && _places != null) return;
     try {
       if (!Hive.isBoxOpen(_boxName)) {
-        _box = await Hive.openBox(_boxName);
+        _box = await Hive.openBox(_boxName, encryptionCipher: cipher);
       } else {
         _box = Hive.box(_boxName);
       }
-      debugPrint('✅ PartnerService initialized (Singleton). Box Open: ${_box?.isOpen}');
+      
+      final apiKey = dotenv.env['GOOGLE_PLACES_API_KEY'];
+      if (apiKey != null && apiKey.isNotEmpty) {
+        _places = sdk.FlutterGooglePlacesSdk(apiKey);
+        logger.info('✅ Places SDK initialized');
+      }
+
+      debugPrint('✅ PartnerService initialized (Secure). Box Open: ${_box?.isOpen}');
     } catch (e, stack) {
-      debugPrint('❌ CRITICAL: Failed to open Partner Box: $e\n$stack');
+      debugPrint('❌ CRITICAL: Failed to open Secure Partner Box: $e\n$stack');
     }
   }
 
   Box get _getBox {
     if (_box == null || !_box!.isOpen) {
-      // Emergency attempt to get the box if supposedly opened elsewhere
       if (Hive.isBoxOpen(_boxName)) {
         _box = Hive.box(_boxName);
         return _box!;
@@ -65,86 +72,117 @@ class PartnerService {
   }
 
   // -------------------------------------------------
-  // Search partners using Google Places API (Google Maps APIs)
+  // Powerful search using Google Places TextSearch + Pagination + Identity Headers
   // -------------------------------------------------
-  // -------------------------------------------------
-  // Search partners using Google Places API (Direct Use via HTTP)
-  // -------------------------------------------------
-  Future<List<PartnerModel>> searchPlaces({
+  Future<List<PartnerModel>> searchPlacesByText({
+    String query = 'veterinario petshop clinica veterinaria',
     required double lat,
     required double lng,
     double radiusMeters = 20000,
+    int maxPages = 3,
   }) async {
     final apiKey = dotenv.env['GOOGLE_PLACES_API_KEY'];
     if (apiKey == null || apiKey.isEmpty) {
+      logger.error('Google Places API key não configurada no .env');
       throw 'Google Places API key não configurada no .env';
     }
 
-    // Protocol 1: Endpoint
-    final url = Uri.parse('https://maps.googleapis.com/maps/api/place/nearbysearch/json'
-        '?location=$lat,$lng'
-        '&radius=$radiusMeters'
-        '&keyword=veterinario|petshop|clinica veterinaria'
-        '&key=$apiKey');
+    final List<PartnerModel> allFound = [];
+    String? nextPageToken;
+    int currentPage = 0;
+
+    // Package Identity Headers for Security/SHA-1 validation
+    final headers = {
+      'X-Android-Package': 'com.multiversodigital.scannut',
+      'X-Android-Cert': 'AC9222DC063FB2A500056B40AE6F3E44E2A95FF6', // Clean SHA-1
+    };
 
     try {
-      debugPrint('📡 Requesting Google Places API: $url'); // BE CAREFUL LOGGING KEYS IN PROD
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      do {
+        currentPage++;
+        logger.info('📡 Efetuando TextSearch (Página $currentPage): Query: "$query"');
         
+        final baseUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+        final params = <String, String>{
+          'query': query,
+          'location': '$lat,$lng',
+          'radius': radiusMeters.toString(),
+          'key': apiKey,
+          'language': 'pt-BR',
+        };
+
+        if (nextPageToken != null) {
+          params['pagetoken'] = nextPageToken;
+          // Google dictates a short delay before the token becomes valid
+          await Future.delayed(const Duration(seconds: 2));
+        }
+
+        final uri = Uri.parse(baseUrl).replace(queryParameters: params);
+        final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 20));
+
+        if (response.statusCode != 200) {
+          throw 'HTTP ${response.statusCode}: ${response.body}';
+        }
+
+        final data = json.decode(response.body);
         if (data['status'] != 'OK' && data['status'] != 'ZERO_RESULTS') {
-             throw 'Google API Error: ${data['status']} - ${data['error_message'] ?? ''}';
+          throw 'Google API Error: ${data['status']} - ${data['error_message'] ?? ''}';
         }
 
         final List results = data['results'] ?? [];
-        debugPrint('✅ Google Places found ${results.length} results');
+        nextPageToken = data['next_page_token'];
 
-        // Protocol 3: Interface results
-        return results.map((r) {
-           final geo = r['geometry']?['location'];
-           final lat = (geo?['lat'] ?? 0.0).toDouble();
-           final lng = (geo?['lng'] ?? 0.0).toDouble();
-           
-           final bool isOpen = r['opening_hours']?['open_now'] ?? false;
-           final num rating = r['rating'] ?? 0.0;
+        final List<PartnerModel> pageItems = results.map((r) {
+          final geo = r['geometry']?['location'];
+          final lat = (geo?['lat'] ?? 0.0).toDouble();
+          final lng = (geo?['lng'] ?? 0.0).toDouble();
+          final bool isOpen = r['opening_hours']?['open_now'] ?? false;
+          final num rating = r['rating'] ?? 0.0;
 
-           return PartnerModel(
-             id: r['place_id'] ?? '',
-             name: r['name'] ?? 'Parceiro Pet',
-             category: 'Veterinário', // Default to a valid category
-             latitude: lat,
-             longitude: lng,
-             phone: '', // Will be fetched on detail if needed
-             whatsapp: '',
-             instagram: '',
-             address: r['vicinity'] ?? '',
-             rating: rating.toDouble(), // Add rating support if PartnerModel has it, else ignore or store in metadata
-             specialties: [],
-             openingHours: {
-               'plantao24h': false, // Can't know for sure from basic search
-               'raw': isOpen ? 'Aberto Agora' : 'Fechado',
-             },
-           );
+          return PartnerModel(
+            id: r['place_id'] ?? '',
+            name: r['name'] ?? 'Parceiro Pet',
+            category: 'Veterinário', 
+            latitude: lat,
+            longitude: lng,
+            phone: '', 
+            whatsapp: '',
+            instagram: '',
+            address: r['formatted_address'] ?? '',
+            rating: rating.toDouble(),
+            specialties: [],
+            openingHours: {
+              'plantao24h': false,
+              'raw': isOpen ? 'Aberto Agora' : 'Fechado',
+            },
+          );
         }).toList();
-      } else {
-        throw 'HTTP Error ${response.statusCode}: ${response.body}';
-      }
-    } catch (e) {
-      debugPrint('❌ Erro na busca Google Places: $e');
-      return [];
+
+        allFound.addAll(pageItems);
+        logger.info('✅ Página $currentPage: Encontrados ${pageItems.length} parceiros.');
+
+      } while (nextPageToken != null && currentPage < maxPages);
+
+      logger.info('🏁 Busca Finalizada: Total de ${allFound.length} parceiros no Radar.');
+      return allFound;
+
+    } catch (e, stack) {
+      logger.error('❌ Erro crítico no TextSearch', error: e, stackTrace: stack);
+      rethrow;
     }
   }
 
-  // Legacy/Alias for compatibility
+  // Legacy/Alias updated to use the new power search
   Future<List<PartnerModel>> discoverNearbyPartners({
     required double lat,
     required double lng,
     double radiusKm = 10.0,
   }) async {
-      // Protocol 2: Execution Logic - GPS checked in UI, now calling search
-      return await searchPlaces(lat: lat, lng: lng, radiusMeters: radiusKm * 1000);
+    return await searchPlacesByText(
+      lat: lat, 
+      lng: lng, 
+      radiusMeters: radiusKm * 1000
+    );
   }
 
   Future<void> deletePartner(String id) async {
