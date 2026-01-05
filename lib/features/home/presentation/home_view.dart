@@ -118,7 +118,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: Colors.black.withValues(alpha: 0.8),
+          backgroundColor: Colors.black.withOpacity(0.8),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
               side: const BorderSide(color: Color(0xFF00E676), width: 1)),
@@ -484,7 +484,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         }
          if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.petSavedSuccess(petName))),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.petSavedSuccess(petName)),
+            backgroundColor: const Color(0xFF5E4B6B),
+          ),
         );
 
         // Auto-Navigation Logic for Diagnosis Mode
@@ -562,7 +565,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppLocalizations.of(context)!.savedSuccess(type))),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.savedSuccess(type)),
+                backgroundColor: const Color(0xFF5E4B6B),
+              ),
             );
         } catch (e) {
             debugPrint('❌ Save error for $type: $e');
@@ -579,7 +585,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   void _handleShop() {
     // Implement shop navigation
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.redirectShop)),
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.redirectShop),
+        backgroundColor: const Color(0xFF5E4B6B),
+      ),
     );
   }
   @override
@@ -619,7 +628,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 width: 280,
                 height: 280,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 3),
+                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 3),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Stack(
@@ -706,7 +715,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.6),
+                    color: Colors.black.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(color: Colors.white24),
                   ),
@@ -770,9 +779,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             child: Builder(
               builder: (context) => Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Colors.black.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.menu, color: Colors.white, size: 28),
@@ -796,9 +805,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // History Button (New)
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.history, color: Colors.white, size: 28),
@@ -815,9 +824,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // Nutrition Module Button (Existing)
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.restaurant_menu, color: Color(0xFFFF6B35), size: 28),
@@ -857,9 +866,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                    // History Button
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.history, color: Colors.white, size: 28),
@@ -888,9 +897,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   if (_currentIndex == 2) ...[
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
+                        color: Colors.black.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
                       ),
                       child: IconButton(
                         icon: const Icon(Icons.calendar_month, color: Color(0xFF00E676), size: 28),
@@ -907,9 +916,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // Partners Button
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.handshake, color: Colors.blueAccent, size: 28),
@@ -925,9 +934,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // History Button
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.pets, color: Colors.white, size: 28),
@@ -954,12 +963,12 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: _petMode == 0 
-                      ? const Color(0xFF00E676).withValues(alpha: 0.9)
-                      : Colors.redAccent.withValues(alpha: 0.9),
+                      ? const Color(0xFF00E676).withOpacity(0.9)
+                      : Colors.redAccent.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
+                      color: Colors.black.withOpacity(0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -1020,7 +1029,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     
                     // Dark Overlay
                     Container(
-                      color: Colors.black.withValues(alpha: 0.7),
+                      color: Colors.black.withOpacity(0.7),
                     ),
 
                     // Loading Content
@@ -1032,7 +1041,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: Colors.white.withOpacity(0.1),
                             ),
                             child: const CircularProgressIndicator(
                               color: Color(0xFF00E676),
@@ -1082,7 +1091,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white, width: 4),
-          color: Colors.white.withValues(alpha: 0.2),
+          color: Colors.white.withOpacity(0.2),
         ),
         padding: const EdgeInsets.all(4),
         child: Container(
@@ -1107,8 +1116,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           child: Container(
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.4),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              color: Colors.black.withOpacity(0.4),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
               borderRadius: BorderRadius.circular(25),
             ),
             child: Row(
@@ -1171,7 +1180,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.2) : Colors.transparent,
+          color: isSelected ? activeColor.withOpacity(0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -1208,7 +1217,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: AlertDialog(
-            backgroundColor: Colors.black.withValues(alpha: 0.8),
+            backgroundColor: Colors.black.withOpacity(0.8),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: const BorderSide(color: Color(0xFF00E676), width: 1)),

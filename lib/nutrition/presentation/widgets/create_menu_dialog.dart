@@ -117,7 +117,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                           }
                         });
                       },
-                      selectedColor: const Color(0xFF00E676).withValues(alpha: 0.3),
+                      selectedColor: const Color(0xFF00E676).withOpacity(0.3),
                       checkmarkColor: const Color(0xFF00E676),
                       labelStyle: GoogleFonts.poppins(
                         color: isSelected ? const Color(0xFF00E676) : Colors.white70,
@@ -218,7 +218,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF00E676).withValues(alpha: 0.2)
+                ? const Color(0xFF00E676).withOpacity(0.2)
                 : Colors.grey.shade800,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(

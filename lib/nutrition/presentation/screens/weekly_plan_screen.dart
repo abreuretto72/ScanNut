@@ -454,9 +454,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.1),
+        color: Colors.orange.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        border: Border.all(color: Colors.orange.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,7 +542,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           child: LinearProgressIndicator(
             value: (cals / 2000).clamp(0.0, 1.0),
             backgroundColor: Colors.white10,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.withValues(alpha: 0.5)),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.withOpacity(0.5)),
             minHeight: 2,
           ),
         ),
@@ -577,7 +577,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isToday ? const Color(0xFF00E676).withValues(alpha: 0.1) : Colors.grey.shade900,
+      color: isToday ? const Color(0xFF00E676).withOpacity(0.1) : Colors.grey.shade900,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
@@ -651,9 +651,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
+        color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -831,7 +831,7 @@ class DayPlanDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
-                  Icon(Icons.circle, size: 6, color: _getMealColor(meal.tipo).withValues(alpha: 0.5)),
+                  Icon(Icons.circle, size: 6, color: _getMealColor(meal.tipo).withOpacity(0.5)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(

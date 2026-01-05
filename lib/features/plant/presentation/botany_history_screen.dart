@@ -115,9 +115,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
-          color: Colors.grey.shade900.withValues(alpha: 0.8),
+          color: Colors.grey.shade900.withOpacity(0.8),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: semaphoreColor.withValues(alpha: 0.3), width: 1.5),
+          border: Border.all(color: semaphoreColor.withOpacity(0.3), width: 1.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +148,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.7),
+                      color: Colors.black.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: semaphoreColor),
                     ),
@@ -195,7 +195,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withValues(alpha: 0.7),
+                            color: Colors.amber.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: Colors.amber, width: 0.5),
                           ),
@@ -221,7 +221,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                   right: 12,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: Colors.black.withOpacity(0.5),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -268,7 +268,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent.withValues(alpha: 0.1),
+                        color: Colors.redAccent.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -359,7 +359,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
             icon: const Icon(Icons.health_and_safety_rounded, size: 18),
             label: Text(l10n.botanyRecovery, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.1),
+              backgroundColor: const Color(0xFF00E676).withOpacity(0.1),
               foregroundColor: const Color(0xFF00E676),
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -395,9 +395,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         shape: BoxShape.circle,
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: IconButton(
         icon: Icon(icon, color: color, size: 20),

@@ -150,12 +150,12 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.blueAccent.withValues(alpha: 0.2), Colors.purpleAccent.withValues(alpha: 0.2)],
+                              colors: [Colors.blueAccent.withOpacity(0.2), Colors.purpleAccent.withOpacity(0.2)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.5)),
+                            border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
                           ),
                           child: Column(
                             children: [
@@ -230,8 +230,8 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        color: color.withOpacity(0.15),
+        border: Border.all(color: color.withOpacity(0.5)),
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(16),
@@ -285,7 +285,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -356,7 +356,10 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                         Navigator.pop(context); // Close Edit
                         Navigator.pop(context); // Close Result
                         ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text('Perfil do pet salvo e atualizado! 🐾')),
+                           const SnackBar(
+                             content: Text('Perfil do pet salvo e atualizado! 🐾'),
+                             backgroundColor: Color(0xFF5E4B6B),
+                           ),
                         );
                     }
                 }

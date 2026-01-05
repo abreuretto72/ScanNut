@@ -68,7 +68,7 @@ class SnackBarHelper {
             ),
           ],
         ),
-        backgroundColor: Colors.green.shade700,
+        backgroundColor: const Color(0xFF5E4B6B),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -103,7 +103,7 @@ class SnackBarHelper {
             ),
           ],
         ),
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: const Color(0xFF5E4B6B),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
