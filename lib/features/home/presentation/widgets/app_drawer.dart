@@ -828,7 +828,7 @@ class AppDrawer extends ConsumerWidget {
               // Footer
               Center(
                 child: Text(
-                  'ScanNut v1.0.0\nDesenvolvido com ❤️ por Abreu Retto',
+                  'ScanNut v1.5.1\nDesenvolvido com ❤️ por Abreu Retto',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     color: Colors.white38,
