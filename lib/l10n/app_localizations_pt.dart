@@ -4362,6 +4362,79 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get helpMenuTipDesc =>
       'Sempre revise o resumo antes de gerar um cardápio.\nAssim você garante que o período, o objetivo e as preferências estão corretos.';
+
+  @override
+  String get petAnalysisDisclaimer =>
+      'Este conteúdo é gerado por IA e deve ser usado apenas como referência informativa. Não substitui o diagnóstico veterinário profissional.';
+
+  @override
+  String get petLabelUrgencyLevel => 'Nível de Urgência';
+
+  @override
+  String get petLabelConfidence => 'Confiabilidade';
+
+  @override
+  String get petLabelDiagnosis => 'Diagnóstico';
+
+  @override
+  String get petLabelVisualAspects => 'Aspectos Visuais';
+
+  @override
+  String get petLabelPossibleCauses => 'Causas Possíveis';
+
+  @override
+  String get petLabelRecommendations => 'Recomendações';
+
+  @override
+  String get petLabelBreed => 'Raça';
+
+  @override
+  String get petLabelSpecies => 'Espécie';
+
+  @override
+  String get petLabelColor => 'Cor';
+
+  @override
+  String get petLabelCoatType => 'Tipo de Pelo';
+
+  @override
+  String get petLabelSize => 'Porte';
+
+  @override
+  String get petLabelLifeExpectancy => 'Expectativa de Vida';
+
+  @override
+  String get petLabelOrigin => 'Origem';
+
+  @override
+  String get petLabelTemperament => 'Temperamento';
+
+  @override
+  String get petLabelPersonality => 'Personalidade';
+
+  @override
+  String get petLabelSocialBehavior => 'Comportamento Social';
+
+  @override
+  String get petLabelIdentification => 'Identificação';
+
+  @override
+  String get petLabelGrowthCurve => 'Curva de Crescimento';
+
+  @override
+  String get petLabelNutrition => 'Nutrição';
+
+  @override
+  String get petLabelGrooming => 'Higiene';
+
+  @override
+  String get petLabelHealth => 'Saúde';
+
+  @override
+  String get petLabelLifestyle => 'Estilo de Vida';
+
+  @override
+  String get petLabelBehavior => 'Comportamento';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).

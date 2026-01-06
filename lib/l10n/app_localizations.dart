@@ -8290,6 +8290,150 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Sempre revise o resumo antes de gerar um cardápio.\nAssim você garante que o período, o objetivo e as preferências estão corretos.'**
   String get helpMenuTipDesc;
+
+  /// No description provided for @petAnalysisDisclaimer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Este conteúdo é gerado por IA e deve ser usado apenas como referência informativa. Não substitui o diagnóstico veterinário profissional.'**
+  String get petAnalysisDisclaimer;
+
+  /// No description provided for @petLabelUrgencyLevel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nível de Urgência'**
+  String get petLabelUrgencyLevel;
+
+  /// No description provided for @petLabelConfidence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confiabilidade'**
+  String get petLabelConfidence;
+
+  /// No description provided for @petLabelDiagnosis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diagnóstico'**
+  String get petLabelDiagnosis;
+
+  /// No description provided for @petLabelVisualAspects.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aspectos Visuais'**
+  String get petLabelVisualAspects;
+
+  /// No description provided for @petLabelPossibleCauses.
+  ///
+  /// In pt, this message translates to:
+  /// **'Causas Possíveis'**
+  String get petLabelPossibleCauses;
+
+  /// No description provided for @petLabelRecommendations.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recomendações'**
+  String get petLabelRecommendations;
+
+  /// No description provided for @petLabelBreed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Raça'**
+  String get petLabelBreed;
+
+  /// No description provided for @petLabelSpecies.
+  ///
+  /// In pt, this message translates to:
+  /// **'Espécie'**
+  String get petLabelSpecies;
+
+  /// No description provided for @petLabelColor.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cor'**
+  String get petLabelColor;
+
+  /// No description provided for @petLabelCoatType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Pelo'**
+  String get petLabelCoatType;
+
+  /// No description provided for @petLabelSize.
+  ///
+  /// In pt, this message translates to:
+  /// **'Porte'**
+  String get petLabelSize;
+
+  /// No description provided for @petLabelLifeExpectancy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Expectativa de Vida'**
+  String get petLabelLifeExpectancy;
+
+  /// No description provided for @petLabelOrigin.
+  ///
+  /// In pt, this message translates to:
+  /// **'Origem'**
+  String get petLabelOrigin;
+
+  /// No description provided for @petLabelTemperament.
+  ///
+  /// In pt, this message translates to:
+  /// **'Temperamento'**
+  String get petLabelTemperament;
+
+  /// No description provided for @petLabelPersonality.
+  ///
+  /// In pt, this message translates to:
+  /// **'Personalidade'**
+  String get petLabelPersonality;
+
+  /// No description provided for @petLabelSocialBehavior.
+  ///
+  /// In pt, this message translates to:
+  /// **'Comportamento Social'**
+  String get petLabelSocialBehavior;
+
+  /// No description provided for @petLabelIdentification.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificação'**
+  String get petLabelIdentification;
+
+  /// No description provided for @petLabelGrowthCurve.
+  ///
+  /// In pt, this message translates to:
+  /// **'Curva de Crescimento'**
+  String get petLabelGrowthCurve;
+
+  /// No description provided for @petLabelNutrition.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutrição'**
+  String get petLabelNutrition;
+
+  /// No description provided for @petLabelGrooming.
+  ///
+  /// In pt, this message translates to:
+  /// **'Higiene'**
+  String get petLabelGrooming;
+
+  /// No description provided for @petLabelHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde'**
+  String get petLabelHealth;
+
+  /// No description provided for @petLabelLifestyle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Estilo de Vida'**
+  String get petLabelLifestyle;
+
+  /// No description provided for @petLabelBehavior.
+  ///
+  /// In pt, this message translates to:
+  /// **'Comportamento'**
+  String get petLabelBehavior;
 }
 
 class _AppLocalizationsDelegate

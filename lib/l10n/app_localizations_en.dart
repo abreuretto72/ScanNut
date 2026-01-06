@@ -4340,4 +4340,77 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get helpMenuTipDesc =>
       'Always review the summary before generating a menu.\nThis ensures the period, objective, and preferences are correct.';
+
+  @override
+  String get petAnalysisDisclaimer =>
+      'This content is AI-generated and should be used for informational reference only. It does not replace professional veterinary diagnosis.';
+
+  @override
+  String get petLabelUrgencyLevel => 'Urgency Level';
+
+  @override
+  String get petLabelConfidence => 'Confidence';
+
+  @override
+  String get petLabelDiagnosis => 'Diagnosis';
+
+  @override
+  String get petLabelVisualAspects => 'Visual Aspects';
+
+  @override
+  String get petLabelPossibleCauses => 'Possible Causes';
+
+  @override
+  String get petLabelRecommendations => 'Recommendations';
+
+  @override
+  String get petLabelBreed => 'Breed';
+
+  @override
+  String get petLabelSpecies => 'Species';
+
+  @override
+  String get petLabelColor => 'Color';
+
+  @override
+  String get petLabelCoatType => 'Coat Type';
+
+  @override
+  String get petLabelSize => 'Size';
+
+  @override
+  String get petLabelLifeExpectancy => 'Life Expectancy';
+
+  @override
+  String get petLabelOrigin => 'Origin';
+
+  @override
+  String get petLabelTemperament => 'Temperament';
+
+  @override
+  String get petLabelPersonality => 'Personality';
+
+  @override
+  String get petLabelSocialBehavior => 'Social Behavior';
+
+  @override
+  String get petLabelIdentification => 'Identification';
+
+  @override
+  String get petLabelGrowthCurve => 'Growth Curve';
+
+  @override
+  String get petLabelNutrition => 'Nutrition';
+
+  @override
+  String get petLabelGrooming => 'Grooming';
+
+  @override
+  String get petLabelHealth => 'Health';
+
+  @override
+  String get petLabelLifestyle => 'Lifestyle';
+
+  @override
+  String get petLabelBehavior => 'Behavior';
 }

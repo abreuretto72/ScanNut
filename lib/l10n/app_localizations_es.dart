@@ -4361,4 +4361,77 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get helpMenuTipDesc =>
       'Sempre revise o resumo antes de gerar um cardápio.\nAssim você garante que o período, o objetivo e as preferências estão corretos.';
+
+  @override
+  String get petAnalysisDisclaimer =>
+      'Este contenido es generado por IA y debe usarse solo como referencia informativa. No sustituye el diagnóstico veterinario profesional.';
+
+  @override
+  String get petLabelUrgencyLevel => 'Nivel de Urgencia';
+
+  @override
+  String get petLabelConfidence => 'Confiabilidad';
+
+  @override
+  String get petLabelDiagnosis => 'Diagnóstico';
+
+  @override
+  String get petLabelVisualAspects => 'Aspectos Visuales';
+
+  @override
+  String get petLabelPossibleCauses => 'Causas Posibles';
+
+  @override
+  String get petLabelRecommendations => 'Recomendaciones';
+
+  @override
+  String get petLabelBreed => 'Raza';
+
+  @override
+  String get petLabelSpecies => 'Especie';
+
+  @override
+  String get petLabelColor => 'Color';
+
+  @override
+  String get petLabelCoatType => 'Tipo de Pelaje';
+
+  @override
+  String get petLabelSize => 'Tamaño';
+
+  @override
+  String get petLabelLifeExpectancy => 'Esperanza de Vida';
+
+  @override
+  String get petLabelOrigin => 'Origen';
+
+  @override
+  String get petLabelTemperament => 'Temperamento';
+
+  @override
+  String get petLabelPersonality => 'Personalidad';
+
+  @override
+  String get petLabelSocialBehavior => 'Comportamento Social';
+
+  @override
+  String get petLabelIdentification => 'Identificación';
+
+  @override
+  String get petLabelGrowthCurve => 'Curva de Crecimiento';
+
+  @override
+  String get petLabelNutrition => 'Nutrición';
+
+  @override
+  String get petLabelGrooming => 'Higiene';
+
+  @override
+  String get petLabelHealth => 'Salud';
+
+  @override
+  String get petLabelLifestyle => 'Estilo de Vida';
+
+  @override
+  String get petLabelBehavior => 'Comportamiento';
 }

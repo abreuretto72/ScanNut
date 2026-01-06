@@ -958,6 +958,8 @@ class _EditPetFormState extends State<EditPetForm>
         backgroundColor: Colors.grey[900],
         appBar: AppBar(
           backgroundColor: Colors.black,
+          iconTheme: const IconThemeData(color: AppDesign.petPink),
+          actionsIconTheme: const IconThemeData(color: AppDesign.petPink),
           title: Text(
             widget.existingProfile == null ? AppLocalizations.of(context)!.newPetTitle : AppLocalizations.of(context)!.editPetTitle,
             style: GoogleFonts.poppins(color: Colors.white),
@@ -1059,6 +1061,42 @@ class _EditPetFormState extends State<EditPetForm>
       return null;
   }
 
+  String _tryLocalizeLabel(BuildContext context, String key) {
+    if (!context.mounted) return key.toUpperCase().replaceAll('_', ' ');
+    final k = key.toLowerCase().trim().replaceAll(' ', '_');
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return key.toUpperCase().replaceAll('_', ' ');
+    
+    switch (k) {
+        case 'urgency_level': return l10n.petLabelUrgencyLevel;
+        case 'confidence': return l10n.petLabelConfidence;
+        case 'diagnosis': return l10n.petLabelDiagnosis;
+        case 'visual_aspects': return l10n.petLabelVisualAspects;
+        case 'possible_causes': return l10n.petLabelPossibleCauses;
+        case 'recommendations': return l10n.petLabelRecommendations;
+        case 'breed': return l10n.petLabelBreed;
+        case 'raca': return l10n.petLabelBreed;
+        case 'species': return l10n.petLabelSpecies;
+        case 'especie': return l10n.petLabelSpecies;
+        case 'color': return l10n.petLabelColor;
+        case 'coat_type': return l10n.petLabelCoatType;
+        case 'size': return l10n.petLabelSize;
+        case 'life_expectancy': return l10n.petLabelLifeExpectancy;
+        case 'origin': return l10n.petLabelOrigin;
+        case 'temperament': return l10n.petLabelTemperament;
+        case 'personality': return l10n.petLabelPersonality;
+        case 'social_behavior': return l10n.petLabelSocialBehavior;
+        case 'identification': case 'identificacao': return l10n.petLabelIdentification;
+        case 'growth_curve': case 'curva_crescimento': return l10n.petLabelGrowthCurve;
+        case 'nutrition': case 'nutricao': return l10n.petLabelNutrition;
+        case 'grooming': case 'higiene': return l10n.petLabelGrooming;
+        case 'health': case 'saude': return l10n.petLabelHealth;
+        case 'lifestyle': case 'estilo_vida': return l10n.petLabelLifestyle;
+        case 'behavior': case 'comportamento': return l10n.petLabelBehavior;
+        default: return key.toUpperCase().replaceAll('_', ' '); 
+    }
+  }
+
   Widget _buildAnalysisTab() {
     final history = _analysisHistory;
     final current = _currentRawAnalysis;
@@ -1093,9 +1131,7 @@ class _EditPetFormState extends State<EditPetForm>
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        Localizations.localeOf(context).languageCode == 'pt' 
-                           ? "Este conteúdo é gerado por IA e deve ser usado apenas como referência informativa. Não substitui o diagnóstico veterinário profissional."
-                           : "This content is AI-generated and should be used for informational reference only. It does not replace professional veterinary diagnosis.",
+                        AppLocalizations.of(context)!.petAnalysisDisclaimer,
                         style: GoogleFonts.poppins(color: Colors.amberAccent, fontSize: 11),
                       ),
                     ),
@@ -1262,14 +1298,14 @@ class _EditPetFormState extends State<EditPetForm>
 
                    if (val is Map) {
                        return ExpansionTile(
-                           title: Text(e.key.toUpperCase().replaceAll('_', ' '), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                           title: Text(_tryLocalizeLabel(context, e.key), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                            childrenPadding: const EdgeInsets.only(left: 16, bottom: 8),
                            children: (val as Map).entries.map((sub) => Padding(
                                padding: const EdgeInsets.only(bottom: 4),
                                child: Row(
                                    crossAxisAlignment: CrossAxisAlignment.start,
                                    children: [
-                                       Text('${sub.key}: ', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                                       Text('${_tryLocalizeLabel(context, sub.key)}: ', style: const TextStyle(color: Colors.white60, fontSize: 11)),
                                        Expanded(child: Text(sub.value.toString(), style: const TextStyle(color: Colors.white, fontSize: 11))),
                                    ]
                                ),
@@ -1281,7 +1317,7 @@ class _EditPetFormState extends State<EditPetForm>
                        child: Row(
                            crossAxisAlignment: CrossAxisAlignment.start,
                            children: [
-                               Text('${e.key.toUpperCase().replaceAll('_', ' ')}: ', style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.bold)),
+                               Text('${_tryLocalizeLabel(context, e.key)}: ', style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.bold)),
                                Expanded(child: Text(val.toString(), style: const TextStyle(color: Colors.white70, fontSize: 11))),
                            ]
                        ),
