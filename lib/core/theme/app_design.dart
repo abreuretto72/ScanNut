@@ -40,12 +40,13 @@ class AppDesign {
   static const Color iconActive        = accent;
 
   // CORES DOS DOMÍNIOS
-  static const Color plantGreen = Color(0xFF4CAF50);
-  static const Color petPink    = Color(0xFFFADADD);
+  static const Color foodOrange = Color(0xFFFF9800); // Laranja Comida
+  static const Color plantGreen = Color(0xFF4CAF50); // Verde Plantas
+  static const Color petPink    = Color(0xFFFADADD); // Rosa Pets
 
   static Color getModeColor(int modeIndex) {
     switch (modeIndex) {
-      case 0: return accent;      // Food (Roxo)
+      case 0: return foodOrange;  // Food (Laranja)
       case 1: return plantGreen;  // Plant (Verde)
       case 2: return petPink;     // Pet (Rosa)
       default: return textPrimaryDark; // Neutro se nenhum selecionado
