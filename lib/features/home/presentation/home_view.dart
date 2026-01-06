@@ -958,53 +958,6 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               ),
             ),
 
-          // Pet Mode Instruction Message
-          if (_currentIndex == 2)
-            Positioned(
-              top: 200,
-              left: 20,
-              right: 20,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: _petMode == 0 
-                      ? AppDesign.accent.withOpacity(0.9)
-                      : AppDesign.error.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _petMode == 0 ? Icons.pets : Icons.healing,
-                      color: Colors.black,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _petMode == 0
-                            ? AppLocalizations.of(context)!.instructionPetBody
-                            : AppLocalizations.of(context)!.instructionPetWound,
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
           
           // 3. Shutter Button (Center) - Only show when mode is selected
           if (_currentIndex != -1)
