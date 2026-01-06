@@ -201,7 +201,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               child: pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
-                  pw.Text("ScanNut", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.green)),
+                  pw.Text("ScanNut", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.pink)),
                   pw.Text(l10n.pdfDossierTitle, style: pw.TextStyle(fontSize: 18)),
                 ],
               ),
@@ -213,7 +213,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             pw.Container(
               padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               decoration: pw.BoxDecoration(
-                color: PdfColors.green50,
+                color: PdfColors.pink50,
                 borderRadius: pw.BorderRadius.circular(8),
               ),
               child: pw.Text(
@@ -221,7 +221,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 18,
-                  color: PdfColors.green900,
+                  color: PdfColors.pink900,
                 ),
               ),
             ),
@@ -286,11 +286,11 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
             // Tabelas de Alimentos
             if (pet.tabelaBenigna.isNotEmpty) ...[
-              pw.Text("${l10n.pdfFieldSafeFoods}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.green900)),
+              pw.Text("${l10n.pdfFieldSafeFoods}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
               pw.Table.fromTextArray(
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
                 cellStyle: const pw.TextStyle(fontSize: 9),
-                headerDecoration: const pw.BoxDecoration(color: PdfColors.green100),
+                headerDecoration: const pw.BoxDecoration(color: PdfColors.pink100),
                 data: [
                   [l10n.pdfFieldFoodName, l10n.pdfFieldBenefit],
                   ...pet.tabelaBenigna.map((row) => [row['alimento'] ?? '', row['beneficio'] ?? '']),
@@ -459,9 +459,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 pw.Container(
                   padding: const pw.EdgeInsets.all(10),
                   decoration: pw.BoxDecoration(
-                    color: PdfColors.green50,
+                    color: PdfColors.pink50,
                     borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(color: PdfColors.green900),
+                    border: pw.Border.all(color: PdfColors.pink900),
                   ),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -469,7 +469,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       pw.Row(
                         children: [
                           pw.Text("📅 ", style: const pw.TextStyle(fontSize: 12)),
-                          pw.Text(l10n.pdfFieldPreventiveCalendar, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.green900)),
+                          pw.Text(l10n.pdfFieldPreventiveCalendar, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
                         ],
                       ),
                       pw.SizedBox(height: 6),
@@ -943,7 +943,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         const SizedBox(height: 24),
         _buildStatLine(AppLocalizations.of(context)!.petEnergy, pc.nivelEnergia / 5.0, Colors.orange),
         _buildStatLine(AppLocalizations.of(context)!.petIntelligence, pc.nivelInteligencia / 5.0, Colors.purpleAccent),
-        _buildStatLine(AppLocalizations.of(context)!.petSociability, pc.sociabilidadeGeral / 5.0, Colors.greenAccent),
+        _buildStatLine(AppLocalizations.of(context)!.petSociability, pc.sociabilidadeGeral / 5.0, AppDesign.petPink),
         _buildInfoLabel("${AppLocalizations.of(context)!.petDrive}:", pc.driveAncestral),
         const SizedBox(height: 24),
         _buildInsightCard(widget.analysis.dica.insightExclusivo),
@@ -1002,7 +1002,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         _buildSectionCard(
           title: AppLocalizations.of(context)!.petSecuritySupplements,
           icon: Icons.medication_liquid,
-          color: Colors.greenAccent,
+          color: AppDesign.petPink,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1089,7 +1089,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
   Widget _buildInfoLabel(String label, String value) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white54, fontSize: 11)), Text(value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±').replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet'), style: const TextStyle(color: Colors.white, fontSize: 13))]));
 
-  Widget _buildToggleInfo(String label, bool value) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)), Icon(value ? Icons.report_problem : Icons.check_circle, color: value ? Colors.redAccent : Colors.greenAccent, size: 16)]);
+  Widget _buildToggleInfo(String label, bool value) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)), Icon(value ? Icons.report_problem : Icons.check_circle, color: value ? Colors.redAccent : AppDesign.petPink, size: 16)]);
 
   Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withOpacity(0.2), Colors.blue.withOpacity(0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text("💡 ${AppLocalizations.of(context)!.petExclusiveInsight}", style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
   Widget _buildCaloricRow(String label, String value, Color color) {

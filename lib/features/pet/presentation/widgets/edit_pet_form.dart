@@ -1695,7 +1695,7 @@ class _EditPetFormState extends State<EditPetForm>
           label: AppLocalizations.of(context)!.petAddPreference,
           icon: Icons.favorite,
           chips: _preferencias,
-          chipColor: Colors.green,
+          chipColor: AppDesign.petPink,
           onAdd: (text) {
             setState(() {
               _preferencias.add(text);
@@ -1834,7 +1834,7 @@ class _EditPetFormState extends State<EditPetForm>
         severityColor = Colors.orange;
         severityDisplay = AppLocalizations.of(context)!.severityMedium;
     } else {
-        severityColor = Colors.green;
+        severityColor = AppDesign.petPink;
         severityDisplay = AppLocalizations.of(context)!.severityLow;
     }
 
@@ -2144,7 +2144,7 @@ class _EditPetFormState extends State<EditPetForm>
                 AppLocalizations.of(context)!.petWoundDeleteSuccess,
                 style: GoogleFonts.poppins(),
               ),
-              backgroundColor: Colors.green,
+              backgroundColor: AppDesign.petPink,
               duration: const Duration(seconds: 2),
             ),
           );
@@ -4072,7 +4072,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                  children: [
                      _ActionIcon(
                          icon: Icons.phone, 
-                         color: Colors.greenAccent, 
+                         color: AppDesign.petPink, 
                          label: AppLocalizations.of(context)!.petPartnersCall, 
                          onTap: () => _launch('tel', widget.partner.phone)
                      ),
