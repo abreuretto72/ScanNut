@@ -203,11 +203,17 @@ abstract class AppLocalizations {
   /// **'Aponte a câmera para a planta ou doença'**
   String get homeHintPlant;
 
-  /// No description provided for @homeHintPet.
+  /// No description provided for @homeHintPetBreed.
   ///
   /// In pt, this message translates to:
   /// **'Aponte a câmera para o pet'**
-  String get homeHintPet;
+  String get homeHintPetBreed;
+
+  /// No description provided for @homeHintPetHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aponte a câmera para a ferida do pet'**
+  String get homeHintPetHealth;
 
   /// No description provided for @settingsTitle.
   ///

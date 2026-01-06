@@ -63,7 +63,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get homeHintPlant => 'Aponte a câmera para a planta ou doença';
 
   @override
-  String get homeHintPet => 'Aponte a câmera para o pet';
+  String get homeHintPetBreed => 'Aponte a câmera para o pet';
+
+  @override
+  String get homeHintPetHealth => 'Aponte a câmera para a ferida do pet';
 
   @override
   String get settingsTitle => 'Configurações';

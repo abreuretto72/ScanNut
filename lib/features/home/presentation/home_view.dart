@@ -1411,7 +1411,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     switch (_currentIndex) {
       case 0: return l10n.homeHintFood;
       case 1: return l10n.homeHintPlant;
-      case 2: return l10n.homeHintPet;
+      case 2: 
+        // Pet mode: check sub-mode (Breed & ID vs Health)
+        return _petMode == 0 ? l10n.homeHintPetBreed : l10n.homeHintPetHealth;
       default: return '';
     }
   }
