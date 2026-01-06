@@ -76,5 +76,7 @@ coverage/
 *.txt
 *.md
 !README.md
+!docs/**/*.md
+
 
 
