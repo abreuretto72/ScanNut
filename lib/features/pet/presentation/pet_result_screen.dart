@@ -14,6 +14,7 @@ import '../../../core/widgets/pro_access_wrapper.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import '../../../core/theme/app_design.dart';
 
 final petResultProvider = StateProvider<PetAnalysisResult?>((ref) => null);
 
@@ -84,23 +85,23 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
     final result = ref.watch(petResultProvider);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Análise Veterinária', style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Análise Veterinária', style: TextStyle(color: AppDesign.textPrimaryDark)),
+        iconTheme: const IconThemeData(color: AppDesign.textPrimaryDark),
       ),
       floatingActionButton: _isLoading || result == null ? null : FloatingActionButton.extended(
         onPressed: () => _navigateToEdit(context, result),
         label: const Text('Salvar na Carteira', style: TextStyle(fontWeight: FontWeight.bold)),
         icon: const Icon(Icons.save_as),
-        backgroundColor: const Color(0xFF00E676),
-        foregroundColor: Colors.black,
+        backgroundColor: AppDesign.accent,
+        foregroundColor: AppDesign.textPrimaryLight,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
+          ? const Center(child: CircularProgressIndicator(color: AppDesign.accent))
           : result == null
-              ? const Center(child: Text('Nenhum resultado.', style: TextStyle(color: Colors.white)))
+              ? const Center(child: Text('Nenhum resultado.', style: TextStyle(color: AppDesign.textPrimaryDark)))
               : SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -150,21 +151,21 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.blueAccent.withOpacity(0.2), Colors.purpleAccent.withOpacity(0.2)],
+                              colors: [AppDesign.info.withOpacity(0.2), AppDesign.primary.withOpacity(0.2)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
+                            border: Border.all(color: AppDesign.info.withOpacity(0.5)),
                           ),
                           child: Column(
                             children: [
-                              const Icon(Icons.pets, color: Colors.blueAccent, size: 40),
+                              const Icon(Icons.pets, color: AppDesign.info, size: 40),
                               const SizedBox(height: 8),
                               Text(
                                 '${result.especie} - ${result.raca}',
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppDesign.textPrimaryDark,
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -173,7 +174,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 result.caracteristicas,
-                                style: const TextStyle(color: Colors.white70, fontSize: 16),
+                                style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 16),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -194,7 +195,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                       // Disclaimer Footer
                       const Text(
                         'Nota: Esta é uma análise feita por IA e não substitui um diagnóstico clínico.',
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                        style: TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 30),
@@ -211,18 +212,27 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
     switch (result.urgenciaNivel) {
       case 'Vermelho':
-        color = Colors.redAccent;
-        icon = Icons.warning_amber_rounded;
+        color = AppDesign.error;
+        icon = AppDesign.iconAlert;
         title = 'Urgência Veterinária';
         break;
       case 'Amarelo':
-        color = Colors.orangeAccent;
+        color = AppDesign.warning;
+        icon = AppDesign.iconInfo; // Actually iconAlert is better for attention, but generic info is OK.
+        // Wait, app design has iconAlert (warning). iconInfo? No.
+        // AppDesign has no Generic Info icon? 
+        // "iconAlert = Icons.warning_amber_rounded".
+        // I'll use Icons.info_outline or AppDesign.logoIcon? No.
+        // I will keep Icons.info_outline as it is not strictly defined in AppDesign yet (or user didn't mention it).
+        // Or I can add it? No.
+        // Ill keep Icons.info_outline.
+        // But the color MUST change.
         icon = Icons.info_outline;
         title = 'Atenção Necessária';
         break;
       case 'Verde':
       default:
-        color = Colors.greenAccent;
+        color = AppDesign.success;
         icon = Icons.check_circle_outline;
         title = 'Observação';
         break;
@@ -257,23 +267,23 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
             const Text(
               'SINAIS CRÍTICOS IDENTIFICADOS.\nProcure um Veterinário Imediatamente.',
               style: TextStyle(
-                color: Colors.white,
+                color: AppDesign.textPrimaryDark,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
             ),
           ],
           const SizedBox(height: 12),
-          const Divider(color: Colors.white24),
+          Divider(color: AppDesign.textPrimaryDark.withOpacity(0.24)),
           const SizedBox(height: 12),
           const Text(
             'Orientação Imediata:',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+            style: TextStyle(color: AppDesign.textSecondaryDark, fontSize: 14),
           ),
           const SizedBox(height: 4),
           Text(
             result.orientacaoImediata,
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+            style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 16),
           ),
         ],
       ),
@@ -285,13 +295,13 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: AppDesign.backgroundDark.withOpacity(0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF00E676), size: 20),
+          Icon(icon, color: AppDesign.accent, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -300,7 +310,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                 Text(
                   title,
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: AppDesign.textSecondaryDark,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -308,7 +318,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                 const SizedBox(height: 4),
                 Text(
                   isList ? '• $content' : content,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 16),
                 ),
               ],
             ),
@@ -358,7 +368,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                            const SnackBar(
                              content: Text('Perfil do pet salvo e atualizado! 🐾'),
-                             backgroundColor: Color(0xFF5E4B6B),
+                             backgroundColor: AppDesign.success,
                            ),
                         );
                     }

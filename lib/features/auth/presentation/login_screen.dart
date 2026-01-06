@@ -4,6 +4,7 @@ import '../../../core/services/simple_auth_service.dart';
 import '../presentation/register_screen.dart';
 import '../../home/presentation/home_view.dart';
 import '../../../core/utils/snackbar_helper.dart';
+import '../../../core/theme/app_design.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -19,11 +20,37 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(_clearError);
+    _passwordController.addListener(_clearError);
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _clearError() {
+    if (_errorMessage != null) {
+      setState(() {
+        _errorMessage = null;
+      });
+    }
+  }
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null; 
+    });
     
     final success = await simpleAuthService.login(
       _emailController.text.trim(),
@@ -35,194 +62,290 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       if (success) {
+        setState(() => _errorMessage = null); // Ensure clean state
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeView()),
         );
       } else {
-        SnackBarHelper.showError(context, 'E-mail ou senha incorretos.');
+        setState(() {
+          _errorMessage = 'E-mail ou senha incorretos.';
+        });
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Determine screen height to adjust layout dynamically
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenHeight < 600;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
+      resizeToAvoidBottomInset: true, // Ensure KB pushes layout up
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 40),
-                // Logo/Header
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00E676).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_rounded,
-                      size: 64,
-                      color: Color(0xFF00E676),
-                    ),
-                  ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const ClampingScrollPhysics(), // Better for forms
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Text(
-                    'ScanNut',
-                    style: GoogleFonts.poppins(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Center(
-                  child: Text(
-                    'Sua nutrição inteligente começa aqui',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.white54,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 48),
-
-                // Email Field
-                Text(
-                  'E-mail',
-                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _emailController,
-                  style: GoogleFonts.poppins(color: Colors.white),
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: _buildInputDecoration(
-                    hintText: 'exemplo@email.com',
-                    prefixIcon: Icons.email_outlined,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Por favor, insira seu e-mail';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Password Field
-                Text(
-                  'Senha',
-                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _passwordController,
-                  style: GoogleFonts.poppins(color: Colors.white),
-                  obscureText: _obscurePassword,
-                  decoration: _buildInputDecoration(
-                    hintText: 'Sua senha segura',
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.white38,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Por favor, insira sua senha';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Remember Me Checkbox
-                Row(
-                  children: [
-                    SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: Checkbox(
-                        value: _rememberMe,
-                        onChanged: (value) => setState(() => _rememberMe = value ?? false),
-                        activeColor: const Color(0xFF00E676),
-                        checkColor: Colors.black,
-                        side: const BorderSide(color: Colors.white24, width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () => setState(() => _rememberMe = !_rememberMe),
-                      child: Text(
-                        'Manter conectado',
-                        style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                // Login Button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00E676),
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading 
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                    : Text(
-                        'Entrar',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                child: IntrinsicHeight(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: isSmallScreen ? 24 : 40),
+                        
+                        // Logo/Header (Responsive)
+                        Center(
+                          child: Container(
+                            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+                            decoration: BoxDecoration(
+                              color: AppDesign.accent.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: SizedBox(
+                              height: isSmallScreen ? 48 : 72, // Reduced size
+                              width: isSmallScreen ? 48 : 72,
+                              child: Image.asset(
+                                'assets/images/app_logo.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                ),
-                const SizedBox(height: 24),
-
-                // Register Link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Não tem uma conta? ',
-                      style: GoogleFonts.poppins(color: Colors.white54, fontSize: 14),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                        );
-                      },
-                      child: Text(
-                        'Cadastrar-se',
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFF00E676),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                        SizedBox(height: isSmallScreen ? 16 : 24),
+                        
+                        Center(
+                          child: Text(
+                            'ScanNut',
+                            style: GoogleFonts.poppins(
+                              fontSize: isSmallScreen ? 24 : 32,
+                              fontWeight: FontWeight.bold,
+                              color: AppDesign.textPrimaryDark,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        
+                        Center(
+                          child: Text(
+                            'Sua nutrição inteligente começa aqui',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: AppDesign.textSecondaryDark,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: isSmallScreen ? 24 : 48),
+
+                        // Email Field
+                        Text(
+                          'E-mail',
+                          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _emailController,
+                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next, // Improve UX
+                          decoration: _buildInputDecoration(
+                            hintText: 'exemplo@email.com',
+                            prefixIcon: Icons.email_outlined,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Por favor, insira seu e-mail';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Password Field
+                        Text(
+                          'Senha',
+                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _passwordController,
+                          style: GoogleFonts.poppins(color: Colors.white),
+                          obscureText: _obscurePassword,
+                          textInputAction: TextInputAction.done, // Improve UX
+                          onFieldSubmitted: (_) => _handleLogin(), // Allow submit on enter
+                          decoration: _buildInputDecoration(
+                            hintText: 'Sua senha segura',
+                            prefixIcon: Icons.lock_outline,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                color: AppDesign.textSecondaryDark.withOpacity(0.5),
+                              ),
+                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Por favor, insira sua senha';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Remember Me Checkbox
+                        Row(
+                          children: [
+                            SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: Checkbox(
+                                value: _rememberMe,
+                                onChanged: (value) => setState(() => _rememberMe = value ?? false),
+                                activeColor: AppDesign.accent,
+                                checkColor: Colors.black,
+                                side: const BorderSide(color: AppDesign.textPrimaryDark, width: 1.5),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: () => setState(() => _rememberMe = !_rememberMe),
+                              child: Text(
+                                'Manter conectado',
+                                style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        SizedBox(height: _errorMessage != null ? 16 : (isSmallScreen ? 24 : 32)),
+
+                        // Error Message Display
+                        if (_errorMessage != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: AppDesign.error.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppDesign.error.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error_outline, color: AppDesign.error, size: 20),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: GoogleFonts.poppins(
+                                      color: AppDesign.error,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        // Login Button
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppDesign.accent,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: _isLoading 
+                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
+                            : Text(
+                                'Entrar',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                        ),
+                        
+                        if (simpleAuthService.isBiometricEnabled) ...[
+                           SizedBox(height: isSmallScreen ? 12 : 16),
+                           OutlinedButton.icon(
+                              onPressed: () async {
+                                 // Clear manual error before biometric attempt
+                                 setState(() {
+                                    _errorMessage = null; 
+                                    _isLoading = true;
+                                 });
+                                 
+                                 final success = await simpleAuthService.authenticateWithBiometrics();
+                                 
+                                 setState(() => _isLoading = false);
+                                 
+                                 if (success && mounted) {
+                                    // Make sure error is gone before navigating
+                                    setState(() => _errorMessage = null);
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(builder: (_) => const HomeView()),
+                                    );
+                                 }
+                              },
+                              icon: const Icon(Icons.fingerprint, color: AppDesign.accent),
+                              label: Text('Entrar com Biometria', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
+                              style: OutlinedButton.styleFrom(
+                                 side: BorderSide(color: AppDesign.accent.withOpacity(0.5)),
+                                 padding: const EdgeInsets.symmetric(vertical: 12),
+                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                           ),
+                        ],
+
+                        SizedBox(height: isSmallScreen ? 16 : 24),
+
+                        // Register Link
+                        Padding(
+                          padding: EdgeInsets.only(bottom: isSmallScreen ? 16 : 32),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Não tem uma conta? ',
+                                style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                                  );
+                                },
+                                child: Text(
+                                  'Cadastrar-se',
+                                  style: GoogleFonts.poppins(
+                                    color: AppDesign.accent,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -235,11 +358,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: GoogleFonts.poppins(color: Colors.white24),
-      prefixIcon: Icon(prefixIcon, color: Colors.white38, size: 20),
+      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.24)),
+      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withOpacity(0.5), size: 20),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.white.withOpacity(0.05),
+      fillColor: AppDesign.textPrimaryDark.withOpacity(0.05),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -247,15 +370,15 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF00E676), width: 1.5),
+        borderSide: const BorderSide(color: AppDesign.accent, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+        borderSide: const BorderSide(color: AppDesign.error, width: 1),
       ),
     );
   }

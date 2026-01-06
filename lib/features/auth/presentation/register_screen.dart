@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../../../core/utils/snackbar_helper.dart';
+import '../../../core/theme/app_design.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -48,12 +49,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppDesign.textPrimaryDark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -70,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppDesign.textPrimaryDark,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -78,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   'Junte-se à comunidade ScanNut',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
-                    color: Colors.white54,
+                    color: AppDesign.textSecondaryDark,
                   ),
                 ),
                 const SizedBox(height: 48),
@@ -86,12 +87,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Email Field
                 Text(
                   'E-mail',
-                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
+                  style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _emailController,
-                  style: GoogleFonts.poppins(color: Colors.white),
+                  style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
                   keyboardType: TextInputType.emailAddress,
                   decoration: _buildInputDecoration(
                     hintText: 'exemplo@email.com',
@@ -108,12 +109,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Password Field
                 Text(
                   'Senha',
-                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
+                  style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _passwordController,
-                  style: GoogleFonts.poppins(color: Colors.white),
+                  style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
                   obscureText: _obscurePassword,
                   decoration: _buildInputDecoration(
                     hintText: 'Mínimo 6 caracteres',
@@ -130,12 +131,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Confirm Password Field
                 Text(
                   'Confirmar Senha',
-                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
+                  style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _confirmPasswordController,
-                  style: GoogleFonts.poppins(color: Colors.white),
+                  style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
                   obscureText: _obscurePassword,
                   decoration: _buildInputDecoration(
                     hintText: 'Repita sua senha',
@@ -152,7 +153,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00E676),
+                    backgroundColor: AppDesign.accent,
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -184,10 +185,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: GoogleFonts.poppins(color: Colors.white24),
-      prefixIcon: Icon(prefixIcon, color: Colors.white38, size: 20),
+      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.24)),
+      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withOpacity(0.5), size: 20),
       filled: true,
-      fillColor: Colors.white.withOpacity(0.05),
+      fillColor: AppDesign.textPrimaryDark.withOpacity(0.05),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -195,15 +196,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Color(0xFF00E676), width: 1.5),
+        borderSide: const BorderSide(color: AppDesign.accent, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+        borderSide: const BorderSide(color: AppDesign.error, width: 1),
       ),
     );
   }

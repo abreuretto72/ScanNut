@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -17,6 +18,8 @@ import 'package:path/path.dart' as path;
 import '../../nutrition/data/models/plan_day.dart';
 import '../../features/plant/models/plant_analysis_model.dart';
 import '../services/partner_service.dart';
+import '../../nutrition/data/datasources/shopping_list_service.dart';
+import '../../nutrition/data/models/shopping_list_model.dart';
 
 // Helper class to replace record syntax for Dart compatibility
 class _CleanedValue {
@@ -104,7 +107,7 @@ class ExportService {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text(
-                      appName.toUpperCase(),
+                      appName,
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 12,
@@ -185,10 +188,20 @@ class ExportService {
 
   _CleanedValue _cleanValue(String? value) {
     if (value == null) return _CleanedValue('---', false);
-    if (value.contains('[ESTIMATED]')) {
-      return _CleanedValue(value.replaceAll('[ESTIMATED]', '').trim(), true);
+    String cleaned = value;
+    bool isEstimated = false;
+
+    if (cleaned.contains('[ESTIMATED]')) {
+      cleaned = cleaned.replaceAll('[ESTIMATED]', '');
+      isEstimated = true;
     }
-    return _CleanedValue(value, false);
+
+    cleaned = cleaned
+        .replaceAll('aproximadamente', '±')
+        .replaceAll('Aproximadamente', '±')
+        .trim();
+
+    return _CleanedValue(cleaned, isEstimated);
   }
 
   pw.Widget _buildObservationsBlock(String observations, AppLocalizations strings) {
@@ -492,143 +505,251 @@ class ExportService {
     required List<PlanDay> days,
     required AppLocalizations strings,
     String? batchCookingTips,
+    String? shoppingListJson,
   }) async {
     final pdf = pw.Document();
     final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(35),
-        header: (context) => _buildHeader(strings.pdfMenuPlanTitle, timestampStr),
-        footer: (context) => _buildFooter(context, strings: strings),
-        build: (context) => [
-          // Header Info Card
-          pw.Container(
-            padding: const pw.EdgeInsets.all(12),
-            decoration: pw.BoxDecoration(
-              color: PdfColors.green50,
-              border: pw.Border.all(color: PdfColors.green800, width: 0.5),
-              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    pw.Text(strings.pdfPersonalizedPlanTitle, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-                    pw.Text('${strings.pdfGoalLabel}: $goal', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
-                  ],
-                ),
-                pw.SizedBox(height: 5),
-                pw.Text(strings.pdfGeneratedByLine, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-              ],
-            ),
-          ),
-          pw.SizedBox(height: 20),
+    // Decode Shopping Lists
+    final List<WeeklyShoppingList> weeklyShoppingLists = [];
+    if (shoppingListJson != null && shoppingListJson.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(shoppingListJson);
+        if (decoded is List) {
+          weeklyShoppingLists.addAll(decoded.map((e) => WeeklyShoppingList.fromJson(e)));
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error decoding shopping list JSON for PDF: $e');
+      }
+    }
 
-          // Detailed Plan
-          ...days.map((day) {
-            final String diaStr = DateFormat.MMMEd(strings.localeName).format(day.date).toUpperCase();
-            
-            return pw.Container(
-              margin: const pw.EdgeInsets.only(bottom: 20),
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(color: PdfColors.green800, width: 1.0),
-              ),
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Container(
-                    width: double.infinity,
-                    padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    color: PdfColors.green800,
-                    child: pw.Text(
-                      diaStr,
-                      style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 11),
-                    ),
-                  ),
-                  
-                  ...day.meals.map((meal) {
-                    return pw.Container(
-                      decoration: const pw.BoxDecoration(
-                        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.green800, width: 0.5)),
-                      ),
-                      padding: const pw.EdgeInsets.all(12),
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Row(
-                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                            children: [
-                              pw.Text(
-                                _getMealLabel(meal.tipo, strings).toUpperCase(),
-                                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green900),
-                              ),
-                              if (meal.nomePrato != null)
-                                pw.Text(
-                                  meal.nomePrato!,
-                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
-                                ),
-                            ],
-                          ),
-                          if (meal.observacoes.isNotEmpty) ...[
-                            pw.SizedBox(height: 8),
-                            pw.Text(
-                              meal.observacoes,
-                              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
-                            ),
-                          ],
-                          pw.SizedBox(height: 10),
-                          pw.Text(strings.ingredientsTitle, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
-                          pw.SizedBox(height: 4),
-                          ...meal.itens.map((item) => pw.Padding(
-                            padding: const pw.EdgeInsets.only(left: 10, bottom: 2),
-                            child: pw.Row(
-                              children: [
-                                pw.Container(width: 3, height: 3, decoration: const pw.BoxDecoration(color: PdfColors.green700, shape: pw.BoxShape.circle)),
-                                pw.SizedBox(width: 6),
-                                pw.Expanded(child: pw.Text(item.nome, style: const pw.TextStyle(fontSize: 9))),
-                                pw.Text(item.quantidadeTexto, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-                              ],
-                            ),
-                          )).toList(),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
-            );
-          }).toList(),
+    // Determine how many weeks to print
+    int numWeeks = (days.length / 7).ceil();
 
-          if (batchCookingTips != null && batchCookingTips.isNotEmpty) ...[
-            pw.NewPage(),
+    for (int w = 0; w < numWeeks; w++) {
+      final startIdx = w * 7;
+      final endIdx = (startIdx + 7) > days.length ? days.length : (startIdx + 7);
+      final weekDays = days.sublist(startIdx, endIdx);
+      final weekLabel = numWeeks > 1 ? ' - SEMANA ${w + 1}' : '';
+
+      // --- WEEK MENU PAGE ---
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(35),
+          header: (context) => _buildHeader('${strings.pdfMenuPlanTitle}${weekLabel.toUpperCase()}', timestampStr),
+          footer: (context) => _buildFooter(context, strings: strings),
+          build: (context) => [
+            // Header Info Card 
             pw.Container(
-              padding: const pw.EdgeInsets.all(15),
+              padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
-                color: PdfColors.orange50,
-                border: pw.Border.all(color: PdfColors.orange800, width: 0.5),
+                color: PdfColors.green50,
+                border: pw.Border.all(color: PdfColors.green800, width: 0.5),
                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
               ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text(strings.pdfBatchCookingTips, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.orange900)),
+                      pw.Text(strings.pdfPersonalizedPlanTitle, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                      pw.Text('${strings.pdfGoalLabel}: $goal', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
                     ],
                   ),
-                  pw.SizedBox(height: 10),
-                  pw.Text(batchCookingTips, style: const pw.TextStyle(fontSize: 10, height: 1.4)),
+                  pw.SizedBox(height: 5),
+                  pw.Text(strings.pdfGeneratedByLine, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
                 ],
               ),
             ),
+            pw.SizedBox(height: 20),
+
+            // Detailed Days
+            ...weekDays.map((day) {
+              final String diaStr = DateFormat.MMMEd(strings.localeName).format(day.date).toUpperCase();
+              
+              return pw.Container(
+                margin: const pw.EdgeInsets.only(bottom: 20),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.green800, width: 1.0),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Container(
+                      width: double.infinity,
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      color: PdfColors.green800,
+                      child: pw.Text(
+                        diaStr,
+                        style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 11),
+                      ),
+                    ),
+                    
+                    ...day.meals.map((meal) {
+                      return pw.Container(
+                        decoration: const pw.BoxDecoration(
+                          border: pw.Border(bottom: pw.BorderSide(color: PdfColors.green800, width: 0.5)),
+                        ),
+                        padding: const pw.EdgeInsets.all(12),
+                        child: pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Row(
+                              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                              children: [
+                                pw.Text(
+                                  _getMealLabel(meal.tipo, strings).toUpperCase(),
+                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green900),
+                                ),
+                                if (meal.nomePrato != null)
+                                  pw.Text(
+                                    meal.nomePrato!,
+                                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
+                                  ),
+                              ],
+                            ),
+                            if (meal.observacoes.isNotEmpty) ...[
+                              pw.SizedBox(height: 8),
+                              pw.Text(
+                                meal.observacoes,
+                                style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
+                              ),
+                            ],
+                            pw.SizedBox(height: 10),
+                            pw.Text(strings.ingredientsTitle, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
+                            pw.SizedBox(height: 4),
+                            ...meal.itens.map((item) => pw.Padding(
+                              padding: const pw.EdgeInsets.only(left: 10, bottom: 2),
+                              child: pw.Row(
+                                children: [
+                                  pw.Container(width: 3, height: 3, decoration: const pw.BoxDecoration(color: PdfColors.green700, shape: pw.BoxShape.circle)),
+                                  pw.SizedBox(width: 6),
+                                  pw.Expanded(child: pw.Text(item.nome, style: const pw.TextStyle(fontSize: 9))),
+                                  pw.Text(item.quantidadeTexto, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                                ],
+                              ),
+                            )).toList(),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              );
+            }).toList(),
+            
+            if (w == 0 && batchCookingTips != null && batchCookingTips.isNotEmpty) ...[
+               pw.SizedBox(height: 10),
+               pw.Container(
+                padding: const pw.EdgeInsets.all(15),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.orange50,
+                  border: pw.Border.all(color: PdfColors.orange800, width: 0.5),
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(strings.pdfBatchCookingTips, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.orange900)),
+                    pw.SizedBox(height: 8),
+                    pw.Text(batchCookingTips, style: const pw.TextStyle(fontSize: 10, height: 1.3)),
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
-      ),
-    );
+        ),
+      );
+
+      // --- WEEK SHOPPING LIST PAGE ---
+      if (w < weeklyShoppingLists.length) {
+         final weekShopping = weeklyShoppingLists[w];
+         pdf.addPage(
+           pw.MultiPage(
+             pageFormat: PdfPageFormat.a4,
+             margin: const pw.EdgeInsets.all(35),
+             header: (context) => _buildHeader('LISTA DE COMPRAS${weekLabel.toUpperCase()}', timestampStr),
+             footer: (context) => _buildFooter(context, strings: strings),
+             build: (context) => [
+               pw.Text(
+                 'Esta lista consolidada refere-se aos itens necessários para a ${weekShopping.weekLabel}. Quantidades somadas e organizadas por setor.',
+                 style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+               ),
+               pw.SizedBox(height: 15),
+
+               ...weekShopping.categories.map((cat) {
+                  return pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                       pw.Container(
+                         width: double.infinity,
+                         margin: const pw.EdgeInsets.only(top: 10, bottom: 8),
+                         padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                          decoration: const pw.BoxDecoration(
+                             color: PdfColors.grey200,
+                             borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                          ),
+                         child: pw.Text(
+                           cat.title.toUpperCase(), 
+                           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)
+                         ),
+                       ),
+                       
+                       pw.Wrap(
+                         spacing: 20,
+                         runSpacing: 10,
+                         children: cat.items.map((item) {
+                            return pw.Container(
+                              width: 230,
+                              child: pw.Row(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Container(
+                                    width: 12, height: 12,
+                                    margin: const pw.EdgeInsets.only(top: 1),
+                                    decoration: pw.BoxDecoration(
+                                       border: pw.Border.all(color: PdfColors.black, width: 1), 
+                                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2))
+                                    ),
+                                  ),
+                                  pw.SizedBox(width: 8),
+                                  pw.Expanded(
+                                    child: pw.RichText(
+                                      text: pw.TextSpan(
+                                        children: [
+                                           pw.TextSpan(
+                                             text: '${item.quantityDisplay} · ', 
+                                             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)
+                                           ),
+                                           pw.TextSpan(
+                                             text: item.name, 
+                                             style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)
+                                           ),
+                                           if (item.kcalTotal > 0)
+                                             pw.TextSpan(
+                                               text: ' — ${item.kcalTotal} kcal', 
+                                               style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)
+                                             ),
+                                        ]
+                                      )
+                                    )
+                                  )
+                                ]
+                              )
+                            );
+                         }).toList(),
+                       ),
+                       pw.SizedBox(height: 5),
+                    ],
+                  );
+               }).toList(),
+             ],
+           ),
+         );
+      }
+    }
     return pdf;
   }
 

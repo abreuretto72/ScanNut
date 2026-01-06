@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../../../core/models/partner_model.dart';
 import '../../models/agenda_event.dart';
 import '../../../pet/services/pet_event_service.dart';
+import '../../../../core/theme/app_design.dart';
 import '../../../pet/models/pet_event.dart';
 
 class AddEventModal extends StatefulWidget {
@@ -83,7 +84,7 @@ class _AddEventModalState extends State<AddEventModal> {
   Future<void> _pickAttachment() async {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppDesign.surfaceDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -93,8 +94,8 @@ class _AddEventModalState extends State<AddEventModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFF00E676)),
-              title: Text(AppLocalizations.of(context)!.commonCamera, style: const TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.camera_alt, color: AppDesign.accent),
+              title: Text(AppLocalizations.of(context)!.commonCamera, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
                 final photo = await _imagePicker.pickImage(source: ImageSource.camera);
@@ -104,8 +105,8 @@ class _AddEventModalState extends State<AddEventModal> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFF00E676)),
-              title: Text(AppLocalizations.of(context)!.commonGallery, style: const TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.photo_library, color: AppDesign.accent),
+              title: Text(AppLocalizations.of(context)!.commonGallery, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
                 final photo = await _imagePicker.pickImage(source: ImageSource.gallery);
@@ -115,8 +116,8 @@ class _AddEventModalState extends State<AddEventModal> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.attach_file, color: Color(0xFF00E676)),
-              title: Text(AppLocalizations.of(context)!.commonPDFFile, style: const TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.attach_file, color: AppDesign.accent),
+              title: Text(AppLocalizations.of(context)!.commonPDFFile, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
                 final result = await FilePicker.platform.pickFiles(
@@ -176,7 +177,7 @@ class _AddEventModalState extends State<AddEventModal> {
                     ? AppLocalizations.of(context)!.agendaAppointmentDetails 
                     : (widget.existingEvent != null ? AppLocalizations.of(context)!.agendaEditEvent : AppLocalizations.of(context)!.agendaNewEvent),
                   style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: AppDesign.textPrimaryDark,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -199,7 +200,7 @@ class _AddEventModalState extends State<AddEventModal> {
               const SizedBox(height: 16),
 
               // Campo: Hora
-              Text(AppLocalizations.of(context)!.pdfFieldTime, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(AppLocalizations.of(context)!.pdfFieldTime, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               InkWell(
                 onTap: () async {
@@ -209,14 +210,14 @@ class _AddEventModalState extends State<AddEventModal> {
                     builder: (ctx, child) => Theme(
                       data: Theme.of(ctx).copyWith(
                         timePickerTheme: const TimePickerThemeData(
-                          backgroundColor: Color(0xFF1E1E1E),
-                          hourMinuteTextColor: Colors.white,
-                          dialBackgroundColor: Colors.black,
-                          dialHandColor: Color(0xFF00E676),
+                          backgroundColor: AppDesign.surfaceDark,
+                          hourMinuteTextColor: AppDesign.textPrimaryDark,
+                          dialBackgroundColor: AppDesign.backgroundDark,
+                          dialHandColor: AppDesign.accent,
                         ),
                         colorScheme: const ColorScheme.dark(
-                          primary: Color(0xFF00E676),
-                          onSurface: Colors.white,
+                          primary: AppDesign.accent,
+                          onSurface: AppDesign.textPrimaryDark,
                         ),
                       ),
                       child: child!,
@@ -227,47 +228,47 @@ class _AddEventModalState extends State<AddEventModal> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white10,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.white10),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, color: Color(0xFF00E676)),
+                      const Icon(Icons.access_time, color: AppDesign.accent),
                       const SizedBox(width: 12),
                       Text(
                         _time.format(context),
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppDesign.textPrimaryDark,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const Spacer(),
                       if (!widget.isReadOnly) 
-                        Text(AppLocalizations.of(context)!.agendaChange, style: const TextStyle(color: Colors.white24, fontSize: 12)),
+                        Text(AppLocalizations.of(context)!.agendaChange, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              Text(AppLocalizations.of(context)!.pdfFieldCategory, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(AppLocalizations.of(context)!.pdfFieldCategory, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: AppDesign.textPrimaryDark.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<EventCategory>(
                     value: _selectedCategory,
                     isExpanded: true,
-                    dropdownColor: Colors.grey[850],
-                    icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00E676)),
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    dropdownColor: AppDesign.surfaceDark,
+                    icon: const Icon(Icons.arrow_drop_down, color: AppDesign.accent),
+                    style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 14),
                     items: EventCategory.values.map((category) {
                       return DropdownMenuItem(
                         value: category,
@@ -275,7 +276,7 @@ class _AddEventModalState extends State<AddEventModal> {
                           children: [
                             Icon(category.icon, color: category.color, size: 18),
                             const SizedBox(width: 12),
-                            Expanded(child: Text(category.label, style: TextStyle(color: Colors.white))),
+                            Expanded(child: Text(category.label, style: TextStyle(color: AppDesign.textPrimaryDark))),
                           ],
                         ),
                       );
@@ -309,12 +310,12 @@ class _AddEventModalState extends State<AddEventModal> {
                    return Column(
                      crossAxisAlignment: CrossAxisAlignment.start,
                      children: [
-                        Text(AppLocalizations.of(context)!.agendaAttendantSpecialist, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                        Text(AppLocalizations.of(context)!.agendaAttendantSpecialist, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                         const SizedBox(height: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white10,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: Colors.white10),
                           ),
@@ -322,20 +323,20 @@ class _AddEventModalState extends State<AddEventModal> {
                             child: DropdownButton<String>(
                               value: safeValue,
                               isExpanded: true,
-                              dropdownColor: Colors.grey[850],
-                              icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00E676)),
+                              dropdownColor: AppDesign.surfaceDark,
+                              icon: const Icon(Icons.arrow_drop_down, color: AppDesign.accent),
                               hint: Row(
                                 children: [
-                                  const Icon(Icons.person, color: Colors.white54, size: 18),
+                                  const Icon(Icons.person, color: AppDesign.textSecondaryDark, size: 18),
                                   const SizedBox(width: 12),
-                                  Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 14)),
+                                  Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.3), fontSize: 14)),
                                 ],
                               ),
                               // 🛡️ PROTEÇÃO: Se não há membros, desabilitar ou mostrar mensagem informativa
                               items: safeItems.map((name) => DropdownMenuItem(
                                 value: name, 
                                 enabled: hasMembers, // Desabilitar se for mensagem de erro
-                                child: Text(name, style: TextStyle(color: hasMembers ? Colors.white : Colors.white54))
+                                child: Text(name, style: TextStyle(color: hasMembers ? AppDesign.textPrimaryDark : AppDesign.textSecondaryDark))
                               )).toList(),
                               onChanged: hasMembers ? (val) => setState(() => _selectedAttendant = val) : null,
                             ),
@@ -350,16 +351,16 @@ class _AddEventModalState extends State<AddEventModal> {
               TextField(
                 controller: _titleController,
                 readOnly: widget.isReadOnly,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppDesign.textPrimaryDark),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.agendaEventTitle,
-                  labelStyle: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold),
+                  labelStyle: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold),
                   hintText: AppLocalizations.of(context)!.agendaTitleExample,
-                  hintStyle: const TextStyle(color: Colors.white30),
+                  hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.05),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF00E676))),
+                  fillColor: Colors.white10,
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white10)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.accent)),
                   contentPadding: const EdgeInsets.all(16),
                 ),
               ),
@@ -371,16 +372,16 @@ class _AddEventModalState extends State<AddEventModal> {
                     controller: _contentController,
                     readOnly: widget.isReadOnly,
                     maxLines: 3,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppDesign.textPrimaryDark),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.pdfObservations,
-                      labelStyle: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold),
+                      labelStyle: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold),
                       hintText: AppLocalizations.of(context)!.agendaObservationsHint,
-                      hintStyle: const TextStyle(color: Colors.white30),
+                      hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF00E676))),
+                      fillColor: Colors.white10,
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white10)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.accent)),
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
@@ -390,8 +391,8 @@ class _AddEventModalState extends State<AddEventModal> {
                       right: 8,
                       child: FloatingActionButton.small(
                         onPressed: _listen,
-                        backgroundColor: _isListening ? Colors.redAccent : const Color(0xFF00E676),
-                        child: Icon(_isListening ? Icons.stop : Icons.mic, color: Colors.black),
+                        backgroundColor: _isListening ? AppDesign.error : AppDesign.accent,
+                        child: Icon(_isListening ? Icons.stop : Icons.mic, color: AppDesign.backgroundDark),
                       ),
                     ),
                 ],
@@ -401,7 +402,7 @@ class _AddEventModalState extends State<AddEventModal> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.03),
+                  color: Colors.white10,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.white10),
                 ),
@@ -413,13 +414,13 @@ class _AddEventModalState extends State<AddEventModal> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.attach_file, color: const Color(0xFF00E676), size: 18),
+                            Icon(Icons.attach_file, color: AppDesign.accent, size: 18),
                             const SizedBox(width: 8),
-                            Text(AppLocalizations.of(context)!.agendaAttachmentsFull, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+                            Text(AppLocalizations.of(context)!.agendaAttachmentsFull, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13, fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (!widget.isReadOnly)
-                          IconButton(icon: const Icon(Icons.add_photo_alternate, color: Color(0xFF00E676), size: 20), onPressed: _pickAttachment, padding: EdgeInsets.zero, constraints: const BoxConstraints()),
+                          IconButton(icon: const Icon(Icons.add_photo_alternate, color: AppDesign.accent, size: 20), onPressed: _pickAttachment, padding: EdgeInsets.zero, constraints: const BoxConstraints()),
                       ],
                     ),
                     if (_attachments.isNotEmpty) ...[
@@ -432,16 +433,16 @@ class _AddEventModalState extends State<AddEventModal> {
                           final fileName = path.split('/').last;
                           return Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(color: const Color(0xFF00E676).withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                            decoration: BoxDecoration(color: AppDesign.accent.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.attach_file, size: 14, color: Color(0xFF00E676)),
+                                const Icon(Icons.attach_file, size: 14, color: AppDesign.accent),
                                 const SizedBox(width: 6),
-                                ConstrainedBox(constraints: const BoxConstraints(maxWidth: 120), child: Text(fileName, style: const TextStyle(color: Colors.white, fontSize: 11), overflow: TextOverflow.ellipsis)),
+                                ConstrainedBox(constraints: const BoxConstraints(maxWidth: 120), child: Text(fileName, style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 11), overflow: TextOverflow.ellipsis)),
                                 const SizedBox(width: 4),
                                 if (!widget.isReadOnly)
-                                  GestureDetector(onTap: () => setState(() => _attachments.removeAt(index)), child: const Icon(Icons.close, size: 14, color: Colors.white70)),
+                                  GestureDetector(onTap: () => setState(() => _attachments.removeAt(index)), child: const Icon(Icons.close, size: 14, color: AppDesign.textSecondaryDark)),
                               ],
                             ),
                           );
@@ -459,7 +460,7 @@ class _AddEventModalState extends State<AddEventModal> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (_titleController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaEnterTitle), backgroundColor: Colors.orange));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaEnterTitle), backgroundColor: AppDesign.warning));
                         return;
                       }
                       final event = widget.existingEvent?.copyWith(
@@ -498,8 +499,8 @@ class _AddEventModalState extends State<AddEventModal> {
                       widget.onSave(event);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00E676), 
-                      foregroundColor: Colors.black, 
+                      backgroundColor: AppDesign.accent, 
+                      foregroundColor: AppDesign.backgroundDark, 
                       padding: const EdgeInsets.symmetric(vertical: 16), 
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 4,
@@ -524,20 +525,20 @@ class _AddEventModalState extends State<AddEventModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(label, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.03),
+            color: AppDesign.textPrimaryDark.withOpacity(0.03),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white10),
+            border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.white24, size: 18),
+              Icon(icon, color: AppDesign.textPrimaryDark.withOpacity(0.24), size: 18),
               const SizedBox(width: 12),
-              Text(value, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+              Text(value, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 14)),
             ],
           ),
         ),

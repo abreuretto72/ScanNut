@@ -32,6 +32,14 @@ class CustomErrorScreen extends StatelessWidget {
     // 🛡️ PROTEÇÃO TOTAL - Não depende de nada externo
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            const _AppWatermarkSimple(),
+          ],
+        );
+      },
       home: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
@@ -81,9 +89,7 @@ class CustomErrorScreen extends StatelessWidget {
                       onPressed: () {
                         // Tenta fechar o erro e voltar
                         try {
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          }
+                          Navigator.of(context).pop();
                         } catch (e) {
                           // Se falhar, não faz nada (já está na tela de erro)
                           debugPrint('Cannot navigate: $e');
@@ -120,6 +126,33 @@ class CustomErrorScreen extends StatelessWidget {
                     ),
                   ],
                 ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Versão simplificada da marca d'água para a tela de erro (sem dependência de contexto de tema complexo)
+class _AppWatermarkSimple extends StatelessWidget {
+  const _AppWatermarkSimple();
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Material(
+        type: MaterialType.transparency,
+        child: Container(
+          alignment: Alignment.bottomRight,
+          padding: const EdgeInsets.only(right: 16, bottom: 8),
+          child: SafeArea(
+            child: Text(
+              'ScanNut © 2026 Multiverso Digital',
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                color: Colors.white.withOpacity(0.08),
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),

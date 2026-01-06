@@ -23,13 +23,20 @@ class WeeklyPlanAdapter extends TypeAdapter<WeeklyPlan> {
       criadoEm: fields[3] as DateTime,
       atualizadoEm: fields[4] as DateTime,
       dicasPreparo: fields[5] as String?,
+      id: fields[6] as String?,
+      periodType: fields[7] as String?,
+      endDate: fields[8] as DateTime?,
+      objective: fields[9] as String?,
+      version: fields[10] as int,
+      status: fields[11] as String,
+      shoppingListJson: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WeeklyPlan obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.weekStartDate)
       ..writeByte(1)
@@ -41,7 +48,21 @@ class WeeklyPlanAdapter extends TypeAdapter<WeeklyPlan> {
       ..writeByte(4)
       ..write(obj.atualizadoEm)
       ..writeByte(5)
-      ..write(obj.dicasPreparo);
+      ..write(obj.dicasPreparo)
+      ..writeByte(6)
+      ..write(obj.id)
+      ..writeByte(7)
+      ..write(obj.periodType)
+      ..writeByte(8)
+      ..write(obj.endDate)
+      ..writeByte(9)
+      ..write(obj.objective)
+      ..writeByte(10)
+      ..write(obj.version)
+      ..writeByte(11)
+      ..write(obj.status)
+      ..writeByte(12)
+      ..write(obj.shoppingListJson);
   }
 
   @override

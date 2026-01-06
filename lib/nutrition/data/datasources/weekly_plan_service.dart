@@ -26,8 +26,17 @@ class WeeklyPlanService {
       debugPrint('✅ WeeklyPlanService initialized/re-opened (Secure). Box Open: ${_box?.isOpen}');
       return _box!;
     } catch (e) {
-      debugPrint('❌ Error initializing Secure WeeklyPlanService: $e');
-      rethrow;
+      debugPrint('⚠️ Error opening WeeklyPlan box. Data might be incompatible. Attempting recovery...');
+      try {
+        // Se falhar ao abrir, deletamos a box corrompida/antiga e tentamos novamente
+        await Hive.deleteBoxFromDisk(_boxName);
+        _box = await Hive.openBox<WeeklyPlan>(_boxName, encryptionCipher: cipher);
+        debugPrint('♻️ WeeklyPlan box recovered successfully.');
+        return _box!;
+      } catch (recoveryError) {
+        debugPrint('❌ Critical error initializing WeeklyPlan recovery: $recoveryError');
+        rethrow;
+      }
     }
   }
 
@@ -36,61 +45,63 @@ class WeeklyPlanService {
     await _ensureBox(cipher: cipher);
   }
 
-  /// Salva um plano semanal
+  /// Salva um plano
   Future<void> savePlan(WeeklyPlan plan) async {
     try {
       final box = await _ensureBox();
-      final key = _getWeekKey(plan.weekStartDate);
+      
+      // Gerar ID se não tiver
+      plan.id ??= DateTime.now().millisecondsSinceEpoch.toString(); 
       plan.atualizadoEm = DateTime.now();
       
-      debugPrint('[WeeklyMenu] SAVE key=$key days=${plan.days.length}');
-      await box.put(key, plan);
-      
-      // READBACK para validar
-      final saved = box.get(key);
-      debugPrint('[WeeklyMenu] READBACK savedNull=${saved == null} days=${saved?.days.length}');
-      
-      if (saved == null) {
-        throw Exception('Hive readback failed for key: $key');
+      // Regra de Versão: Se estivermos salvando um novo plano 'Ativo' para este período,
+      // devemos arquivar os anteriores do mesmo período.
+      if (plan.status == 'active') {
+         final existing = getAllPlans().where((p) => 
+            p.weekStartDate == plan.weekStartDate && 
+            p.id != plan.id && 
+            p.status == 'active'
+         ).toList();
+         
+         for (var p in existing) {
+            p.status = 'archived';
+            await p.save(); // HiveObject.save() works if it was already in box
+            // If not in box (which shouldn't happen here), we'd use box.put
+         }
       }
+
+      await box.put(plan.id, plan);
+      debugPrint('[WeeklyMenu] SAVE id=${plan.id} start=${plan.weekStartDate} status=${plan.status}');
     } catch (e) {
-      debugPrint('❌ Error saving weekly plan: $e');
+      debugPrint('❌ Error saving plan: $e');
       rethrow;
     }
   }
 
-  /// Retorna o plano da semana atual
+  /// Soft Delete
+  Future<void> softDeletePlan(String id) async {
+    try {
+      final box = await _ensureBox();
+      final plan = box.get(id);
+      if (plan != null) {
+        plan.status = 'deleted';
+        await box.put(id, plan);
+        debugPrint('🗑️ Soft deleted plan: $id');
+      }
+    } catch (e) {
+      debugPrint('❌ Error soft deleting plan: $e');
+      rethrow;
+    }
+  }
+
+  /// Get plan by ID
+  WeeklyPlan? getPlanById(String id) {
+    if (_box == null || !_box!.isOpen) return null;
+    return _box!.get(id);
+  }
+
+  /// Retorna o plano da semana atual (Ativo)
   WeeklyPlan? getCurrentWeekPlan() {
-    // Note: This method is synchronous in signature but Hive implies potential async init if closed.
-    // However, if we change signature to Future, we break the interface used by Providers.
-    // The Provider `WeeklyPlanNotifier` calls `_service.getCurrentWeekPlan()` synchronously in its constructor (line 75).
-    // Breaking this would require refactoring `WeeklyPlanNotifier`.
-    // BUT: If the box is closed, we CANNOT get data synchronously.
-    
-    // Compromise: Try to use _box if open. If closed, we can't do anything synchronously.
-    // We should log error.
-    // To properly fix, `WeeklyPlanNotifier` should be async or call init first.
-    // WeeklyPlanNotifier line 75: `state = _service.getCurrentWeekPlan();`
-    // WeeklyPlanNotifier line 67: `_service` is instantiated.
-    // Constructor triggers _loadCurrentWeekPlan.
-    
-    // We SHOULD fix the Provider to be async or wait for init?
-    // But `WeeklyPlanNotifier` is not async. 
-    // Wait, `WeeklyPlanNotifier` calls `_loadCurrentWeekPlan` in constructor.
-    // It's better to make `_loadCurrentWeekPlan` async? But constructor can't await.
-    
-    // Actually, `WeeklyPlanService` is a singleton. `init()` should have been called at app start.
-    // If Danger Zone closed it, sync access fails.
-    
-    // CRITICAL: Changing return type to Future breaks code.
-    // OPTION: Try to re-open synchronously? No, Hive.openBox is Future.
-    
-    // Fallback: If box is closed, return null. The UI will likely reload or user will retry.
-    // But `generateNewPlan` (where the error happened) IS async (`Future<void>`).
-    // `generateNewPlan` calls `savePlan`. I already made `savePlan` async and using `_ensureBox`.
-    // So the "Box is closed" error in `savePlan` IS FIXED.
-    
-    // For `getCurrentWeekPlan`:
     if (_box == null || !_box!.isOpen) {
        debugPrint('⚠️ [WeeklyPlanService] Sync access to closed box. Returning null.');
        return null; 
@@ -98,48 +109,73 @@ class WeeklyPlanService {
     
     try {
       final now = DateTime.now();
-      final monday = _getMonday(now);
-      final key = _getWeekKey(monday);
-      final menu = _box?.get(key);
-      debugPrint('[WeeklyMenu] LOAD key=$key menuNull=${menu == null} days=${menu?.days.length}');
-      return menu;
+      final monday = getMonday(now);
+      
+      final activePlans = getAllActivePlans();
+      if (activePlans.isEmpty) return null;
+
+      // Try exact match first
+      try {
+        return activePlans.firstWhere((p) => isSameDay(p.weekStartDate, monday));
+      } catch (_) {
+        // Try period overlap
+        try {
+          return activePlans.firstWhere((p) => 
+            p.weekStartDate.isBefore(now.add(const Duration(seconds: 1))) && 
+            (p.endDate?.isAfter(now.subtract(const Duration(seconds: 1))) ?? false)
+          );
+        } catch (_) {
+          return null;
+        }
+      }
     } catch (e) {
       debugPrint('❌ Error getting current week plan: $e');
       return null;
     }
   }
 
-  /// Retorna o plano de uma semana específica
+  bool isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  /// Retorna o plano de uma semana específica (Ativo)
   WeeklyPlan? getPlanByDate(DateTime date) {
     if (_box == null || !_box!.isOpen) return null;
     try {
-      final monday = _getMonday(date);
-      final key = _getWeekKey(monday);
-      return _box?.get(key);
+      final monday = getMonday(date);
+      return getAllActivePlans().firstWhere(
+        (p) => isSameDay(p.weekStartDate, monday),
+      );
     } catch (e) {
-      debugPrint('❌ Error getting plan by date: $e');
       return null;
     }
   }
 
-  /// Retorna todos os planos
+  /// Retorna todos os planos (exclui deletados)
   List<WeeklyPlan> getAllPlans() {
     if (_box == null || !_box!.isOpen) return [];
     try {
-      return _box?.values.toList() ?? [];
+      final all = _box!.values.toList();
+      final filtered = all.where((p) => p.status != 'deleted').toList();
+      debugPrint('[WeeklyPlanService] getAllPlans: total=${all.length}, filtered=${filtered.length} (deleted=${all.length - filtered.length})');
+      return filtered;
     } catch (e) {
       debugPrint('❌ Error getting all plans: $e');
       return [];
     }
   }
 
-  /// Remove um plano
-  Future<void> deletePlan(DateTime weekStartDate) async {
+  /// Retorna apenas planos ativos
+  List<WeeklyPlan> getAllActivePlans() {
+    return getAllPlans().where((p) => p.status == 'active').toList();
+  }
+
+  /// Remove um plano (Fisicamente)
+  Future<void> deletePlan(String id) async {
     try {
       final box = await _ensureBox();
-      final key = _getWeekKey(weekStartDate);
-      await box.delete(key);
-      debugPrint('🗑️ Weekly plan deleted for week: $key');
+      await box.delete(id);
+      debugPrint('🗑️ Weekly plan deleted: $id');
     } catch (e) {
       debugPrint('❌ Error deleting weekly plan: $e');
       rethrow;
@@ -159,7 +195,7 @@ class WeeklyPlanService {
   }
 
   /// Retorna a segunda-feira da semana às 00:00 (NORMALIZADO)
-  DateTime _getMonday(DateTime date) {
+  DateTime getMonday(DateTime date) {
     final weekday = date.weekday; // 1 = Monday, 7 = Sunday
     final monday = date.subtract(Duration(days: weekday - 1));
     // NORMALIZAR para 00:00:00

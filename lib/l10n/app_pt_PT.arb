@@ -1,5 +1,6 @@
 {
-  "appTitle": "Scannut",
+  "appTitle": "ScanNut",
+  "splashPoweredBy": "Tecnologia AI Vision",
   "tabFood": "Alimentação",
   "tabPlants": "Plantas",
   "tabPets": "Animais",
@@ -416,7 +417,7 @@
 
   "pdfPersonalizedPlanTitle": "PLANO ALIMENTAR PERSONALIZADO",
   "pdfGoalLabel": "OBJETIVO",
-  "pdfGeneratedByLine": "RELATÓRIO DE NUTRIÇÃO SEMANAL GERADO POR SCAN NUT AI",
+  "pdfGeneratedByLine": "RELATÓRIO DE NUTRIÇÃO SEMANAL GERADO POR ScanNut AI",
   "pdfBatchCookingTips": "💡 DICAS DE BATCH COOKING E PREPARAÇÃO",
 
   "tipBeans": "💡 Cozinhe uma panela grande de feijão logo no início da semana e congele porções para economizar gás e tempo.",
@@ -457,5 +458,14 @@
   "featureMenuPlanTitle": "Planeamento de Ementa Inteligente",
   "featureMenuPlanDesc": "Crie ementas semanais personalizadas baseadas nas suas metas e restrições alimentares.",
   "privacySecurityTitle": "Segurança e Proteção de Dados",
-  "privacySecurityBody": "O ScanNut prioriza a privacidade do utilizador através de uma arquitetura de dados local. Utilizamos criptografia de nível militar (AES-256) para cifrar a base de dados armazenada no seu dispositivo. As chaves de segurança são mantidas em ambiente isolado (Keystore/Keychain), garantindo que, mesmo em caso de perda do telemóvel, os dados permaneçam inacessíveis sem as devidas credenciais ou chaves do sistema.\n\nO utilizador está ciente de que, por não utilizarmos armazenamento na nuvem (Cloud), a manutenção e segurança dos ficheiros de Cópia de Segurança Local exportados são da sua inteira responsabilidade."
+  "privacySecurityBody": "O ScanNut prioriza a privacidade do utilizador através de uma arquitetura de dados local. Utilizamos criptografia de nível militar (AES-256) para cifrar a base de dados armazenada no seu dispositivo. As chaves de segurança são mantidas em ambiente isolado (Keystore/Keychain), garantindo que, mesmo em caso de perda do telemóvel, os dados permaneçam inacessíveis sem as devidas credenciais ou chaves do sistema.\n\nO utilizador está ciente de que, por não utilizarmos armazenamento na nuvem (Cloud), a manutenção e segurança dos ficheiros de Cópia de Segurança Local exportados são da sua inteira responsabilidade.",
+  "logoutTitle": "Sair e Desconectar",
+  "logoutSubtitle": "Encerrar sessão no ScanNut",
+  "contactSubject": "Contacto ScanNut",
+  "helpWelcomeTitle": "Bem-vindo ao ScanNut!",
+  "helpWelcomeSubtitle": "O seu assistente visual de IA",
+  "helpDisclaimerTitle": "⚠️ AVISO IMPORTANTE",
+  "helpDisclaimerBody": "A Inteligência Artificial pode cometer erros na análise de imagens. O ScanNut NÃO se responsabiliza pelas informações geradas pela IA.\n\n• As análises são apenas ORIENTATIVAS\n• NÃO substituem profissionais qualificados\n• Consulte sempre veterinários, nutricionistas ou botânicos\n• Use a app como ferramenta de apoio, não como diagnóstico final",
+  "helpFooter": "ScanNut v1.5.1\nDesenvolvido com ❤️ por Abreu Retto",
+  "footerDevelopedBy": "Desenvolvido por Abreu Retto"
 }

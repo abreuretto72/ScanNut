@@ -60,14 +60,16 @@ final weeklyPlanHistoryProvider = FutureProvider<List<WeeklyPlan>>((ref) async {
 
 /// Provider para o plano semanal atual
 final currentWeekPlanProvider = StateNotifierProvider<WeeklyPlanNotifier, WeeklyPlan?>((ref) {
-  return WeeklyPlanNotifier();
+  return WeeklyPlanNotifier(ref);
 });
 
 class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
+  final Ref ref;
   final WeeklyPlanService _service = WeeklyPlanService();
   final WeeklyPlanGenerator _generator = WeeklyPlanGenerator();
+  final ShoppingListService _shoppingService = ShoppingListService();
 
-  WeeklyPlanNotifier() : super(null) {
+  WeeklyPlanNotifier(this.ref) : super(null) {
     _loadCurrentWeekPlan();
   }
 
@@ -75,36 +77,98 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     state = _service.getCurrentWeekPlan();
   }
 
-  Future<void> generateNewPlan(UserNutritionProfile profile, {MenuCreationParams? params, DateTime? startDate, String? languageCode}) async {
+  Future<void> generateNewPlan(UserNutritionProfile profile, {
+    MenuCreationParams? params, 
+    DateTime? startDate, 
+    String? languageCode,
+    bool replace = false,
+  }) async {
+    // Check if a plan already exists for this date to determine version
+    final targetStart = startDate ?? params?.startDate ?? _service.getMonday(DateTime.now());
+    final existingPlans = _service.getAllPlans().where((p) => _service.isSameDay(p.weekStartDate, targetStart)).toList();
+    final nextVersion = existingPlans.isEmpty ? 1 : (existingPlans.map((p) => p.version).reduce((a, b) => a > b ? a : b) + 1);
+
     final plan = await _generator.generateWeeklyPlan(
       profile: profile, 
       params: params, 
-      startDate: startDate,
+      startDate: startDate ?? params?.startDate,
       languageCode: languageCode
     );
+    
     if (plan != null) {
-      await _service.savePlan(plan);
-      state = plan; // If the generated plan is for current week, this updates UI. 
-      // If it's another week, we might need logic, but for now assuming 'current' means 'what we are viewing'.
-      // However, state is WeeklyPlan?. Ideally state should strictly be THIS week?
-      // Or state is "selected plan".
-      // Let's keep state as "Current Week" for now as per provider name.
-      if (_service.getCurrentWeekPlan()?.weekStartDate == plan.weekStartDate) {
-         state = plan;
+      plan.version = nextVersion;
+      plan.objective = params?.objective ?? profile.objetivo ?? 'maintenance';
+      plan.periodType = params?.periodType ?? 'weekly';
+      
+      // Generate and save shopping list JSON
+      plan.shoppingListJson = _shoppingService.generateMainShoppingListJson(plan);
+      
+      if (replace) {
+        // Soft delete all active plans in this slot before saving new one
+        for (var p in existingPlans) {
+          if (p.id != null && p.status == 'active') {
+            await _service.softDeletePlan(p.id!);
+          }
+        }
       }
+      
+      await _service.savePlan(plan);
+      state = plan; 
+      
+      // Sync shopping list automatically
+      await ref.read(shoppingListProvider.notifier).generateFromPlan(plan);
     }
   }
 
   Future<void> regeneratePlan(UserNutritionProfile profile, {String? languageCode}) async {
+    if (state == null) return;
+    
+    final currentPlan = state!;
+    final nextVersion = currentPlan.version + 1;
+    
     final newSeed = DateTime.now().millisecondsSinceEpoch;
     final plan = await _generator.generateWeeklyPlan(
       profile: profile, 
       seed: newSeed,
-      languageCode: languageCode
+      startDate: currentPlan.weekStartDate,
+      languageCode: languageCode,
+      params: MenuCreationParams(
+        periodType: currentPlan.periodType ?? 'weekly',
+        objective: currentPlan.objective ?? 'maintenance',
+      ),
     );
+    
     if (plan != null) {
+      plan.version = nextVersion;
+      plan.objective = currentPlan.objective;
+      plan.periodType = currentPlan.periodType;
+      
+      // Generate and save shopping list JSON
+      plan.shoppingListJson = _shoppingService.generateMainShoppingListJson(plan);
+      
       await _service.savePlan(plan);
       state = plan;
+    }
+  }
+
+  Future<void> updateMeal(PlanDay day, Meal oldMeal, Meal newMeal) async {
+    if (state == null) return;
+    final plan = state!;
+    final dayIndex = plan.days.indexWhere((d) => d.date == day.date);
+    if (dayIndex != -1) {
+      final meals = List<Meal>.from(plan.days[dayIndex].meals);
+      final mealIndex = meals.indexOf(oldMeal);
+      if (mealIndex != -1) {
+        meals[mealIndex] = newMeal;
+        plan.days[dayIndex].meals = meals;
+        plan.atualizadoEm = DateTime.now();
+        
+        // Regenerate shopping list since ingredients changed
+        plan.shoppingListJson = _shoppingService.generateMainShoppingListJson(plan);
+        
+        await _service.savePlan(plan);
+        state = WeeklyPlan.fromJson(plan.toJson()); // Rebuild UI
+      }
     }
   }
 
@@ -117,31 +181,20 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
       tipo: oldMeal.tipo,
       profile: profile,
       excludedRecipeIds: oldMeal.recipeId != null ? [oldMeal.recipeId!] : [],
+      objective: state?.objective,
     );
 
     if (newMeal != null && state != null) {
-      final plan = state!;
-      final dayIndex = plan.days.indexWhere((d) => d.date == day.date);
-      if (dayIndex != -1) {
-        final meals = List<Meal>.from(plan.days[dayIndex].meals);
-        final mealIndex = meals.indexOf(oldMeal);
-        if (mealIndex != -1) {
-          meals[mealIndex] = newMeal;
-          plan.days[dayIndex].meals = meals;
-          await _service.savePlan(plan);
-          state = WeeklyPlan.fromJson(plan.toJson()); // Trigger rebuild
-        }
-      }
+      await updateMeal(day, oldMeal, newMeal);
     }
   }
 
   Future<void> deletePlan(WeeklyPlan plan) async {
-    await _service.deletePlan(plan.weekStartDate);
-    
-    // If we just deleted the plan being viewed, clear the view
-    // Note: Hive keys might be different instances, use weekStartDate comparison
-    if (state?.weekStartDate == plan.weekStartDate) {
-       state = null;
+    if (plan.id != null) {
+      await _service.softDeletePlan(plan.id!);
+      if (state?.id == plan.id) {
+        state = _service.getCurrentWeekPlan();
+      }
     }
   }
 
@@ -204,8 +257,27 @@ class ShoppingListNotifier extends StateNotifier<List<ShoppingListItem>> {
 
   Future<void> generateFromPlan(WeeklyPlan plan) async {
     await _service.clearAll();
-    final items = _generator.generateFromWeeklyPlan(plan);
-    await _service.addItems(items);
+    
+    // Use the new professional generation (returns one list per week)
+    final weeklyLists = _service.generateWeeklyListsFromPlan(plan);
+    if (weeklyLists.isEmpty) return;
+    
+    // For the UI (Interactive List), we populate the first week
+    final List<ShoppingListItem> hiveItems = [];
+    final now = DateTime.now();
+    
+    for (var cat in weeklyLists.first.categories) {
+      for (var item in cat.items) {
+          hiveItems.add(ShoppingListItem(
+            nome: item.name,
+            quantidadeTexto: item.quantityDisplay,
+            criadoEm: now,
+            marcado: false,
+          ));
+      }
+    }
+    
+    await _service.addItems(hiveItems);
     _loadList();
   }
 

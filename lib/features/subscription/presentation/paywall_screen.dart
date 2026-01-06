@@ -100,6 +100,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     }
   }
 
+  static const Color _scanNutProColor = Color(0xFFFADADD);
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -115,7 +117,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.green.shade900.withOpacity(0.4),
+                    _scanNutProColor.withOpacity(0.4),
                     Colors.black,
                   ],
                 ),
@@ -145,11 +147,11 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.2),
+                        color: _scanNutProColor.withOpacity(0.2),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.green, width: 2),
+                        border: Border.all(color: _scanNutProColor, width: 2),
                       ),
-                      child: const Icon(Icons.star, color: Colors.green, size: 48),
+                      child: const Icon(Icons.star, color: _scanNutProColor, size: 48),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -176,7 +178,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   
                   // Packages
                   if (_isLoading && _offerings == null)
-                    const Center(child: CircularProgressIndicator(color: Colors.green))
+                    const Center(child: CircularProgressIndicator(color: _scanNutProColor))
                   else if (_offerings?.current != null) ...[
                     if (_offerings!.current!.annual != null)
                       _buildPackageOption(_offerings!.current!.annual!, isBestValue: true),
@@ -197,19 +199,19 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _purchaseSelectedPackage,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                      backgroundColor: _scanNutProColor,
+                      foregroundColor: Colors.black, // Dark text on light pink for contrast
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      disabledBackgroundColor: Colors.green.withOpacity(0.3),
+                      disabledBackgroundColor: _scanNutProColor.withOpacity(0.3),
                     ),
                     child: _isLoading 
                       ? const SizedBox(
                           height: 24, 
                           width: 24, 
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                          child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2)
                         )
                       : Text(
                           _selectedPackage == null 
@@ -277,9 +279,9 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green.withOpacity(0.15) : Colors.white.withOpacity(0.05),
+          color: isSelected ? _scanNutProColor.withOpacity(0.15) : Colors.white.withOpacity(0.05),
           border: Border.all(
-            color: isSelected ? Colors.green : Colors.transparent,
+            color: isSelected ? _scanNutProColor : Colors.transparent,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(16),
@@ -293,13 +295,13 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? Colors.green : Colors.white54,
+                  color: isSelected ? _scanNutProColor : Colors.white54,
                   width: 2,
                 ),
-                color: isSelected ? Colors.green : null,
+                color: isSelected ? _scanNutProColor : null,
               ),
               child: isSelected 
-                ? const Icon(Icons.check, size: 16, color: Colors.white) 
+                ? const Icon(Icons.check, size: 16, color: Colors.black) // Dark icon on pink
                 : null,
             ),
             const SizedBox(width: 16),
@@ -324,13 +326,13 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.green,
+                            color: _scanNutProColor,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             l10n.paywallBestValue,
                             style: GoogleFonts.poppins(
-                              color: Colors.white,
+                              color: Colors.black, // Dark text on pink
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),

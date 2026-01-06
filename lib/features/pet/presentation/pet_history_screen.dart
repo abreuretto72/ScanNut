@@ -21,6 +21,7 @@ import '../../pet/services/pet_event_service.dart';
 import '../../pet/models/pet_event.dart';
 import '../../partners/models/agenda_event.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/theme/app_design.dart';
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
   const PetHistoryScreen({Key? key}) : super(key: key);
@@ -105,31 +106,31 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     // Show loading indicator protecting Hive access
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppDesign.backgroundDark,
         appBar: AppBar(
-          backgroundColor: Colors.black,
+          backgroundColor: AppDesign.backgroundDark,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back, color: AppDesign.textPrimaryDark),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: const Center(child: CircularProgressIndicator(color: Color(0xFF00E676))),
+        body: const Center(child: CircularProgressIndicator(color: AppDesign.accent)),
       );
     }
 
     final l10n = AppLocalizations.of(context)!;
     
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: AppDesign.backgroundDark,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppDesign.textPrimaryDark),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           l10n.petHistoryTitle,
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.w600),
         ),
       ),
       body: ValueListenableBuilder<Box>(
@@ -153,11 +154,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.pets, size: 64, color: Colors.white24),
+                  const Icon(Icons.pets, size: 64, color: AppDesign.textSecondaryDark),
                   const SizedBox(height: 16),
                   Text(
                     l10n.petHistoryEmpty,
-                    style: GoogleFonts.poppins(color: Colors.white54),
+                    style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
                   ),
                 ],
               ),
@@ -166,8 +167,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
           return RefreshIndicator(
               onRefresh: _loadHistory,
-              color: const Color(0xFF00E676),
-              backgroundColor: Colors.grey[900],
+              color: AppDesign.accent,
+              backgroundColor: AppDesign.surfaceDark,
               child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: petHistory.length,
@@ -221,11 +222,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                 }
 
                 return Card(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
                   margin: const EdgeInsets.only(bottom: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    side: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
                   ),
                   child: Stack(
                     children: [
@@ -237,7 +238,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                        color: Colors.white,
+                        color: AppDesign.textPrimaryDark,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -248,12 +249,12 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           DateFormat('dd/MM/yyyy HH:mm', Localizations.localeOf(context).toString()).format(date),
-                          style: GoogleFonts.poppins(color: Colors.white30, fontSize: 12),
+                          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark.withOpacity(0.5), fontSize: 12),
                         ),
                         
                         const SizedBox(height: 12),
@@ -343,7 +344,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(l10n.petLinkPartnerError),
-                                          backgroundColor: Colors.orange,
+                                          backgroundColor: AppDesign.warning,
                                           duration: const Duration(seconds: 3),
                                         ),
                                       );
@@ -353,11 +354,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.withValues(alpha: 0.2),
+                                    color: AppDesign.info.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                                    border: Border.all(color: AppDesign.info.withValues(alpha: 0.3)),
                                   ),
-                                  child: const Icon(Icons.calendar_today, color: Colors.blueAccent, size: 18),
+                                  child: const Icon(Icons.calendar_today, color: AppDesign.info, size: 18),
                                 ),
                               ),
                               
@@ -414,11 +415,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.2),
+                                    color: AppDesign.success.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                                    border: Border.all(color: AppDesign.success.withValues(alpha: 0.3)),
                                   ),
-                                  child: const Icon(Icons.restaurant_menu, color: Colors.greenAccent, size: 18),
+                                  child: const Icon(Icons.restaurant_menu, color: AppDesign.success, size: 18),
                                 ),
                               ),
 
@@ -442,7 +443,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                        ScaffoldMessenger.of(context).showSnackBar(
                                          SnackBar(
                                            content: Text('Erro ao abrir: $e'),
-                                           backgroundColor: Colors.red,
+                                           backgroundColor: AppDesign.error,
                                          ),
                                        );
                                      }
@@ -503,11 +504,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
+                                    color: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                                    border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.2)),
                                   ),
-                                  child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                                  child: const Icon(Icons.edit, color: AppDesign.textPrimaryDark, size: 18),
                                 ),
                               ),
                             ],
@@ -520,7 +521,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                     top: 0,
                     right: 0,
                     child: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.white),
+                      icon: const Icon(Icons.delete_outline, color: AppDesign.textPrimaryDark),
                       onPressed: () => _confirmDelete(context, petName),
                     ),
                   ),
@@ -595,7 +596,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     // ✅ PADRÃO OBRIGATÓRIO: CircleAvatar com proteções
     return CircleAvatar(
       radius: 28,
-      backgroundColor: Colors.orangeAccent.withValues(alpha: 0.2),
+      backgroundColor: AppDesign.warning.withValues(alpha: 0.2),
       // 🛡️ backgroundImage APENAS se imagem válida
       backgroundImage: hasValidImage
           ? FileImage(File(imagePath!))
@@ -611,12 +612,12 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
           ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.pets, color: Colors.orangeAccent, size: 24),
+                Icon(Icons.pets, color: AppDesign.warning, size: 24),
                 const SizedBox(height: 2),
                 Text(
                   getInitials(petName),
                   style: const TextStyle(
-                    color: Colors.orangeAccent,
+                    color: AppDesign.warning,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -641,7 +642,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.delete, style: const TextStyle(color: Colors.red)),
+            child: Text(l10n.delete, style: const TextStyle(color: AppDesign.error)),
           ),
         ],
       ),

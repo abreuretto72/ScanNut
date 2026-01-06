@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../home/presentation/home_view.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/theme/app_design.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
@@ -22,28 +23,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       titleKey: 'onboardingTitle1',
       bodyKey: 'onboardingBody1',
       icon: Icons.restaurant_menu_rounded,
-      color: const Color(0xFFFF6B35), // Laranja vibrante para comida
+      color: AppDesign.warning, // Laranja vibrante para comida
     ),
     // Ecrã 2: Engenharia Botânica & Sobrevivência
     OnboardingData(
       titleKey: 'onboardingTitle2',
       bodyKey: 'onboardingBody2',
       icon: Icons.eco_rounded,
-      color: const Color(0xFF00E676), // Verde para plantas
+      color: AppDesign.success, // Verde para plantas
     ),
     // Ecrã 3: Gestão Digital de Pets
     OnboardingData(
       titleKey: 'onboardingTitle3',
       bodyKey: 'onboardingBody3',
       icon: Icons.pets_rounded,
-      color: const Color(0xFF9C27B0), // Roxo para pets
+      color: AppDesign.primary, // Roxo para pets
     ),
     // Ecrã 4: Privacidade & Compromisso Local
     OnboardingData(
       titleKey: 'onboardingTitle4',
       bodyKey: 'onboardingBody4',
       icon: Icons.shield_rounded,
-      color: const Color(0xFF2196F3), // Azul para segurança
+      color: AppDesign.info, // Azul para segurança
     ),
   ];
 
@@ -52,7 +53,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context)!.onboardingAcceptTerms),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppDesign.error,
         ),
       );
       return;
@@ -73,16 +74,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.black,
-              Colors.grey.shade900,
-              Colors.black,
+              AppDesign.backgroundDark,
+              AppDesign.surfaceDark,
+              AppDesign.backgroundDark,
             ],
           ),
         ),
@@ -122,8 +123,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       width: _currentPage == index ? 24 : 8,
                       decoration: BoxDecoration(
                         color: _currentPage == index 
-                            ? const Color(0xFF00E676) 
-                            : Colors.white24,
+                            ? AppDesign.accent 
+                            : AppDesign.textPrimaryDark.withOpacity(0.24),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -142,13 +143,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           Checkbox(
                             value: _termsAccepted,
                             onChanged: (val) => setState(() => _termsAccepted = val ?? false),
-                            activeColor: const Color(0xFF00E676),
-                            side: const BorderSide(color: Colors.white54),
+                            activeColor: AppDesign.accent,
+                            side: BorderSide(color: AppDesign.textSecondaryDark),
                           ),
                           Expanded(
                             child: Text(
                               l10n.onboardingAcceptTerms,
-                              style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11),
+                              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 11),
                             ),
                           ),
                         ],
@@ -174,9 +175,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _currentPage == _onboardingPages.length - 1 && !_termsAccepted
-                          ? Colors.grey[800]
-                          : const Color(0xFF00E676),
-                      foregroundColor: Colors.black,
+                          ? AppDesign.disabled
+                          : AppDesign.accent,
+                      foregroundColor: AppDesign.backgroundDark,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     child: Text(
@@ -240,7 +241,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             style: GoogleFonts.poppins(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppDesign.textPrimaryDark,
             ),
           ),
           const SizedBox(height: 24),
@@ -250,7 +251,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 16,
-              color: Colors.white70,
+              color: AppDesign.textSecondaryDark,
               height: 1.6,
             ),
           ),

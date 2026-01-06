@@ -12,6 +12,7 @@ import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/theme/app_design.dart';
 
 class BotanyHistoryScreen extends StatefulWidget {
   const BotanyHistoryScreen({Key? key}) : super(key: key);
@@ -43,11 +44,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
         title: Text(l10n.botanyTitle,
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.black,
+        backgroundColor: AppDesign.backgroundDark,
         elevation: 0,
       ),
       body: ValueListenableBuilder<Box<BotanyHistoryItem>>(
@@ -89,11 +90,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.local_florist, size: 80, color: Colors.grey.shade800),
+          Icon(Icons.local_florist, size: 80, color: AppDesign.surfaceDark),
           const SizedBox(height: 16),
           Text(
             l10n.botanyEmpty,
-            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
+            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 16),
           ),
         ],
       ),
@@ -104,10 +105,10 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
     final l10n = AppLocalizations.of(context)!;
     Color semaphoreColor;
     switch (item.survivalSemaphore.toLowerCase()) {
-      case 'verde': semaphoreColor = Colors.greenAccent; break;
-      case 'amarelo': semaphoreColor = Colors.yellowAccent; break;
-      case 'vermelho': semaphoreColor = Colors.redAccent; break;
-      default: semaphoreColor = Colors.greenAccent;
+      case 'verde': semaphoreColor = AppDesign.success; break;
+      case 'amarelo': semaphoreColor = AppDesign.warning; break;
+      case 'vermelho': semaphoreColor = AppDesign.error; break;
+      default: semaphoreColor = AppDesign.success;
     }
 
     return GestureDetector(
@@ -115,7 +116,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
-          color: Colors.grey.shade900.withOpacity(0.8),
+          color: AppDesign.surfaceDark.withOpacity(0.8),
           borderRadius: BorderRadius.circular(24),
           border: Border.all(color: semaphoreColor.withOpacity(0.3), width: 1.5),
         ),
@@ -137,8 +138,8 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                       : Container(
                           height: 160,
                           width: double.infinity,
-                          color: Colors.grey.shade800,
-                          child: const Icon(Icons.park, color: Colors.white10, size: 50),
+                          color: AppDesign.surfaceDark,
+                          child: const Icon(Icons.park, color: Colors.white12, size: 50),
                         ),
                 ),
                 // Semaphore Indicator
@@ -148,7 +149,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
+                      color: AppDesign.backgroundDark.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: semaphoreColor),
                     ),
@@ -167,7 +168,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                         const SizedBox(width: 8),
                         Text(
                           '${l10n.botanyStatus}: ${_getLocalizedStatus(item.survivalSemaphore)}',
-                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -187,7 +188,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                         ),
                         child: Text(
                           DateFormat('dd MMM yyyy', Localizations.localeOf(context).toString()).format(item.timestamp),
-                          style: GoogleFonts.poppins(color: Colors.white, fontSize: 10),
+                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 10),
                         ),
                       ),
                       if (item.locale != null && item.locale != Localizations.localeOf(context).toString()) ...[
@@ -195,18 +196,18 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.7),
+                            color: AppDesign.warning.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber, width: 0.5),
+                            border: Border.all(color: AppDesign.warning, width: 0.5),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.language, color: Colors.white, size: 10),
+                              const Icon(Icons.language, color: AppDesign.textPrimaryDark, size: 10),
                               const SizedBox(width: 4),
                               Text(
                                 item.locale!.toUpperCase().replaceAll('_', '-'),
-                                style: GoogleFonts.poppins(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -221,11 +222,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                   right: 12,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: AppDesign.backgroundDark.withOpacity(0.5),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.delete_sweep_outlined, color: Colors.redAccent),
+                      icon: const Icon(Icons.delete_sweep_outlined, color: AppDesign.error),
                       onPressed: () => _confirmDeletePlant(item),
                     ),
                   ),
@@ -240,7 +241,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                 children: [
                   AutoSizeText(
                     item.plantName,
-                    style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark),
                     maxLines: 1,
                     minFontSize: 14,
                     overflow: TextOverflow.ellipsis,
@@ -256,9 +257,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildNeedIcon(Icons.light_mode, item.lightWaterSoilNeeds['luz'] ?? 'N/A', Colors.yellow.shade700),
-                      _buildNeedIcon(Icons.water_drop, item.lightWaterSoilNeeds['agua'] ?? 'N/A', Colors.blueAccent),
-                      _buildNeedIcon(Icons.grass, item.lightWaterSoilNeeds['solo'] ?? 'N/A', Colors.brown.shade300),
+                      _buildNeedIcon(Icons.light_mode, item.lightWaterSoilNeeds['luz'] ?? 'N/A', AppDesign.warning),
+                      _buildNeedIcon(Icons.water_drop, item.lightWaterSoilNeeds['agua'] ?? 'N/A', AppDesign.info),
+                      _buildNeedIcon(Icons.grass, item.lightWaterSoilNeeds['solo'] ?? 'N/A', AppDesign.textSecondaryDark),
                     ],
                   ),
   
@@ -268,17 +269,17 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.redAccent.withOpacity(0.1),
+                        color: AppDesign.error.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 20),
+                          const Icon(Icons.warning_amber_rounded, color: AppDesign.error, size: 20),
                           const SizedBox(width: 8),
                           Expanded(
                             child: AutoSizeText(
                               item.toxicityStatus == 'toxic' ? l10n.botanyToxicHuman : l10n.botanyDangerousPet,
-                              style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.poppins(color: AppDesign.error, fontSize: 12, fontWeight: FontWeight.w600),
                               maxLines: 1,
                               minFontSize: 8,
                             ),
@@ -339,7 +340,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
             child: AutoSizeText(
               value,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(color: Colors.white70, fontSize: 10),
+              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 10),
               maxLines: 1,
               minFontSize: 6,
               overflow: TextOverflow.ellipsis,
@@ -359,12 +360,12 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
             icon: const Icon(Icons.health_and_safety_rounded, size: 18),
             label: Text(l10n.botanyRecovery, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E676).withOpacity(0.1),
-              foregroundColor: const Color(0xFF00E676),
+              backgroundColor: AppDesign.success.withOpacity(0.1),
+              foregroundColor: AppDesign.success,
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: Color(0xFF00E676), width: 0.5),
+                side: BorderSide(color: AppDesign.success, width: 0.5),
               ),
             ),
           ),
@@ -372,14 +373,14 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
         const SizedBox(width: 10),
         _buildCircularIconAction(
           icon: Icons.wb_sunny_rounded,
-          color: Colors.orangeAccent,
+          color: AppDesign.warning,
           tooltip: 'Feng Shui Tips',
           onPressed: () => _showFengShui(item),
         ),
         const SizedBox(width: 10),
         _buildCircularIconAction(
           icon: Icons.picture_as_pdf_rounded,
-          color: Colors.redAccent,
+          color: AppDesign.error,
           tooltip: 'Gerar Dossiê PDF',
           onPressed: () => _generateHistoryPDF(item),
         ),
@@ -443,7 +444,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       debugPrint("Erro ao gerar PDF do histórico: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: AppDesign.error),
         );
       }
     }
@@ -454,9 +455,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        title: Text(l10n.botanyRecoveryPlan, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text(item.recoveryPlan, style: GoogleFonts.poppins(color: Colors.white70)),
+        backgroundColor: AppDesign.surfaceDark,
+        title: Text(l10n.botanyRecoveryPlan, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
+        content: Text(item.recoveryPlan, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.commonUnderstand)),
         ],
@@ -469,9 +470,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        title: Text(l10n.botanyFengShui, style: GoogleFonts.poppins(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
-        content: Text(item.fengShuiTips, style: GoogleFonts.poppins(color: Colors.white70)),
+        backgroundColor: AppDesign.surfaceDark,
+        title: Text(l10n.botanyFengShui, style: GoogleFonts.poppins(color: AppDesign.warning, fontWeight: FontWeight.bold)),
+        content: Text(item.fengShuiTips, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.commonClose)),
         ],
@@ -512,7 +513,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.delete, style: const TextStyle(color: Colors.redAccent)),
+            child: Text(l10n.delete, style: const TextStyle(color: AppDesign.error)),
           ),
         ],
       ),

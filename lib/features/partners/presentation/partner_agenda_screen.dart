@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import '../../../core/theme/app_design.dart';
 import '../../../core/models/partner_model.dart';
 import '../models/agenda_event.dart';
 import '../../pet/services/pet_event_service.dart';
@@ -224,7 +225,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
         expand: false,
         builder: (context, scrollController) => Container(
           decoration: BoxDecoration(
-            color: Colors.grey[900],
+            color: AppDesign.surfaceDark,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: AddEventModal(
@@ -259,27 +260,27 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.grey[900],
-          title: Text(AppLocalizations.of(context)!.agendaExportTitle, style: const TextStyle(color: Colors.white)),
+          backgroundColor: AppDesign.surfaceDark,
+          title: Text(AppLocalizations.of(context)!.agendaExportTitle, style: const TextStyle(color: AppDesign.textPrimaryDark)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppLocalizations.of(context)!.agendaReportType, style: const TextStyle(color: Colors.white70)),
+                Text(AppLocalizations.of(context)!.agendaReportType, style: const TextStyle(color: AppDesign.textSecondaryDark)),
                 RadioListTile<String>(
-                  title: Text(AppLocalizations.of(context)!.agendaReportSummary, style: const TextStyle(color: Colors.white)),
+                  title: Text(AppLocalizations.of(context)!.agendaReportSummary, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                   value: 'Resumo',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
-                  activeColor: const Color(0xFF00E676),
+                  activeColor: AppDesign.accent,
                 ),
                 RadioListTile<String>(
-                  title: Text(AppLocalizations.of(context)!.agendaReportDetail, style: const TextStyle(color: Colors.white)),
+                  title: Text(AppLocalizations.of(context)!.agendaReportDetail, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                   value: 'Detalhamento',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
-                  activeColor: const Color(0xFF00E676),
+                  activeColor: AppDesign.accent,
                 ),
               ],
             ),
@@ -287,7 +288,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(AppLocalizations.of(context)!.commonCancel, style: const TextStyle(color: Colors.white54)),
+              child: Text(AppLocalizations.of(context)!.commonCancel, style: const TextStyle(color: AppDesign.textSecondaryDark)),
             ),
             TextButton(
               onPressed: () async {
@@ -329,7 +330,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                   );
                 }
               },
-              child: Text(AppLocalizations.of(context)!.agendaGeneratePDF, style: const TextStyle(color: const Color(0xFF00E676))),
+              child: Text(AppLocalizations.of(context)!.agendaGeneratePDF, style: const TextStyle(color: AppDesign.accent)),
             ),
           ],
         ),
@@ -343,23 +344,23 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
     final dailyEvents = _getEventsForDay(_selectedDay ?? DateTime.now());
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: AppDesign.backgroundDark,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppLocalizations.of(context)!.agendaTitle, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
-            Text(widget.partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(AppLocalizations.of(context)!.agendaTitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
+            Text(widget.partner.name, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppDesign.textPrimaryDark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            icon: const Icon(Icons.picture_as_pdf, color: AppDesign.textPrimaryDark),
             tooltip: AppLocalizations.of(context)!.menuExportReport,
             onPressed: _showExportDialog,
           ),
@@ -370,7 +371,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           children: [
             // 1. Calendar
             Container(
-              color: Colors.white.withOpacity(0.05),
+              color: AppDesign.textPrimaryDark.withOpacity(0.05),
               padding: const EdgeInsets.only(bottom: 8),
               child: TableCalendar(
                 firstDay: DateTime.utc(2020, 10, 16),
@@ -396,29 +397,29 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                 headerStyle: HeaderStyle(
                   titleCentered: true,
                   formatButtonVisible: false,
-                  titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  leftChevronIcon: const Icon(Icons.chevron_left, color: Color(0xFF00E676)),
-                  rightChevronIcon: const Icon(Icons.chevron_right, color: Color(0xFF00E676)),
+                  titleTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 16, fontWeight: FontWeight.bold),
+                  leftChevronIcon: const Icon(Icons.chevron_left, color: AppDesign.accent),
+                  rightChevronIcon: const Icon(Icons.chevron_right, color: AppDesign.accent),
                 ),
                 daysOfWeekStyle: const DaysOfWeekStyle(
-                  weekendStyle: TextStyle(color: Colors.white30),
-                  weekdayStyle: TextStyle(color: Colors.white70),
+                  weekendStyle: TextStyle(color: AppDesign.textSecondaryDark),
+                  weekdayStyle: TextStyle(color: AppDesign.textSecondaryDark),
                 ),
                 calendarStyle: CalendarStyle(
-                  defaultTextStyle: GoogleFonts.poppins(color: Colors.white),
-                  weekendTextStyle: GoogleFonts.poppins(color: Colors.white54),
-                  todayTextStyle: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
+                  defaultTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
+                  weekendTextStyle: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
+                  todayTextStyle: GoogleFonts.poppins(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold),
                   todayDecoration: const BoxDecoration(
-                    color: Color(0xFF00E676),
+                    color: AppDesign.accent,
                     shape: BoxShape.circle,
                   ),
-                  selectedTextStyle: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+                  selectedTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
                   selectedDecoration: const BoxDecoration(
-                    color: Colors.blueAccent,
+                    color: AppDesign.info,
                     shape: BoxShape.circle,
                   ),
                   markerDecoration: const BoxDecoration(
-                    color: Colors.amber,
+                    color: AppDesign.warning,
                     shape: BoxShape.circle,
                   ),
                   outsideDaysVisible: false,
@@ -438,9 +439,9 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                     _selectedDay != null 
                       ? DateFormat.MMMMd(Localizations.localeOf(context).toString()).format(_selectedDay!)
                       : AppLocalizations.of(context)!.agendaToday,
-                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.w600),
+                    style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14, fontWeight: FontWeight.w600),
                   ),
-                  Text(AppLocalizations.of(context)!.agendaEventsCount(dailyEvents.length), style: const TextStyle(color: Colors.white24, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.agendaEventsCount(dailyEvents.length), style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
                 ],
               ),
             ),
@@ -466,8 +467,8 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddEventModal,
-        backgroundColor: const Color(0xFF00E676),
-        child: const Icon(Icons.add, color: Colors.black),
+        backgroundColor: AppDesign.accent,
+        child: const Icon(Icons.add, color: AppDesign.backgroundDark),
       ),
     );
   }
@@ -477,9 +478,9 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.event_available, size: 60, color: Colors.white.withOpacity(0.05)),
+          Icon(Icons.event_available, size: 60, color: AppDesign.textPrimaryDark.withOpacity(0.05)),
           const SizedBox(height: 16),
-          Text(AppLocalizations.of(context)!.agendaNoEventsDay, style: GoogleFonts.poppins(color: Colors.white24)),
+          Text(AppLocalizations.of(context)!.agendaNoEventsDay, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         ],
       ),
     );
@@ -497,8 +498,8 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                Container(
                  width: 12, height: 12,
                  decoration: BoxDecoration(
-                   color: Colors.black,
-                   border: Border.all(color: const Color(0xFF00E676), width: 2),
+                   color: AppDesign.backgroundDark,
+                   border: Border.all(color: AppDesign.accent, width: 2),
                    shape: BoxShape.circle,
                  ),
                ),
@@ -515,9 +516,9 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
               padding: const EdgeInsets.only(bottom: 24),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white10,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  border: Border.all(color: Colors.white10),
                 ),
                 child: InkWell(
                   onTap: () => _showEditEventModal(event),
@@ -532,20 +533,20 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                           children: [
                             Text(
                               DateFormat('HH:mm').format(date),
-                              style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 16),
+                              style: GoogleFonts.poppins(color: AppDesign.accent, fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           event['title'],
-                          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                         if (event['content'] != null && event['content'].toString().isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Text(
                             event['content'],
-                            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13),
                           ),
                         ],
                       ],

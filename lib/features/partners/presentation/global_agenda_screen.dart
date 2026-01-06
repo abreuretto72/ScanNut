@@ -17,6 +17,7 @@ import '../../../core/widgets/pdf_action_button.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 
+import '../../../core/theme/app_design.dart';
 /// Agenda Global - Visão consolidada REATIVA de todos os eventos (PetEventService)
 class GlobalAgendaScreen extends StatefulWidget {
   const GlobalAgendaScreen({Key? key}) : super(key: key);
@@ -95,12 +96,12 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
 
   Color _getCategoryColor(EventType type) {
     switch (type) {
-      case EventType.vaccine: return Colors.blueAccent;
-      case EventType.bath: return Colors.cyanAccent;
-      case EventType.grooming: return Colors.purpleAccent;
-      case EventType.veterinary: return Colors.redAccent;
-      case EventType.medication: return Colors.orangeAccent;
-      case EventType.other: return Colors.grey;
+      case EventType.vaccine: return AppDesign.info;
+      case EventType.bath: return AppDesign.success;
+      case EventType.grooming: return AppDesign.primary;
+      case EventType.veterinary: return AppDesign.error;
+      case EventType.medication: return AppDesign.warning;
+      case EventType.other: return AppDesign.textSecondaryDark;
     }
   }
 
@@ -116,16 +117,16 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppDesign.surfaceDark,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: AppDesign.backgroundDark,
         title: Text(
           AppLocalizations.of(context)!.agendaGlobalTitle,
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
         ),
         actions: [
             IconButton(
-                icon: Icon(_showAllEvents ? Icons.calendar_today : Icons.list, color: const Color(0xFF00E676)),
+                icon: Icon(_showAllEvents ? Icons.calendar_today : Icons.list, color: AppDesign.accent),
                 onPressed: () {
                     setState(() {
                         _showAllEvents = !_showAllEvents;
@@ -170,10 +171,10 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   startingDayOfWeek: StartingDayOfWeek.monday,
                   calendarStyle: const CalendarStyle(
                     outsideDaysVisible: false,
-                    defaultTextStyle: TextStyle(color: Colors.white),
-                    weekendTextStyle: TextStyle(color: Colors.white70),
+                    defaultTextStyle: TextStyle(color: AppDesign.textPrimaryDark),
+                    weekendTextStyle: TextStyle(color: AppDesign.textSecondaryDark),
                     selectedDecoration: BoxDecoration(
-                      color: Color(0xFF00E676),
+                      color: AppDesign.accent,
                       shape: BoxShape.circle,
                     ),
                     todayDecoration: BoxDecoration(
@@ -181,19 +182,19 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                       shape: BoxShape.circle,
                     ),
                     markerDecoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: AppDesign.warning,
                       shape: BoxShape.circle,
                     ),
                   ),
                   headerStyle: HeaderStyle(
-                    titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
-                    formatButtonTextStyle: const TextStyle(color: Color(0xFF00E676)),
+                    titleTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 16),
+                    formatButtonTextStyle: const TextStyle(color: AppDesign.accent),
                     formatButtonDecoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFF00E676)),
+                        border: Border.all(color: AppDesign.accent),
                         borderRadius: BorderRadius.circular(12),
                     ),
-                    leftChevronIcon: const Icon(Icons.chevron_left, color: Colors.white),
-                    rightChevronIcon: const Icon(Icons.chevron_right, color: Colors.white),
+                    leftChevronIcon: const Icon(Icons.chevron_left, color: AppDesign.textPrimaryDark),
+                    rightChevronIcon: const Icon(Icons.chevron_right, color: AppDesign.textPrimaryDark),
                   ),
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
@@ -213,11 +214,11 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.event_busy, size: 64, color: Colors.white24),
+                            Icon(Icons.event_busy, size: 64, color: AppDesign.textSecondaryDark),
                             const SizedBox(height: 16),
                             Text(
                               _showAllEvents ? AppLocalizations.of(context)!.agendaNoEventsRegistered : AppLocalizations.of(context)!.agendaNoEventsTodayDetail,
-                              style: const TextStyle(color: Colors.white54),
+                              style: const TextStyle(color: AppDesign.textSecondaryDark),
                             ),
                           ],
                         ),
@@ -258,15 +259,15 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                           return Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: ChoiceChip(
-                                  label: Text(isAll ? AppLocalizations.of(context)!.agendaAllPets : petName!, style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Colors.white70)),
+                                  label: Text(isAll ? AppLocalizations.of(context)!.agendaAllPets : petName!, style: TextStyle(fontSize: 12, color: isSelected ? AppDesign.backgroundDark : AppDesign.textSecondaryDark)),
                                   selected: isSelected,
                                   onSelected: (selected) {
                                       setState(() {
                                           _selectedPetName = selected ? petName : null;
                                       });
                                   },
-                                  selectedColor: const Color(0xFF00E676),
-                                  backgroundColor: Colors.white.withOpacity(0.05),
+                                  selectedColor: AppDesign.accent,
+                                  backgroundColor: Colors.white10,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                   showCheckmark: false,
                               ),
@@ -283,7 +284,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
     
     return Card(
       clipBehavior: Clip.antiAlias,
-      color: Colors.white.withOpacity(0.08),
+      color: const Color(0x14FFFFFF),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -312,7 +313,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                         Text(
                           event.title,
                           style: GoogleFonts.poppins(
-                            color: Colors.white,
+                            color: AppDesign.textPrimaryDark,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -363,7 +364,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                     ),
                     child: Text(
                       event.notes!,
-                      style: const TextStyle(color: Colors.white70, fontSize: 13, fontStyle: FontStyle.italic),
+                      style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 13, fontStyle: FontStyle.italic),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -398,7 +399,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                 content: Text(AppLocalizations.of(context)!.agendaProfileNotFound(event.petName)), 
                 duration: const Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
-                backgroundColor: Colors.redAccent,
+                backgroundColor: AppDesign.error,
             ),
          );
      }
@@ -430,7 +431,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                   content: Text(AppLocalizations.of(context)!.agendaNoPartnerLinked), 
-                  backgroundColor: Colors.orange,
+                  backgroundColor: AppDesign.warning,
                   behavior: SnackBarBehavior.floating,
               ),
           );
@@ -455,7 +456,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setSheetState) => Container(
           decoration: BoxDecoration(
-            color: Colors.grey[900],
+            color: AppDesign.surfaceDark,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: ConstrainedBox(
@@ -475,21 +476,21 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Exportar Relatório PDF', 
-                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                        style: TextStyle(color: AppDesign.textPrimaryDark, fontSize: 18, fontWeight: FontWeight.bold)),
                       IconButton(
                         onPressed: () => Navigator.pop(context), 
-                        icon: const Icon(Icons.close, color: Colors.white54, size: 20)),
+                        icon: const Icon(Icons.close, color: AppDesign.textSecondaryDark, size: 20)),
                     ],
                   ),
                   const SizedBox(height: 24),
                   
                   // Date Range - Selection via Pencil icon only
-                  Text(AppLocalizations.of(context)!.agendaReportingPeriod, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(AppLocalizations.of(context)!.agendaReportingPeriod, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white10,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white12),
                     ),
@@ -498,12 +499,12 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                       children: [
                         Text(
                           '${DateFormat('dd/MM/yyyy').format(start)} - ${DateFormat('dd/MM/yyyy').format(end)}',
-                          style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.w500),
+                          style: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.w500),
                         ),
                         IconButton(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.edit, color: Color(0xFF00E676), size: 18),
+                          icon: const Icon(Icons.edit, color: AppDesign.accent, size: 18),
                           onPressed: () async {
                             final range = await showDateRangePicker(
                               context: context,
@@ -513,10 +514,10 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                               builder: (context, child) => Theme(
                                 data: ThemeData.dark().copyWith(
                                   colorScheme: const ColorScheme.dark(
-                                    primary: Color(0xFF00E676),
-                                    onPrimary: Colors.black,
-                                    surface: Color(0xFF1A1A1A),
-                                    onSurface: Colors.white,
+                                    primary: AppDesign.accent,
+                                    onPrimary: AppDesign.backgroundDark,
+                                    surface: AppDesign.surfaceDark,
+                                    onSurface: AppDesign.textPrimaryDark,
                                   ),
                                 ),
                                 child: child!,
@@ -536,23 +537,23 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   const SizedBox(height: 20),
                   
                   // Pet Filter
-                  Text(AppLocalizations.of(context)!.agendaFilterPet, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(AppLocalizations.of(context)!.agendaFilterPet, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white10,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white12),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String?>(
-                        dropdownColor: Colors.grey[850],
+                        dropdownColor: AppDesign.surfaceDark,
                         value: petFilter,
                         isExpanded: true,
                         items: [
-                           DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.agendaAllPets, style: const TextStyle(color: Colors.white))),
-                           ...petNames.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(color: Colors.white)))),
+                           DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.agendaAllPets, style: const TextStyle(color: AppDesign.textPrimaryDark))),
+                           ...petNames.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(color: AppDesign.textPrimaryDark)))),
                         ],
                         onChanged: (val) => setSheetState(() => petFilter = val),
                       ),
@@ -561,25 +562,25 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   const SizedBox(height: 20),
   
                   // Category Filter
-                  Text(AppLocalizations.of(context)!.agendaFilterCategory, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text(AppLocalizations.of(context)!.agendaFilterCategory, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white10,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white12),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<EventType?>(
-                        dropdownColor: Colors.grey[850],
+                        dropdownColor: AppDesign.surfaceDark,
                         value: categoryFilter,
                         isExpanded: true,
                         items: [
-                           DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.agendaAllCategories, style: const TextStyle(color: Colors.white))),
+                           DropdownMenuItem(value: null, child: Text(AppLocalizations.of(context)!.agendaAllCategories, style: const TextStyle(color: AppDesign.textPrimaryDark))),
                            ...EventType.values.map((type) => DropdownMenuItem(
                              value: type, 
-                             child: Text(PetEvent(id: '', petName: '', title: '', type: type, dateTime: DateTime.now()).typeLabel, style: const TextStyle(color: Colors.white))
+                              child: Text(PetEvent(id: '', petName: '', title: '', type: type, dateTime: DateTime.now()).typeLabel, style: const TextStyle(color: AppDesign.textPrimaryDark))
                            )),
                         ],
                         onChanged: (val) => setSheetState(() => categoryFilter = val),
@@ -589,23 +590,23 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                 const SizedBox(height: 20),
                 
                 // Report Type
-                Text(AppLocalizations.of(context)!.agendaDetailLevel, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text(AppLocalizations.of(context)!.agendaDetailLevel, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: AppDesign.textPrimaryDark.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.white12),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      dropdownColor: Colors.grey[850],
+                      dropdownColor: AppDesign.surfaceDark,
                       value: reportType,
                       isExpanded: true,
                       items: [
-                         DropdownMenuItem(value: 'Detalhamento', child: Text(AppLocalizations.of(context)!.agendaDetailedTable, style: const TextStyle(color: Colors.white))),
-                         DropdownMenuItem(value: 'Resumo', child: Text(AppLocalizations.of(context)!.agendaSummaryOnly, style: const TextStyle(color: Colors.white))),
+                         DropdownMenuItem(value: 'Detalhamento', child: Text(AppLocalizations.of(context)!.agendaDetailedTable, style: const TextStyle(color: AppDesign.textPrimaryDark))),
+                         DropdownMenuItem(value: 'Resumo', child: Text(AppLocalizations.of(context)!.agendaSummaryOnly, style: const TextStyle(color: AppDesign.textPrimaryDark))),
                       ],
                       onChanged: (val) {
                         if (val != null) setSheetState(() => reportType = val);
@@ -616,14 +617,14 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                 const SizedBox(height: 32),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00E676),
+                      backgroundColor: AppDesign.accent,
                       padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
                     onPressed: () => Navigator.pop(context, true),
                     child: Text(AppLocalizations.of(context)!.agendaButtonGenerate, 
-                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
+                      style: TextStyle(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
                   ),
                   const SizedBox(height: 24),
                 ],

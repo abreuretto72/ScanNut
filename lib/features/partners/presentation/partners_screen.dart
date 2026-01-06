@@ -11,6 +11,7 @@ import '../../../core/widgets/pdf_action_button.dart';
 import '../../pet/models/pet_analysis_result.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
+import '../../../core/theme/app_design.dart';
 import 'partner_registration_screen.dart';
 
 class PartnersScreen extends ConsumerStatefulWidget {
@@ -83,19 +84,19 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: AppDesign.surfaceDark,
         title: Text(
           'Cadastrar Parceiro (Em breve)', 
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)
         ),
         content: Text(
           'A funcionalidade de cadastro manual de parceiros está sendo finalizada. Por enquanto, os parceiros são homologados automaticamente pelo ScanNut.',
-          style: GoogleFonts.poppins(color: Colors.white70),
+          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: Color(0xFF00E676))),
+            child: const Text('OK', style: TextStyle(color: AppDesign.accent)),
           )
         ],
       ),
@@ -106,20 +107,20 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: AppDesign.surfaceDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           AppLocalizations.of(context)!.partnersLinkTitle, 
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)
         ),
         content: Text(
           AppLocalizations.of(context)!.partnersLinkContent(partner.name),
-          style: GoogleFonts.poppins(color: Colors.white70),
+          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white38)),
+            child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: AppDesign.textSecondaryDark)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -128,8 +129,8 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                 SnackBar(content: Text(AppLocalizations.of(context)!.partnersLinkSuccess(partner.name)))
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)),
-            child: Text(AppLocalizations.of(context)!.partnersBtnLink, style: const TextStyle(color: Colors.black)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppDesign.accent),
+            child: Text(AppLocalizations.of(context)!.partnersBtnLink, style: const TextStyle(color: AppDesign.backgroundDark)),
           ),
         ],
       ),
@@ -141,21 +142,21 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
     final radius = ref.watch(settingsProvider).partnerSearchRadius;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: AppDesign.surfaceDark,
         title: Text(
           AppLocalizations.of(context)!.partnersTitle,
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.w600),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: AppDesign.textPrimaryDark),
         elevation: 0,
         actions: [
           PdfActionButton(
             onPressed: _generatePartnersPDF,
           ),
           IconButton(
-            icon: const Icon(Icons.add_business, color: Color(0xFF00E676)),
+            icon: const Icon(Icons.add_business, color: AppDesign.accent),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PartnerRegistrationScreen())),
             tooltip: AppLocalizations.of(context)!.partnerRegisterTitle,
           ),
@@ -163,7 +164,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         ],
       ),
       body: _loading 
-        ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
+        ? const Center(child: CircularProgressIndicator(color: AppDesign.accent))
         : Column(
             children: [
               _buildLocationBanner(radius),
@@ -181,8 +182,8 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PartnerRegistrationScreen())),
-        backgroundColor: const Color(0xFF00E676),
-        child: const Icon(Icons.add, color: Colors.black),
+        backgroundColor: AppDesign.accent,
+        child: const Icon(Icons.add, color: AppDesign.backgroundDark),
       ),
     );
   }
@@ -192,16 +193,16 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          const Icon(Icons.location_on_outlined, color: Colors.white60, size: 16),
+          const Icon(Icons.location_on_outlined, color: AppDesign.textSecondaryDark, size: 16),
           const SizedBox(width: 8),
           Text(
             AppLocalizations.of(context)!.partnersRadiusInfo(radius.toInt().toString()),
-            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 11),
+            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 11),
           ),
           const Spacer(),
           Text(
             'SP (Mock Location)',
-            style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10),
+            style: GoogleFonts.poppins(color: Colors.white54, fontSize: 10),
           ),
         ],
       ),
@@ -214,18 +215,18 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.location_off_outlined, color: Colors.white24, size: 64),
+            const Icon(Icons.location_off_outlined, color: AppDesign.textSecondaryDark, size: 64),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.partnersEmpty,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(color: Colors.white54),
+              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
             ),
             TextButton(
               onPressed: () {
                 // Future navigation to settings
               },
-              child: Text(AppLocalizations.of(context)!.partnersIncreaseRadius, style: const TextStyle(color: Color(0xFF00E676))),
+              child: Text(AppLocalizations.of(context)!.partnersIncreaseRadius, style: const TextStyle(color: AppDesign.accent)),
             )
           ],
         ),
@@ -238,18 +239,18 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF00E676).withOpacity(0.15),
+        color: const Color(0x265E4B6B),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFF00E676).withOpacity(0.4))
+        border: Border.all(color: const Color(0x665E4B6B))
       ),
       child: Row(
         children: [
-          const Icon(Icons.auto_awesome, color: Color(0xFF00E676)),
+          const Icon(Icons.auto_awesome, color: AppDesign.accent),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               AppLocalizations.of(context)!.partnersSuggestion,
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 13, fontWeight: FontWeight.w500),
             ),
           )
         ],
@@ -267,9 +268,9 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white10,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white10),
         ),
         child: Column(
           children: [
@@ -278,7 +279,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
               leading: _buildCategoryIcon(partner.category),
               title: Text(
                 partner.name, 
-                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+                style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -288,15 +289,15 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.directions_walk, size: 12, color: Color(0xFF00E676)),
+                      const Icon(Icons.directions_walk, size: 12, color: AppDesign.accent),
                       const SizedBox(width: 4),
-                      Text(AppLocalizations.of(context)!.partnersKmFromYou(dist.toStringAsFixed(1)), style: const TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.w600)),
+                      Text(AppLocalizations.of(context)!.partnersKmFromYou(dist.toStringAsFixed(1)), style: const TextStyle(color: AppDesign.accent, fontSize: 11, fontWeight: FontWeight.w600)),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     partner.address, 
-                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                    style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -314,21 +315,21 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
-                      Text(' ' + partner.rating.toString(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      const Icon(Icons.star, color: AppDesign.warning, size: 16),
+                      Text(' ' + partner.rating.toString(), style: const TextStyle(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   if (isOpen24h)
                     Container(
                       margin: const EdgeInsets.only(top: 4),
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: Colors.redAccent, borderRadius: BorderRadius.circular(4)),
-                      child: const Text('24H', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                      decoration: BoxDecoration(color: AppDesign.error, borderRadius: BorderRadius.circular(4)),
+                      child: const Text('24H', style: TextStyle(color: AppDesign.textPrimaryDark, fontSize: 8, fontWeight: FontWeight.bold)),
                     ),
                 ],
               ),
             ),
-            const Divider(color: Colors.white10, height: 1),
+            Divider(color: Colors.white12, height: 1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SingleChildScrollView(
@@ -363,10 +364,10 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.blueAccent.withOpacity(0.1),
+        color: const Color(0x1A5C6BC0),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: Colors.blueAccent),
+      child: Icon(icon, color: AppDesign.info),
     );
   }
 
@@ -374,10 +375,10 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white10,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(label, style: const TextStyle(color: Colors.white60, fontSize: 10)),
+      child: Text(label, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 10)),
     );
   }
 
@@ -390,9 +391,9 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: Colors.white70),
+            Icon(icon, size: 16, color: AppDesign.textSecondaryDark),
             const SizedBox(width: 4),
-            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            Text(label, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
           ],
         ),
       ),
@@ -421,7 +422,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         debugPrint('Erro ao gerar PDF: $e');
         if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+                SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: AppDesign.error),
             );
         }
     }

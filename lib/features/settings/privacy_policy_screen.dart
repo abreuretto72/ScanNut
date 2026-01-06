@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({Key? key}) : super(key: key);
@@ -52,10 +53,22 @@ class PrivacyPolicyScreen extends StatelessWidget {
                     style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    "Para a versão completa e detalhada, visite nosso portal online.",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(color: Colors.cyanAccent.withOpacity(0.7), fontSize: 11),
+                  GestureDetector(
+                    onTap: () async {
+                      const url = 'https://abreuretto72.github.io/ScanNut/';
+                      if (await canLaunchUrl(Uri.parse(url))) {
+                        await launchUrl(Uri.parse(url));
+                      }
+                    },
+                    child: Text(
+                      "Para a versão completa e detalhada, visite nosso portal online.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Colors.cyanAccent.withOpacity(0.7), 
+                        fontSize: 11,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
                   ),
                 ],
               ),

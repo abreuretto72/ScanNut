@@ -10,6 +10,7 @@ import '../../../core/services/partner_service.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../../core/providers/settings_provider.dart'; // Add this line
 import '../../settings/settings_screen.dart';
+import '../../../core/theme/app_design.dart';
 
 import 'package:intl/intl.dart';
 import 'package:scannut/l10n/app_localizations.dart';
@@ -81,7 +82,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   Future<void> _startRadarSearch() async {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: AppDesign.surfaceDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
@@ -118,7 +119,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: Text(AppLocalizations.of(context)!.partnerCantDeleteLinked),
-                    backgroundColor: Colors.redAccent
+                    backgroundColor: AppDesign.error
                 ),
             );
         }
@@ -128,14 +129,14 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        title: Text(AppLocalizations.of(context)!.partnerDeleteTitle, style: GoogleFonts.poppins(color: Colors.white)),
-        content: Text(AppLocalizations.of(context)!.partnerDeleteContent(widget.initialData!.name), style: GoogleFonts.poppins(color: Colors.white70)),
+        backgroundColor: AppDesign.surfaceDark,
+        title: Text(AppLocalizations.of(context)!.partnerDeleteTitle, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
+        content: Text(AppLocalizations.of(context)!.partnerDeleteContent(widget.initialData!.name), style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: AppDesign.textSecondaryDark))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: AppDesign.error, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -146,7 +147,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       await _service.deletePartner(widget.initialData!.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.partnerDeleted), backgroundColor: Colors.redAccent),
+          SnackBar(content: Text(AppLocalizations.of(context)!.partnerDeleted), backgroundColor: AppDesign.error),
         );
         Navigator.pop(context, true);
       }
@@ -195,7 +196,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(AppLocalizations.of(context)!.partnerSaved(partner.name)),
-              backgroundColor: const Color(0xFF00E676),
+              backgroundColor: AppDesign.accent,
             ),
           );
           
@@ -209,7 +210,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         debugPrint("Erro fatal ao salvar: $e");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.partnerSaveError(e.toString())), backgroundColor: Colors.redAccent),
+            SnackBar(content: Text(AppLocalizations.of(context)!.partnerSaveError(e.toString())), backgroundColor: AppDesign.error),
           );
         }
       }
@@ -276,7 +277,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
         title: Text(widget.initialData != null ? AppLocalizations.of(context)!.partnerEditTitle : AppLocalizations.of(context)!.partnerRegisterTitle, style: GoogleFonts.poppins()),
         backgroundColor: Colors.transparent,
@@ -327,8 +328,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               ElevatedButton(
                 onPressed: _savePartner,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00E676),
-                  foregroundColor: Colors.black,
+                  backgroundColor: AppDesign.accent,
+                  foregroundColor: AppDesign.textPrimaryLight,
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   elevation: 8,
@@ -349,8 +350,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.05),
-        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        color: Colors.white24,
+        border: Border.all(color: const Color(0x4DD32F2F)),
         borderRadius: BorderRadius.circular(15),
       ),
       child: Column(
@@ -358,24 +359,24 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+              const Icon(Icons.warning_amber_rounded, color: AppDesign.error),
               const SizedBox(width: 8),
-              Text(AppLocalizations.of(context)!.partnerDangerZone, style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(AppLocalizations.of(context)!.partnerDangerZone, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             AppLocalizations.of(context)!.partnerDangerZoneDesc,
-            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
+            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _deletePartner,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent.withOpacity(0.1),
-              foregroundColor: Colors.redAccent,
+              backgroundColor: const Color(0x3357315D),
+              foregroundColor: AppDesign.error,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: Colors.redAccent)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppDesign.error)),
             ),
             child: Text(AppLocalizations.of(context)!.partnerBtnDelete),
           ),
@@ -397,20 +398,20 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [Colors.blue.shade900, Colors.blue.shade600]),
+          gradient: LinearGradient(colors: [AppDesign.primary, AppDesign.accent]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 10, spreadRadius: 2)],
+          boxShadow: [BoxShadow(color: const Color(0x4D57315D), blurRadius: 10, spreadRadius: 2)],
         ),
         child: Row(
           children: [
-            const Icon(Icons.radar, color: Colors.white, size: 40),
+            const Icon(Icons.radar, color: AppDesign.textPrimaryDark, size: 40),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.partnerRadarButtonTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(AppLocalizations.of(context)!.partnerRadarButtonDesc, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonTitle, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonDesc, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
                 ],
               ),
             ),
@@ -423,16 +424,16 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   Widget _build24hSwitch() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.black45,
         borderRadius: BorderRadius.circular(15),
       ),
       child: SwitchListTile(
-        title: Text(AppLocalizations.of(context)!.partnerField24h, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-        subtitle: Text(AppLocalizations.of(context)!.partnerField24hSub, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+        title: Text(AppLocalizations.of(context)!.partnerField24h, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 14)),
+        subtitle: Text(AppLocalizations.of(context)!.partnerField24hSub, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 11)),
         value: _is24h,
-        activeColor: const Color(0xFF00E676),
+        activeColor: AppDesign.accent,
         onChanged: (v) => setState(() => _is24h = v),
-        secondary: const Icon(Icons.emergency_share, color: Colors.redAccent),
+        secondary: const Icon(Icons.emergency_share, color: AppDesign.error),
       ),
     );
   }
@@ -441,13 +442,13 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: AppDesign.textPrimaryDark),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey.shade400),
-        prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
+        labelStyle: TextStyle(color: AppDesign.textSecondaryDark),
+        prefixIcon: Icon(icon, color: AppDesign.accent),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.black45,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
       ),
       validator: (v) {
@@ -470,16 +471,16 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         children: [
             Row(
               children: [
-                const Icon(Icons.note_alt_outlined, color: Colors.amberAccent),
+                const Icon(Icons.note_alt_outlined, color: AppDesign.warning),
                 const SizedBox(width: 8),
-                Text(AppLocalizations.of(context)!.partnerNotesTitle, style: GoogleFonts.poppins(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(AppLocalizations.of(context)!.partnerNotesTitle, style: GoogleFonts.poppins(color: AppDesign.warning, fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
             const SizedBox(height: 16),
             Container(
               height: 200,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.black45,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: _notes.isEmpty 
@@ -487,13 +488,13 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                     child: Text(
                       AppLocalizations.of(context)!.partnerNotesEmpty,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(color: Colors.white30, fontSize: 12),
+                      style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
                     ),
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(12),
                     itemCount: _notes.length,
-                    separatorBuilder: (_, __) => const Divider(color: Colors.white10),
+                    separatorBuilder: (_, __) => Divider(color: Colors.white10),
                     itemBuilder: (context, index) {
                       final note = _notes[index];
                       final date = DateTime.parse(note['date']);
@@ -505,16 +506,16 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                           background: Container(
                               alignment: Alignment.centerRight,
                               padding: const EdgeInsets.only(right: 16),
-                              color: Colors.redAccent.withOpacity(0.3),
-                              child: const Icon(Icons.delete, color: Colors.white),
+                              color: const Color(0x4DD32F2F),
+                              child: const Icon(Icons.delete, color: AppDesign.textPrimaryDark),
                           ),
                           onDismissed: (_) => _deleteNote(index),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(note['content'], style: GoogleFonts.poppins(color: Colors.white, fontSize: 13)),
+                              Text(note['content'], style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 13)),
                               const SizedBox(height: 4),
-                              Text(formattedDate, style: const TextStyle(color: Colors.white30, fontSize: 10)),
+                              Text(formattedDate, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 10)),
                             ],
                           ),
                       );
@@ -527,12 +528,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                 Expanded(
                   child: TextField(
                     controller: _noteController,
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppDesign.textPrimaryDark),
                     decoration: InputDecoration(
                       hintText: AppLocalizations.of(context)!.partnerNotesHint,
-                      hintStyle: const TextStyle(color: Colors.white30),
+                      hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
+                      fillColor: Colors.black45,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
@@ -541,23 +542,23 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                 ),
                 const SizedBox(width: 8),
                 CircleAvatar(
-                  backgroundColor: const Color(0xFF00E676),
+                  backgroundColor: AppDesign.accent,
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.black, size: 20),
+                    icon: const Icon(Icons.send, color: AppDesign.textPrimaryDark, size: 20),
                     onPressed: _addNote,
                   ),
                 ),
                  // Mic button placeholder
                  const SizedBox(width: 8),
                  CircleAvatar(
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: Colors.white10,
                   child: IconButton(
-                    icon: const Icon(Icons.mic, color: Colors.amberAccent, size: 20),
+                    icon: const Icon(Icons.mic, color: AppDesign.warning, size: 20),
                      onPressed: () {
                          ScaffoldMessenger.of(context).showSnackBar(
                            const SnackBar(
                              content: Text('Gravação de voz: Em breve'),
-                             backgroundColor: Color(0xFF5E4B6B),
+                              backgroundColor: AppDesign.primary,
                            ),
                          );
                      },
@@ -593,7 +594,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   Widget _buildTeamSection() {
       return Container(
           decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.black45,
               borderRadius: BorderRadius.circular(15),
           ),
           padding: const EdgeInsets.all(12),
@@ -602,9 +603,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               children: [
                    Row(
                        children: [
-                           const Icon(Icons.people, color: Color(0xFF00E676)),
+                           const Icon(Icons.people, color: AppDesign.accent),
                            const SizedBox(width: 8),
-                           Text(AppLocalizations.of(context)!.partnerTeamTitle, style: GoogleFonts.poppins(color: Colors.white70)),
+                           Text(AppLocalizations.of(context)!.partnerTeamTitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
                        ],
                    ),
                    const SizedBox(height: 8),
@@ -613,7 +614,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                        runSpacing: 4,
                        children: _teamMembers.map((member) => Chip(
                            label: Text(member, style: const TextStyle(fontSize: 12)),
-                           backgroundColor: const Color(0xFF00E676).withOpacity(0.2),
+                           backgroundColor: const Color(0x335E4B6B),
                            deleteIcon: const Icon(Icons.close, size: 14),
                            onDeleted: () {
                                setState(() {
@@ -628,20 +629,20 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                            Expanded(
                                child: TextField(
                                    controller: _teamController,
-                                   style: const TextStyle(color: Colors.white, fontSize: 13),
+                                   style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 13),
                                    decoration: InputDecoration(
                                        hintText: AppLocalizations.of(context)!.partnerTeamAddHint,
-                                       hintStyle: const TextStyle(color: Colors.white24),
+                                       hintStyle: TextStyle(color: Colors.white24),
                                        isDense: true,
                                        filled: true,
-                                       fillColor: Colors.black26,
+                                       fillColor: Colors.black45,
                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                                    ),
                                    onSubmitted: (_) => _addTeamMember(),
                                ),
                            ),
                            IconButton(
-                               icon: const Icon(Icons.add_circle, color: Color(0xFF00E676)),
+                               icon: const Icon(Icons.add_circle, color: AppDesign.accent),
                                onPressed: _addTeamMember,
                            )
                        ],
@@ -687,14 +688,14 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
 
     return DropdownButtonFormField<String>(
       value: _category,
-      dropdownColor: Colors.grey.shade900,
-      style: const TextStyle(color: Colors.white),
+      dropdownColor: AppDesign.surfaceDark,
+      style: const TextStyle(color: AppDesign.textPrimaryDark),
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context)!.partnerCategory,
-        labelStyle: TextStyle(color: Colors.grey.shade400),
-        prefixIcon: const Icon(Icons.category, color: Color(0xFF00E676)),
+        labelStyle: TextStyle(color: AppDesign.textSecondaryDark),
+        prefixIcon: const Icon(Icons.category, color: AppDesign.accent),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.black45,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
       ),
       items: categories
@@ -888,7 +889,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(vertical: 4),
                           leading: CircleAvatar(
-                            backgroundColor: Colors.blue.withOpacity(0.1),
+                            backgroundColor: const Color(0x1A2196F3),
                             child: Icon(_getIcon(p.category), color: Colors.blue, size: 20),
                           ),
                           title: Text(p.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),

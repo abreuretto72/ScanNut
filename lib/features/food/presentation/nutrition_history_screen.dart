@@ -223,13 +223,11 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                         ),
                       ),
                       const Divider(color: Colors.white10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
+                      Row(
                         children: [
-                          _buildMacroMini(l10n.foodProt, item.proteins, Colors.blueAccent),
-                          _buildMacroMini(l10n.foodCarb, item.carbs, Colors.orangeAccent),
-                          _buildMacroMini(l10n.foodFat, item.fats, Colors.greenAccent),
+                          Expanded(child: _buildMacroMini(l10n.foodProt, item.proteins, const Color(0xFF6F8CFF))),
+                          Expanded(child: _buildMacroMini(l10n.foodCarb, item.carbs, const Color(0xFFFFC24B))),
+                          Expanded(child: _buildMacroMini(l10n.foodFat, item.fats, const Color(0xFFFF6FAE))),
                         ],
                       ),
                     ],
@@ -243,20 +241,42 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   }
 
   Widget _buildMacroMini(String label, String value, Color color) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 70), // Limit width to prevent overflow
-      child: Column(
+    // Sanitização rigorosa: remove "aproximadamente", remove parênteses e remove "por" isolado
+    final shortValue = value
+        .replaceAll('aproximadamente', '±')
+        .replaceAll('Aproximadamente', '±')
+        .replaceAll(RegExp(r'\bpor\b', caseSensitive: false), '') // Remove "por"
+        .replaceAll(RegExp(r'\s+'), ' ') // Remove double spaces
+        .split('(')[0]
+        .split('/')[0] // Remove /100g se existir
+        .trim();
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(label, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10), overflow: TextOverflow.ellipsis),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            value.split(' ')[0], // Get just the number part
-            style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            color: color.withOpacity(0.85),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          shortValue,
+          style: GoogleFonts.poppins(
+            color: color,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.visible,
+          textAlign: TextAlign.center,
         ),
       ],
-      ),
     );
   }
 

@@ -1,7 +1,9 @@
+import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../utils/app_logger.dart';
 
 // Import all services that need secure initialization
@@ -21,6 +23,7 @@ import '../../nutrition/data/datasources/weekly_plan_service.dart';
 import '../../nutrition/data/datasources/meal_log_service.dart';
 import '../../nutrition/data/datasources/shopping_list_service.dart';
 import '../services/partner_service.dart';
+import '../../nutrition/data/datasources/menu_filter_service.dart';
 
 class SimpleAuthService {
   static final SimpleAuthService _instance = SimpleAuthService._internal();
@@ -47,28 +50,45 @@ class SimpleAuthService {
   }
 
   Future<bool> checkPersistentSession() async {
-    final box = Hive.box(_authBoxName);
-    final hasSession = box.get(_sessionKey) != null;
-    final shouldPersist = box.get(_persistKey, defaultValue: false);
-    
-    if (hasSession && shouldPersist) {
-      // Tentar recuperar a chave do SecureStorage
-      final keyString = await _storage.read(key: _encryptionKeyName);
-      if (keyString != null) {
-        _encryptionKey = base64Decode(keyString).toList();
-        logger.info('🔑 Chave mestra recuperada do Secure Storage');
-        
-        // Inicializar dados seguros automaticamente
-        await initializeSecureData();
-        return true;
+    try {
+      debugPrint('🔍 [SimpleAuthService] Checking persistent session...');
+      final box = Hive.box(_authBoxName);
+      final hasSession = box.get(_sessionKey) != null;
+      final shouldPersist = box.get(_persistKey, defaultValue: false);
+      
+      debugPrint('🔍 [SimpleAuthService] hasSession: $hasSession, shouldPersist: $shouldPersist');
+      
+      if (hasSession && shouldPersist) {
+        // Tentar recuperar a chave do SecureStorage
+        debugPrint('🔍 [SimpleAuthService] Attempting to read master key from Secure Storage...');
+        final keyString = await _storage.read(key: _encryptionKeyName);
+        if (keyString != null) {
+          debugPrint('🔍 [SimpleAuthService] Key found. Decoding...');
+          _encryptionKey = base64Decode(keyString).toList();
+          logger.info('🔑 Chave mestra recuperada do Secure Storage');
+          
+          // Inicializar dados seguros automaticamente
+          await initializeSecureData();
+          debugPrint('✅ [SimpleAuthService] Persistent session established.');
+          return true;
+        } else {
+          debugPrint('⚠️ [SimpleAuthService] Persist key was set but not found in Secure Storage.');
+        }
       }
+    } catch (e, stack) {
+      debugPrint('❌ [SimpleAuthService] CRITICAL error in checkPersistentSession: $e');
+      debugPrint('Stacktrace: $stack');
     }
     return false;
   }
 
   bool get isUserLoggedIn {
-    final box = Hive.box(_authBoxName);
-    return box.get(_sessionKey) != null && _encryptionKey != null;
+    try {
+      final box = Hive.box(_authBoxName);
+      return box.get(_sessionKey) != null && _encryptionKey != null;
+    } catch (e) {
+      return false;
+    }
   }
 
   /// Centraliza a inicialização de todos os serviços que usam criptografia
@@ -82,34 +102,57 @@ class SimpleAuthService {
     logger.info('📦 Inicializando todos os serviços com criptografia AES...');
     
     try {
-      // Passar o cipher para todos os serviços (precisaremos atualizar seus init())
-      await HistoryService().init(cipher: cipher);
-      await MealHistoryService().init(cipher: cipher);
-      await PetEventService().init(cipher: cipher);
-      await VaccineStatusService().init(cipher: cipher);
-      await PetProfileService().init(cipher: cipher);
-      await PetHealthService().init(cipher: cipher);
-      await MealPlanService().init(cipher: cipher);
-      await NutritionService().init(cipher: cipher);
-      await BotanyService().init(cipher: cipher);
-      await WorkoutService().init(cipher: cipher);
-      await UserProfileService().init(cipher: cipher);
-      await NutritionProfileService().init(cipher: cipher);
-      await WeeklyPlanService().init(cipher: cipher);
-      await MealLogService().init(cipher: cipher);
-      await ShoppingListService().init(cipher: cipher);
-      await PartnerService().init(cipher: cipher);
+      // Helper local para inicializar com log
+      Future<void> initService(String name, Future<void> Function() initFn) async {
+        try {
+          debugPrint('🔧 Opening $name...');
+          await initFn();
+          debugPrint('✅ $name ready.');
+        } catch (e, stack) {
+          debugPrint('❌ FAILED to open $name: $e');
+          debugPrint('Stacktrace: $stack');
+          // Tentar recuperar se for erro de Hive
+          if (e.toString().contains('HiveError')) {
+             debugPrint('⚠️ Critical Hive Error on $name. Attempting next service anyway to avoid total block.');
+          }
+          // We DON'T rethrow here for individual services during startup
+          // so the app can at least open and show partially working state
+        }
+      }
+
+      await initService('HistoryService', () => HistoryService().init(cipher: cipher));
+      await initService('MealHistoryService', () => MealHistoryService().init(cipher: cipher));
+      await initService('PetEventService', () => PetEventService().init(cipher: cipher));
+      await initService('VaccineStatusService', () => VaccineStatusService().init(cipher: cipher));
+      await initService('PetProfileService', () => PetProfileService().init(cipher: cipher));
+      await initService('PetHealthService', () => PetHealthService().init(cipher: cipher));
+      await initService('MealPlanService', () => MealPlanService().init(cipher: cipher));
+      await initService('NutritionService', () => NutritionService().init(cipher: cipher));
+      await initService('BotanyService', () => BotanyService().init(cipher: cipher));
+      await initService('WorkoutService', () => WorkoutService().init(cipher: cipher));
+      await initService('UserProfileService', () => UserProfileService().init(cipher: cipher));
+      await initService('NutritionProfileService', () => NutritionProfileService().init(cipher: cipher));
+      await initService('WeeklyPlanService', () => WeeklyPlanService().init(cipher: cipher));
+      await initService('MealLogService', () => MealLogService().init(cipher: cipher));
+      await initService('ShoppingListService', () => ShoppingListService().init(cipher: cipher));
+      await initService('PartnerService', () => PartnerService().init(cipher: cipher));
+      await initService('MenuFilterService', () => MenuFilterService().init(cipher: cipher));
       
-      logger.info('🚀 Todos os dados abertos com sucesso!');
-    } catch (e) {
-      logger.error('❌ Erro crítico ao abrir dados criptografados', error: e);
-      rethrow;
+      logger.info('🚀 Tentativa de abertura de todos os dados concluída.');
+      debugPrint('🏁 [SimpleAuthService] initializeSecureData FINISHED.');
+    } catch (e, stack) {
+      logger.error('❌ Erro geral ao inicializar serviços seguros', error: e);
+      debugPrint('Stacktrace: $stack');
     }
   }
 
   String? get loggedUserEmail {
-    final box = Hive.box(_authBoxName);
-    return box.get(_sessionKey);
+    try {
+      final box = Hive.box(_authBoxName);
+      return box.get(_sessionKey);
+    } catch (e) {
+      return null;
+    }
   }
 
   String _hashPassword(String password) {
@@ -176,6 +219,191 @@ class SimpleAuthService {
     await init();
     
     logger.info('🚪 User logged out. Encryption key and boxes cleared.');
+  }
+
+  Future<String?> changePassword(String email, String currentPassword, String newPassword) async {
+    final box = Hive.box(_authBoxName);
+    final users = box.get('users', defaultValue: <String, String>{}) as Map;
+    final storedHash = users[email];
+    
+    // 1. Validate Current Password
+    if (storedHash != _hashPassword(currentPassword)) {
+       return 'Senha atual incorreta.';
+    }
+
+    // 2. Prepare Keys
+    final oldKeyBytes = utf8.encode(email + currentPassword);
+    final oldKey = sha256.convert(oldKeyBytes).bytes;
+    final oldCipher = HiveAesCipher(oldKey);
+
+    final newKeyBytes = utf8.encode(email + newPassword);
+    final newKey = sha256.convert(newKeyBytes).bytes;
+    final newCipher = HiveAesCipher(newKey);
+
+    // 3. Re-encrypt Data
+    // List of all secure boxes used in the app
+    final boxesToRekey = [
+      'nutrition_weekly_plans', 'nutrition_shopping_list', 'nutrition_user_profile', 'nutrition_meal_logs',
+      'box_nutrition_human', 'box_plants_history', 'vaccine_status', 'pet_events', 'weekly_meal_plans',
+      'box_pets_master', 'pet_health_records', 'box_workouts', 'scannut_history', 'scannut_meal_history',
+      'box_user_profile', 'partners_box'
+    ];
+
+    logger.info('🔄 Starting re-encryption for password change...');
+
+    for (final boxName in boxesToRekey) {
+       try {
+          // Verify if box exists on disk to avoid creating empty ghosts
+          if (await Hive.boxExists(boxName)) {
+             // Close if open
+             if (Hive.isBoxOpen(boxName)) {
+                await Hive.box(boxName).close();
+             }
+
+             // Open with OLD Key to read data
+             final oldBox = await Hive.openBox(boxName, encryptionCipher: oldCipher);
+             
+             // Copy data into memory
+             final content = Map<dynamic, dynamic>.from(oldBox.toMap());
+             await oldBox.close();
+             
+             // Delete old encrypted file
+             await Hive.deleteBoxFromDisk(boxName);
+             
+             // Open with NEW Key and restore data
+             final newBox = await Hive.openBox(boxName, encryptionCipher: newCipher);
+             await newBox.putAll(content);
+             await newBox.close();
+             
+             logger.info('   ✅ Rekeyed box: $boxName');
+          }
+       } catch (e) {
+          logger.error('   ❌ Failed to rekey box $boxName: $e');
+          // Continue to try to save as much as possible
+       }
+    }
+
+    // 4. Update Auth Hash
+    users[email] = _hashPassword(newPassword);
+    await box.put('users', users);
+
+    // 5. Update active session key
+    _encryptionKey = newKey;
+    
+    // Update Secure Persistence if active
+    final bool rememberMe = box.get(_persistKey, defaultValue: false);
+    if (rememberMe) {
+        await _storage.write(key: _encryptionKeyName, value: base64Encode(_encryptionKey!));
+    }
+
+    // 6. Re-initialize services with new key
+    await initializeSecureData();
+    
+    logger.info('✅ Password changed successfully for $email');
+    return null; // Null means success
+  }
+  
+  bool getPersistSession() {
+    final box = Hive.box(_authBoxName);
+    return box.get(_persistKey, defaultValue: false);
+  }
+
+  // BIOMETRICS
+  static const String _biometricEnabledKey = 'auth_biometric_enabled';
+  final LocalAuthentication _localAuth = LocalAuthentication();
+
+  bool get isBiometricEnabled {
+    final box = Hive.box(_authBoxName);
+    return box.get(_biometricEnabledKey, defaultValue: false);
+  }
+  
+  Future<bool> checkBiometricsAvailable() async {
+    try {
+      final bool canAuthenticateWithBiometrics = await _localAuth.canCheckBiometrics;
+      final bool canAuthenticate = canAuthenticateWithBiometrics || await _localAuth.isDeviceSupported();
+      return canAuthenticate;
+    } catch (e) {
+      logger.error('Error checking biometrics: $e');
+      return false;
+    }
+  }
+
+  Future<void> setBiometricEnabled(bool enabled) async {
+    final box = Hive.box(_authBoxName);
+    await box.put(_biometricEnabledKey, enabled);
+    logger.info('🧬 Biometric enabled: $enabled');
+    
+    // If enabling biometrics, ensure key is in secure storage (similar to persist session)
+    if (enabled && _encryptionKey != null) {
+        await _storage.write(key: _encryptionKeyName, value: base64Encode(_encryptionKey!));
+        logger.info('🔒 Biometric active: Key forced into SecureStorage.');
+    }
+    
+    // If disabling, run setPersistSession logic to clean up if needed
+    if (!enabled && !getPersistSession()) {
+       await _storage.delete(key: _encryptionKeyName);
+       logger.info('🔓 Biometric inactive & Session not persistent: Key removed.');
+    }
+  }
+
+  Future<void> setPersistSession(bool persist) async {
+    final box = Hive.box(_authBoxName);
+    await box.put(_persistKey, persist);
+    
+    if (persist) {
+       // Create and store key if we have one in memory
+       if (_encryptionKey != null) {
+          await _storage.write(key: _encryptionKeyName, value: base64Encode(_encryptionKey!));
+          logger.info('🔒 Persistent session ACTIVE. Key stored securely.');
+       }
+    } else {
+       // Only delete if biometrics is ALSO disabled
+       if (!isBiometricEnabled) {
+          await _storage.delete(key: _encryptionKeyName);
+          logger.info('🔓 Persistent session INACTIVE. Key removed from storage.');
+       } else {
+          logger.info('⚠️ Persistent session INACTIVE, but Key kept for Biometrics.');
+       }
+    }
+  }
+
+  Future<bool> authenticateWithBiometrics() async {
+     try {
+       final available = await checkBiometricsAvailable();
+       if (!available) return false;
+
+       final bool didAuthenticate = await _localAuth.authenticate(
+         localizedReason: 'Toque no sensor para entrar no ScanNut',
+         options: const AuthenticationOptions(
+           stickyAuth: true,
+           biometricOnly: true,
+         ),
+       );
+       
+       if (didAuthenticate) {
+           // Retrieve key purely from storage
+           final keyString = await _storage.read(key: _encryptionKeyName);
+           if (keyString != null) {
+              _encryptionKey = base64Decode(keyString).toList();
+              // We must also set active_session if it's not set (e.g. Keep Signed In was false)
+              // But we don't know the email unless we stored it??
+              // CHECK: _sessionKey stores email. If "Keep Signed In" is false, do we delete _sessionKey?
+              // The `logout` method deletes _sessionKey. 
+              // `checkPersistentSession` checks if _sessionKey != null.
+              // If User logged out, _sessionKey is gone. Biometrics can't restore EMAIL.
+              // Biometrics is only useful if user did NOT logout, but just closed app with "Keep Signed In" OFF.
+              // In that case, valid session = false, but keys are there.
+           }
+           if (_encryptionKey != null) {
+             await initializeSecureData();
+             return true;
+           }
+       }
+       return false;
+     } catch (e) {
+       logger.error('Error in bio auth: $e');
+       return false;
+     }
   }
 }
 

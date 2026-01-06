@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'core/theme/app_design.dart';
 import 'core/widgets/custom_error_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/widgets/app_watermark_footer.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/splash/splash_screen.dart';
 import 'core/providers/settings_provider.dart';
@@ -108,7 +110,7 @@ void main() async {
     debugPrint('BASE_URL: ${dotenv.env['BASE_URL'] ?? 'NOT FOUND'}');
     debugPrint('🔑 =====================================');
     
-    runApp(const ProviderScope(child: ScannutApp()));
+    runApp(const ProviderScope(child: ScanNutApp()));
   }, (error, stack) {
     // Zona de Captura de Erros Não Tratados (Assíncronos)
     debugPrint('🔴 ERRO CRÍTICO CAPTURADO (runZoned): $error');
@@ -117,8 +119,8 @@ void main() async {
   });
 }
 
-class ScannutApp extends ConsumerWidget {
-  const ScannutApp({Key? key}) : super(key: key);
+class ScanNutApp extends ConsumerWidget {
+  const ScanNutApp({Key? key}) : super(key: key);
 
   Locale? _resolveLocale(String? code) {
     if (code == null) return null;
@@ -132,18 +134,21 @@ class ScannutApp extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     
     return MaterialApp(
-      title: 'Scannut',
+      title: 'ScanNut',
       scaffoldMessengerKey: scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       locale: _resolveLocale(settings.languageCode),
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
+        scaffoldBackgroundColor: AppDesign.backgroundDark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00E676),
+          seedColor: AppDesign.accent, // Using accent as seed as before
           brightness: Brightness.dark,
-          surface: Colors.black,
+          surface: AppDesign.backgroundDark,
+          primary: AppDesign.primary,
+          secondary: AppDesign.accent,
+          error: AppDesign.error,
         ),
       ),
       localizationsDelegates: const [
@@ -158,6 +163,14 @@ class ScannutApp extends ConsumerWidget {
         Locale('pt', 'PT'), // Portuguese Portugal
         Locale('es'),       // Spanish
       ],
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            const AppWatermarkFooter(),
+          ],
+        );
+      },
       home: const SplashScreen(),
     );
   }

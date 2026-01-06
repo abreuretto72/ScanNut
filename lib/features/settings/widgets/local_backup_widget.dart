@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/local_backup_service.dart';
 import '../../../core/utils/snackbar_helper.dart';
+import '../../../core/theme/app_design.dart';
 import '../../../l10n/app_localizations.dart';
 
 class LocalBackupWidget extends StatefulWidget {
@@ -224,6 +225,7 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
             ),
           ),
           const SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
@@ -234,8 +236,8 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
                     : const Icon(Icons.share, size: 18),
                   label: Text(l10n.backupShare),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.withOpacity(0.2),
-                    foregroundColor: Colors.blue,
+                    backgroundColor: AppDesign.primary.withOpacity(0.3), // Darker purple background
+                    foregroundColor: AppDesign.primaryLight, // Light purple text
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -249,8 +251,8 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
                     : const Icon(Icons.upload_file, size: 18),
                   label: Text(l10n.backupSave),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.withOpacity(0.2),
-                    foregroundColor: Colors.green,
+                    backgroundColor: AppDesign.primaryLight.withOpacity(0.2), // Lighter purple background
+                    foregroundColor: AppDesign.primaryLight, // Light purple text
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -267,8 +269,8 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
                 : const Icon(Icons.file_download, size: 18),
               label: Text(l10n.backupImport),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber.withOpacity(0.2),
-                foregroundColor: Colors.amber,
+                backgroundColor: AppDesign.accent.withOpacity(0.25), // Accent purple background
+                foregroundColor: AppDesign.primaryLight, // Light purple text
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),

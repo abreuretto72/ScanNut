@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../core/services/file_upload_service.dart';
 import '../../../../core/services/gemini_service.dart';
 import '../../../../core/utils/prompt_factory.dart';
+import '../../../../core/theme/app_design.dart';
 import '../../models/pet_profile_extended.dart';
 
 import '../../../partners/presentation/partners_hub_screen.dart'; // Add this line
@@ -252,7 +253,7 @@ class _EditPetFormState extends State<EditPetForm>
        debugPrint("❌ Save error: $e");
        if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.commonSyncError(e.toString())), backgroundColor: Colors.red)
+                SnackBar(content: Text(AppLocalizations.of(context)!.commonSyncError(e.toString())), backgroundColor: AppDesign.error)
             );
        }
     } finally {
@@ -569,18 +570,18 @@ class _EditPetFormState extends State<EditPetForm>
   Future<void> _pickProfileImage() async {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppDesign.surfaceDark,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(AppLocalizations.of(context)!.petChangePhoto, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16)),
+            Text(AppLocalizations.of(context)!.petChangePhoto, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 16)),
             const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: Text(AppLocalizations.of(context)!.petTakePhoto, style: const TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.camera_alt, color: AppDesign.info),
+              title: Text(AppLocalizations.of(context)!.petTakePhoto, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromCamera();
@@ -591,8 +592,8 @@ class _EditPetFormState extends State<EditPetForm>
               },
             ),
             ListTile(
-              leading: const Icon(Icons.image, color: Colors.green),
-              title: Text(AppLocalizations.of(context)!.petChooseGallery, style: const TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.image, color: AppDesign.success),
+              title: Text(AppLocalizations.of(context)!.petChooseGallery, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromGallery();
@@ -617,27 +618,27 @@ class _EditPetFormState extends State<EditPetForm>
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF00E676), width: 3),
+              border: Border.all(color: AppDesign.accent, width: 3),
               boxShadow: [
-                BoxShadow(color: const Color(0xFF00E676).withOpacity(0.3), blurRadius: 15, spreadRadius: 2),
+                BoxShadow(color: AppDesign.accent.withOpacity(0.3), blurRadius: 15, spreadRadius: 2),
               ],
               image: _profileImage != null
                   ? DecorationImage(image: FileImage(_profileImage!), fit: BoxFit.cover)
                   : null,
             ),
             child: _profileImage == null
-                ? const Icon(Icons.pets, size: 60, color: Colors.white24)
+                ? Icon(Icons.pets, size: 60, color: AppDesign.textPrimaryDark.withOpacity(0.24))
                 : null,
           ),
           Positioned(
             bottom: 0,
             right: 0,
             child: CircleAvatar(
-              backgroundColor: Colors.white,
+              backgroundColor: AppDesign.textPrimaryDark,
               radius: 18,
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: const Icon(Icons.camera_alt, size: 20, color: Colors.black),
+                icon: const Icon(Icons.camera_alt, size: 20, color: AppDesign.backgroundDark),
                 onPressed: _pickProfileImage,
               ),
             ),
@@ -658,18 +659,18 @@ class _EditPetFormState extends State<EditPetForm>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppDesign.surfaceDark,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(isGallery ? AppLocalizations.of(context)!.petAddMedia : AppLocalizations.of(context)!.petAttachDoc, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16)),
+            Text(isGallery ? AppLocalizations.of(context)!.petAddMedia : AppLocalizations.of(context)!.petAttachDoc, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 16)),
             const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: Text(AppLocalizations.of(context)!.petCameraPhoto, style: const TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.camera_alt, color: AppDesign.info),
+              title: Text(AppLocalizations.of(context)!.petCameraPhoto, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromCamera();
@@ -677,8 +678,8 @@ class _EditPetFormState extends State<EditPetForm>
               },
             ),
             ListTile(
-              leading: const Icon(Icons.image, color: Colors.green),
-              title: Text(AppLocalizations.of(context)!.petGalleryPhoto, style: const TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.image, color: AppDesign.success),
+              title: Text(AppLocalizations.of(context)!.petGalleryPhoto, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(ctx);
                 final file = await _fileService.pickFromGallery();
@@ -687,8 +688,8 @@ class _EditPetFormState extends State<EditPetForm>
             ),
             if (isGallery) ...[
               ListTile(
-                leading: const Icon(Icons.videocam, color: Colors.orange),
-                title: Text(AppLocalizations.of(context)!.petCameraVideo, style: const TextStyle(color: Colors.white)),
+                leading: const Icon(Icons.videocam, color: AppDesign.warning),
+                title: Text(AppLocalizations.of(context)!.petCameraVideo, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final file = await _fileService.pickVideoFromCamera();
@@ -696,8 +697,8 @@ class _EditPetFormState extends State<EditPetForm>
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.video_library, color: Colors.purple),
-                title: Text(AppLocalizations.of(context)!.petGalleryVideo, style: const TextStyle(color: Colors.white)),
+                leading: const Icon(Icons.video_library, color: AppDesign.primary),
+                title: Text(AppLocalizations.of(context)!.petGalleryVideo, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final file = await _fileService.pickVideoFromGallery();
@@ -707,7 +708,7 @@ class _EditPetFormState extends State<EditPetForm>
             ] else 
               ListTile(
                 leading: const AppPdfIcon(),
-                title: const Text('PDF', style: TextStyle(color: Colors.white)),
+                title: const Text('PDF', style: TextStyle(color: AppDesign.textPrimaryDark)),
                 onTap: () async {
                   Navigator.pop(ctx);
                   final file = await _fileService.pickPdfFile();
@@ -730,7 +731,7 @@ class _EditPetFormState extends State<EditPetForm>
         const SizedBox(height: 16),
         Text(
           AppLocalizations.of(context)!.petEmptyGalleryDesc,
-          style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.6), fontSize: 12),
         ),
         const SizedBox(height: 20),
 
@@ -738,15 +739,15 @@ class _EditPetFormState extends State<EditPetForm>
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: AppDesign.textPrimaryDark.withOpacity(0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
             ),
             child: Column(
               children: [
-                const Icon(Icons.perm_media_outlined, size: 48, color: Colors.white24),
+                Icon(Icons.perm_media_outlined, size: 48, color: AppDesign.textPrimaryDark.withOpacity(0.24)),
                 const SizedBox(height: 16),
-                Text(AppLocalizations.of(context)!.petEmptyGallery, style: GoogleFonts.poppins(color: Colors.white54)),
+                Text(AppLocalizations.of(context)!.petEmptyGallery, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
               ],
             ),
           )
@@ -771,12 +772,12 @@ class _EditPetFormState extends State<EditPetForm>
                 onLongPress: () => _deleteAttachment(file),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[800],
+                    color: AppDesign.surfaceDark,
                     borderRadius: BorderRadius.circular(8),
                     image: !isVideo ? DecorationImage(image: FileImage(file), fit: BoxFit.cover) : null,
                   ),
                   child: isVideo 
-                    ? const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 32))
+                    ? const Center(child: Icon(Icons.play_circle_fill, color: AppDesign.textPrimaryDark, size: 32))
                     : null,
                 ),
               );
@@ -792,8 +793,8 @@ class _EditPetFormState extends State<EditPetForm>
             label: Text(AppLocalizations.of(context)!.petAddToGallery),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.all(16),
-              side: const BorderSide(color: Color(0xFF00E676)),
-              foregroundColor: const Color(0xFF00E676),
+              side: const BorderSide(color: AppDesign.accent),
+              foregroundColor: AppDesign.accent,
             ),
           ),
         ),
@@ -909,7 +910,7 @@ class _EditPetFormState extends State<EditPetForm>
                     child: Container(
                       width: 60,
                       decoration: BoxDecoration(
-                        color: Colors.grey[800],
+                        color: AppDesign.surfaceDark,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -1392,7 +1393,7 @@ class _EditPetFormState extends State<EditPetForm>
                       }
 
                       return Card(
-                        color: Colors.white.withOpacity(0.05),
+                        color: AppDesign.textPrimaryDark.withOpacity(0.05),
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         child: Padding(
@@ -1775,7 +1776,7 @@ class _EditPetFormState extends State<EditPetForm>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: AppDesign.textPrimaryDark.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
@@ -3716,9 +3717,9 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
             margin: const EdgeInsets.only(bottom: 8, left: 12),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: AppDesign.textPrimaryDark.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10),
+                border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))]
             ),
             child: Column(

@@ -1,7 +1,7 @@
 name: scannut
 description: AI Visual Assistant for Nutrition, Botany and Pet Care.
 publish_to: "none"
-version: 1.5.1+2
+version: 1.5.2+3
 
 environment:
   sdk: ">=2.12.0 <4.0.0"
@@ -83,5 +83,3 @@ flutter:
     - assets/animations/
     - assets/images/
     - assets/data/
-    - assets/images/scannut_logo.png
-    - assets/images/scannut_icon.png

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/app_design.dart';
 class SnackBarHelper {
   /// Show error snackbar
   static void showError(BuildContext context, String message) {
@@ -10,7 +11,7 @@ class SnackBarHelper {
           children: [
             const Icon(
               Icons.error_outline,
-              color: Colors.white,
+              color: AppDesign.textPrimaryDark,
               size: 24,
             ),
             const SizedBox(width: 12),
@@ -19,14 +20,14 @@ class SnackBarHelper {
                 message,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Colors.white,
+                  color: AppDesign.textPrimaryDark,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.red.shade700,
+        backgroundColor: AppDesign.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -52,7 +53,7 @@ class SnackBarHelper {
           children: [
             const Icon(
               Icons.check_circle_outline,
-              color: Colors.white,
+              color: AppDesign.textPrimaryDark,
               size: 24,
             ),
             const SizedBox(width: 12),
@@ -61,14 +62,14 @@ class SnackBarHelper {
                 message,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Colors.white,
+                  color: AppDesign.textPrimaryDark,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF5E4B6B),
+        backgroundColor: AppDesign.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -87,7 +88,7 @@ class SnackBarHelper {
           children: [
             const Icon(
               Icons.info_outline,
-              color: Colors.white,
+              color: AppDesign.textPrimaryDark,
               size: 24,
             ),
             const SizedBox(width: 12),
@@ -96,14 +97,14 @@ class SnackBarHelper {
                 message,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Colors.white,
+                  color: AppDesign.textPrimaryDark,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF5E4B6B),
+        backgroundColor: AppDesign.info,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -122,7 +123,7 @@ class SnackBarHelper {
           children: [
             const Icon(
               Icons.warning_amber_rounded,
-              color: Colors.white,
+              color: AppDesign.textPrimaryDark,
               size: 24,
             ),
             const SizedBox(width: 12),
@@ -138,7 +139,7 @@ class SnackBarHelper {
             ),
           ],
         ),
-        backgroundColor: Colors.orange.shade700,
+        backgroundColor: AppDesign.warning,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

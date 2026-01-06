@@ -14,6 +14,7 @@ import 'package:printing/printing.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import '../../../../core/widgets/pro_access_wrapper.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/theme/app_design.dart';
 import '../../models/plant_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
 import '../../../../core/services/export_service.dart';
@@ -45,7 +46,7 @@ class PlantResultCard extends StatefulWidget {
 class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProviderStateMixin {
   bool _isSaved = false;
   late TabController _tabController;
-  final Color _themeColor = const Color(0xFF00E676);
+  final Color _themeColor = AppDesign.success;
 
   bool _isToxic = false;
   
@@ -103,7 +104,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white30)),
-      child: Text(text, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+      child: Text(text, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 12, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -134,7 +135,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       debugPrint("Erro ao gerar PDF: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: AppDesign.error),
         );
       }
     }
@@ -147,9 +148,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -203,7 +204,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       valueListenable: BotanyService().listenable!,
       builder: (context, box, _) {
         return Material(
-          color: const Color(0xFF121212),
+          color: AppDesign.backgroundDark,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           clipBehavior: Clip.antiAlias,
           child: Column(
@@ -215,7 +216,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white30,
+                    color: AppDesign.textPrimaryDark.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -228,10 +229,10 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (_isToxic) ...[
-                      _buildActionButton(Icons.warning_amber_rounded, "ALERT", Colors.redAccent, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
+                      _buildActionButton(Icons.warning_amber_rounded, "ALERT", AppDesign.error, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
                       const SizedBox(width: 12),
                     ],
-                    _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.redAccent, _generatePDF),
+                    _buildActionButton(Icons.picture_as_pdf_rounded, null, AppDesign.error, _generatePDF),
                     const SizedBox(width: 12),
                     _buildActionButton(
                       _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
@@ -266,7 +267,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                             style: GoogleFonts.poppins(
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppDesign.textPrimaryDark,
                             ),
                             maxLines: 1,
                             minFontSize: 16,
@@ -276,7 +277,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                             widget.analysis.identificacao.nomeCientifico,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
-                              color: Colors.white54,
+                              color: AppDesign.textSecondaryDark,
                               fontStyle: FontStyle.italic,
                             ),
                             maxLines: 1,
@@ -305,13 +306,13 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               // TabBar
               Container(
                 decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
+                  border: Border(bottom: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1))),
                 ),
                 child: TabBar(
                   controller: _tabController,
                   indicatorColor: _themeColor,
                   labelColor: _themeColor,
-                  unselectedLabelColor: Colors.white54,
+                  unselectedLabelColor: AppDesign.textSecondaryDark,
                   isScrollable: true,
                   tabs: [
                     Tab(text: AppLocalizations.of(context)!.tabHardware.toUpperCase()),
@@ -367,7 +368,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         _buildSectionCard(
           title: AppLocalizations.of(context)!.plantSeasonAdjust,
           icon: Icons.calendar_month,
-          color: Colors.cyanAccent,
+          color: AppDesign.info,
           child: Column(
             children: [
               _buildSeasonRow(AppLocalizations.of(context)!.seasonWinter, alertS.inverno),
@@ -393,9 +394,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(saude.condicao, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(saude.condicao, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark)),
               const SizedBox(height: 8),
-              Text(saude.detalhes, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+              Text(saude.detalhes, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13)),
               if (!widget.analysis.isHealthy) ...[
                 const SizedBox(height: 16),
                 _buildInfoLabel(AppLocalizations.of(context)!.plantUrgency + ":", widget.analysis.urgency),
@@ -407,11 +408,11 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         _buildSectionCard(
           title: AppLocalizations.of(context)!.plantRecoveryPlan,
           icon: FontAwesomeIcons.kitMedical,
-          color: Colors.redAccent,
+          color: AppDesign.error,
           child: Container(
             constraints: const BoxConstraints(maxHeight: 300),
             child: SingleChildScrollView(
-              child: Text(saude.planoRecuperacao, style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+              child: Text(saude.planoRecuperacao, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, height: 1.5)),
             ),
           ),
         ),
@@ -419,8 +420,8 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: widget.onShop,
-            icon: const Icon(Icons.shopping_cart, color: Colors.black),
-            label: Text(AppLocalizations.of(context)!.plantBuyTreatment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+            icon: const Icon(Icons.shopping_cart, color: AppDesign.backgroundDark),
+            label: Text(AppLocalizations.of(context)!.plantBuyTreatment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: AppDesign.backgroundDark)),
             style: ElevatedButton.styleFrom(backgroundColor: _themeColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           ),
         ],
@@ -438,13 +439,13 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         _buildSectionCard(
           title: AppLocalizations.of(context)!.plantHomeSafety, // "Segurança Doméstica"
           icon: Icons.security,
-          color: Colors.redAccent,
+          color: AppDesign.error,
           child: Column(
             children: [
               _buildToggleInfo(AppLocalizations.of(context)!.plantDangerPets + " 🐾", (bios.segurancaDomestica['toxica_para_pets'] == true || bios.segurancaDomestica['is_toxic_to_pets'] == true)),
               _buildToggleInfo(AppLocalizations.of(context)!.plantDangerKids + " 👶", (bios.segurancaDomestica['toxica_para_criancas'] == true || bios.segurancaDomestica['is_toxic_to_children'] == true)),
               const SizedBox(height: 12),
-              Text(bios.segurancaDomestica['sintomas_ingestao']?.toString() ?? bios.segurancaDomestica['toxicity_details']?.toString() ?? AppLocalizations.of(context)!.plantNoAlerts, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+              Text(bios.segurancaDomestica['sintomas_ingestao']?.toString() ?? bios.segurancaDomestica['toxicity_details']?.toString() ?? AppLocalizations.of(context)!.plantNoAlerts, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
             ],
           ),
         ),
@@ -452,11 +453,11 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         _buildSectionCard(
           title: AppLocalizations.of(context)!.plantBioPower, // "Poderes Biofílicos"
           icon: Icons.auto_awesome,
-          color: Colors.pinkAccent,
+          color: AppDesign.primary.withOpacity(0.7),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildProgressBar(AppLocalizations.of(context)!.plantAirScore, ((bios.poderesBiofilicos['purificacao_ar_score'] ?? bios.poderesBiofilicos['air_purification_score'] ?? 5) as num).toDouble() / 10.0, Colors.greenAccent),
+              _buildProgressBar(AppLocalizations.of(context)!.plantAirScore, ((bios.poderesBiofilicos['purificacao_ar_score'] ?? bios.poderesBiofilicos['air_purification_score'] ?? 5) as num).toDouble() / 10.0, AppDesign.success),
               const SizedBox(height: 16),
               _buildInfoLabel(AppLocalizations.of(context)!.plantHumidification + ":", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? 'N/A'),
               _buildInfoLabel(AppLocalizations.of(context)!.plantWellness + ":", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? bios.poderesBiofilicos['wellness_impact']?.toString() ?? 'N/A'),
@@ -478,16 +479,16 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
          _buildSectionCard(
            title: AppLocalizations.of(context)!.plantPropagationEngine,
            icon: Icons.copy,
-           color: Colors.purpleAccent,
+           color: AppDesign.primary,
            child: Column(
              crossAxisAlignment: CrossAxisAlignment.start,
              children: [
                _buildInfoLabel(AppLocalizations.of(context)!.plantMethod + ":", prop.metodo),
                _buildInfoLabel(AppLocalizations.of(context)!.plantDifficulty + ":", prop.dificuldade),
-               const Divider(color: Colors.white10),
-               Text(AppLocalizations.of(context)!.plantStepByStep + ":", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.purpleAccent, fontSize: 12)),
+               const Divider(color: Colors.white12),
+               Text(AppLocalizations.of(context)!.plantStepByStep + ":", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: AppDesign.primary, fontSize: 12)),
                const SizedBox(height: 8),
-               Text(prop.passoAPasso, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, height: 1.5)),
+               Text(prop.passoAPasso, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 13, height: 1.5)),
              ],
            ),
          ),
@@ -495,7 +496,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
          _buildSectionCard(
            title: AppLocalizations.of(context)!.plantEcoIntel,
            icon: Icons.group,
-           color: Colors.tealAccent,
+           color: AppDesign.info,
            child: Column(
              crossAxisAlignment: CrossAxisAlignment.start,
              children: [
@@ -520,7 +521,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         _buildSectionCard(
           title: AppLocalizations.of(context)!.plantFengShui,
           icon: Icons.home,
-          color: Colors.amberAccent,
+          color: AppDesign.warning,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -534,7 +535,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
          _buildSectionCard(
           title: AppLocalizations.of(context)!.plantLivingAesthetic,
           icon: Icons.palette,
-          color: Colors.orangeAccent,
+          color: AppDesign.warning,
           child: Column(
             children: [
               _buildInfoLabel(AppLocalizations.of(context)!.plantFlowering + ":", estetica.epocaFloracao),
@@ -566,7 +567,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
             ],
           ),
           const SizedBox(height: 8),
-          Text(desc, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12), overflow: TextOverflow.visible),
+          Text(desc, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12), overflow: TextOverflow.visible),
         ],
       ),
     );
@@ -577,7 +578,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       constraints: const BoxConstraints(maxWidth: 100),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
-      child: Text(label, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10), overflow: TextOverflow.ellipsis),
+      child: Text(label, style: const TextStyle(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold, fontSize: 10), overflow: TextOverflow.ellipsis),
     );
   }
 
@@ -585,7 +586,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
+      decoration: BoxDecoration(color: AppDesign.textPrimaryDark.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -609,8 +610,8 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13), overflow: TextOverflow.ellipsis)),
-          Icon(value ? Icons.dangerous : Icons.check_circle, color: value ? Colors.redAccent : Colors.greenAccent, size: 18),
+          Expanded(child: Text(label, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 13), overflow: TextOverflow.ellipsis)),
+          Icon(value ? Icons.dangerous : Icons.check_circle, color: value ? AppDesign.error : AppDesign.success, size: 18),
         ],
       ),
     );
@@ -623,12 +624,12 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+            Text(label, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
             Text("${(percent * 100).toInt()}%", style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 6),
-        LinearPercentIndicator(lineHeight: 8, percent: percent.clamp(0.0, 1.0), progressColor: color, backgroundColor: Colors.white10, barRadius: const Radius.circular(4), padding: EdgeInsets.zero, animation: true),
+        LinearPercentIndicator(lineHeight: 8, percent: percent.clamp(0.0, 1.0), progressColor: color, backgroundColor: AppDesign.textPrimaryDark.withValues(alpha: 0.1), barRadius: const Radius.circular(4), padding: EdgeInsets.zero, animation: true),
       ],
     );
   }
@@ -639,9 +640,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white54, fontSize: 12)),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: AppDesign.textSecondaryDark, fontSize: 12)),
           const SizedBox(width: 6),
-          Expanded(child: Text(value.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const TextStyle(color: Colors.white, fontSize: 12), overflow: TextOverflow.visible)),
+          Expanded(child: Text(value.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 12), overflow: TextOverflow.visible)),
         ],
       ),
     );
@@ -654,13 +655,13 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(season, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
-          Text(alert, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          Text(season, style: const TextStyle(fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark, fontSize: 13)),
+          Text(alert, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
         ],
       ),
     );
   }
 
 
-  TextStyle get _tabTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
+  TextStyle get _tabTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark);
 }

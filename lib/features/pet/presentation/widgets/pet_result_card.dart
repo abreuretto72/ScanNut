@@ -13,6 +13,7 @@ import 'package:printing/printing.dart';
 
 import 'dart:io';
 import 'package:intl/intl.dart';
+import '../../../../core/theme/app_design.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import '../../models/pet_analysis_result.dart';
 import '../../../../core/utils/color_helper.dart';
@@ -45,7 +46,7 @@ class PetResultCard extends StatefulWidget {
 class _PetResultCardState extends State<PetResultCard> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isSaved = false;
-  final Color _themeColor = const Color(0xFF00E676);
+  final Color _themeColor = AppDesign.accent;
 
   @override
   void initState() {
@@ -70,24 +71,24 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: Colors.blueGrey.shade900.withOpacity(0.9),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25), side: const BorderSide(color: Colors.cyanAccent, width: 2)),
+          backgroundColor: AppDesign.surfaceDark.withOpacity(0.9),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25), side: const BorderSide(color: AppDesign.info, width: 2)),
           title: Row(
             children: [
-              const Icon(Icons.info_outline, color: Colors.cyanAccent, size: 32),
+              const Icon(AppDesign.iconInfo, color: AppDesign.info, size: 32),
               const SizedBox(width: 12),
-              Text(title, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(title, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
           content: Text(
             message,
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
+            style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 14),
             textAlign: TextAlign.center,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("ENTENDI", style: GoogleFonts.poppins(color: Colors.cyanAccent, fontWeight: FontWeight.bold)),
+              child: Text("ENTENDI", style: GoogleFonts.poppins(color: AppDesign.info, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -190,7 +191,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                pw.Text("${l10n.petVisualDescription}: ${pet.descricaoVisual}"),
                pw.SizedBox(height: 5),
                pw.Text("${l10n.pdfFieldProfessionalRecommendation}:", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-               pw.Text(pet.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')),
+               pw.Text(pet.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±')),
                pw.Footer(title: pw.Text(l10n.pdfGeneratedBy(dateStr, "ScanNut"), style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey))),
              ];
           }
@@ -261,9 +262,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             
             // Metas Calóricas
             pw.Text("${l10n.pdfFieldDailyCaloricGoals}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-            pw.Bullet(text: "${l10n.pdfFieldPuppy}: ${(pet.nutricao.metaCalorica['kcal_filhote'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
-            pw.Bullet(text: "${l10n.pdfFieldAdult}: ${(pet.nutricao.metaCalorica['kcal_adulto'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
-            pw.Bullet(text: "${l10n.pdfFieldSenior}: ${(pet.nutricao.metaCalorica['kcal_senior'] ?? 'N/A').replaceAll('aproximadamente', '+-')}"),
+            pw.Bullet(text: "${l10n.pdfFieldPuppy}: ${(pet.nutricao.metaCalorica['kcal_filhote'] ?? 'N/A').replaceAll('aproximadamente', '±')}"),
+            pw.Bullet(text: "${l10n.pdfFieldAdult}: ${(pet.nutricao.metaCalorica['kcal_adulto'] ?? 'N/A').replaceAll('aproximadamente', '±')}"),
+            pw.Bullet(text: "${l10n.pdfFieldSenior}: ${(pet.nutricao.metaCalorica['kcal_senior'] ?? 'N/A').replaceAll('aproximadamente', '±')}"),
             pw.SizedBox(height: 10),
             
             pw.Text("${l10n.pdfFieldTargetNutrients}: ${pet.nutricao.nutrientesAlvo.join(', ')}"),
@@ -609,7 +610,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 children: [
                    pw.Text("💡 ${l10n.pdfFieldExpertInsight}", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)),
                   pw.SizedBox(height: 6),
-                  pw.Text(pet.dica.insightExclusivo.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const pw.TextStyle(fontSize: 11)),
+                  pw.Text(pet.dica.insightExclusivo.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const pw.TextStyle(fontSize: 11)),
                 ],
               ),
             ),
@@ -676,7 +677,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           child: Container(
-            color: const Color(0xFF121212),
+            color: AppDesign.backgroundDark,
             child: Column(
                 children: [
                    _buildHeader(),
@@ -703,7 +704,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: AppDesign.textSecondaryDark.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -714,12 +715,12 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                   children: [
                     Text(
                       widget.petName ?? _localizedRaca,
-                      style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       widget.petName != null ? _localizedRaca : widget.analysis.especie,
-                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.white54),
+                      style: GoogleFonts.poppins(fontSize: 14, color: AppDesign.textSecondaryDark),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
@@ -752,7 +753,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     
     await showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: AppDesign.surfaceDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -767,13 +768,13 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Colors.white,
+                color: AppDesign.textPrimaryDark,
               ),
             ),
             const SizedBox(height: 20),
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFF00E676)),
-              title: Text('Tirar Foto de Receita/Exame', style: GoogleFonts.poppins(color: Colors.white)),
+              leading: const Icon(AppDesign.iconScan, color: AppDesign.accent),
+              title: Text('Tirar Foto de Receita/Exame', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
                 final file = await service.pickFromCamera();
@@ -792,8 +793,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.blueAccent),
-              title: Text('Escolher da Galeria', style: GoogleFonts.poppins(color: Colors.white)),
+              leading: const Icon(Icons.photo_library, color: AppDesign.info),
+              title: Text('Escolher da Galeria', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
                 final file = await service.pickFromGallery();
@@ -875,11 +876,11 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
           ),
         ),
         const SizedBox(height: 24),
-        _buildSectionCard(title: AppLocalizations.of(context)!.petVisualDescription, icon: Icons.visibility, color: Colors.blueAccent, child: Text(widget.analysis.descricaoVisual.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const TextStyle(color: Colors.white70))),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petVisualDescription, icon: Icons.visibility, color: Colors.blueAccent, child: Text(widget.analysis.descricaoVisual.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const TextStyle(color: Colors.white70))),
         const SizedBox(height: 16),
         _buildSectionCard(title: AppLocalizations.of(context)!.petPossibleCauses, icon: Icons.list, color: Colors.purpleAccent, child: Text(widget.analysis.possiveisCausas.join('\n• '), style: const TextStyle(color: Colors.white70))),
         const SizedBox(height: 16),
-        _buildSectionCard(title: AppLocalizations.of(context)!.petSpecialistOrientation, icon: Icons.medical_services, color: Colors.tealAccent, child: Text(widget.analysis.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-'), style: const TextStyle(color: Colors.white))),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petSpecialistOrientation, icon: Icons.medical_services, color: Colors.tealAccent, child: Text(widget.analysis.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const TextStyle(color: Colors.white))),
         const SizedBox(height: 48),
       ],
     );
@@ -905,7 +906,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 errorBuilder: (context, error, stackTrace) => Container(
                   height: 250,
                   width: double.infinity,
-                  color: Colors.grey[900],
+                  color: Colors.white.withOpacity(0.05),
                   child: const Center(child: Icon(Icons.pets, size: 50, color: Colors.white24)),
                 ),
               ),
@@ -1078,7 +1079,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       children: [
         Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)), 
         const SizedBox(width: 8),
-        Expanded(child: Text(value.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-').replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet'), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600), textAlign: TextAlign.right))
+        Expanded(child: Text(value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±').replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet'), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600), textAlign: TextAlign.right))
       ]
     )
   );
@@ -1086,7 +1087,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Widget _buildStatLine(String label, double percent, Color color) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)), const SizedBox(height: 4), LinearPercentIndicator(lineHeight: 6, percent: percent.clamp(0.0, 1.0), progressColor: color, backgroundColor: Colors.white10, barRadius: const Radius.circular(3), padding: EdgeInsets.zero, animation: true), const SizedBox(height: 12)]);
 
 
-  Widget _buildInfoLabel(String label, String value) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white54, fontSize: 11)), Text(value.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-').replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet'), style: const TextStyle(color: Colors.white, fontSize: 13))]));
+  Widget _buildInfoLabel(String label, String value) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white54, fontSize: 11)), Text(value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±').replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet'), style: const TextStyle(color: Colors.white, fontSize: 13))]));
 
   Widget _buildToggleInfo(String label, bool value) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)), Icon(value ? Icons.report_problem : Icons.check_circle, color: value ? Colors.redAccent : Colors.greenAccent, size: 16)]);
 
@@ -1095,8 +1096,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     final isEstimated = value.contains('[ESTIMATED]');
     final cleanValue = value
         .replaceAll('[ESTIMATED]', '')
-        .replaceAll('aproximadamente', '+-')
-        .replaceAll('Aproximadamente', '+-')
+        .replaceAll('aproximadamente', '±')
+        .replaceAll('Aproximadamente', '±')
         .replaceAll('Kcal/dia', '')
         .replaceAll('kcal/dia', '')
         .replaceAll('Kcal', '')

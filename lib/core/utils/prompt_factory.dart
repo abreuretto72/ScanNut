@@ -7,16 +7,16 @@ class PromptFactory {
   /// Master System Prompt - Data Architecture and Routing Logic
   static String getMasterSystemPrompt({String locale = 'pt'}) {
     final normalizedLocale = locale.replaceAll('-', '_');
-    String title = "VOCÊ É O ARQUITETO DE DADOS E MOTOR DE IA DO SCANNUT.";
+    String title = "VOCÊ É O ARQUITETO DE DADOS E MOTOR DE IA DO ScanNut.";
     String mission = "**MISSÃO CRÍTICA:** Processar imagens de pets e categorizá-las nos CONJUNTOS DE DADOS corretos, garantindo SEMPRE o vínculo pelo nome_do_pet.";
     String langInstr = "Responda SEMPRE em Português do Brasil (PT-BR) para os valores.";
 
     if (normalizedLocale.startsWith('en')) {
-      title = "YOU ARE THE DATA ARCHITECT AND AI ENGINE OF SCANNUT.";
+      title = "YOU ARE THE DATA ARCHITECT AND AI ENGINE OF ScanNut.";
       mission = "**CRITICAL MISSION:** Process pet images and categorize them into the CORRECT DATA SETS, ALWAYS ensuring the link via name_of_pet.";
       langInstr = "ALWAYS respond in English for the values.";
     } else if (normalizedLocale.startsWith('es')) {
-      title = "ERES EL ARQUITECTO DE DATOS Y MOTOR DE IA DE SCANNUT.";
+      title = "ERES EL ARQUITECTO DE DATOS Y MOTOR DE IA DE ScanNut.";
       mission = "**MISIÓN CRÍTICA:** Procesar imágenes de mascotas y categorizarlas en los CONJUNTOS DE DATOS correctos, garantizando SIEMPRE el vínculo por el nombre_de_la_mascota.";
       langInstr = "Responda SIEMPRE en Español para los valores.";
     }
@@ -96,7 +96,7 @@ Mantenha as chaves JSON em inglês conforme especificado.
     }
 
     return '''
-MODE: SCANNUT PROFILE MANAGER - STRUCTURED EDIT
+MODE: ScanNut PROFILE MANAGER - STRUCTURED EDIT
 
 **MISSION**: Collect and organize complete pet information for biological profile refinement.
 
@@ -189,7 +189,7 @@ Mantenha as chaves JSON em inglês.
     }
 
     return '''
-MODE: SCANNUT MEDICAL DOCUMENT PROCESSOR
+MODE: ScanNut MEDICAL DOCUMENT PROCESSOR
 
 **MISSION**: Extract medical technical information from documents attached to the pet's profile ($petName).
 
@@ -239,7 +239,7 @@ Mantenha as chaves JSON em inglês.
     }
 
     return '''
-MODE: SCANNUT BIOMETRIC ENGINE - WEIGHT TREND ANALYSIS
+MODE: ScanNut BIOMETRIC ENGINE - WEIGHT TREND ANALYSIS
 
 **MISSION**: Analyze the history of weight variations and generate health projections.
 
@@ -294,7 +294,7 @@ Mantenha as chaves JSON em inglês.
             $languageInstruction
             
             [ROLE]
-            ACT AS AN EXCLUSIVE VETERINARY NUTRITIONIST SPECIALIST (SCANNUT METHOD).
+            ACT AS AN EXCLUSIVE VETERINARY NUTRITIONIST SPECIALIST (ScanNut METHOD).
             Generate a personalized menu for: $petName ($breed, $age, $weight kg).
             Nutritional Goal: $goal.
             Established Diet: $dietType.
@@ -302,7 +302,7 @@ Mantenha as chaves JSON em inglês.
            
             $historyContext
            
-            ⚠️ STRICTOR RULES (SCANNUT PROTOCOLS):
+            ⚠️ STRICTOR RULES (ScanNut PROTOCOLS):
             1. Maintain biological consistency. Do not suggest toxic foods (grapes, onions, chocolate, etc.).
             2. The plan must be daily and cover EXACTLY $duration days.
             3. The 'refeicoes' field must be filled for EVERY day.

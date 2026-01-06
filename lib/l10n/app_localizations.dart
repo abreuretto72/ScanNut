@@ -104,8 +104,14 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Scannut'**
+  /// **'ScanNut'**
   String get appTitle;
+
+  /// No description provided for @splashPoweredBy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tecnologia AI Vision'**
+  String get splashPoweredBy;
 
   /// No description provided for @tabFood.
   ///
@@ -184,6 +190,24 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Pet Desconhecido'**
   String get petUnknown;
+
+  /// No description provided for @homeHintFood.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aponte a câmera para a comida/refeição'**
+  String get homeHintFood;
+
+  /// No description provided for @homeHintPlant.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aponte a câmera para a planta ou doença'**
+  String get homeHintPlant;
+
+  /// No description provided for @homeHintPet.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aponte a câmera para o pet'**
+  String get homeHintPet;
 
   /// No description provided for @settingsTitle.
   ///
@@ -1388,7 +1412,7 @@ abstract class AppLocalizations {
   /// No description provided for @exitDialogContent.
   ///
   /// In pt, this message translates to:
-  /// **'Deseja realmente sair do Scannut?'**
+  /// **'Deseja realmente sair do ScanNut?'**
   String get exitDialogContent;
 
   /// No description provided for @exit.
@@ -1454,7 +1478,7 @@ abstract class AppLocalizations {
   /// No description provided for @menuAiAssistant.
   ///
   /// In pt, this message translates to:
-  /// **'Assistente IA Scannut'**
+  /// **'Assistente IA ScanNut'**
   String get menuAiAssistant;
 
   /// No description provided for @menuSettings.
@@ -1571,6 +1595,60 @@ abstract class AppLocalizations {
   /// **'Fechar o aplicativo'**
   String get menuExitSubtitle;
 
+  /// No description provided for @logoutTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sair e Desconectar'**
+  String get logoutTitle;
+
+  /// No description provided for @logoutSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Encerrar sessão no ScanNut'**
+  String get logoutSubtitle;
+
+  /// No description provided for @contactSubject.
+  ///
+  /// In pt, this message translates to:
+  /// **'Contato ScanNut'**
+  String get contactSubject;
+
+  /// No description provided for @helpWelcomeTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Bem-vindo ao ScanNut!'**
+  String get helpWelcomeTitle;
+
+  /// No description provided for @helpWelcomeSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seu assistente visual de IA para alimentos, plantas e pets'**
+  String get helpWelcomeSubtitle;
+
+  /// No description provided for @helpDisclaimerTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'⚠️ AVISO IMPORTANTE'**
+  String get helpDisclaimerTitle;
+
+  /// No description provided for @helpDisclaimerBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'A Inteligência Artificial pode cometer erros na análise de imagens. O ScanNut NÃO se responsabiliza pelas informações geradas pela IA.\n\n• Análises são apenas ORIENTATIVAS\n• NÃO substituem profissionais qualificados\n• Sempre consulte veterinários, nutricionistas ou botânicos\n• Use o app como ferramenta de apoio, não como diagnóstico final'**
+  String get helpDisclaimerBody;
+
+  /// No description provided for @helpFooter.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desenvolvido com ❤️ por Abreu Retto\n© 2026 ScanNut'**
+  String get helpFooter;
+
+  /// No description provided for @footerDevelopedBy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desenvolvido por Abreu Retto'**
+  String get footerDevelopedBy;
+
   /// No description provided for @footerMadeWith.
   ///
   /// In pt, this message translates to:
@@ -1580,13 +1658,13 @@ abstract class AppLocalizations {
   /// No description provided for @aboutTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Sobre o Scannut'**
+  /// **'Sobre o ScanNut'**
   String get aboutTitle;
 
   /// No description provided for @aboutSubtitle.
   ///
   /// In pt, this message translates to:
-  /// **'Scannut IA Visual Assistant'**
+  /// **'ScanNut IA Visual Assistant'**
   String get aboutSubtitle;
 
   /// No description provided for @aboutPoweredBy.
@@ -2885,6 +2963,246 @@ abstract class AppLocalizations {
   /// **'Hipertensão'**
   String get restHypertension;
 
+  /// No description provided for @periodTypeTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Período do Cardápio'**
+  String get periodTypeTitle;
+
+  /// No description provided for @periodWeekly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Semanal (7 dias)'**
+  String get periodWeekly;
+
+  /// No description provided for @periodMonthly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mensal (28 dias)'**
+  String get periodMonthly;
+
+  /// No description provided for @objectiveTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Objetivo'**
+  String get objectiveTitle;
+
+  /// No description provided for @objMaintenance.
+  ///
+  /// In pt, this message translates to:
+  /// **'Manter peso'**
+  String get objMaintenance;
+
+  /// No description provided for @objWeightLoss.
+  ///
+  /// In pt, this message translates to:
+  /// **'Emagrecimento'**
+  String get objWeightLoss;
+
+  /// No description provided for @objBalanced.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimentação equilibrada'**
+  String get objBalanced;
+
+  /// No description provided for @periodSectionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Para quando?'**
+  String get periodSectionTitle;
+
+  /// No description provided for @periodSectionDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escolha o período do cardápio que será gerado.'**
+  String get periodSectionDesc;
+
+  /// No description provided for @periodThisWeek.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esta semana'**
+  String get periodThisWeek;
+
+  /// No description provided for @periodNextWeek.
+  ///
+  /// In pt, this message translates to:
+  /// **'Próxima semana'**
+  String get periodNextWeek;
+
+  /// No description provided for @period28Days.
+  ///
+  /// In pt, this message translates to:
+  /// **'Próximos 28 dias'**
+  String get period28Days;
+
+  /// No description provided for @objectiveSectionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Objetivo do cardápio'**
+  String get objectiveSectionTitle;
+
+  /// No description provided for @objectiveSectionDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'O objetivo influencia a escolha dos alimentos e calorias.'**
+  String get objectiveSectionDesc;
+
+  /// No description provided for @preferencesSectionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preferências alimentares'**
+  String get preferencesSectionTitle;
+
+  /// No description provided for @preferencesSectionDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Opcional. Se não marcar nada, o cardápio será padrão.'**
+  String get preferencesSectionDesc;
+
+  /// No description provided for @confirmationSectionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resumo da escolha'**
+  String get confirmationSectionTitle;
+
+  /// No description provided for @confirmationSummaryLead.
+  ///
+  /// In pt, this message translates to:
+  /// **'Você vai gerar:'**
+  String get confirmationSummaryLead;
+
+  /// No description provided for @confirmationPeriodPrefix.
+  ///
+  /// In pt, this message translates to:
+  /// **'• Cardápio: '**
+  String get confirmationPeriodPrefix;
+
+  /// No description provided for @confirmationObjectivePrefix.
+  ///
+  /// In pt, this message translates to:
+  /// **'• Objetivo: '**
+  String get confirmationObjectivePrefix;
+
+  /// No description provided for @generateMenuAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'GERAR CARDÁPIO'**
+  String get generateMenuAction;
+
+  /// No description provided for @selectPeriodError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escolha o período do cardápio.'**
+  String get selectPeriodError;
+
+  /// No description provided for @generatingMenu.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerando seu cardápio...'**
+  String get generatingMenu;
+
+  /// No description provided for @redoPlanAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Refazer esta semana'**
+  String get redoPlanAction;
+
+  /// No description provided for @generateNextWeekAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar próxima semana'**
+  String get generateNextWeekAction;
+
+  /// No description provided for @generate28DaysAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar próximos 28 dias'**
+  String get generate28DaysAction;
+
+  /// No description provided for @createNewVersion.
+  ///
+  /// In pt, this message translates to:
+  /// **'Criar nova versão'**
+  String get createNewVersion;
+
+  /// No description provided for @replaceExisting.
+  ///
+  /// In pt, this message translates to:
+  /// **'Substituir atual'**
+  String get replaceExisting;
+
+  /// No description provided for @redoPlanPrompt.
+  ///
+  /// In pt, this message translates to:
+  /// **'Como você deseja refazer este cardápio?'**
+  String get redoPlanPrompt;
+
+  /// No description provided for @historyFilter.
+  ///
+  /// In pt, this message translates to:
+  /// **'Filtrar Histórico'**
+  String get historyFilter;
+
+  /// No description provided for @allPeriods.
+  ///
+  /// In pt, this message translates to:
+  /// **'Todos os Períodos'**
+  String get allPeriods;
+
+  /// No description provided for @activeStatus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ativo'**
+  String get activeStatus;
+
+  /// No description provided for @archivedStatus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Arquivado'**
+  String get archivedStatus;
+
+  /// No description provided for @editMeal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar Refeição'**
+  String get editMeal;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvar Alterações'**
+  String get saveChanges;
+
+  /// No description provided for @deletePlanSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cardápio excluído com sucesso.'**
+  String get deletePlanSuccess;
+
+  /// No description provided for @mealRemoved.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cardápio removido.'**
+  String get mealRemoved;
+
+  /// No description provided for @statusActive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ativo'**
+  String get statusActive;
+
+  /// No description provided for @statusArchived.
+  ///
+  /// In pt, this message translates to:
+  /// **'Arquivado'**
+  String get statusArchived;
+
+  /// No description provided for @versionLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Versão'**
+  String get versionLabel;
+
   /// No description provided for @pdfPersonalizedPlanTitle.
   ///
   /// In pt, this message translates to:
@@ -2900,7 +3218,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfGeneratedByLine.
   ///
   /// In pt, this message translates to:
-  /// **'RELATÓRIO DE NUTRIÇÃO SEMANAL GERADO POR SCAN NUT AI'**
+  /// **'RELATÓRIO DE NUTRIÇÃO SEMANAL GERADO POR ScanNut AI'**
   String get pdfGeneratedByLine;
 
   /// No description provided for @pdfBatchCookingTips.
@@ -7703,18 +8021,6 @@ abstract class AppLocalizations {
   /// **'Ajuda e Documentação'**
   String get helpAppBarTitle;
 
-  /// No description provided for @helpWelcomeTitle.
-  ///
-  /// In pt, this message translates to:
-  /// **'Bem-vindo ao ScanNut!'**
-  String get helpWelcomeTitle;
-
-  /// No description provided for @helpWelcomeSubtitle.
-  ///
-  /// In pt, this message translates to:
-  /// **'Seu assistente visual de IA para alimentos, plantas e pets'**
-  String get helpWelcomeSubtitle;
-
   /// No description provided for @helpPetModule.
   ///
   /// In pt, this message translates to:
@@ -7744,12 +8050,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'📞 Suporte'**
   String get helpSupportSection;
-
-  /// No description provided for @helpFooter.
-  ///
-  /// In pt, this message translates to:
-  /// **'Desenvolvido com ❤️ por Abreu Retto\n© 2026 ScanNut'**
-  String get helpFooter;
 
   /// No description provided for @helpPetBreedTitle.
   ///
@@ -7882,6 +8182,108 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'O ScanNut prioriza a privacidade do usuário através de uma arquitetura de dados local. Utilizamos criptografia de nível militar (AES-256) para cifrar o banco de dados armazenado no seu dispositivo. As chaves de segurança são mantidas em ambiente isolado (Keystore/Keychain), garantindo que, mesmo em caso de perda do aparelho, os dados permaneçam inacessíveis sem as devidas credenciais ou chaves do sistema.\n\nO usuário está ciente de que, por não utilizarmos armazenamento em nuvem (Cloud), a manutenção e segurança dos arquivos de Backup Local exportados são de sua inteira responsabilidade.'**
   String get privacySecurityBody;
+
+  /// No description provided for @helpMenuTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cardápios e Lista de Compras'**
+  String get helpMenuTitle;
+
+  /// No description provided for @helpMenuGenTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'🗓️ Geração de Cardápios'**
+  String get helpMenuGenTitle;
+
+  /// No description provided for @helpMenuGenDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'No ScanNut, você tem total controle sobre como e quando seu cardápio é gerado.\n\nVocê pode escolher entre três modos de geração:\n• Cardápio semanal — para 7 dias a partir da data escolhida\n• Cardápio mensal — para 30 dias consecutivos\n• Cardápio personalizado — escolha a data de início e a data de fim (até 60 dias)\n\nSempre que você gerar um cardápio, o app mostrará um filtro para que você possa confirmar ou ajustar suas escolhas antes da geração.'**
+  String get helpMenuGenDesc;
+
+  /// No description provided for @helpMenuHistTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'💾 Histórico de Cardápios'**
+  String get helpMenuHistTitle;
+
+  /// No description provided for @helpMenuHistDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Todos os cardápios gerados ficam salvos no histórico do app.\n\nIsso permite que você:\n• Consulte cardápios antigos\n• Gere novas versões sem perder as anteriores\n• Edite cardápios já criados\n• Exclua cardápios que não deseja mais manter\n\nNada é apagado automaticamente sem a sua confirmação.'**
+  String get helpMenuHistDesc;
+
+  /// No description provided for @helpMenuObjTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'🎯 Objetivos Nutricionais'**
+  String get helpMenuObjTitle;
+
+  /// No description provided for @helpMenuObjDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ao gerar um cardápio, você pode escolher o objetivo nutricional, como:\n• Manter o peso\n• Emagrecimento\n• Alimentação equilibrada\n\nO objetivo influencia a escolha dos alimentos e a distribuição das calorias.'**
+  String get helpMenuObjDesc;
+
+  /// No description provided for @helpMenuPrefTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'🥗 Preferências Alimentares'**
+  String get helpMenuPrefTitle;
+
+  /// No description provided for @helpMenuPrefDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Você também pode informar preferências alimentares, como:\n• Sem glúten\n• Sem lactose\n• Vegetariano\n\nEssas opções são opcionais. Se nenhuma for selecionada, o cardápio será gerado no formato padrão.'**
+  String get helpMenuPrefDesc;
+
+  /// No description provided for @helpMenuEditTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'✏️ Edição de Ingredientes'**
+  String get helpMenuEditTitle;
+
+  /// No description provided for @helpMenuEditDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Após gerar um cardápio, você pode editar os ingredientes de qualquer dia.\n\nÉ possível:\n• Ajustar ingredientes\n• Alterar quantidades\n• Adicionar ou remover itens\n\nSempre que um ingrediente é alterado, as listas de compras são atualizadas automaticamente.'**
+  String get helpMenuEditDesc;
+
+  /// No description provided for @helpMenuShopTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'🛒 Lista de Compras Semanal'**
+  String get helpMenuShopTitle;
+
+  /// No description provided for @helpMenuShopDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'O ScanNut gera listas de compras organizadas para facilitar sua ida ao mercado.\n\nImportante:\n• As listas de compras são sempre SEMANAIS\n• Mesmo em cardápios mensais ou personalizados\n• Os itens são consolidados (não se repetem)\n• A quantidade total a comprar é sempre exibida\n• A lista pode ser impressa em PDF com checkbox para marcar os itens'**
+  String get helpMenuShopDesc;
+
+  /// No description provided for @helpMenuPdfTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'📄 PDF do Cardápio'**
+  String get helpMenuPdfTitle;
+
+  /// No description provided for @helpMenuPdfDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ao gerar o PDF:\n• O cardápio é organizado por semanas\n• Cada semana possui sua própria lista de compras\n• Ideal para imprimir e usar no dia a dia'**
+  String get helpMenuPdfDesc;
+
+  /// No description provided for @helpMenuTipTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'ℹ️ Dica Importante'**
+  String get helpMenuTipTitle;
+
+  /// No description provided for @helpMenuTipDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sempre revise o resumo antes de gerar um cardápio.\nAssim você garante que o período, o objetivo e as preferências estão corretos.'**
+  String get helpMenuTipDesc;
 }
 
 class _AppLocalizationsDelegate

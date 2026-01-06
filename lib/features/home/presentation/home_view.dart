@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/permission_helper.dart';
 import '../../../core/services/file_upload_service.dart';
+import '../../../core/utils/app_feedback.dart';
 
 // Core
 import '../../../core/providers/analysis_provider.dart';
@@ -40,6 +41,7 @@ import '../../pet/services/pet_profile_service.dart';
 import '../../partners/presentation/partners_hub_screen.dart';
 import '../../partners/presentation/global_agenda_screen.dart';
 import 'widgets/app_drawer.dart';
+import '../../../core/theme/app_design.dart';
 import '../../../nutrition/presentation/screens/nutrition_home_screen.dart';
 import '../../food/presentation/nutrition_history_screen.dart';
 import '../../plant/presentation/botany_history_screen.dart';
@@ -118,15 +120,15 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: Colors.black.withOpacity(0.8),
+          backgroundColor: AppDesign.backgroundDark.withOpacity(0.8),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFF00E676), width: 1)),
+              side: const BorderSide(color: AppDesign.accent, width: 1)),
           title: Text(l10n.disclaimerTitle,
-              style: const TextStyle(color: Colors.white)),
+              style: const TextStyle(color: AppDesign.textPrimaryDark)),
           content: Text(
             l10n.disclaimerBody,
-            style: const TextStyle(color: Colors.white70),
+            style: const TextStyle(color: AppDesign.textSecondaryDark),
           ),
           actions: [
             TextButton(
@@ -139,7 +141,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               },
               child: Text(l10n.disclaimerButton,
                   style: const TextStyle(
-                      color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+                      color: AppDesign.accent, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -169,9 +171,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       } catch (e) {
         debugPrint('Camera initialization error: $e');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${AppLocalizations.of(context)!.cameraError}$e'), backgroundColor: Colors.red),
-          );
+          AppFeedback.showError(context, '${AppLocalizations.of(context)!.cameraError}$e');
         }
       }
     } else {
@@ -179,9 +179,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
        if (mounted) {
          // Show localized permission error
          final l10n = AppLocalizations.of(context)!;
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(l10n.cameraPermission), backgroundColor: Colors.red),
-         );
+         AppFeedback.showError(context, l10n.cameraPermission);
        }
        setState(() {
          _currentIndex = -1;
@@ -337,9 +335,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
       debugPrint('📚 Stack trace: $stackTrace');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro na captura: $e'), backgroundColor: Colors.red),
-        );
+        AppFeedback.showError(context, 'Erro na captura: $e');
       }
     }
   }
@@ -407,13 +403,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         debugPrint('❌ ERRO NA NAVEGAÇÃO: $e');
         debugPrint('📚 STACKTRACE: $stackTrace');
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Erro de Navegação: $e"), 
-              duration: const Duration(seconds: 10),
-              backgroundColor: Colors.red,
-            )
-          );
+           AppFeedback.showError(context, "Erro de Navegação: $e");
         }
     }
     if (state is AnalysisError) {
@@ -430,13 +420,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         default: errorMessage = state.message;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      AppFeedback.showError(context, errorMessage);
     }
   }
 
@@ -483,12 +467,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             debugPrint('Error saving pet: $e');
         }
          if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.petSavedSuccess(petName)),
-            backgroundColor: const Color(0xFF5E4B6B),
-          ),
-        );
+        AppFeedback.showSuccess(context, AppLocalizations.of(context)!.petSavedSuccess(petName));
 
         // Auto-Navigation Logic for Diagnosis Mode
         if (_petMode == 1) { // 1 = Diagnosis
@@ -507,12 +486,12 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     if (mounted) {
                         Navigator.of(context).push(
                             MaterialPageRoute(builder: (ctx) => Scaffold(
-                                backgroundColor: const Color(0xFF1E1E1E),
+                                backgroundColor: AppDesign.surfaceDark,
                                 appBar: AppBar(
                                     title: Text(petName),
-                                    backgroundColor: Colors.black,
-                                    iconTheme: const IconThemeData(color: Colors.white),
-                                    titleTextStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 20),
+                                    backgroundColor: AppDesign.backgroundDark,
+                                    iconTheme: const IconThemeData(color: AppDesign.textPrimaryDark),
+                                    titleTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 20),
                                 ),
                                 body: EditPetForm(
                                     existingProfile: profile,
@@ -532,9 +511,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         }
       } else {
          if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.errorPetNameNotFound)),
-        );
+        AppFeedback.showError(context, AppLocalizations.of(context)!.errorPetNameNotFound);
       }
     } else {
         // Handle saving for Food or Plant
@@ -564,16 +541,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             );
 
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.savedSuccess(type)),
-                backgroundColor: const Color(0xFF5E4B6B),
-              ),
-            );
+            AppFeedback.showSuccess(context, AppLocalizations.of(context)!.savedSuccess(type));
         } catch (e) {
             debugPrint('❌ Save error for $type: $e');
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.red),
+              SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: AppDesign.error),
             );
         }
     }
@@ -587,7 +559,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppLocalizations.of(context)!.redirectShop),
-        backgroundColor: const Color(0xFF5E4B6B),
+        backgroundColor: AppDesign.info,
       ),
     );
   }
@@ -596,8 +568,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     _checkSingleActiveTab();
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Color(0xFF00E676))),
+        backgroundColor: AppDesign.backgroundDark,
+        body: Center(child: CircularProgressIndicator(color: AppDesign.progress)),
       );
     }
 
@@ -608,7 +580,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         _showExitDialog(context);
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: AppDesign.backgroundDark,
       drawer: const AppDrawer(),
       body: Stack(
         fit: StackFit.expand,
@@ -618,20 +590,57 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             if (_isCameraInitialized && _controller != null && _controller!.value.isInitialized)
               CameraPreview(_controller!)
             else
-              Container(color: Colors.black),
+              Container(color: AppDesign.backgroundDark),
           ],
 
           // 2. Scan Frame Overlay - Show when mode selected OR when we have a captured image
           if (_currentIndex != -1 || _capturedImage != null)
             Center(
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white.withOpacity(0.5), width: 3),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Stack(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   // Hint Banner ABOVE the frame
+                   if (_currentIndex != -1)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: IgnorePointer(
+                        ignoring: true,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppDesign.getModeColor(_currentIndex),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ]
+                          ),
+                          child: Text(
+                            _getHintText(context),
+                            style: GoogleFonts.poppins(
+                              color: (_currentIndex == 2) ? AppDesign.textPrimaryLight : Colors.white, // Pink bg needs dark text? Or white is fine? Request says verify legibility.
+                              // Pet Pink (0xFFFADADD) is very light, so Dark Text (textPrimaryLight) is better.
+                              // Food Purple (0xFF5E4B6B) is dark, White text.
+                              // Plant Green (0xFF4CAF50) is mid-tone, White text is standard.
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  Container(
+                    width: 280,
+                    height: 280,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _currentIndex == -1 ? AppDesign.textPrimaryDark.withOpacity(0.5) : AppDesign.getModeColor(_currentIndex), width: 3),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Stack(
                   children: [
                     if (_capturedImage != null)
                       Positioned.fill(
@@ -650,10 +659,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     child: Container(
                       width: 30,
                       height: 30,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          top: BorderSide(color: Color(0xFF00E676), width: 4),
-                          left: BorderSide(color: Color(0xFF00E676), width: 4),
+                          top: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
+                          left: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
                         ),
                       ),
                     ),
@@ -664,10 +673,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     child: Container(
                       width: 30,
                       height: 30,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          top: BorderSide(color: Color(0xFF00E676), width: 4),
-                          right: BorderSide(color: Color(0xFF00E676), width: 4),
+                          top: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
+                          right: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
                         ),
                       ),
                     ),
@@ -678,10 +687,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     child: Container(
                       width: 30,
                       height: 30,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          bottom: BorderSide(color: Color(0xFF00E676), width: 4),
-                          left: BorderSide(color: Color(0xFF00E676), width: 4),
+                          bottom: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
+                          left: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
                         ),
                       ),
                     ),
@@ -692,18 +701,20 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     child: Container(
                       width: 30,
                       height: 30,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          bottom: BorderSide(color: Color(0xFF00E676), width: 4),
-                          right: BorderSide(color: Color(0xFF00E676), width: 4),
+                          bottom: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
+                          right: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
                         ),
                       ),
                     ),
                   ),
+                 ],
+               ),
+             ),
                 ],
               ),
             ),
-          ),
 
           // 2.5 PET MODE TOGGLES (Top Center)
           if (_currentIndex == 2)
@@ -715,7 +726,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
+                    color: AppDesign.backgroundDark.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(color: Colors.white24),
                   ),
@@ -729,15 +740,15 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: _petMode == 0 ? const Color(0xFF00E676) : Colors.transparent,
+                            color: _petMode == 0 ? AppDesign.getModeColor(2) : Colors.transparent,
                             borderRadius: BorderRadius.circular(25),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.pets, size: 20, color: _petMode == 0 ? Colors.black : Colors.white),
+                              Icon(Icons.pets, size: 20, color: _petMode == 0 ? AppDesign.textPrimaryLight : AppDesign.textPrimaryDark),
                               if (_petMode == 0) ...[
                                 const SizedBox(width: 8),
-                                Text(AppLocalizations.of(context)!.modePetIdentification, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                                Text(AppLocalizations.of(context)!.modePetIdentification, style: const TextStyle(color: AppDesign.textPrimaryLight, fontWeight: FontWeight.bold)),
                               ]
                             ],
                           ),
@@ -751,15 +762,15 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: _petMode == 1 ? Colors.redAccent : Colors.transparent,
+                            color: _petMode == 1 ? AppDesign.getModeColor(2) : Colors.transparent,
                             borderRadius: BorderRadius.circular(25),
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.health_and_safety, size: 20, color: _petMode == 1 ? Colors.white : Colors.white),
+                              Icon(Icons.health_and_safety, size: 20, color: AppDesign.textPrimaryDark),
                               if (_petMode == 1) ...[
                                 const SizedBox(width: 8),
-                                Text(AppLocalizations.of(context)!.modePetHealth, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                Text(AppLocalizations.of(context)!.modePetHealth, style: const TextStyle(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
                               ]
                             ],
                           ),
@@ -779,12 +790,12 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             child: Builder(
               builder: (context) => Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: AppDesign.backgroundDark.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.2)),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.menu, color: Colors.white, size: 28),
+                  icon: Icon(AppDesign.iconMenu, color: _currentIndex == -1 ? AppDesign.textPrimaryDark : AppDesign.getModeColor(_currentIndex), size: 28),
                   onPressed: () {
                     _clearCapturedImage();
                     Scaffold.of(context).openDrawer();
@@ -810,7 +821,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.history, color: Colors.white, size: 28),
+                      icon: Icon(Icons.history, color: AppDesign.getModeColor(0), size: 28),
                       tooltip: AppLocalizations.of(context)!.tooltipNutritionHistory,
                       onPressed: () {
                         Navigator.push(
@@ -829,7 +840,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.restaurant_menu, color: Color(0xFFFF6B35), size: 28),
+                      icon: Icon(Icons.restaurant_menu, color: AppDesign.getModeColor(0), size: 28),
                       tooltip: AppLocalizations.of(context)!.tooltipNutritionManagement,
                       onPressed: () {
                         try {
@@ -841,12 +852,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           );
                         } catch (e) {
                           debugPrint('❌ Error opening Nutrition module: $e');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Erro ao abrir módulo de nutrição: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          AppFeedback.showError(context, 'Erro ao abrir módulo de nutrição: $e');
                         }
                       },
                     ),
@@ -871,7 +877,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.history, color: Colors.white, size: 28),
+                      icon: Icon(Icons.history, color: AppDesign.getModeColor(1), size: 28),
                       tooltip: AppLocalizations.of(context)!.tooltipBotanyHistory,
                       onPressed: () {
                         Navigator.push(
@@ -902,7 +908,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                         border: Border.all(color: Colors.white.withOpacity(0.2)),
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.calendar_month, color: Color(0xFF00E676), size: 28),
+                        icon: Icon(Icons.calendar_month, color: AppDesign.getModeColor(2), size: 28),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -921,7 +927,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.handshake, color: Colors.blueAccent, size: 28),
+                      icon: Icon(Icons.handshake, color: AppDesign.getModeColor(2), size: 28),
                       onPressed: () {
                   Navigator.push(
                     context,
@@ -939,7 +945,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.pets, color: Colors.white, size: 28),
+                      icon: Icon(Icons.pets, color: AppDesign.getModeColor(2), size: 28),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -963,8 +969,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   color: _petMode == 0 
-                      ? const Color(0xFF00E676).withOpacity(0.9)
-                      : Colors.redAccent.withOpacity(0.9),
+                      ? AppDesign.accent.withOpacity(0.9)
+                      : AppDesign.error.withOpacity(0.9),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -998,7 +1004,6 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 ),
               ),
             ),
-
 
           
           // 3. Shutter Button (Center) - Only show when mode is selected
@@ -1044,7 +1049,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                               color: Colors.white.withOpacity(0.1),
                             ),
                             child: const CircularProgressIndicator(
-                              color: Color(0xFF00E676),
+                              color: AppDesign.accent,
                               strokeWidth: 3,
                             ),
                           ),
@@ -1090,16 +1095,16 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         height: 80,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 4),
-          color: Colors.white.withOpacity(0.2),
+          border: Border.all(color: AppDesign.getModeColor(_currentIndex), width: 4),
+          color: AppDesign.getModeColor(_currentIndex).withOpacity(0.2),
         ),
         padding: const EdgeInsets.all(4),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: AppDesign.getModeColor(_currentIndex),
           ),
-          child: const Icon(Icons.camera_alt, color: Colors.black, size: 30),
+          child: const Icon(Icons.camera_alt, color: AppDesign.backgroundDark, size: 30),
         ),
       ),
     );
@@ -1123,9 +1128,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                if (ref.watch(settingsProvider).showFoodButton) _buildNavItem(0, Icons.restaurant, l10n.tabFood, Colors.redAccent),
-                if (ref.watch(settingsProvider).showPlantButton) _buildNavItem(1, Icons.grass, l10n.tabPlants, Colors.greenAccent),
-                if (ref.watch(settingsProvider).showPetButton) _buildNavItem(2, Icons.pets, l10n.tabPets, Colors.orangeAccent),
+                if (ref.watch(settingsProvider).showFoodButton) _buildNavItem(0, Icons.restaurant, l10n.tabFood, AppDesign.getModeColor(0)),
+                if (ref.watch(settingsProvider).showPlantButton) _buildNavItem(1, Icons.grass, l10n.tabPlants, AppDesign.getModeColor(1)),
+                if (ref.watch(settingsProvider).showPetButton) _buildNavItem(2, Icons.pets, l10n.tabPets, AppDesign.getModeColor(2)),
               ],
             ),
           ),
@@ -1220,7 +1225,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             backgroundColor: Colors.black.withOpacity(0.8),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFF00E676), width: 1)),
+                side: BorderSide(color: AppDesign.accent, width: 1)),
             title: Text(l10n.petNamePromptTitle,
                 style: const TextStyle(color: Colors.white)),
             content: TextField(
@@ -1234,7 +1239,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   borderSide: BorderSide(color: Colors.white38),
                 ),
                 focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF00E676)),
+                  borderSide: BorderSide(color: AppDesign.accent),
                 ),
               ),
             ),
@@ -1246,7 +1251,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00E676),
+                  backgroundColor: AppDesign.accent,
                   foregroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -1342,23 +1347,17 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       
       // Show confirmation to user
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.healthAnalysisSaved(_petName!)),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
+        AppFeedback.showSuccess(
+          context,
+          AppLocalizations.of(context)!.healthAnalysisSaved(_petName!),
         );
       }
     } catch (e) {
       debugPrint('❌ Error saving wound analysis: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.errorSavingAnalysis(e.toString())),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        AppFeedback.showError(
+          context,
+          AppLocalizations.of(context)!.errorSavingAnalysis(e.toString()),
         );
       }
     }
@@ -1422,22 +1421,22 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
+        backgroundColor: AppDesign.surfaceDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           AppLocalizations.of(context)!.exitDialogTitle,
-          style: GoogleFonts.poppins(color: Colors.white),
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
         ),
         content: Text(
           AppLocalizations.of(context)!.exitDialogContent,
-          style: GoogleFonts.poppins(color: Colors.white70),
+          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               AppLocalizations.of(context)!.cancel,
-              style: GoogleFonts.poppins(color: Colors.white70),
+              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
             ),
           ),
           TextButton(
@@ -1446,7 +1445,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             },
             child: Text(
               AppLocalizations.of(context)!.exit,
-              style: GoogleFonts.poppins(color: Colors.red),
+              style: GoogleFonts.poppins(color: AppDesign.error),
             ),
           ),
         ],
@@ -1454,4 +1453,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     );
   }
 
+  String _getHintText(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (_currentIndex) {
+      case 0: return l10n.homeHintFood;
+      case 1: return l10n.homeHintPlant;
+      case 2: return l10n.homeHintPet;
+      default: return '';
+    }
+  }
 }

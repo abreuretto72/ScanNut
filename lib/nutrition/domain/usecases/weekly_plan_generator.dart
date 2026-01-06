@@ -48,6 +48,23 @@ class WeeklyPlanGenerator {
       final days = <PlanDay>[];
       final Set<String> usedRecipeIds = {};
       
+      // Determine period
+      final periodType = params?.periodType ?? 'weekly';
+      
+      int numDays;
+      if (periodType == 'custom' && params?.customDays != null) {
+        numDays = params!.customDays!;
+        // Cap at 60 days just in case, though UI validates
+        if (numDays > 60) numDays = 60;
+      } else {
+        numDays = (periodType == 'monthly' || periodType == '28days') ? 28 : 7;
+      }
+
+      // If custom, use exact start date. Otherwise snap to Monday.
+      final DateTime anchorDate = (periodType == 'custom') ? now : _getMonday(now);
+
+      final objective = params?.objective ?? profile.objetivo ?? 'maintenance';
+
       // Determine meal types based on params or profile
       List<String> mealTypes;
       if (params != null) {
@@ -62,16 +79,17 @@ class WeeklyPlanGenerator {
          mealTypes = profile.horariosRefeicoes.keys.toList();
       }
 
-      // Gerar 7 dias
-      for (int i = 0; i < 7; i++) {
-        final date = monday.add(Duration(days: i));
+      // Gerar dias conforme período
+      for (int i = 0; i < numDays; i++) {
+        final date = anchorDate.add(Duration(days: i));
         
         final dayMeals = _generateDayMeals(
             profile, 
             mealTypes, 
             params, 
             usedRecipeIds,
-            languageCode
+            languageCode,
+            objective: objective,
         );
         
         days.add(PlanDay(
@@ -82,18 +100,23 @@ class WeeklyPlanGenerator {
       }
 
       final plan = WeeklyPlan(
-        weekStartDate: monday,
+        weekStartDate: anchorDate,
+        endDate: anchorDate.add(Duration(days: numDays - 1)),
         seed: seed ?? DateTime.now().millisecondsSinceEpoch,
         days: days,
         criadoEm: DateTime.now(),
         atualizadoEm: DateTime.now(),
         dicasPreparo: _generatePreparationTips(days),
+        periodType: periodType,
+        objective: objective,
+        version: 1,
+        status: 'active',
       );
 
-      debugPrint('✅ Generated weekly plan with ${days.length} days and preparation tips');
+      debugPrint('✅ Generated plan: days=${days.length}, period=$periodType, objective=$objective');
       return plan;
     } catch (e) {
-      debugPrint('❌ Error generating weekly plan: $e');
+      debugPrint('❌ Error generating plan: $e');
       return null;
     }
   }
@@ -142,8 +165,9 @@ class WeeklyPlanGenerator {
       List<String> mealTypes,
       MenuCreationParams? params,
       Set<String> usedRecipeIds,
-      String? languageCode,
-  ) {
+      String? languageCode, {
+      String objective = 'maintenance',
+  }) {
     final isEn = languageCode?.startsWith('en') == true;
     final meals = <Meal>[];
     
@@ -165,6 +189,12 @@ class WeeklyPlanGenerator {
            final textToCheck = '${r.nome} ${r.ingredientes.join(' ')}'.toLowerCase();
            final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
            
+           // Filter by objective: Weight Loss
+           if (objective == 'emagrecimento') {
+              if (isBreakfastOrSnack && r.calorias > 250) return false;
+              if (!isBreakfastOrSnack && r.calorias > 500) return false;
+           }
+
            if (isBreakfastOrSnack) {
                // Café/Lanche: Bloquear pratos pesados
                if (textToCheck.contains('feijão') || 
@@ -328,6 +358,7 @@ class WeeklyPlanGenerator {
     required UserNutritionProfile profile,
     List<String>? excludedRecipeIds,
     String? languageCode,
+    String? objective,
   }) async {
     final isEn = languageCode?.startsWith('en') == true;
     try {
@@ -342,6 +373,12 @@ class WeeklyPlanGenerator {
            final textToCheck = '${r.nome} ${r.ingredientes.join(' ')}'.toLowerCase();
            final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
            
+           // Filter by objective: Weight Loss
+           if (objective == 'emagrecimento') {
+              if (isBreakfastOrSnack && r.calorias > 250) return false;
+              if (!isBreakfastOrSnack && r.calorias > 500) return false;
+           }
+
            if (isBreakfastOrSnack) {
                if (textToCheck.contains('feijão') || 
                    textToCheck.contains('arroz') || 

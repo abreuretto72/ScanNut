@@ -7,6 +7,8 @@ import '../home/presentation/home_view.dart';
 import '../onboarding/presentation/onboarding_screen.dart';
 import '../auth/presentation/login_screen.dart';
 import '../../core/services/simple_auth_service.dart';
+import '../../core/theme/app_design.dart';
+import '../../../l10n/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -20,6 +22,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
+
+  // DEBUG SWITCH: Set to true to force login screen logic ignoring stored session
+  static const bool FORCE_LOGIN_DEBUG = false; // <<<--- CHANGE THIS TO TRUE TO TEST LOGIN
 
   @override
   void initState() {
@@ -45,34 +50,73 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    // Navigate to Onboarding or Home after animation
-    Timer(const Duration(milliseconds: 3000), () async {
+    debugPrint('🕒 Splash Timer scheduled for 1000ms');
+    Timer(const Duration(milliseconds: 1000), () async {
+      debugPrint('🔔 Splash Timer fired! Checking mounted...');
       if (mounted) {
+        debugPrint('📦 Loading SharedPreferences...');
         final prefs = await SharedPreferences.getInstance();
         final bool onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
         
+        debugPrint('👤 Checking session...');
         if (mounted) {
            // Tenta recuperar sessão persistente e chave mestra
            final bool isLoggedIn = await simpleAuthService.checkPersistentSession();
+
+           // -------------------------------------------------------------
+           // DEBUG DIAGNOSTICS LOGS
+           debugPrint('\n🔍 === SPLASH SCREEN DIAGNOSTICS ===');
+           debugPrint('Origins: SplashScreen (Timer finished)');
+           debugPrint('Prefs: onboarding_completed = $onboardingCompleted');
+           debugPrint('Auth: hasPersistentSession = $isLoggedIn');
+           debugPrint('Auth: loggedUserEmail = ${simpleAuthService.loggedUserEmail}');
+           debugPrint('DEBUG MODE: FORCE_LOGIN_DEBUG = $FORCE_LOGIN_DEBUG');
+           // -------------------------------------------------------------
            
            Widget nextScreen;
-           if (!onboardingCompleted) {
+           String decisionLog = "";
+
+           if (FORCE_LOGIN_DEBUG) {
+             nextScreen = const LoginScreen();
+             decisionLog = "NAVIGATE_TO_LOGIN (Forced by Debug)";
+           } else if (!onboardingCompleted) {
              nextScreen = const OnboardingScreen();
+             decisionLog = "NAVIGATE_TO_ONBOARDING";
            } else if (!isLoggedIn) {
              nextScreen = const LoginScreen();
+             decisionLog = "NAVIGATE_TO_LOGIN (No valid session)";
            } else {
-             nextScreen = const HomeView();
+             // Session is active/persistent. Check biometrics requirement.
+             if (simpleAuthService.isBiometricEnabled) {
+                // Prompt Bio right here
+                final bioSuccess = await simpleAuthService.authenticateWithBiometrics();
+                if (bioSuccess) {
+                   nextScreen = const HomeView();
+                   decisionLog = "NAVIGATE_TO_HOME (Biometric Success)";
+                } else {
+                   // If bio fails or cancelled, user must login manually
+                   nextScreen = const LoginScreen();
+                   decisionLog = "NAVIGATE_TO_LOGIN (Biometric Rejection/Cancel)";
+                }
+             } else {
+                nextScreen = const HomeView();
+                decisionLog = "NAVIGATE_TO_HOME (Session active, No Bio)";
+             }
            }
 
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: const Duration(milliseconds: 500),
-            ),
-          );
+           debugPrint('🚀 DECISION: $decisionLog');
+           debugPrint('=====================================\n');
+
+           debugPrint('🎬 Starting pushReplacement to next screen...');
+           Navigator.of(context).pushReplacement(
+             PageRouteBuilder(
+               pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
+               transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                 return FadeTransition(opacity: animation, child: child);
+               },
+               transitionDuration: const Duration(milliseconds: 500),
+             ),
+           ).then((_) => debugPrint('🏁 Navigation complete.'));
         }
       }
     });
@@ -87,8 +131,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    // Note: Splash Screen runs before standard localization delegate might be fully ready in some setups,
+    // but since we are inside MaterialApp, this generally works if locale is resolved.
+    // Fallback to English if something goes wrong is implicit or we can handle null.
+    // AppLocalizations.of(context) returns nullable, so we use '!' or '??'.
+    final l10n = AppLocalizations.of(context);
+    
+    // Safety fallback strings in case context isn't ready (rare in this architecture)
+    final food = l10n?.tabFood ?? 'Food';
+    final plants = l10n?.tabPlants ?? 'Plants';
+    final pets = l10n?.tabPets ?? 'Pets';
+    final poweredBy = l10n?.splashPoweredBy ?? 'Powered by AI Vision';
+
     return Scaffold(
-      backgroundColor: Colors.black, // Safety background
+      backgroundColor: AppDesign.backgroundDark, // Safety background
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -97,9 +153,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.black,
-              Colors.grey.shade900,
-              Colors.black,
+              AppDesign.backgroundDark,
+              AppDesign.surfaceDark,
+              AppDesign.backgroundDark,
             ],
           ),
         ),
@@ -126,23 +182,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                            shape: BoxShape.circle,
                            gradient: LinearGradient(
                              colors: [
-                               const Color(0xFF00E676),
-                               const Color(0xFF00E676).withOpacity(0.6),
+                               AppDesign.accent,
+                               AppDesign.accent.withOpacity(0.6),
                              ],
                            ),
                            boxShadow: [
                              BoxShadow(
-                               color: const Color(0xFF00E676).withOpacity(0.5),
+                               color: AppDesign.accent.withOpacity(0.5),
                                blurRadius: 40,
                                spreadRadius: 10,
                              ),
                            ],
                          ),
-                         child: const Icon(
-                           Icons.camera_alt_rounded,
-                           size: 60,
-                           color: Colors.black,
-                         ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Image.asset(
+                              'assets/images/app_logo.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                        ),
                      ),
                    ),
@@ -166,7 +224,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                        style: GoogleFonts.poppins(
                          fontSize: 48,
                          fontWeight: FontWeight.bold,
-                         color: Colors.white,
+                         color: AppDesign.textPrimaryDark,
                          letterSpacing: 2,
                        ),
                      ),
@@ -189,29 +247,29 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                      child: Row(
                        mainAxisAlignment: MainAxisAlignment.center,
                        children: [
-                         _buildTag('🍎', 'Food'),
+                         _buildTag('🍎', food),
                          const SizedBox(width: 8),
                          Container(
                            width: 4,
                            height: 4,
                            decoration: const BoxDecoration(
-                             color: Color(0xFF00E676),
+                             color: AppDesign.accent,
                              shape: BoxShape.circle,
                            ),
                          ),
                          const SizedBox(width: 8),
-                         _buildTag('🌿', 'Plants'),
+                         _buildTag('🌿', plants),
                          const SizedBox(width: 8),
                          Container(
                            width: 4,
                            height: 4,
                            decoration: const BoxDecoration(
-                             color: Color(0xFF00E676),
+                             color: AppDesign.accent,
                              shape: BoxShape.circle,
                            ),
                          ),
                          const SizedBox(width: 8),
-                         _buildTag('🐾', 'Pets'),
+                         _buildTag('🐾', pets),
                        ],
                      ),
                    ),
@@ -226,7 +284,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         height: 30,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E676)),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppDesign.accent),
                         ),
                       ),
                     ),
@@ -243,20 +301,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppDesign.textPrimaryDark.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.2)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.auto_awesome, color: Color(0xFF00E676), size: 16),
+                        const Icon(Icons.auto_awesome, color: AppDesign.accent, size: 16),
                         const SizedBox(width: 8),
                         Text(
-                          'Powered by AI Vision',
+                          poweredBy,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: Colors.white70,
+                            color: AppDesign.textSecondaryDark,
                           ),
                         ),
                       ],
@@ -281,7 +339,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           label,
           style: GoogleFonts.poppins(
             fontSize: 14,
-            color: Colors.white70,
+            color: AppDesign.textSecondaryDark,
           ),
         ),
       ],
@@ -303,7 +361,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: const Color(0xFF00E676).withOpacity(0.3),
+            color: AppDesign.accent.withOpacity(0.3),
             shape: BoxShape.circle,
           ),
         ),

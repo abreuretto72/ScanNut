@@ -15,6 +15,7 @@ import '../../../core/services/export_service.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/auth_trace_logger.dart';
 import 'package:flutter/services.dart';
+import '../../../core/theme/app_design.dart';
 
 class PartnersHubScreen extends ConsumerStatefulWidget {
   final bool isSelectionMode;
@@ -78,7 +79,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   void _openRadar() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: AppDesign.surfaceDark,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
@@ -114,11 +115,11 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.grey[900],
+          backgroundColor: AppDesign.surfaceDark,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
             AppLocalizations.of(context)!.partnersExportPdf,
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
           ),
           content: SizedBox(
             width: double.maxFinite,
@@ -127,7 +128,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.partnersCategory, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                  Text(AppLocalizations.of(context)!.partnersCategory, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -139,15 +140,15 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                       child: DropdownButton<String>(
                         value: selectedReportCategory,
                         isExpanded: true,
-                        dropdownColor: Colors.grey[850],
-                        style: const TextStyle(color: Colors.white),
+                        dropdownColor: AppDesign.surfaceDark,
+                        style: const TextStyle(color: AppDesign.textPrimaryDark),
                         items: _filterCategories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
                         onChanged: (val) => setDialogState(() => selectedReportCategory = val!),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text(AppLocalizations.of(context)!.partnersDetailLevel, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                  Text(AppLocalizations.of(context)!.partnersDetailLevel, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -167,7 +168,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                   const SizedBox(height: 24),
                   Text(
                     AppLocalizations.of(context)!.partnersExportDisclaimer,
-                    style: const TextStyle(color: Colors.white38, fontSize: 11),
+                    style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 11),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -178,8 +179,8 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                         _executePdfGeneration(selectedReportCategory, selectedReportType);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00E676),
-                        foregroundColor: Colors.black,
+                        backgroundColor: AppDesign.success,
+                        foregroundColor: AppDesign.backgroundDark,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 4,
@@ -196,7 +197,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(AppLocalizations.of(context)!.partnersBack, style: const TextStyle(color: Colors.white24, fontSize: 12)),
+                child: Text(AppLocalizations.of(context)!.partnersBack, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
               ),
             ),
           ],
@@ -212,15 +213,15 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF00E676).withOpacity(0.2) : Colors.white.withOpacity(0.05),
-            border: Border.all(color: isSelected ? const Color(0xFF00E676) : Colors.white10),
+            color: isSelected ? AppDesign.success.withValues(alpha: 0.2) : Colors.white10,
+            border: Border.all(color: isSelected ? AppDesign.success : Colors.white10),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              color: isSelected ? const Color(0xFF00E676) : Colors.white38,
+              color: isSelected ? AppDesign.success : AppDesign.textSecondaryDark,
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
@@ -237,7 +238,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
 
     if (reportPartners.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.noPartnersForFilters), backgroundColor: Colors.orange),
+        SnackBar(content: Text(AppLocalizations.of(context)!.noPartnersForFilters), backgroundColor: AppDesign.warning),
       );
       return;
     }
@@ -294,13 +295,13 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppDesign.backgroundDark,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 120,
             floating: true,
-            backgroundColor: Colors.black,
+            backgroundColor: AppDesign.backgroundDark,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(widget.isSelectionMode ? AppLocalizations.of(context)!.partnersSelectTitle : AppLocalizations.of(context)!.partnersTitle,
                   style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18)),
@@ -317,7 +318,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             child: _buildFilterBar(),
           ),
           if (_loading)
-            const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: Color(0xFF00E676))))
+            const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppDesign.accent)))
           else if (_filteredPartners.isEmpty)
             _buildEmptyState()
           else
@@ -336,9 +337,9 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
           ? null
           : FloatingActionButton.extended(
         onPressed: _openManualRegistration,
-        backgroundColor: const Color(0xFF00E676),
-        icon: const Icon(Icons.add, color: Colors.black),
-        label: Text(AppLocalizations.of(context)!.partnersRegister, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
+        backgroundColor: AppDesign.accent,
+        icon: const Icon(Icons.add, color: AppDesign.backgroundDark),
+        label: Text(AppLocalizations.of(context)!.partnersRegister, style: GoogleFonts.poppins(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -358,13 +359,13 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             child: FilterChip(
               selected: isSelected,
               label: Text(category, style: GoogleFonts.poppins(
-                color: isSelected ? Colors.black : Colors.white,
+                color: isSelected ? AppDesign.backgroundDark : AppDesign.textPrimaryDark,
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               )),
-              backgroundColor: Colors.white.withOpacity(0.05),
-              selectedColor: const Color(0xFF00E676),
-              checkmarkColor: Colors.black,
+              backgroundColor: Colors.white10,
+              selectedColor: AppDesign.accent,
+              checkmarkColor: AppDesign.backgroundDark,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               onSelected: (selected) {
                 setState(() => _selectedCategory = category);
@@ -382,16 +383,16 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.handshake_outlined, size: 80, color: Colors.white.withOpacity(0.1)),
+            Icon(Icons.handshake_outlined, size: 80, color: Colors.white24),
             const SizedBox(height: 16),
             Text(
               _selectedCategory == AppLocalizations.of(context)!.partnersFilterAll
                 ? AppLocalizations.of(context)!.partnersNoneFound
                 : AppLocalizations.of(context)!.partnersNoneInCategory(_selectedCategory),
-              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 16)
+              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 16)
             ),
             const SizedBox(height: 8),
-            Text(AppLocalizations.of(context)!.partnersRadarHint, style: GoogleFonts.poppins(color: Colors.white24, fontSize: 12)),
+            Text(AppLocalizations.of(context)!.partnersRadarHint, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark.withOpacity(0.5), fontSize: 12)),
           ],
         ),
       ),
@@ -402,9 +403,9 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white10,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white10),
       ),
       child: ListTile(
         onTap: () async {
@@ -422,12 +423,12 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
         },
         contentPadding: const EdgeInsets.all(16),
         leading: _getCategoryIcon(partner.category),
-        title: Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-        subtitle: Text(partner.category, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 12)),
+        title: Text(partner.name, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.w600)),
+        subtitle: Text(partner.category, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
         trailing: widget.isSelectionMode
-            ? const Icon(Icons.check_circle_outline, color: Color(0xFF00E676))
+            ? const Icon(Icons.check_circle_outline, color: AppDesign.accent)
             : IconButton(
-                icon: const Icon(Icons.chat_bubble_outline, color: Color(0xFF00E676)),
+                icon: const Icon(Icons.chat_bubble_outline, color: AppDesign.accent),
                 onPressed: () {
                     WhatsAppService.abrirChat(
                     telefone: partner.phone,
@@ -444,13 +445,13 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
     Color color;
     final c = category.toLowerCase();
     
-    if (c.contains('vet')) { icon = Icons.local_hospital; color = Colors.redAccent; }
-    else if (c.contains('farm') || c.contains('pharm')) { icon = Icons.medication; color = Colors.blueAccent; }
-    else if (c.contains('shop') || c.contains('tienda')) { icon = Icons.shopping_basket; color = Colors.orangeAccent; }
-    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; color = Colors.purpleAccent; }
-    else if (c.contains('hotel')) { icon = Icons.hotel; color = Colors.amberAccent; }
-    else if (c.contains('lab')) { icon = Icons.biotech; color = Colors.cyanAccent; }
-    else { icon = Icons.pets; color = Colors.greenAccent; }
+    if (c.contains('vet')) { icon = Icons.local_hospital; color = AppDesign.error; }
+    else if (c.contains('farm') || c.contains('pharm')) { icon = Icons.medication; color = AppDesign.info; }
+    else if (c.contains('shop') || c.contains('tienda')) { icon = Icons.shopping_basket; color = AppDesign.warning; }
+    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; color = AppDesign.primary; }
+    else if (c.contains('hotel')) { icon = Icons.hotel; color = AppDesign.accent; }
+    else if (c.contains('lab')) { icon = Icons.biotech; color = AppDesign.info; }
+    else { icon = Icons.pets; color = AppDesign.success; }
 
     return Container(
       padding: const EdgeInsets.all(10),
@@ -663,7 +664,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    const Icon(Icons.explore, color: Colors.blueAccent, size: 28),
+                    const Icon(Icons.explore, color: AppDesign.info, size: 28),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -671,22 +672,22 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                         children: [
                           Text(
                             'Radar Explorer (${ref.watch(settingsProvider).partnerSearchRadius.toInt()}km)', 
-                            style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)
+                            style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 20, fontWeight: FontWeight.bold)
                           ),
                           const Text(
                             'Toque para alterar o raio de busca', 
-                            style: TextStyle(color: Colors.blueAccent, fontSize: 11, fontWeight: FontWeight.w500)
+                            style: TextStyle(color: AppDesign.info, fontSize: 11, fontWeight: FontWeight.w500)
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.settings_outlined, color: Colors.white24, size: 20),
+                    const Icon(Icons.settings_outlined, color: AppDesign.textSecondaryDark, size: 20),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 8),
-            Text(AppLocalizations.of(context)!.partnersRadarDetecting, style: const TextStyle(color: Colors.white38, fontSize: 13)),
+            Text(AppLocalizations.of(context)!.partnersRadarDetecting, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 13)),
             const SizedBox(height: 16),
             _buildRadarFilterBar(),
             const SizedBox(height: 16),
@@ -696,9 +697,9 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const CircularProgressIndicator(color: Colors.blueAccent),
+                        const CircularProgressIndicator(color: AppDesign.info),
                         const SizedBox(height: 16),
-                        Text(AppLocalizations.of(context)!.partnersRadarTracking, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+                        Text(AppLocalizations.of(context)!.partnersRadarTracking, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
                       ],
                     ),
                   )
@@ -708,15 +709,15 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                        child: Column(
                          mainAxisSize: MainAxisSize.min,
                          children: [
-                           const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                           const Icon(Icons.error_outline, color: AppDesign.error, size: 48),
                            const SizedBox(height: 16),
-                           Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                           Text(_errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppDesign.error, fontSize: 13)),
                            const SizedBox(height: 24),
                            ElevatedButton.icon(
                              onPressed: _startDiscovery,
                              icon: const Icon(Icons.refresh, size: 18),
                              label: const Text('Tentar Novamente'),
-                             style: ElevatedButton.styleFrom(backgroundColor: Colors.white10),
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.white10),
                            ),
                            const SizedBox(height: 12),
                            TextButton.icon(
@@ -724,12 +725,12 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                showDialog(
                                  context: context,
                                  builder: (context) => AlertDialog(
-                                   backgroundColor: Colors.grey[900],
-                                   title: const Text('Trace de Diagnóstico', style: TextStyle(color: Colors.white)),
+                                   backgroundColor: AppDesign.surfaceDark,
+                                   title: const Text('Trace de Diagnóstico', style: TextStyle(color: AppDesign.textPrimaryDark)),
                                    content: SizedBox(
                                      width: double.maxFinite,
                                      child: SingleChildScrollView(
-                                       child: Text(authTrace.getTraceAsString(), style: const TextStyle(color: Colors.white70, fontSize: 10, fontFamily: 'monospace')),
+                                       child: Text(authTrace.getTraceAsString(), style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 10, fontFamily: 'monospace')),
                                      ),
                                    ),
                                    actions: [
@@ -745,14 +746,14 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                  ),
                                );
                              },
-                             icon: const Icon(Icons.bug_report_outlined, size: 18, color: Colors.blueAccent),
-                             label: const Text('Ver Detalhes Técnicos', style: TextStyle(color: Colors.blueAccent)),
+                             icon: const Icon(Icons.bug_report_outlined, size: 18, color: AppDesign.info),
+                             label: const Text('Ver Detalhes Técnicos', style: TextStyle(color: AppDesign.info)),
                            ),
                          ],
                        ),
                      ))
                   : _filteredResults.isEmpty 
-                    ? Center(child: Text(AppLocalizations.of(context)!.partnersRadarNoResults, style: GoogleFonts.poppins(color: Colors.white38)))
+                    ? Center(child: Text(AppLocalizations.of(context)!.partnersRadarNoResults, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)))
                     : ListView.builder(
                         controller: scrollController,
                         itemCount: _filteredResults.length,
@@ -760,15 +761,15 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                           final p = _filteredResults[index];
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
-                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.03), borderRadius: BorderRadius.circular(15)),
+                            decoration: BoxDecoration(color: const Color(0x08FFFFFF), borderRadius: BorderRadius.circular(15)),
                             child: ListTile(
                               leading: _getCategoryIcon(p.category),
-                              title: Text(p.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              title: Text(p.name, style: const TextStyle(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
                               subtitle: Text("${p.category} • ${p.address}", 
                                   maxLines: 1, 
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
-                              trailing: const Icon(Icons.chevron_right, color: Colors.blueAccent),
+                                  style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 11)),
+                              trailing: const Icon(Icons.chevron_right, color: AppDesign.info),
                               onTap: () => widget.onImport(p),
                             ),
                           );
@@ -795,7 +796,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
             child: ChoiceChip(
               label: Text(category, style: GoogleFonts.poppins(
                 fontSize: 11,
-                color: isSelected ? Colors.black : Colors.white70,
+                color: isSelected ? AppDesign.backgroundDark : AppDesign.textSecondaryDark,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               )),
               selected: isSelected,

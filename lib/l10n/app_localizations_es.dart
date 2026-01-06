@@ -9,7 +9,10 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'Scannut';
+  String get appTitle => 'ScanNut';
+
+  @override
+  String get splashPoweredBy => 'Tecnología AI Vision';
 
   @override
   String get tabFood => 'Comida';
@@ -52,6 +55,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get petUnknown => 'Mascota Desconocida';
+
+  @override
+  String get homeHintFood => 'Apunta la cámara a la comida/plato';
+
+  @override
+  String get homeHintPlant => 'Apunta la cámara a la planta o enfermedad';
+
+  @override
+  String get homeHintPet => 'Apunta la cámara a la mascota';
 
   @override
   String get settingsTitle => 'Ajustes';
@@ -740,7 +752,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get menuAiAssistant => 'Asistente IA Scannut';
+  String get menuAiAssistant => 'Asistente IA ScanNut';
 
   @override
   String get menuSettings => 'Configuración';
@@ -802,13 +814,43 @@ class AppLocalizationsEs extends AppLocalizations {
   String get menuExitSubtitle => 'Cerrar la aplicación';
 
   @override
+  String get logoutTitle => 'Cerrar sesión y desconectar';
+
+  @override
+  String get logoutSubtitle => 'Finalizar sesión en ScanNut';
+
+  @override
+  String get contactSubject => 'Contacto ScanNut';
+
+  @override
+  String get helpWelcomeTitle => '¡Bienvenido a ScanNut!';
+
+  @override
+  String get helpWelcomeSubtitle =>
+      'Su asistente visual de IA para alimentos, plantas y mascotas';
+
+  @override
+  String get helpDisclaimerTitle => '⚠️ AVISO IMPORTANTE';
+
+  @override
+  String get helpDisclaimerBody =>
+      'La Inteligencia Artificial puede cometer errores en el análisis de imágenes. ScanNut NO se responsabiliza por la información generada por la IA.\n\n• Los análisis son solo ORIENTATIVAS\n• NO sustituyen a profesionales cualificados\n• Consulte siempre a veterinarios, nutricionistas o botánicos\n• Use la app como herramienta de apoyo, no como diagnóstico final';
+
+  @override
+  String get helpFooter =>
+      'Desarrollado con ❤️ por Abreu Retto\n© 2026 ScanNut';
+
+  @override
+  String get footerDevelopedBy => 'Desarrollado por Abreu Retto';
+
+  @override
   String get footerMadeWith => 'Hecho con ❤️ usando Gemini AI';
 
   @override
-  String get aboutTitle => 'Acerca de Scannut';
+  String get aboutTitle => 'Acerca de ScanNut';
 
   @override
-  String get aboutSubtitle => 'Scannut IA Visual Assistant';
+  String get aboutSubtitle => 'ScanNut IA Visual Assistant';
 
   @override
   String get aboutPoweredBy => 'Powered by Google Gemini 2.5 Flash';
@@ -1506,6 +1548,129 @@ class AppLocalizationsEs extends AppLocalizations {
   String get restHypertension => 'Hipertensión';
 
   @override
+  String get periodTypeTitle => 'Período do Cardápio';
+
+  @override
+  String get periodWeekly => 'Semanal (7 dias)';
+
+  @override
+  String get periodMonthly => 'Mensal (28 dias)';
+
+  @override
+  String get objectiveTitle => 'Objetivo';
+
+  @override
+  String get objMaintenance => 'Manter peso';
+
+  @override
+  String get objWeightLoss => 'Emagrecimento';
+
+  @override
+  String get objBalanced => 'Alimentação equilibrada';
+
+  @override
+  String get periodSectionTitle => 'Para quando?';
+
+  @override
+  String get periodSectionDesc =>
+      'Escolha o período do cardápio que será gerado.';
+
+  @override
+  String get periodThisWeek => 'Esta semana';
+
+  @override
+  String get periodNextWeek => 'Próxima semana';
+
+  @override
+  String get period28Days => 'Próximos 28 dias';
+
+  @override
+  String get objectiveSectionTitle => 'Objetivo do cardápio';
+
+  @override
+  String get objectiveSectionDesc =>
+      'O objetivo influencia a escolha dos alimentos e calorias.';
+
+  @override
+  String get preferencesSectionTitle => 'Preferências alimentares';
+
+  @override
+  String get preferencesSectionDesc =>
+      'Opcional. Se não marcar nada, o cardápio será padrão.';
+
+  @override
+  String get confirmationSectionTitle => 'Resumo da escolha';
+
+  @override
+  String get confirmationSummaryLead => 'Você vai gerar:';
+
+  @override
+  String get confirmationPeriodPrefix => '• Cardápio: ';
+
+  @override
+  String get confirmationObjectivePrefix => '• Objetivo: ';
+
+  @override
+  String get generateMenuAction => 'GERAR CARDÁPIO';
+
+  @override
+  String get selectPeriodError => 'Escolha o período do cardápio.';
+
+  @override
+  String get generatingMenu => 'Gerando seu cardápio...';
+
+  @override
+  String get redoPlanAction => 'Refazer esta semana';
+
+  @override
+  String get generateNextWeekAction => 'Gerar próxima semana';
+
+  @override
+  String get generate28DaysAction => 'Gerar próximos 28 dias';
+
+  @override
+  String get createNewVersion => 'Criar nova versão';
+
+  @override
+  String get replaceExisting => 'Substituir atual';
+
+  @override
+  String get redoPlanPrompt => 'Como você deseja refazer este cardápio?';
+
+  @override
+  String get historyFilter => 'Filtrar Histórico';
+
+  @override
+  String get allPeriods => 'Todos os Períodos';
+
+  @override
+  String get activeStatus => 'Ativo';
+
+  @override
+  String get archivedStatus => 'Arquivado';
+
+  @override
+  String get editMeal => 'Editar Refeição';
+
+  @override
+  String get saveChanges => 'Salvar Alterações';
+
+  @override
+  String get deletePlanSuccess => 'Cardápio excluído com sucesso.';
+
+  @override
+  String get mealRemoved => 'Cardápio removido.';
+
+  @override
+  String get statusActive => 'Ativo';
+
+  @override
+  String get statusArchived => 'Arquivado';
+
+  @override
+  String get versionLabel => 'Versão';
+
+  @override
   String get pdfPersonalizedPlanTitle => 'PLAN NUTRICIONAL PERSONALIZADO';
 
   @override
@@ -1513,7 +1678,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pdfGeneratedByLine =>
-      'INFORME DE NUTRICIÓN SEMANAL GENERADO POR SCAN NUT AI';
+      'INFORME DE NUTRICIÓN SEMANAL GENERADO POR ScanNut AI';
 
   @override
   String get pdfBatchCookingTips =>
@@ -4044,13 +4209,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get helpAppBarTitle => 'Ayuda y Documentación';
 
   @override
-  String get helpWelcomeTitle => '¡Bienvenido a ScanNut!';
-
-  @override
-  String get helpWelcomeSubtitle =>
-      'Su asistente visual de IA para alimentos, plantas y mascotas';
-
-  @override
   String get helpPetModule => '🐾 Módulo de Mascotas';
 
   @override
@@ -4064,10 +4222,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get helpSupportSection => '📞 Soporte';
-
-  @override
-  String get helpFooter =>
-      'Desarrollado con ❤️ por Abreu Retto\n© 2026 ScanNut';
 
   @override
   String get helpPetBreedTitle => 'Identificación de Raza';
@@ -4145,4 +4299,63 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get privacySecurityBody =>
       'ScanNut prioriza la privacidad del usuario a través de una arquitectura de datos local. Utilizamos cifrado de grado militar (AES-256) para cifrar la base de datos almacenada en su dispositivo. Las claves de seguridad se mantienen en un entorno aislado (Keystore/Keychain), lo que garantiza que, incluso en caso de pérdida del dispositivo, los datos permaneciam inaccesibles sin las credenciales o claves del sistema adecuadas.\n\nEl usuario es consciente de que, dado que no utilizamos almacenamiento en la nube, el mantenimiento y la seguridad de los archivos de Copia de Seguridad Local exportados son de su exclusiva responsabilidad.';
+
+  @override
+  String get helpMenuTitle => 'Cardápios e Lista de Compras';
+
+  @override
+  String get helpMenuGenTitle => '🗓️ Geração de Cardápios';
+
+  @override
+  String get helpMenuGenDesc =>
+      'No ScanNut, você tem total controle sobre como e quando seu cardápio é gerado.\n\nVocê pode escolher entre três modos de geração:\n• Cardápio semanal — para 7 dias a partir da data escolhida\n• Cardápio mensal — para 30 dias consecutivos\n• Cardápio personalizado — escolha a data de início e a data de fim (até 60 dias)\n\nSempre que você gerar um cardápio, o app mostrará um filtro para que você possa confirmar ou ajustar suas escolhas antes da geração.';
+
+  @override
+  String get helpMenuHistTitle => '💾 Histórico de Cardápios';
+
+  @override
+  String get helpMenuHistDesc =>
+      'Todos os cardápios gerados ficam salvos no histórico do app.\n\nIsso permite que você:\n• Consulte cardápios antigos\n• Gere novas versões sem perder as anteriores\n• Edite cardápios já criados\n• Exclua cardápios que não deseja mais manter\n\nNada é apagado automaticamente sem a sua confirmação.';
+
+  @override
+  String get helpMenuObjTitle => '🎯 Objetivos Nutricionais';
+
+  @override
+  String get helpMenuObjDesc =>
+      'Ao gerar um cardápio, você pode escolher o objetivo nutricional, como:\n• Manter o peso\n• Emagrecimento\n• Alimentação equilibrada\n\nO objetivo influencia a escolha dos alimentos e a distribuição das calorias.';
+
+  @override
+  String get helpMenuPrefTitle => '🥗 Preferências Alimentares';
+
+  @override
+  String get helpMenuPrefDesc =>
+      'Você também pode informar preferências alimentares, como:\n• Sem glúten\n• Sem lactose\n• Vegetariano\n\nEssas opções são opcionais. Se nenhuma for selecionada, o cardápio será gerado no formato padrão.';
+
+  @override
+  String get helpMenuEditTitle => '✏️ Edição de Ingredientes';
+
+  @override
+  String get helpMenuEditDesc =>
+      'Após gerar um cardápio, você pode editar os ingredientes de qualquer dia.\n\nÉ possível:\n• Ajustar ingredientes\n• Alterar quantidades\n• Adicionar ou remover itens\n\nSempre que um ingrediente é alterado, as listas de compras são atualizadas automaticamente.';
+
+  @override
+  String get helpMenuShopTitle => '🛒 Lista de Compras Semanal';
+
+  @override
+  String get helpMenuShopDesc =>
+      'O ScanNut gera listas de compras organizadas para facilitar sua ida ao mercado.\n\nImportante:\n• As listas de compras são sempre SEMANAIS\n• Mesmo em cardápios mensais ou personalizados\n• Os itens são consolidados (não se repetem)\n• A quantidade total a comprar é sempre exibida\n• A lista pode ser impressa em PDF com checkbox para marcar os itens';
+
+  @override
+  String get helpMenuPdfTitle => '📄 PDF do Cardápio';
+
+  @override
+  String get helpMenuPdfDesc =>
+      'Ao gerar o PDF:\n• O cardápio é organizado por semanas\n• Cada semana possui sua própria lista de compras\n• Ideal para imprimir e usar no dia a dia';
+
+  @override
+  String get helpMenuTipTitle => 'ℹ️ Dica Importante';
+
+  @override
+  String get helpMenuTipDesc =>
+      'Sempre revise o resumo antes de gerar um cardápio.\nAssim você garante que o período, o objetivo e as preferências estão corretos.';
 }

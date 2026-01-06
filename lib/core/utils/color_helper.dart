@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_design.dart';
+
 class ColorHelper {
   /// Determine theme color based on food health score
   static Color getFoodThemeColor({
@@ -13,24 +15,24 @@ class ColorHelper {
     
     // High calories or more risks than benefits = warning
     if (calories > 600 || riskScore > benefitScore) {
-      return Colors.orangeAccent; // Warning
+      return AppDesign.warning; // Warning
     } else if (benefitScore > riskScore) {
-      return const Color(0xFF00E676); // Healthy green
+      return AppDesign.success; // Healthy green
     }
     
-    return Colors.amber; // Neutral
+    return AppDesign.warning; // Neutral
   }
 
   /// Determine theme color based on plant urgency
   static Color getPlantThemeColor(String urgency) {
     switch (urgency.toLowerCase()) {
       case 'high':
-        return Colors.redAccent;
+        return AppDesign.error;
       case 'medium':
-        return Colors.orangeAccent;
+        return AppDesign.warning;
       case 'low':
       default:
-        return const Color(0xFF00E676);
+        return AppDesign.success;
     }
   }
 
@@ -38,13 +40,13 @@ class ColorHelper {
   static Color getPetThemeColor(String urgencyLevel) {
     final level = urgencyLevel.toLowerCase();
     if (level.contains('vermelho') || level.contains('red') || level.contains('rojo')) {
-      return Colors.redAccent;
+      return AppDesign.error;
     } else if (level.contains('amarelo') || level.contains('yellow') || level.contains('amarillo')) {
-      return Colors.amber;
+      return AppDesign.warning;
     } else if (level.contains('verde') || level.contains('green')) {
-      return const Color(0xFF00E676);
+      return AppDesign.success;
     }
-    return const Color(0xFF00E676); // Default to safe green
+    return AppDesign.success; // Default to safe green
   }
 
   /// Get urgency icon based on level

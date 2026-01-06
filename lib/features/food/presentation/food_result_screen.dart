@@ -167,8 +167,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                             (widget.analysis.identidade.nome == 'UNKNOWN_FOOD')
                                 ? AppLocalizations.of(context)!.unknownFood
                                 : widget.analysis.identidade.nome
-                                    .replaceAll('aproximadamente', '+-')
-                                    .replaceAll('Aproximadamente', '+-'),
+                                    .replaceAll('aproximadamente', '±')
+                                    .replaceAll('Aproximadamente', '±'),
                             style: GoogleFonts.poppins(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -251,25 +251,23 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   // --- TAB 1: RESUMO ---
   Widget _buildResumoTab() {
     final l10n = AppLocalizations.of(context)!;
-    final statusColor = _getSemaforoColor(widget.analysis.identidade.semaforoSaude);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildVitalityHeader(statusColor),
-          const SizedBox(height: 24),
+          // _buildVitalityHeader removed as per user request (exclusivo para plantas)
           Text(l10n.foodVerdict, style: _sectionTitleStyle),
           const SizedBox(height: 8),
-          Text(widget.analysis.analise.vereditoIa, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 15, fontStyle: FontStyle.italic)),
+          Text(widget.analysis.analise.vereditoIa.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white70, fontSize: 15, fontStyle: FontStyle.italic)),
           const SizedBox(height: 24),
           Text(l10n.foodPros, style: _sectionTitleStyle),
           const SizedBox(height: 12),
-          ...widget.analysis.analise.pontosPositivos.map((p) => _buildPointRow(p, Icons.check_circle, Colors.green)),
+          ...widget.analysis.analise.pontosPositivos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.check_circle, Colors.green)),
           const SizedBox(height: 16),
           Text(l10n.foodCons, style: _sectionTitleStyle),
           const SizedBox(height: 12),
-          ...widget.analysis.analise.pontosNegativos.map((p) => _buildPointRow(p, Icons.warning_rounded, Colors.orangeAccent)),
+          ...widget.analysis.analise.pontosNegativos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.warning_rounded, Colors.orangeAccent)),
           const SizedBox(height: 20),
           Center(
             child: Padding(
@@ -437,7 +435,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             title: l10n.recipesExpertTip,
             icon: Icons.lightbulb,
             color: Colors.amberAccent,
-            child: Text(widget.analysis.gastronomia.dicaEspecialista, style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+            child: Text(widget.analysis.gastronomia.dicaEspecialista.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
           ),
           const SizedBox(height: 20),
           // Disclaimer
@@ -530,7 +528,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             ],
           ),
           const SizedBox(height: 8),
-          Text(recipe.instrucoes, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, height: 1.4)),
+          Text(recipe.instrucoes.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, height: 1.4)),
         ],
       ),
     );
@@ -565,7 +563,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
-          Text(value, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+          Text(value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, height: 1.4)),
         ],
       ),
     );
@@ -579,7 +577,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.8), fontSize: 14))),
+          Expanded(child: Text(text.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.8), fontSize: 14))),
         ],
       ),
     );
@@ -621,7 +619,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                     Flexible(
                       flex: 2,
                       child: Text(
-                        value,
+                        value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'),
                         style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -665,7 +663,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               Flexible(
                 flex: 1,
                 child: Text(
-                  "${n.quantidade.replaceAll('aproximadamente', '+-').replaceAll('Aproximadamente', '+-')} (${n.percentualDv}%)",
+                  "${n.quantidade.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±')} (${n.percentualDv}%)",
                   style: GoogleFonts.poppins(color: _themeColor, fontSize: 11, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.right,

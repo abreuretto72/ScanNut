@@ -8,13 +8,13 @@ part 'weekly_plan.g.dart';
 @HiveType(typeId: 28)
 class WeeklyPlan extends HiveObject {
   @HiveField(0)
-  DateTime weekStartDate; // Segunda-feira da semana
+  DateTime weekStartDate; // Início do período
 
   @HiveField(1)
   int seed; // Seed para regeneração
 
   @HiveField(2)
-  List<PlanDay> days; // 7 dias
+  List<PlanDay> days; // Dias do plano
 
   @HiveField(3)
   DateTime criadoEm;
@@ -25,6 +25,27 @@ class WeeklyPlan extends HiveObject {
   @HiveField(5)
   String? dicasPreparo;
 
+  @HiveField(6)
+  String? id; // UUID
+
+  @HiveField(7)
+  String? periodType; // weekly | monthly | 28days
+
+  @HiveField(8)
+  DateTime? endDate;
+
+  @HiveField(9)
+  String? objective; // maintenance | emagrecimento | etc
+
+  @HiveField(10)
+  int version;
+
+  @HiveField(11)
+  String status; // active | archived | deleted
+
+  @HiveField(12)
+  String? shoppingListJson; // JSON serialized WeeklyShoppingList list
+
   WeeklyPlan({
     required this.weekStartDate,
     required this.seed,
@@ -32,27 +53,48 @@ class WeeklyPlan extends HiveObject {
     required this.criadoEm,
     required this.atualizadoEm,
     this.dicasPreparo,
+    this.id,
+    this.periodType = 'weekly',
+    this.endDate,
+    this.objective = 'maintenance',
+    this.version = 1,
+    this.status = 'active',
+    this.shoppingListJson,
   });
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'weekStartDate': weekStartDate.toIso8601String(),
+      'endDate': endDate?.toIso8601String(),
+      'periodType': periodType,
+      'objective': objective,
+      'version': version,
+      'status': status,
       'seed': seed,
       'days': days.map((day) => day.toJson()).toList(),
       'criadoEm': criadoEm.toIso8601String(),
       'atualizadoEm': atualizadoEm.toIso8601String(),
       'dicasPreparo': dicasPreparo,
+      'shoppingListJson': shoppingListJson,
     };
   }
 
   factory WeeklyPlan.fromJson(Map<String, dynamic> json) {
     return WeeklyPlan(
+      id: json['id'],
       weekStartDate: DateTime.parse(json['weekStartDate']),
+      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
+      periodType: json['periodType'] ?? 'weekly',
+      objective: json['objective'] ?? 'maintenance',
+      version: json['version'] ?? 1,
+      status: json['status'] ?? 'active',
       seed: json['seed'] ?? 0,
       days: (json['days'] as List).map((dayJson) => PlanDay.fromJson(dayJson)).toList(),
       criadoEm: DateTime.parse(json['criadoEm']),
       atualizadoEm: DateTime.parse(json['atualizadoEm']),
       dicasPreparo: json['dicasPreparo'],
+      shoppingListJson: json['shoppingListJson'],
     );
   }
 
