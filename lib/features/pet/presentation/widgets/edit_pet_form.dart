@@ -1472,13 +1472,75 @@ class _EditPetFormState extends State<EditPetForm>
 
 
 
+  Widget _buildProfileImageHeaderRestored() {
+    // 1. Determine Image Source
+    ImageProvider? imageProvider;
+
+    if (_profileImage != null && _profileImage!.existsSync()) {
+      imageProvider = FileImage(_profileImage!);
+    } else if (_initialImagePath != null && _initialImagePath!.isNotEmpty) {
+       final f = File(_initialImagePath!);
+       if (f.existsSync()) {
+           imageProvider = FileImage(f);
+       } else if (_initialImagePath!.startsWith('http')) {
+           imageProvider = NetworkImage(_initialImagePath!);
+       }
+    }
+
+    // Debug Log
+    debugPrint('PET_PROFILE_IMAGE: path=${_profileImage?.path}, initial=$_initialImagePath, provider=$imageProvider');
+
+    // 2. Build Widget
+    return Center(
+      child: GestureDetector(
+        onTap: _pickProfileImage,
+        child: Stack(
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppDesign.petPink, width: 3),
+                color: Colors.white.withOpacity(0.1),
+                image: imageProvider != null 
+                    ? DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        onError: (obj, stack) {
+                            debugPrint('🔴 Erro ao carregar imagem do perfil: $obj');
+                        }
+                      )
+                    : null,
+              ),
+              child: imageProvider == null
+                  ? const Icon(Icons.pets, size: 60, color: Colors.white24)
+                  : null,
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: AppDesign.petPink,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.camera_alt, color: Colors.black, size: 20),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildIdentityTab() {
     return ListView(
       padding: const EdgeInsets.all(20),
       physics: const BouncingScrollPhysics(),
       children: [
-        _buildProfileImageHeader(),
+        _buildProfileImageHeaderRestored(),
         const SizedBox(height: 24),
         
         // NOVO: Rede de Apoio (Partners Integration moved to Parc. tab)

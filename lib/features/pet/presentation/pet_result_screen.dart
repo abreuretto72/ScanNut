@@ -89,7 +89,8 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text('Análise Veterinária', style: TextStyle(color: AppDesign.textPrimaryDark)),
-        iconTheme: const IconThemeData(color: AppDesign.textPrimaryDark),
+        iconTheme: const IconThemeData(color: AppDesign.petPink),
+        actionsIconTheme: const IconThemeData(color: AppDesign.petPink),
       ),
       floatingActionButton: _isLoading || result == null ? null : FloatingActionButton.extended(
         onPressed: () => _navigateToEdit(context, result),

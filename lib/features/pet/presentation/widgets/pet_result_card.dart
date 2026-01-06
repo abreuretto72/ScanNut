@@ -46,7 +46,7 @@ class PetResultCard extends StatefulWidget {
 class _PetResultCardState extends State<PetResultCard> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isSaved = false;
-  final Color _themeColor = AppDesign.accent;
+  final Color _themeColor = AppDesign.petPink;
 
   @override
   void initState() {

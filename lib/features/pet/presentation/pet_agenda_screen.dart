@@ -7,6 +7,7 @@ import '../services/pet_event_service.dart';
 import '../../../core/providers/pet_event_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:scannut/l10n/app_localizations.dart';
+import '../../../../core/theme/app_design.dart';
 
 class PetAgendaScreen extends ConsumerStatefulWidget {
   final String petName;
@@ -60,7 +61,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
           ),
         ),
         body: const Center(
-          child: CircularProgressIndicator(color: Color(0xFF00E676)),
+          child: CircularProgressIndicator(color: AppDesign.petPink),
         ),
       ),
       error: (error, stack) => Scaffold(
@@ -158,8 +159,8 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF00E676),
-          labelColor: const Color(0xFF00E676),
+          indicatorColor: AppDesign.petPink,
+          labelColor: AppDesign.petPink,
           unselectedLabelColor: Colors.white54,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           tabs: [
@@ -179,7 +180,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddEventDialog,
-        backgroundColor: const Color(0xFF00E676),
+        backgroundColor: AppDesign.petPink,
         icon: const Icon(Icons.add, color: Colors.black),
         label: Text(
           AppLocalizations.of(context)!.agendaNewEvent,
@@ -385,7 +386,7 @@ class _EventCard extends StatelessWidget {
                     IconButton(
                       icon: Icon(
                         event.completed ? Icons.check_circle : Icons.circle_outlined,
-                        color: event.completed ? Colors.green : Colors.white54,
+                        color: event.completed ? AppDesign.petPink : Colors.white54,
                       ),
                       onPressed: onToggleComplete,
                     ),
@@ -634,7 +635,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
             widget.existingEvent != null ? AppLocalizations.of(context)!.agendaUpdated : AppLocalizations.of(context)!.agendaCreated,
             style: GoogleFonts.poppins(),
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: AppDesign.petPink,
         ),
       );
     }
@@ -669,7 +670,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                       borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                     ),
                     focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF00E676)),
+                      borderSide: BorderSide(color: AppDesign.petPink),
                     ),
                   ),
                   items: _availableVaccines.map((vaccine) {
@@ -703,7 +704,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                         borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                       ),
                       focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF00E676)),
+                        borderSide: BorderSide(color: AppDesign.petPink),
                       ),
                     ),
                     validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
@@ -720,7 +721,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                       borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                     ),
                     focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF00E676)),
+                      borderSide: BorderSide(color: AppDesign.petPink),
                     ),
                   ),
                   validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
@@ -738,7 +739,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                     borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                   ),
                   focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF00E676)),
+                    borderSide: BorderSide(color: AppDesign.petPink),
                   ),
                 ),
                 items: EventType.values.map((type) {
@@ -817,7 +818,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                     borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                   ),
                   focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF00E676)),
+                    borderSide: BorderSide(color: AppDesign.petPink),
                   ),
                 ),
                 items: RecurrenceType.values.map((type) {
@@ -849,7 +850,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                     borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
                   ),
                   focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF00E676)),
+                    borderSide: BorderSide(color: AppDesign.petPink),
                   ),
                 ),
               ),
@@ -865,7 +866,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
         ElevatedButton(
           onPressed: _saveEvent,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF00E676),
+            backgroundColor: AppDesign.petPink,
           ),
           child: Text('Salvar', style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
         ),

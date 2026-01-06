@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/theme/app_design.dart';
 
 class NutritionalPillarsScreen extends StatelessWidget {
   const NutritionalPillarsScreen({Key? key}) : super(key: key);
@@ -72,7 +73,7 @@ class NutritionalPillarsScreen extends StatelessWidget {
               title: l10n.ngCarbsTitle,
               subtitle: l10n.ngCarbsSubtitle,
               icon: Icons.grass,
-              color: Colors.green,
+              color: AppDesign.petPink,
               whatIs: l10n.ngCarbsWhatIs,
               scanNutAction: l10n.ngCarbsAction,
             ),
@@ -200,7 +201,7 @@ class NutritionalPillarsScreen extends StatelessWidget {
                     style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionTitle(l10n.ngSectionScanNut, const Color(0xFF00E676)),
+                  _buildSectionTitle(l10n.ngSectionScanNut, AppDesign.petPink),
                   const SizedBox(height: 4),
                   Text(
                     scanNutAction,
