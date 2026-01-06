@@ -25,6 +25,7 @@ import '../../../nutrition/domain/usecases/scan_to_nutrition_mapper.dart';
 import '../../../nutrition/presentation/controllers/nutrition_providers.dart';
 import '../../../nutrition/data/models/meal_log.dart';
 import '../../../nutrition/data/models/plan_day.dart';
+import '../../../core/theme/app_design.dart';
 
 class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -47,7 +48,7 @@ class FoodResultScreen extends ConsumerStatefulWidget {
 class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late ScrollController _scrollController;
-  final Color _themeColor = const Color(0xFF00E676); // Green Accent
+  final Color _themeColor = AppDesign.foodOrange; // Orange Food Theme
 
   bool _isSaved = false;
 
@@ -117,7 +118,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                   color: Colors.white,
                 ),
                 IconButton(
-                  icon: Icon(_isSaved ? Icons.check : Icons.save, color: _isSaved ? const Color(0xFF00E676) : Colors.white),
+                  icon: Icon(_isSaved ? Icons.check : Icons.save, color: _isSaved ? AppDesign.foodOrange : Colors.white),
                   onPressed: _isSaved ? null : _saveToHistory,
                   tooltip: _isSaved ? 'Salvo' : 'Salvar no Histórico',
                 ),
@@ -263,7 +264,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           const SizedBox(height: 24),
           Text(l10n.foodPros, style: _sectionTitleStyle),
           const SizedBox(height: 12),
-          ...widget.analysis.analise.pontosPositivos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.check_circle, Colors.green)),
+          ...widget.analysis.analise.pontosPositivos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.check_circle, AppDesign.foodOrange)),
           const SizedBox(height: 16),
           Text(l10n.foodCons, style: _sectionTitleStyle),
           const SizedBox(height: 12),
@@ -461,10 +462,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   Color _getSemaforoColor(String status) {
     switch (status.toLowerCase()) {
-      case 'verde': return Colors.greenAccent;
+      case 'verde': return AppDesign.foodOrange;
       case 'amarelo': return Colors.amberAccent;
       case 'vermelho': return Colors.redAccent;
-      default: return Colors.greenAccent;
+      default: return AppDesign.foodOrange;
     }
   }
 
@@ -699,10 +700,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           _isSaved = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Análise salva no histórico!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: const Text('✅ Análise salva no histórico!'),
+            backgroundColor: AppDesign.foodOrange,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -752,7 +753,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✅ Adicionado ao plano ($tipo)'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppDesign.foodOrange,
           ),
         );
       }
@@ -776,22 +777,22 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.free_breakfast, color: Color(0xFF00E676)),
+              leading: Icon(Icons.free_breakfast, color: AppDesign.foodOrange),
               title: Text('Café da Manhã', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'cafe'),
             ),
             ListTile(
-              leading: const Icon(Icons.lunch_dining, color: Color(0xFF00E676)),
+              leading: Icon(Icons.lunch_dining, color: AppDesign.foodOrange),
               title: Text('Almoço', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'almoco'),
             ),
             ListTile(
-              leading: const Icon(Icons.cookie, color: Color(0xFF00E676)),
+              leading: Icon(Icons.cookie, color: AppDesign.foodOrange),
               title: Text('Lanche', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'lanche'),
             ),
             ListTile(
-              leading: const Icon(Icons.dinner_dining, color: Color(0xFF00E676)),
+              leading: Icon(Icons.dinner_dining, color: AppDesign.foodOrange),
               title: Text('Jantar', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'jantar'),
             ),

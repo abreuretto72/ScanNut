@@ -682,7 +682,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.green,
+              color: AppDesign.foodOrange,
             ),
           ),
           const SizedBox(height: 16),
@@ -1718,7 +1718,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                       Icons.speed,
                                       'Rápido',
                                       'Rápido' == 'Fácil'
-                                          ? Colors.green
+                                          ? AppDesign.foodOrange
                                           : Colors.orange,
                                     ),
                                   ],
