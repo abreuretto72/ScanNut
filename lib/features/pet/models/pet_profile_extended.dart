@@ -1,4 +1,6 @@
 import 'pet_analysis_result.dart';
+import '../../../core/utils/json_cast.dart';
+
 
 /// Extended Pet Profile Model with bio-information
 class PetProfileExtended {
@@ -70,7 +72,9 @@ class PetProfileExtended {
   });
 
   factory PetProfileExtended.fromJson(Map<String, dynamic> json) {
-    return PetProfileExtended(
+    try {
+      return PetProfileExtended(
+
       petName: (json['pet_name'] ?? json['name'] ?? '').toString(),
       raca: json['raca'] as String?,
       idadeExata: json['idade_exata'] as String?,
@@ -89,12 +93,13 @@ class PetProfileExtended {
       frequenciaBanho: json['frequencia_banho'] as String?,
       linkedPartnerIds: (json['linked_partner_ids'] as List?)?.cast<String>() ?? [],
       partnerNotes: (json['partner_notes'] as Map?)?.map(
-            (k, v) => MapEntry(k.toString(), (v as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? []),
+            (k, v) => MapEntry(k.toString(), deepCastMapList(v)),
           ) ?? {},
-      weightHistory: (json['weight_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
-      labExams: (json['lab_exams'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
-      woundAnalysisHistory: (json['wound_analysis_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
-      analysisHistory: (json['analysis_history'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)).toList() ?? [],
+      weightHistory: deepCastMapList(json['weight_history']),
+      labExams: deepCastMapList(json['lab_exams']),
+      woundAnalysisHistory: deepCastMapList(json['wound_analysis_history']),
+      analysisHistory: deepCastMapList(json['analysis_history']),
+
       observacoesIdentidade: (json['observacoes_identidade'] ?? '') as String,
       observacoesSaude: (json['observacoes_saude'] ?? '') as String,
       observacoesNutricao: (json['observacoes_nutricao'] ?? '') as String,
@@ -106,12 +111,17 @@ class PetProfileExtended {
       imagePath: (json['image_path'] ?? json['photo_path']) as String?,
       rawAnalysis: _extractRawAnalysis(json),
     );
+    } catch (e) {
+      throw Exception('PET_PROFILE_PARSE_ERROR: $e');
+    }
   }
+
 
   static Map<String, dynamic>? _extractRawAnalysis(Map<String, dynamic> json) {
     final Map<String, dynamic>? base = json['raw_analysis'] != null 
-          ? Map<String, dynamic>.from(json['raw_analysis'] as Map) 
+          ? deepCastMap(json['raw_analysis']) 
           : null;
+
     
     // Capture AI-generated fields that might be at the top level due to saveWeeklyMenu
     final List<String> aiKeys = [
@@ -136,8 +146,9 @@ class PetProfileExtended {
 
   factory PetProfileExtended.fromHiveEntry(Map<String, dynamic> entry) {
     final rawData = entry['data'] != null 
-        ? Map<String, dynamic>.from(entry['data'] as Map) 
-        : Map<String, dynamic>.from(entry);
+        ? deepCastMap(entry['data']) 
+        : deepCastMap(entry);
+
     
     // Ensure petName consistency
     if (rawData['pet_name'] == null && entry['pet_name'] != null) {

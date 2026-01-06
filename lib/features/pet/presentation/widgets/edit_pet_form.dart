@@ -33,6 +33,17 @@ import 'package:image_picker/image_picker.dart';
 import '../../services/pet_weight_database.dart';
 import '../../services/pet_profile_service.dart';
 
+import '../../services/lab_exam_service.dart';
+import 'lab_exams_section.dart';
+import 'race_analysis_detail_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../services/pet_weight_database.dart';
+import '../../services/pet_profile_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../services/pet_menu_generator_service.dart';
+import 'pet_menu_filter_dialog.dart';
+import 'weekly_menu_screen.dart';
+
 enum SaveStatus { saved, saving, error }
 
 /// Comprehensive pet profile edit form with tabs
@@ -2921,125 +2932,139 @@ class _EditPetFormState extends State<EditPetForm>
       );
   }
 
-  Widget _buildWeeklyPlanSection() {
-    final raw = _currentRawAnalysis;
-    // Support for multiple keys (Legacy PT vs New EN)
-    final rawPlan = raw?['plano_semanal'] ?? raw?['weekly_plan'] ?? raw?['nutrition_plan'];
-    
-    if (raw == null || rawPlan == null) {
-      return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Center(
-              child: ElevatedButton.icon(
-                  icon: const Icon(Icons.restaurant_menu),
-                  label: Text(AppLocalizations.of(context)!.petGenerateWeeklyMenu),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
-                  onPressed: _generateNewMenu,
-              )
-          )
+  Future<void> _handleGenerateTap(BuildContext context, WidgetRef ref) async {
+      if (widget.existingProfile == null && _nameController.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.petNameRequired)));
+          return;
+      }
+      
+      final l10n = AppLocalizations.of(context)!;
+      final config = await showDialog<Map<String, dynamic>>(
+        context: context,
+        builder: (context) => PetMenuFilterDialog(),
       );
-    }
 
-    // Ensure it is a list
-    List<dynamic> plano = [];
-    if (rawPlan is List) {
-        plano = rawPlan;
-    } else if (rawPlan is Map) {
-        // Handle case where plan is a Map wrapper (e.g. { "days": [...] })
-        if (rawPlan['days'] is List) plano = rawPlan['days'];
-        else if (rawPlan['menu'] is List) plano = rawPlan['menu'];
-    }
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 24),
-        Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-                _buildSectionTitle('📅 ${AppLocalizations.of(context)!.petWeeklyPlanTitle}'),
-                IconButton(
-                    icon: const Icon(Icons.restaurant_menu, color: AppDesign.petPink),
-                    tooltip: AppLocalizations.of(context)!.petGenerateWeeklyMenu,
-                    onPressed: _generateNewMenu,
-                ),
-            ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.petNutritionPillarsDesc,
-          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
-        ),
-        const SizedBox(height: 16),
-        ...plano.asMap().entries.map((entry) {
-          final index = entry.key;
-          final d = entry.value as Map;
-          
-          String diaTitulo = d['dia']?.toString() ?? 'Dia';
-          
-          // FORÇAR FORMATO DINÂMICO SE TIVERMOS DATA DE INÍCIO
-          DateTime? startData = raw['data_inicio_semana'] != null ? DateTime.tryParse(raw['data_inicio_semana']) : null;
-          
-          if (startData == null) {
-              // FALLBACK: If no date saved, assume plan starts TODAY so it covers upcoming days
-              final now = DateTime.now();
-              startData = DateTime(now.year, now.month, now.day);
-          }
+      if (config == null || !mounted) return;
 
-          final dateForDay = startData.add(Duration(days: index));
-          final dateStr = DateFormat.yMd(Localizations.localeOf(context).toString()).format(dateForDay);
-          final weekDayName = DateFormat('EEEE', Localizations.localeOf(context).toString()).format(dateForDay);
-          final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
-          diaTitulo = "$weekDayCap - $dateStr";
-          
-          // Suporte a novo formato (refeicoes[]) ou legado (chaves soltas)
-          List<Map<String, dynamic>> refeicoes = [];
-          
-          if (d.containsKey('refeicoes') && d['refeicoes'] is List) {
-              refeicoes = (d['refeicoes'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
-          } else {
-              // Migração/Legado: Tenta converter as chaves 'manha', 'tarde', 'noite' ou 'refeicao' para a lista
-              final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
-              for (var k in keysRaw) {
-                 if (d[k] != null) {
-                    refeicoes.add({
-                        'hora': k.toUpperCase(),
-                        'titulo': 'Principais Nutrientes',
-                        'descricao': d[k].toString(),
-                        'tipo_dieta': 'Histórico'
-                    });
-                 }
-              }
-          }
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
+      );
 
-          return Card(
-            color: Colors.white.withOpacity(0.05),
-            margin: const EdgeInsets.only(bottom: 12),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.white.withOpacity(0.1)),
-            ),
-            child: Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                title: Text(diaTitulo, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                leading: const Icon(Icons.calendar_month, color: AppDesign.petPink, size: 22),
-                iconColor: AppDesign.petPink,
-                collapsedIconColor: Colors.white54,
-                children: [
-                  ...refeicoes.map((r) => _buildMealDetailItem(r)).toList(),
-                  if (refeicoes.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('Nenhuma refeição detalhada para este dia.', style: TextStyle(color: Colors.white30, fontSize: 12)),
-                    ),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            ),
+      try {
+          // Construct profile context
+          final Map<String, dynamic> profileData = widget.existingProfile?.toJson() ?? {
+             'name': _nameController.text,
+             'species': 'Dog', // Default if missing
+             'breed': _racaController.text,
+             'weight': _pesoController.text,
+             'age': _idadeController.text,
+          };
+          
+          await ref.read(petMenuGeneratorProvider).generateAndSave(
+              petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
+              profileData: profileData,
+              mode: config['mode'],
+              startDate: config['startDate'],
+              endDate: config['endDate'],
+              locale: Localizations.localeOf(context).toString(),
+              dietType: config['dietType'] as String,
+              otherNote: config['otherNote'] as String?,
           );
-        }).toList(),
-      ],
+
+          if (mounted) {
+              Navigator.pop(context); // loading
+              ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success)
+              );
+              
+              // Open Weekly Menu
+              Navigator.push(context, MaterialPageRoute(builder: (_) => WeeklyMenuScreen(
+                  currentWeekPlan: [],
+                  generalGuidelines: '',
+                  petName: widget.existingProfile?.petName ?? _nameController.text,
+                  raceName: _racaController.text,
+              )));
+          }
+      } catch (e) {
+         if (mounted) {
+             Navigator.pop(context); // loading
+             ScaffoldMessenger.of(context).showSnackBar(
+                 SnackBar(content: Text('Erro: $e'), backgroundColor: AppDesign.error)
+             );
+         }
+      }
+  }
+
+  Widget _buildWeeklyPlanSection() {
+    return Container(
+       padding: const EdgeInsets.all(16),
+       decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+       ),
+       child: Column(
+          children: [
+              const Icon(Icons.restaurant_menu, size: 48, color: AppDesign.petPink),
+              const SizedBox(height: 16),
+              Text(
+                AppLocalizations.of(context)!.petWeeklyPlanTitle,
+                style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Visualize o histórico completo, lista de compras e gere novos cardápios personalizados.',
+                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              
+              // Button Open Menu
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                   icon: const Icon(Icons.calendar_month, color: Colors.white),
+                   label: Text(AppLocalizations.of(context)!.petViewMenu ?? 'Ver Cardápio'),
+                   style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.1),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                   ),
+                   onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => WeeklyMenuScreen(
+                          currentWeekPlan: [],
+                          generalGuidelines: '',
+                          petName: widget.existingProfile?.petName ?? _nameController.text,
+                          raceName: _racaController.text,
+                      )));
+                   },
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Button Generate
+              Consumer(
+                builder: (context, ref, child) {
+                   return SizedBox(
+                     width: double.infinity,
+                     child: ElevatedButton.icon(
+                        icon: const Icon(Icons.auto_awesome, color: Colors.black),
+                        label: Text(AppLocalizations.of(context)!.petGenerateWeeklyMenu),
+                        style: ElevatedButton.styleFrom(
+                           backgroundColor: AppDesign.petPink,
+                           foregroundColor: Colors.black,
+                           padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: () => _handleGenerateTap(context, ref),
+                     ),
+                   );
+                }
+              ),
+          ],
+       )
     );
   }
 

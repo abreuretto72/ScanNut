@@ -4413,4 +4413,205 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petLabelBehavior => 'Behavior';
+
+  @override
+  String get petMenuFilterTitle => 'Generate Pet Menu';
+
+  @override
+  String get petMenuModeWeekly => 'Weekly (7 days)';
+
+  @override
+  String get petMenuModeMonthly => 'Monthly (28 days)';
+
+  @override
+  String get petMenuModeCustom => 'Custom';
+
+  @override
+  String get petMenuStartDate => 'Start Date';
+
+  @override
+  String get petMenuEndDate => 'End Date';
+
+  @override
+  String get petMenuGenerateBtn => 'Generate Menu';
+
+  @override
+  String get petMenuDateRangeError => 'Period cannot exceed 60 days.';
+
+  @override
+  String get petMenuSuccess => 'Menu generated successfully!';
+
+  @override
+  String get petMenuShoppingList => 'Shopping List';
+
+  @override
+  String get petMenuShoppingListEmpty => 'No items in list.';
+
+  @override
+  String get petTabGenerate => 'Generate Menu';
+
+  @override
+  String get petTabHistory => 'History';
+
+  @override
+  String get petMenuDeleteWeekConfirm => 'Delete this week from history?';
+
+  @override
+  String get petMenuDeleteDayConfirm => 'Delete this day\'s menu?';
+
+  @override
+  String get petMenuEditDayTitle => 'Edit Daily Meals';
+
+  @override
+  String petMenuGeneratePdfMulti(int count) {
+    return 'Generate PDF ($count weeks)';
+  }
+
+  @override
+  String get petMenuSelectionClear => 'Clear Selection';
+
+  @override
+  String get petMenuEmptyHistory =>
+      'No history found. Generate a menu to start!';
+
+  @override
+  String get petMenuEditIngredientsHint => 'Edit ingredients or description...';
+
+  @override
+  String get petMenuSaveSuccess => 'Changes saved successfully!';
+
+  @override
+  String get petMenuDeletedSuccess => 'Item deleted successfully!';
+
+  @override
+  String get petMenuPdfGenerated => 'PDF generated successfully!';
+
+  @override
+  String get petViewMenu => 'View Menu';
+
+  @override
+  String get commonItem => 'Item';
+
+  @override
+  String get commonQuantity => 'Quantity';
+
+  @override
+  String get commonCategory => 'Category';
+
+  @override
+  String get dietTypeLabel => 'Diet Type';
+
+  @override
+  String get dietRenal => 'Renal';
+
+  @override
+  String get dietHepatic => 'Hepatic';
+
+  @override
+  String get dietGastrointestinal => 'Gastrointestinal';
+
+  @override
+  String get dietHypoallergenic => 'Hypoallergenic';
+
+  @override
+  String get dietObesity => 'Obesity (Weight Loss)';
+
+  @override
+  String get dietDiabetes => 'Diabetes';
+
+  @override
+  String get dietCardiac => 'Cardiac';
+
+  @override
+  String get dietUrinary => 'Urinary';
+
+  @override
+  String get dietMuscleGain => 'Muscle Gain';
+
+  @override
+  String get dietPediatric => 'Pediatric';
+
+  @override
+  String get dietGrowth => 'Growth';
+
+  @override
+  String get dietOther => 'Other';
+
+  @override
+  String get dietOtherHint => 'Specify (max 60 chars)';
+
+  @override
+  String get dietRequiredError => 'Select a diet type';
+
+  @override
+  String get dietOtherRequiredError => 'Specify the diet';
+
+  @override
+  String get petEvent_addTitle => 'Register Event';
+
+  @override
+  String get petEvent_notes => 'Notes/Observations';
+
+  @override
+  String get petEvent_save => 'Save Event';
+
+  @override
+  String get petEvent_cancel => 'Cancel';
+
+  @override
+  String get petEvent_details => 'Additional Details';
+
+  @override
+  String get petEvent_group_food => 'Food';
+
+  @override
+  String get petEvent_group_health => 'Health';
+
+  @override
+  String get petEvent_group_elimination => 'Elimination';
+
+  @override
+  String get petEvent_group_grooming => 'Grooming';
+
+  @override
+  String get petEvent_group_activity => 'Activity';
+
+  @override
+  String get petEvent_group_behavior => 'Behavior';
+
+  @override
+  String get petEvent_group_schedule => 'Schedule';
+
+  @override
+  String get petEvent_group_media => 'Media';
+
+  @override
+  String get petEvent_group_metrics => 'Metrics';
+
+  @override
+  String get petEvent_savedSuccess => 'Event registered ✅';
+
+  @override
+  String get petEvent_saveError => 'Could not save. Please try again.';
+
+  @override
+  String get petEvent_attachError => 'Could not attach this file.';
+
+  @override
+  String get petEvent_todayCount => 'Today';
+
+  @override
+  String get petEvent_historyTitle => 'Timeline';
+
+  @override
+  String get petEvent_includeInPdf => 'Include in PDF Report';
+
+  @override
+  String get petEvent_emptyHistory => 'No events registered yet.';
+
+  @override
+  String get petEvent_group => 'Group';
+
+  @override
+  String get petEvent_type => 'Subtype';
 }

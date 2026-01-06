@@ -1,594 +1,653 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:printing/printing.dart';
-import 'package:open_filex/open_filex.dart';
-import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:scannut/core/theme/app_design.dart';
 import 'package:scannut/l10n/app_localizations.dart';
-import '../../../../core/widgets/pdf_action_button.dart';
-import '../../../../core/services/export_service.dart';
-import '../../../../core/widgets/pdf_preview_screen.dart';
-import '../../../../core/theme/app_design.dart';
-import '../../services/pet_profile_service.dart';
-import '../../services/meal_plan_service.dart';
-import 'edit_pet_form.dart'; // Import to link back
 
-class WeeklyMenuScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> currentWeekPlan;
-  final String? generalGuidelines;
+import '../../models/weekly_meal_plan.dart';
+import '../../services/meal_plan_service.dart';
+import '../../services/pet_shopping_list_service.dart';
+import '../../services/pet_menu_generator_service.dart';
+import '../../../../core/services/export_service.dart';
+import 'pet_menu_filter_dialog.dart';
+
+class WeeklyMenuScreen extends ConsumerStatefulWidget {
   final String petName;
   final String raceName;
+  
+  // Legacy params kept for compatibility
+  final List<Map<String, dynamic>> currentWeekPlan;
+  final String generalGuidelines;
 
-  const WeeklyMenuScreen({Key? key, required this.currentWeekPlan, this.generalGuidelines, required this.petName, required this.raceName}) : super(key: key);
+  const WeeklyMenuScreen({
+    Key? key,
+    required this.petName,
+    required this.raceName,
+    this.currentWeekPlan = const [],
+    this.generalGuidelines = '',
+  }) : super(key: key);
 
   @override
-  State<WeeklyMenuScreen> createState() => _WeeklyMenuScreenState();
+  ConsumerState<WeeklyMenuScreen> createState() => _WeeklyMenuScreenState();
 }
 
-class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerProviderStateMixin {
+class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with TickerProviderStateMixin {
   late TabController _tabController;
-  
-  // Buckets
-  List<Map<String, dynamic>> _pastPlan = [];
-  List<Map<String, dynamic>> _currentPlan = [];
-  List<Map<String, dynamic>> _nextPlan = [];
-  String? _guidelines;
-  String? _dietType;
-  String? _kcalTarget;
-
-  bool _isLoading = true;
+  bool _isLoading = false;
+  List<WeeklyMealPlan> _history = [];
+  final Set<String> _selectedPlanIds = {};
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 1); // Start at Current
-    _loadMenuFromService();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadHistory();
   }
 
-  DateTime? _savedStartDate;
-  DateTime? _savedEndDate;
-
-  Future<void> _loadMenuFromService() async {
-      setState(() => _isLoading = true);
-      try {
-          final service = PetProfileService();
-          await service.init();
-          final profile = await service.getProfile(widget.petName.trim());
-          
-          List<Map<String, dynamic>> allItems = [];
-          
-          if (profile != null && profile['data'] != null) {
-              final pData = profile['data'];
-              _dietType = pData['tipo_dieta']?.toString() ?? AppLocalizations.of(context)!.petNotOffice;
-              
-              if (pData['nutricao'] != null && pData['nutricao']['metaCalorica'] != null) {
-                  final meta = pData['nutricao']['metaCalorica'];
-                  // Pega a meta de adulto como padrão ou a primeira disponível
-                  _kcalTarget = meta['kcal_adulto'] ?? meta['kcal_filhote'] ?? meta['kcal_senior'];
-              }
-
-              if (pData != null) {
-                  final rawPlan = (pData['plano_semanal'] ?? pData['raw_analysis']?['plano_semanal']) as List?;
-                  _guidelines = (pData['orientacoes_gerais'] ?? pData['raw_analysis']?['orientacoes_gerais']) as String?;
-                  
-                  // Contextual dates
-                  final startStr = pData['data_inicio_semana'] ?? pData['raw_analysis']?['data_inicio_semana'];
-                  final endStr = pData['data_fim_semana'] ?? pData['raw_analysis']?['data_fim_semana'];
-                  
-                  if (startStr != null) _savedStartDate = DateTime.tryParse(startStr);
-                  if (endStr != null) _savedEndDate = DateTime.tryParse(endStr);
-
-                  if (rawPlan != null) {
-                      allItems = rawPlan.map((e) => Map<String, dynamic>.from(e)).toList();
-                  }
-              }
-          }
-          
-          if (allItems.isEmpty && widget.currentWeekPlan.isNotEmpty) {
-             allItems = widget.currentWeekPlan.map((e) => Map<String, dynamic>.from(e)).toList();
-             _guidelines ??= widget.generalGuidelines;
-          }
-
-          // AGORA: Suplementar com dados do MealPlanService (Histórico)
-          // Mas manter separado do plano ativo para evitar confusão
-          List<Map<String, dynamic>> historyItems = [];
-          try {
-              final mealPlanService = MealPlanService();
-              await mealPlanService.init();
-              final historicalPlans = await mealPlanService.getPlansForPet(widget.petName.trim().toLowerCase());
-              
-              for (var plan in historicalPlans) {
-                  // Se o plano histórico coincide com o plano salvo no perfil (mesma data de início), ignoramos
-                  if (_savedStartDate != null && plan.startDate.day == _savedStartDate!.day && plan.startDate.month == _savedStartDate!.month) {
-                      continue; 
-                  }
-
-                  for (var m in plan.meals) {
-                      final itemDate = plan.startDate.add(Duration(days: m.dayOfWeek - 1));
-                      final dayKey = DateFormat('dd/MM').format(itemDate);
-                      
-                      historyItems.add({
-                          'dia': "${DateFormat('EEEE', AppLocalizations.of(context)!.localeName).format(itemDate)} - $dayKey",
-                          'refeicoes': [
-                              {'hora': m.time, 'titulo': m.title, 'descricao': m.description}
-                          ],
-                          'beneficio': m.benefit,
-                          'is_history': true, // Mark as history
-                          'date_link': itemDate,
-                      });
-                  }
-              }
-          } catch (e) {
-              debugPrint('Error loading historical plans: $e');
-          }
-
-          _splitPlanByWeeks(allItems, historyItems);
-
-      } catch (e) {
-          debugPrint('Error loading menu: $e');
-      } finally {
-          if (mounted) setState(() => _isLoading = false);
-      }
+  Future<void> _loadHistory() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+       // Fetch strict history from Hive
+       final plans = await MealPlanService().getPlansForPet(widget.petName.trim());
+       if (mounted) {
+         setState(() {
+           _history = plans;
+           _isLoading = false;
+         });
+         
+         // Auto-switch to History if available and not explicitly set
+         if (_history.isNotEmpty && _tabController.index == 0) {
+            _tabController.animateTo(1);
+         }
+       }
+    } catch (e) {
+       debugPrint('Error loading history: $e');
+       if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-  void _splitPlanByWeeks(List<Map<String, dynamic>> mainPlan, List<Map<String, dynamic>> historyItems) {
-      _pastPlan = [];
-      _currentPlan = [];
-      _nextPlan = [];
+  Future<void> _deletePlan(String planId) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text(l10n.petTabHistory, style: const TextStyle(color: Colors.white)),
+        content: Text(l10n.petMenuDeleteWeekConfirm, style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel, style: const TextStyle(color: Colors.white54))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true), 
+            child: Text(l10n.commonDelete, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold))
+          ),
+        ],
+      ),
+    );
 
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      
-      // Calculate Current Week boundaries
-      // Se hoje for domingo, a "Semana Atual" para visualização de planejamento costuma ser a que começa AMANHÃ
-      // ou a que está terminando hoje. Para o ScanNut, se temos um plano para amanhã, ele deve ser o "Current".
-      DateTime currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
-      if (today.weekday == 7) { 
-          // Se hoje é domingo, e temos dados para amanhã (Segunda), vamos considerar a semana que inicia amanhã como Current
-          currentWeekStart = today.add(const Duration(days: 1));
-      }
-      
-      final currentWeekEnd = currentWeekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
-      
-      // 1. Process Main Plan (Priority for Current/Next)
-      for (int i = 0; i < mainPlan.length; i++) {
-          final item = Map<String, dynamic>.from(mainPlan[i]);
-          DateTime? itemDate = _parseDateFromItem(item, i, _savedStartDate ?? today);
+    if (confirm != true) return;
 
-          if (itemDate != null) {
-              if (itemDate.isBefore(currentWeekStart)) {
-                  _pastPlan.add(item);
-              } else if (itemDate.isAfter(currentWeekEnd)) {
-                  _nextPlan.add(item);
-              } else {
-                  _currentPlan.add(item);
-              }
-          }
-      }
-
-      // 2. Process History Items (Only for Past or Next if strictly applicable)
-      for (var item in historyItems) {
-          DateTime? itemDate = item['date_link'] as DateTime?;
-          
-          if (itemDate != null) {
-              if (itemDate.isBefore(currentWeekStart)) {
-                  _pastPlan.add(item);
-              } else if (itemDate.isAfter(currentWeekEnd)) {
-                  // Evitar poluir o 'Next' com lixo histórico, a menos que seja realmente no futuro
-                  if (itemDate.isAfter(today.add(const Duration(days: 7)))) {
-                      _nextPlan.add(item);
-                  }
-              } else {
-                  // Se o histórico cai na semana atual, mas não está no Main Plan, ignoramos para evitar "fantasmia"
-                  // A menos que o Main Plan esteja vazio.
-                  if (_currentPlan.isEmpty) {
-                      _currentPlan.add(item);
-                  }
-              }
-          }
-      }
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      await MealPlanService().deletePlan(planId);
+      await PetShoppingListService().deleteList(planId);
       
-      // Ordenar e remover duplicados por dia/mês
-      _pastPlan = _deduplicateAndSort(_pastPlan);
-      _currentPlan = _deduplicateAndSort(_currentPlan);
-      _nextPlan = _deduplicateAndSort(_nextPlan);
+      if (mounted) {
+        _selectedPlanIds.remove(planId);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuDeletedSuccess), backgroundColor: AppDesign.success));
+        await _loadHistory();
+      }
+    } catch (e) {
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppDesign.error));
+         setState(() => _isLoading = false);
+       }
+    }
   }
 
-  List<Map<String, dynamic>> _deduplicateAndSort(List<Map<String, dynamic>> items) {
-      final Map<String, Map<String, dynamic>> unique = {};
-      for (var item in items) {
-          final date = _parseDateFromItem(item, 0, DateTime.now());
-          if (date != null) {
-              final key = DateFormat('yyyyMMdd').format(date);
-              // Preferir o item do plano ativo (sem is_history)
-              if (!unique.containsKey(key) || (item['is_history'] != true && unique[key]?['is_history'] == true)) {
-                  unique[key] = item;
-              }
-          }
+  Future<void> _generatePdfMulti() async {
+    if (_selectedPlanIds.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Show Loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
+    );
+
+    try {
+      // 1. Gather Data
+      final selectedPlans = _history.where((p) => _selectedPlanIds.contains(p.id)).toList();
+      selectedPlans.sort((a, b) => a.startDate.compareTo(b.startDate)); // Chronological order
+
+      // 2. Normalize for ExportService (needs List<Map<String, dynamic>>)
+      // ExportService expects 'plan' as List of Daily Items, grouped by 'planId'.
+      final List<Map<String, dynamic>> consolidatedPlan = [];
+      final Map<String, List<Map<String, dynamic>>> shoppingLists = {};
+
+      for (var plan in selectedPlans) {
+         // Load shopping list
+         final sl = await PetShoppingListService().getList(plan.id);
+         if (sl != null) shoppingLists[plan.id] = sl;
+
+         // Convert daily meals
+         for (var day in plan.meals) {
+            consolidatedPlan.add({
+               'dia': _formatDateForPdf(plan.startDate, day.dayOfWeek),
+               'hora': day.time,
+               'titulo': day.title,
+               'descricao': day.description,
+               'benefit': day.benefit ?? '',
+               'refeicoes': [ // Format expected by ExportService
+                   {
+                     'hora': day.time,
+                     'titulo': day.title,
+                     'descricao': day.description,
+                     'quantity': day.quantity
+                   }
+               ],
+               'planId': plan.id // Critical for grouping
+            });
+         }
       }
-      final sorted = unique.values.toList();
-      sorted.sort((a, b) => _extractDate(a).compareTo(_extractDate(b)));
-      return sorted;
+
+      // 3. Generate
+      final pdf = await ExportService().generateWeeklyMenuReport(
+         petName: widget.petName,
+         raceName: widget.raceName,
+         dietType: selectedPlans.first.dietType, // Use first as representative
+         plan: consolidatedPlan,
+         strings: l10n,
+         shoppingLists: shoppingLists,
+         period: _selectedPlanIds.length > 1 ? l10n.petMenuGeneratePdfMulti(selectedPlans.length) : null
+      );
+
+      if (mounted) {
+         Navigator.pop(context); // Close loading
+         await ExportService().saveAndShow(pdf: pdf, fileName: "Menu_${widget.petName}_Consolidated.pdf");
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuPdfGenerated), backgroundColor: AppDesign.success));
+         setState(() => _selectedPlanIds.clear());
+      }
+
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pdf Error: $e'), backgroundColor: AppDesign.error));
+      }
+    }
   }
 
-  DateTime? _parseDateFromItem(Map<String, dynamic> item, int indexOffset, DateTime anchor) {
-      if (item['date_link'] != null) return item['date_link'] as DateTime;
-      
-      String diaOriginal = item['dia']?.toString() ?? '';
-      final regex = RegExp(r'(\d{1,2})\s*/\s*(\d{1,2})');
-      final match = regex.firstMatch(diaOriginal);
-      
-      if (match != null) {
-          final day = int.parse(match.group(1)!);
-          final month = int.parse(match.group(2)!);
-          int year = anchor.year;
-          // Ajuste básico de virada de ano
-          if (anchor.month == 12 && month == 1) year++;
-          if (anchor.month == 1 && month == 12) year--;
-          return DateTime(year, month, day);
-      }
-      
-      return anchor.add(Duration(days: indexOffset));
-  }
-
-  DateTime _extractDate(Map<String, dynamic> item) {
-      final dia = item['dia']?.toString() ?? '';
-      final regex = RegExp(r'(\d{1,2})\s*/\s*(\d{1,2})');
-      final match = regex.firstMatch(dia);
-      if (match != null) {
-          return DateTime(DateTime.now().year, int.parse(match.group(2)!), int.parse(match.group(1)!));
-      }
-      return DateTime.now();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  String _formatDateForPdf(DateTime start, int dayOfWeekIso) {
+     final d = start.add(Duration(days: dayOfWeekIso - 1));
+     return DateFormat('EEEE dd/MM', Localizations.localeOf(context).toString()).format(d);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        title: Text(widget.petName.isEmpty ? 'Cardápio' : '${widget.petName}', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.menuTitle(widget.petName),
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              widget.raceName,
-              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          PdfActionButton(onPressed: () => _generateMenuPDF()),
-        ],
+        centerTitle: true,
         bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppDesign.petPink,
-          labelColor: AppDesign.petPink,
-          unselectedLabelColor: Colors.white54,
-          labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
-          tabs: [
-            Tab(text: AppLocalizations.of(context)!.menuLastWeek),
-            Tab(text: AppLocalizations.of(context)!.menuCurrentWeek),
-            Tab(text: AppLocalizations.of(context)!.menuNextWeek),
-          ],
+           controller: _tabController,
+           indicatorColor: AppDesign.petPink,
+           labelColor: AppDesign.petPink,
+           unselectedLabelColor: Colors.white60,
+           indicatorSize: TabBarIndicatorSize.label,
+           tabs: [
+              Tab(text: l10n.petTabGenerate),
+              Tab(text: l10n.petTabHistory),
+           ],
         ),
       ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
-        : TabBarView(
-            controller: _tabController,
-            children: [
-               _buildPeriodView(_pastPlan, AppLocalizations.of(context)!.menuNoHistory),
-               _buildPeriodView(_currentPlan, AppLocalizations.of(context)!.menuNoCurrent),
-               _buildPeriodView(_nextPlan, AppLocalizations.of(context)!.menuNoFuture),
-            ],
-        ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+           _buildGenerateTab(l10n),
+           _buildHistoryTab(l10n),
+        ],
+      ),
     );
   }
 
-  Widget _buildPeriodView(List<Map<String, dynamic>> plan, String emptyMsg) {
-      if (plan.isEmpty) {
-          return Center(
-             child: Padding(
-               padding: const EdgeInsets.all(32.0),
-               child: Column(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   Icon(Icons.event_busy, size: 64, color: Colors.white.withOpacity(0.2)),
-                   const SizedBox(height: 24),
-                   Text(
-                     emptyMsg,
-                     style: GoogleFonts.poppins(color: Colors.white70, fontSize: 16),
-                     textAlign: TextAlign.center,
-                   ),
-                   const SizedBox(height: 16),
-                   if (emptyMsg.contains("futuro") || emptyMsg.contains("semana"))
-                   ElevatedButton.icon(
-                      onPressed: () async {
-                          final service = PetProfileService();
-                          await service.init();
-                          final pData = await service.getProfile(widget.petName);
-                          if (pData != null && pData['data'] != null && mounted) {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => EditPetForm(
-                                  petData: pData['data'],
-                                  onSave: (p) async {
-                                      await service.saveOrUpdateProfile(p.petName, {'data': p.toJson()});
-                                      Navigator.pop(context);
-                                      _loadMenuFromService();
-                                  }
-                              )));
-                          }
-                      },
-                      icon: const Icon(Icons.edit_calendar, color: Colors.black),
-                      label: Text(AppLocalizations.of(context)!.menuGenerateEdit),
-                      style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
-                   ),
-                 ],
+  Widget _buildGenerateTab(AppLocalizations l10n) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+             Container(
+               padding: const EdgeInsets.all(24),
+               decoration: BoxDecoration(
+                  color: AppDesign.petPink.withOpacity(0.1),
+                  shape: BoxShape.circle,
                ),
+               child: const Icon(Icons.auto_awesome, size: 60, color: AppDesign.petPink),
              ),
-          );
-      }
+             const SizedBox(height: 32),
+             Text(
+               l10n.petTabGenerate,
+               style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+             ),
+             const SizedBox(height: 12),
+             Text(
+               'Crie cardápios personalizados, listas de compras e acompanhe a nutrição do seu pet em segundos.',
+               textAlign: TextAlign.center,
+               style: GoogleFonts.poppins(fontSize: 14, color: Colors.white60),
+             ),
+             const SizedBox(height: 48),
+             SizedBox(
+               width: double.infinity,
+               height: 56,
+               child: ElevatedButton(
+                 style: ElevatedButton.styleFrom(
+                   backgroundColor: AppDesign.petPink,
+                   foregroundColor: Colors.black,
+                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                   elevation: 4,
+                 ),
+                 onPressed: () async {
+                    // Trigger Filter
+                    final config = await showDialog<Map<String, dynamic>>(
+                      context: context,
+                      builder: (context) => const PetMenuFilterDialog(),
+                    );
+                    
+                    if (config != null && mounted) {
+                       _runGeneration(config);
+                    }
+                 },
+                 child: Text(
+                   l10n.petTabGenerate.toUpperCase(),
+                   style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
+                 ),
+               ),
+             )
+          ],
+        ),
+      ),
+    );
+  }
 
-      return SingleChildScrollView(
-         padding: const EdgeInsets.all(16),
+  Future<void> _runGeneration(Map<String, dynamic> config) async {
+     final l10n = AppLocalizations.of(context)!;
+     
+     showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
+     );
+     
+     try {
+        Map<String, dynamic> profileData = {
+           'name': widget.petName,
+           'breed': widget.raceName
+        };
+
+        await ref.read(petMenuGeneratorProvider).generateAndSave(
+            petId: widget.petName.trim(), 
+            profileData: profileData,
+            mode: config['mode'],
+            startDate: config['startDate'],
+            endDate: config['endDate'],
+            locale: Localizations.localeOf(context).toString(),
+            dietType: config['dietType'] as String,
+            otherNote: config['otherNote'] as String?,
+        );
+
+
+        if (mounted) {
+           Navigator.pop(context); // Stop Loading
+           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success));
+           await _loadHistory(); // Refresh history
+           _tabController.animateTo(1); // Switch to History
+        }
+     } catch (e) {
+        if (mounted) {
+           Navigator.pop(context);
+           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Generation Error: $e'), backgroundColor: AppDesign.error));
+        }
+     }
+  }
+
+  Widget _buildHistoryTab(AppLocalizations l10n) {
+    if (_isLoading) {
+       return const Center(child: CircularProgressIndicator(color: AppDesign.petPink));
+    }
+    
+    if (_history.isEmpty) {
+       return Center(
          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-                if (_guidelines != null)
-                   Container(
-                      padding: const EdgeInsets.all(16),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(color: Colors.orange.withOpacity(0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.orange.withOpacity(0.3))),
-                      child: Row(
-                         children: [
-                            const Icon(Icons.lightbulb, color: Colors.orange, size: 20),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text(_guidelines!, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))),
-                         ],
-                      ),
-                   ),
-                ...plan.asMap().entries.map((entry) => _buildMealCard(entry.value, entry.key, plan == _pastPlan ? -1 : (plan == _currentPlan ? 0 : 1))).toList(),
-                const SizedBox(height: 40),
+               const Icon(Icons.history_toggle_off, size: 48, color: Colors.white24),
+               const SizedBox(height: 16),
+               Text(l10n.petMenuEmptyHistory, style: GoogleFonts.poppins(color: Colors.white54)),
             ],
          ),
-      );
-  }
+       );
+    }
 
-  Widget _buildMealCard(Map<String, dynamic> item, int index, int periodType) {
-      String dia = item['dia']?.toString() ?? '??';
-      
-      // FORÇAR DATA DINÂMICA SE TIVERMOS DATA DE INÍCIO
-      if (_savedStartDate != null) {
-          // Precisamos calcular o offset baseado no tipo de período (-1, 0, 1)
-          final dateForDay = _savedStartDate!.add(Duration(days: index + (periodType * 7))); 
-          final dateStr = DateFormat('dd/MM').format(dateForDay);
-          final weekDayName = DateFormat('EEEE', AppLocalizations.of(context)!.localeName).format(dateForDay);
-          final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
-          dia = "$weekDayCap - $dateStr";
-      }
-      
-      List<Map<String, dynamic>> refeicoes = [];
-      if (item.containsKey('refeicoes') && item['refeicoes'] is List) {
-          refeicoes = (item['refeicoes'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
-      } else {
-          final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
-          for (var k in keysRaw) {
-             if (item[k] != null) {
-                refeicoes.add({'hora': k.toUpperCase(), 'titulo': AppLocalizations.of(context)!.pdfRefeicao, 'descricao': item[k].toString()});
-             }
-          }
-      }
-
-      return Card(
-        color: Colors.white.withOpacity(0.05),
-        margin: const EdgeInsets.only(bottom: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.white.withOpacity(0.1))),
-        child: Padding(
-           padding: const EdgeInsets.all(16),
-           child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 Row(
+    return Column(
+      children: [
+        if (_selectedPlanIds.isNotEmpty)
+           Container(
+             color: AppDesign.petPink,
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+             child: Row(
+               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+               children: [
+                  Text(
+                    l10n.petMenuGeneratePdfMulti(_selectedPlanIds.length), 
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)
+                  ),
+                  Row(
                     children: [
-                       Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.2), shape: BoxShape.circle),
-                          child: const Icon(Icons.restaurant, color: AppDesign.petPink, size: 16),
+                       TextButton.icon(
+                         onPressed: () => setState(() => _selectedPlanIds.clear()),
+                         icon: const Icon(Icons.close, size: 16, color: Colors.black87),
+                         label: Text(l10n.petMenuSelectionClear, style: const TextStyle(color: Colors.black87, fontSize: 12)),
                        ),
-                       const SizedBox(width: 12),
-                       Text(dia, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                       const SizedBox(width: 8),
+                       IconButton(
+                         icon: const Icon(Icons.picture_as_pdf, color: Colors.black),
+                         onPressed: _generatePdfMulti,
+                       )
                     ],
-                 ),
-                 const SizedBox(height: 12),
-                 ...refeicoes.map((r) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                          Row(
-                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                             children: [
-                                Row(
-                                   children: [
-                                      Text('${r['hora'] ?? '--:--'}', style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 12)),
-                                      const SizedBox(width: 8),
-                                      Text(r['titulo'] ?? AppLocalizations.of(context)!.pdfRefeicao, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                                   ],
-                                ),
-                                if (_kcalTarget != null)
-                                   Text('$_kcalTarget', style: GoogleFonts.poppins(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 12)),
-                             ],
-                          ),
-                          // New Requirement: Principais Nutrientes Row
-                          if (_kcalTarget != null) ...[
-                             const SizedBox(height: 4),
-                             Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                   Text(AppLocalizations.of(context)!.menuMainNutrients, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
-                                   Text('$_kcalTarget', style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w600, fontSize: 12)),
-                                ],
-                             ),
-                          ],
-                          Padding(
-                             padding: const EdgeInsets.only(left: 4, top: 4),
-                             child: Text(r['descricao'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3)),
-                          ),
-                          if (refeicoes.indexOf(r) < refeicoes.length - 1)
-                             const Padding(padding: EdgeInsets.symmetric(vertical: 4), child: Divider(color: Colors.white10, height: 1)),
-                       ],
-                    ),
-                 )).toList(),
-                 if (refeicoes.isEmpty)
-                   Text(AppLocalizations.of(context)!.menuNoDetails, style: const TextStyle(color: Colors.white24, fontSize: 12)),
-              ],
+                  )
+               ],
+             ),
            ),
-        ),
-      );
-  }
-
-  Future<void> _generateMenuPDF() async {
-    // 1. Mostrar Modal de Filtro
-    bool includePast = false;
-    bool includeCurrent = true;
-    bool includeNext = false;
-
-    await showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) => AlertDialog(
-          backgroundColor: Colors.grey[900],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AppDesign.petPink)),
-          title: Text(AppLocalizations.of(context)!.menuExportTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(AppLocalizations.of(context)!.menuExportSelectPeriod, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
-              const SizedBox(height: 16),
-              Theme(
-                data: ThemeData.dark(),
-                child: Column(
-                  children: [
-                    CheckboxListTile(
-                      title: Text(AppLocalizations.of(context)!.menuLastWeek),
-                      activeColor: AppDesign.petPink,
-                      value: includePast,
-                      onChanged: (v) => setModalState(() => includePast = v!),
-                    ),
-                    CheckboxListTile(
-                      title: Text(AppLocalizations.of(context)!.menuCurrentWeek),
-                      activeColor: AppDesign.petPink,
-                      value: includeCurrent,
-                      onChanged: (v) => setModalState(() => includeCurrent = v!),
-                    ),
-                    CheckboxListTile(
-                      title: Text(AppLocalizations.of(context)!.menuNextWeek),
-                      activeColor: AppDesign.petPink,
-                      value: includeNext,
-                      onChanged: (v) => setModalState(() => includeNext = v!),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        
+        Expanded(
+          child: ListView.builder(
+            itemCount: _history.length,
+            padding: const EdgeInsets.only(bottom: 80),
+            itemBuilder: (context, index) {
+               final plan = _history[index];
+               return _buildWeekCard(plan, l10n);
+            },
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white54))),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _proceedWithPDF(includePast, includeCurrent, includeNext);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
-              child: Text(AppLocalizations.of(context)!.menuExportReport),
-            ),
-          ],
         ),
-      ),
+      ],
     );
   }
 
-  void _proceedWithPDF(bool past, bool current, bool next) {
-    try {
-        final List<Map<String, dynamic>> finalPlan = [];
-        if (past) finalPlan.addAll(_pastPlan);
-        if (current) finalPlan.addAll(_currentPlan);
-        if (next) finalPlan.addAll(_nextPlan);
+  Widget _buildWeekCard(WeeklyMealPlan plan, AppLocalizations l10n) {
+     final startStr = DateFormat.Md(l10n.localeName).format(plan.startDate);
+     final endStr = DateFormat.Md(l10n.localeName).format(plan.endDate);
+     final dateRange = "$startStr - $endStr";
+     final isSelected = _selectedPlanIds.contains(plan.id);
 
-        if (finalPlan.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.menuNoPeriodSelected)));
-            return;
-        }
-
-        // NORMALIZATION: Ensure 'refeicoes' list exists for the PDF service
-        final List<Map<String, dynamic>> normalizedPlan = finalPlan.map((day) {
-            final Map<String, dynamic> d = Map<String, dynamic>.from(day);
-            if (!d.containsKey('refeicoes') || d['refeicoes'] is! List) {
-                final List<Map<String, dynamic>> refs = [];
-                final keysRaw = ['manha', 'manhã', 'tarde', 'noite', 'jantar', 'refeicao'];
-                for (var k in keysRaw) {
-                    if (d[k] != null) {
-                        refs.add({'hora': k.toUpperCase(), 'titulo': AppLocalizations.of(context)!.pdfRefeicao, 'descricao': d[k].toString()});
-                    }
-                }
-                d['refeicoes'] = refs;
-            }
-            return d;
-        }).toList();
-
-        // Calculate period for header
-        String periodDesc = AppLocalizations.of(context)!.menuPeriodCustom;
-        if (past && !current && !next) periodDesc = AppLocalizations.of(context)!.menuLastWeek;
-        else if (!past && current && !next) periodDesc = AppLocalizations.of(context)!.menuCurrentWeek;
-        else if (!past && !current && next) periodDesc = AppLocalizations.of(context)!.menuNextWeek;
-        else if (past && current && next) periodDesc = AppLocalizations.of(context)!.menuPeriodFull;
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PdfPreviewScreen(
-              title: '${AppLocalizations.of(context)!.menuTitle('')} ${widget.petName}',
-              buildPdf: (format) async {
-                final pdf = await ExportService().generateWeeklyMenuReport(
-                  petName: widget.petName,
-                  raceName: widget.raceName,
-                  strings: AppLocalizations.of(context)!,
-                  dietType: _dietType ?? AppLocalizations.of(context)!.petNotOffice,
-                  plan: normalizedPlan,
-                  guidelines: _guidelines,
-                  dailyKcal: _kcalTarget,
-                  period: periodDesc,
-                );
-                return pdf.save();
-              },
+     return Card(
+       color: Colors.white.withOpacity(0.05),
+       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppDesign.petPink : Colors.transparent)),
+       child: Theme(
+         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+         child: ExpansionTile(
+            leading: Checkbox(
+               value: isSelected,
+               activeColor: AppDesign.petPink,
+               checkColor: Colors.black,
+               side: const BorderSide(color: Colors.white54),
+               onChanged: (val) {
+                  setState(() {
+                     if (val == true) _selectedPlanIds.add(plan.id);
+                     else _selectedPlanIds.remove(plan.id);
+                  });
+               },
             ),
-          ),
-        );
-    } catch (e) {
-      debugPrint('Erro ao gerar PDF: $e');
-    }
+            title: Text(dateRange, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+            subtitle: Text('${plan.meals.length} days • Dieta: ${_getDietLabel(plan.dietType, l10n)}', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+            trailing: PopupMenuButton<String>(
+               icon: const Icon(Icons.more_vert, color: Colors.white54),
+               color: const Color(0xFF2C2C2C),
+               onSelected: (val) {
+                  if (val == 'delete') _deletePlan(plan.id);
+               },
+               itemBuilder: (ctx) => [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                       children: [
+                          const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                          const SizedBox(width: 8),
+                          Text(l10n.commonDelete, style: const TextStyle(color: Colors.white)),
+                       ],
+                    ),
+                  )
+               ],
+            ),
+            children: plan.meals.map((day) => _buildDayItem(plan, day, l10n)).toList(),
+         ),
+       ),
+     );
+  }
+
+  Widget _buildDayItem(WeeklyMealPlan plan, DailyMealItem day, AppLocalizations l10n) {
+     final dayDate = plan.startDate.add(Duration(days: day.dayOfWeek - 1));
+     final weekDayName = DateFormat('EEEE', l10n.localeName).format(dayDate); 
+     final dateStr = DateFormat('dd/MM', l10n.localeName).format(dayDate);
+
+     return Container(
+        decoration: BoxDecoration(
+           border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Column(
+           crossAxisAlignment: CrossAxisAlignment.start,
+           children: [
+              Row(
+                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                 children: [
+                    Text(
+                      "${weekDayName.toUpperCase()} $dateStr",
+                      style: GoogleFonts.poppins(color: AppDesign.petPink, fontWeight: FontWeight.w600, fontSize: 12),
+                    ),
+                    Row(
+                       children: [
+                          IconButton(
+                             icon: const Icon(Icons.edit, size: 16, color: Colors.white54),
+                             onPressed: () => _editDayDialog(plan, day),
+                             tooltip: l10n.commonSave, 
+                          ),
+                          IconButton(
+                             icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                             onPressed: () => _deleteDay(plan, day),
+                             tooltip: l10n.commonDelete,
+                          )
+                       ],
+                    )
+                 ],
+              ),
+              const SizedBox(height: 4),
+              // Content
+              Text(
+                "${day.time} - ${day.title}",
+                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500),
+              ),
+              if (day.quantity.isNotEmpty)
+                 Text("Qty: ${day.quantity}", style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13)),
+              
+              const SizedBox(height: 4),
+              Text(
+                 day.description,
+                 style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+              ),
+           ],
+        ),
+     );
+  }
+
+  Future<void> _deleteDay(WeeklyMealPlan plan, DailyMealItem day) async {
+     final l10n = AppLocalizations.of(context)!;
+     final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+           backgroundColor: const Color(0xFF1E1E1E),
+           content: Text(l10n.petMenuDeleteDayConfirm, style: const TextStyle(color: Colors.white)),
+           actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel, style: const TextStyle(color: Colors.white54))),
+              TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.commonDelete, style: const TextStyle(color: Colors.redAccent))),
+           ],
+        )
+     );
+     
+     if (confirm != true) return;
+     
+     // Remove from list (Create new list)
+     final newMeals = List<DailyMealItem>.from(plan.meals)..remove(day);
+     
+     // Check validity? Should I delete the week if empty?
+     if (newMeals.isEmpty) {
+        // Option to delete plan?
+        await _deletePlan(plan.id);
+        return;
+     }
+
+     final updatedPlan = WeeklyMealPlan(
+        id: plan.id,
+        petId: plan.petId,
+        startDate: plan.startDate,
+        endDate: plan.endDate,
+        dietType: plan.dietType,
+        nutritionalGoal: plan.nutritionalGoal,
+        meals: newMeals,
+        metadata: plan.metadata,
+        templateName: plan.templateName,
+        createdAt: plan.createdAt
+     );
+     
+     await MealPlanService().savePlan(updatedPlan);
+     
+     if (mounted) {
+        setState(() {
+           final index = _history.indexWhere((p) => p.id == plan.id);
+           if (index != -1) {
+              _history[index] = updatedPlan;
+           }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuDeletedSuccess), backgroundColor: AppDesign.success));
+     }
+  }
+
+  Future<void> _editDayDialog(WeeklyMealPlan plan, DailyMealItem day) async {
+     final l10n = AppLocalizations.of(context)!;
+     
+     final descCtrl = TextEditingController(text: day.description);
+     final qtyCtrl = TextEditingController(text: day.quantity);
+     
+     final changed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+           backgroundColor: const Color(0xFF1E1E1E),
+           title: Text(l10n.petMenuEditDayTitle, style: const TextStyle(color: Colors.white)),
+           content: SingleChildScrollView(
+              child: Column(
+                 mainAxisSize: MainAxisSize.min,
+                 children: [
+                    TextField(
+                       controller: qtyCtrl,
+                       style: const TextStyle(color: Colors.white),
+                       decoration: const InputDecoration(
+                          labelText: 'Quantidade',
+                          labelStyle: TextStyle(color: Colors.white54),
+                          enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                       controller: descCtrl,
+                       style: const TextStyle(color: Colors.white),
+                       maxLines: 5,
+                       decoration: InputDecoration(
+                          labelText: 'Ingredientes / Descrição',
+                          labelStyle: const TextStyle(color: Colors.white54),
+                          hintText: l10n.petMenuEditIngredientsHint,
+                          hintStyle: const TextStyle(color: Colors.white24),
+                          enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+                       ),
+                    )
+                 ],
+              ),
+           ),
+           actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel, style: const TextStyle(color: Colors.white54))),
+              ElevatedButton(
+                 onPressed: () => Navigator.pop(ctx, true),
+                 style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink),
+                 child: Text(l10n.commonSave, style: const TextStyle(color: Colors.black)),
+              )
+           ],
+        )
+     );
+     
+     if (changed != true) return;
+     
+     // Update
+     final newDay = DailyMealItem(
+        dayOfWeek: day.dayOfWeek,
+        time: day.time,
+        title: day.title,
+        description: descCtrl.text,
+        quantity: qtyCtrl.text,
+        benefit: day.benefit
+     );
+     
+     final newMeals = List<DailyMealItem>.from(plan.meals);
+     final index = newMeals.indexOf(day);
+     if (index != -1) newMeals[index] = newDay;
+     
+     final updatedPlan = WeeklyMealPlan(
+        id: plan.id,
+        petId: plan.petId,
+        startDate: plan.startDate,
+        endDate: plan.endDate,
+        dietType: plan.dietType,
+        nutritionalGoal: plan.nutritionalGoal,
+        meals: newMeals,
+        metadata: plan.metadata,
+        templateName: plan.templateName,
+        createdAt: plan.createdAt
+     );
+     
+     await MealPlanService().savePlan(updatedPlan);
+     
+     if (mounted) {
+        setState(() {
+           final hIndex = _history.indexWhere((p) => p.id == plan.id);
+           if (hIndex != -1) _history[hIndex] = updatedPlan;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuSaveSuccess), backgroundColor: AppDesign.success));
+     }
+  }
+
+
+  String _getDietLabel(String code, AppLocalizations l10n) {
+     if (code.toLowerCase().startsWith("outra") || code.toLowerCase().startsWith("other")) return code;
+     switch (code) {
+       case 'renal': return l10n.dietRenal ?? 'Renal';
+       case 'hepatic': return l10n.dietHepatic ?? 'Hepatic';
+       case 'gastrointestinal': return l10n.dietGastrointestinal ?? 'Gastrointestinal';
+       case 'hypoallergenic': return l10n.dietHypoallergenic ?? 'Hypoallergenic';
+       case 'obesity': return l10n.dietObesity ?? 'Obesity';
+       case 'diabetes': return l10n.dietDiabetes ?? 'Diabetes';
+       case 'cardiac': return l10n.dietCardiac ?? 'Cardiac';
+       case 'urinary': return l10n.dietUrinary ?? 'Urinary';
+       case 'muscle_gain': return l10n.dietMuscleGain ?? 'Muscle Gain';
+       case 'pediatric': return l10n.dietPediatric ?? 'Pediatric';
+       case 'growth': return l10n.dietGrowth ?? 'Growth';
+       default: return code; 
+     }
   }
 }
-

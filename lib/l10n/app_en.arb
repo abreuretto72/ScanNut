@@ -1699,6 +1699,13 @@
   "petEvent_group_schedule": "Schedule",
   "petEvent_group_media": "Media",
   "petEvent_group_metrics": "Metrics",
+  "petEvent_group_medication": "Medication",
+  "petEvent_group_documents": "Documents",
+  "petEvent_group_exams": "Exams",
+  "petEvent_group_allergies": "Allergies",
+  "petEvent_group_dentistry": "Dentistry",
+  "petEvent_group_other": "Other",
+
   "petEvent_savedSuccess": "Event registered ✅",
   "petEvent_saveError": "Could not save. Please try again.",
   "petEvent_attachError": "Could not attach this file.",

@@ -1737,6 +1737,13 @@
   "petEvent_group_schedule": "Agenda",
   "petEvent_group_media": "Mídia",
   "petEvent_group_metrics": "Métricas",
+  "petEvent_group_medication": "Medicação",
+  "petEvent_group_documents": "Documentos",
+  "petEvent_group_exams": "Exames",
+  "petEvent_group_allergies": "Alergias",
+  "petEvent_group_dentistry": "Odontologia",
+  "petEvent_group_other": "Outros",
+
   "petEvent_savedSuccess": "Evento registrado ✅",
   "petEvent_saveError": "Não foi possível salvar. Tente novamente.",
   "petEvent_attachError": "Não foi possível anexar este arquivo.",

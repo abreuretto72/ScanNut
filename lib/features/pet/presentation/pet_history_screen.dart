@@ -26,8 +26,12 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
 import 'widgets/pet_menu_filter_dialog.dart';
 import '../../pet/services/pet_menu_generator_service.dart';
-import 'widgets/event_action_bar.dart';
+import 'widgets/pet_event_grid.dart';
+
+import 'widgets/pet_event_report_dialog.dart';
 import 'pet_event_history_screen.dart';
+import 'package:share_plus/share_plus.dart';
+
 
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
@@ -229,351 +233,134 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                    subtitle = l10n.petBreedUnknown;
                 }
 
-                return Card(
-                  color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+                return Container(
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: AppDesign.surfaceDark,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Stack(
-                    children: [
-                      ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    leading: _buildPetAvatar(item),
-                    title: Text(
-                      petName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                        color: AppDesign.textPrimaryDark,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                ],
+              ),
+              child: ExpansionTile(
+                backgroundColor: Colors.transparent,
+                collapsedBackgroundColor: Colors.transparent,
+                tilePadding: const EdgeInsets.all(16),
+                childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: const RoundedRectangleBorder(side: BorderSide.none),
+                title: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // BLOCO 1 — CABEÇALHO (IDENTIDADE)
+                    _buildPetAvatar(item, radius: 44),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            petName,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${data['breed'] ?? data['identificacao']?['raca_predominante'] ?? 'SRD'} • ${data['age'] ?? '---'}',
+                            style: const TextStyle(color: Colors.white60, fontSize: 13),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${l10n.lastUpdated}: $timestamp',
+                            style: const TextStyle(color: Colors.white38, fontSize: 10),
+                          ),
+                        ],
                       ),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13),
+                  ],
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Row(
+                    children: [
+                      // BLOCO 2 — AÇÕES RÁPIDAS
+                      _buildQuickAction(
+                        icon: Icons.edit_outlined,
+                        tooltip: l10n.petEdit,
+                        onTap: () => _handleEditTap(item, petName, data),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildQuickAction(
+                        icon: Icons.picture_as_pdf_outlined,
+                        tooltip: l10n.petEvent_generateReport,
+                        onTap: () => showDialog(
+                          context: context,
+                          builder: (context) => PetEventReportDialog(petId: petName),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          DateFormat('dd/MM/yyyy HH:mm', Localizations.localeOf(context).toString()).format(date),
-                          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark.withOpacity(0.5), fontSize: 12),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildQuickAction(
+                        icon: Icons.share_outlined,
+                        tooltip: l10n.petEvent_reportShare,
+                        onTap: () {
+                           // Example share (could be refined)
+                           Share.share('Check out my pet $petName on ScanNut!');
+                        },
+                      ),
+                      const Spacer(),
+                      _buildQuickAction(
+                        icon: Icons.delete_outline,
+                        tooltip: l10n.petDelete,
+                        color: Colors.redAccent.withOpacity(0.6),
+                        onTap: () => _confirmDelete(context, petName),
+                      ),
+                    ],
+                  ),
+                ),
+                children: [
+                  const Divider(color: Colors.white10, height: 24),
+                  
+                  // BLOCO 3 — GRID DE EVENTOS
+                  PetEventGrid(petId: petName),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // BLOCO 4 — CTA CONTEXTUAL
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildCTA(
+                          label: l10n.petMenuGenerate,
+                          icon: Icons.restaurant_menu,
+                          color: AppDesign.success,
+                          onTap: () => _handleMenuGenTap(petName),
                         ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Action buttons row (Agenda & Menu & Edit)
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // 1. AGENDA
-                              InkWell(
-                                onTap: () async {
-                                  // 🛡️ FRESH DATA FETCH: Garantir dados atualizados do Hive
-                                  final profileService = PetProfileService();
-                                  await profileService.init();
-                                  final freshProfile = await profileService.getProfile(petName);
-
-                                  PartnerModel? freshPartner;
-                                  if (freshProfile != null && freshProfile['data'] != null) {
-                                      final linked = freshProfile['data']['linked_partner_ids'] as List?;
-                                      if (linked != null && linked.isNotEmpty) {
-                                          final pService = PartnerService();
-                                          await pService.init();
-                                          freshPartner = pService.getPartner(linked.first);
-                                      }
-                                  }
-
-                                  if (freshPartner != null) {
-                                    final agendaEvents = freshProfile?['data']?['agendaEvents'] as List? ?? [];
-                                    final eventsList = deepCastMapList(agendaEvents);
-
-                                    
-                                    if (context.mounted) {
-                                      await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => PartnerAgendaScreen(
-                                            partner: freshPartner!,
-                                            initialEvents: eventsList,
-                                            onSave: (events) async {
-                                              if (freshProfile != null) {
-                                                final data = Map<String, dynamic>.from(freshProfile['data'] as Map);
-                                                data['agendaEvents'] = events;
-                                                await profileService.saveOrUpdateProfile(petName, data);
-                                                
-                                                try {
-                                                    final eventService = PetEventService();
-                                                    await eventService.init();
-                                                    for (var eMap in events) {
-                                                        final agEvent = AgendaEvent.fromJson(eMap);
-                                                        EventType pType = EventType.other;
-                                                        if (agEvent.category == EventCategory.vacina) pType = EventType.vaccine;
-                                                        else if (agEvent.category == EventCategory.banho) pType = EventType.bath;
-                                                        else if (agEvent.category == EventCategory.tosa) pType = EventType.grooming;
-                                                        else if (agEvent.category == EventCategory.consulta || 
-                                                                 agEvent.category == EventCategory.emergencia || 
-                                                                 agEvent.category == EventCategory.saude || 
-                                                                 agEvent.category == EventCategory.exame || 
-                                                                 agEvent.category == EventCategory.cirurgia) pType = EventType.veterinary;
-                                                        else if (agEvent.category == EventCategory.remedios) pType = EventType.medication;
-                                                        
-                                                        final pEvent = PetEvent(
-                                                            id: agEvent.id,
-                                                            petName: petName,
-                                                            title: agEvent.title,
-                                                            type: pType,
-                                                            dateTime: agEvent.dateTime,
-                                                            notes: agEvent.description,
-                                                            createdAt: agEvent.createdAt,
-                                                            completed: false
-                                                        );
-                                                        await eventService.addEvent(pEvent);
-                                                    }
-                                                } catch (e) {
-                                                    debugPrint('Erros bridging events: $e');
-                                                }
-                                              }
-                                            },
-                                            petId: petName,
-                                          ),
-                                        ),
-                                      );
-                                      if (mounted) _loadHistory(); // Refresh on return
-                                    }
-                                  } else {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(l10n.petLinkPartnerError),
-                                          backgroundColor: AppDesign.warning,
-                                          duration: const Duration(seconds: 3),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: AppDesign.info.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppDesign.info.withValues(alpha: 0.3)),
-                                  ),
-                                  child: const Icon(Icons.calendar_today, color: AppDesign.info, size: 18),
-                                ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildCTA(
+                          label: l10n.petEvent_historyTitle,
+                          icon: Icons.history_edu,
+                          color: AppDesign.petPink,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PetEventHistoryScreen(
+                                petId: petName,
+                                petName: petName,
                               ),
-                              
-                              const SizedBox(width: 24),
-
-                              // 2. MENU
-                              InkWell(
-                                onTap: () async {
-                                  // 1. Show Filter Dialog
-                                  final config = await showDialog<Map<String, dynamic>>(
-                                    context: context,
-                                    builder: (context) => const PetMenuFilterDialog(),
-                                  );
-
-                                  if (config == null || !mounted) return;
-
-                                  // 2. Show Progress
-                                  showDialog(
-                                    context: context,
-                                    barrierDismissible: false,
-                                    builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
-                                  );
-
-                                  try {
-                                      final service = PetProfileService();
-                                      await service.init();
-                                      final profile = await service.getProfile(petName.trim());
-                                      
-                                      // 3. Generate
-                                      await ref.read(petMenuGeneratorProvider).generateAndSave(
-                                          petId: petName.trim(),
-                                          profileData: profile?['data'] ?? {},
-                                          mode: config['mode'],
-                                          startDate: config['startDate'],
-                                          endDate: config['endDate'],
-                                          locale: Localizations.localeOf(context).toString(),
-                                          dietType: config['dietType'] as String,
-                                          otherNote: config['otherNote'] as String?,
-                                      );
-
-
-                                      if (mounted) {
-                                          Navigator.pop(context); // Close loading
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success)
-                                          );
-                                          // Force reload history to potentially show updates if we tracked menu gen there
-                                          _loadHistory();
-                                      }
-                                  } catch (e) {
-                                      if (mounted) {
-                                          Navigator.pop(context); // Close loading
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text('Erro: $e'), backgroundColor: AppDesign.error)
-                                          );
-                                      }
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: AppDesign.success.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppDesign.success.withValues(alpha: 0.3)),
-                                  ),
-                                  child: const Icon(Icons.restaurant_menu, color: AppDesign.success, size: 18),
-                                ),
-                              ),
-
-                              const SizedBox(width: 24),
-
-                              // 3. EDIT
-                              InkWell(
-                                onTap: () async {
-                                   PetProfileExtended? loaded;
-                                   try {
-                                     final profileService = PetProfileService();
-                                     await profileService.init();
-                                     final existingMap = await profileService.getProfile(petName.trim());
-                                     if (existingMap != null && existingMap['data'] != null) {
-                                        final dataMap = deepCastMap(existingMap['data']);
-                                        loaded = PetProfileExtended.fromJson(dataMap);
-                                     }
-
-                                   } catch (e) {
-                                     debugPrint('Error loading full profile: $e');
-                                     if (context.mounted) {
-                                       ScaffoldMessenger.of(context).showSnackBar(
-                                         SnackBar(
-                                           content: Text('Erro ao abrir: $e'),
-                                           backgroundColor: AppDesign.error,
-                                         ),
-                                       );
-                                     }
-                                   }
-
-                                   if (!context.mounted) return;
-
-                                   await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditPetForm(
-                                        existingProfile: loaded ?? PetProfileExtended(
-                                          petName: petName,
-                                          raca: data['breed'] ?? data['identificacao']?['raca_predominante'],
-                                          nivelAtividade: (data['perfil_comportamental']?['nivel_energia'] is int) 
-                                              ? ((data['perfil_comportamental']!['nivel_energia'] as int) > 3 ? 'Ativo' : ((data['perfil_comportamental']!['nivel_energia'] as int) < 3 ? 'Sedentário' : 'Moderado'))
-                                              : 'Moderado',
-                                          frequenciaBanho: data['higiene']?['banho_e_higiene']?['frequencia']?.toString() ?? 'Quinzenal',
-                                          imagePath: data['image_path'],
-                                          lastUpdated: DateTime.parse(data['timestamp'] ?? DateTime.now().toIso8601String()),
-                                          rawAnalysis: data != null ? deepCastMap(data) : null,
-
-                                        ),
-                                        onSave: (profile) async {
-                                          final service = PetProfileService();
-                                          await service.init();
-                                          
-                                          final oldName = petName;
-                                          final newName = profile.petName;
-                                          
-                                          await service.saveOrUpdateProfile(newName, profile.toJson());
-                                          
-                                          final analysisData = profile.rawAnalysis ?? {};
-                                          if (profile.raca != null) {
-                                            if (analysisData['identificacao'] == null) analysisData['identificacao'] = {};
-                                            analysisData['identificacao']['raca_predominante'] = profile.raca;
-                                            analysisData['breed'] = profile.raca;
-                                          }
-                                          
-                                          if (oldName != newName) {
-                                              await HistoryService.deletePet(oldName);
-                                              await service.deleteProfile(oldName);
-                                          }
-                                          
-                                          await HistoryService().savePetAnalysis(
-                                            newName,
-                                            analysisData,
-                                            imagePath: profile.imagePath
-                                          );
-                                        },
-                                        onDelete: () async {
-                                          await _confirmDelete(context, petName);
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                  if (mounted) _loadHistory(); // Refresh
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.2)),
-                                  ),
-                                  child: const Icon(Icons.edit, color: AppDesign.textPrimaryDark, size: 18),
-                                ),
-                              ),
-
-                              const SizedBox(width: 24),
-
-                              // 4. TIMELINE
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => PetEventHistoryScreen(
-                                        petId: petName,
-                                        petName: petName,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: AppDesign.petPink.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
-                                  ),
-                                  child: const Icon(Icons.history_edu, color: AppDesign.petPink, size: 18),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        // --- PET EVENTS ACTION BAR ---
-                        EventActionBar(petId: petName),
-                        
-                        const SizedBox(height: 8),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: AppDesign.textPrimaryDark),
-                      onPressed: () => _confirmDelete(context, petName),
-                    ),
-                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             );
@@ -587,7 +374,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
   
   /// 🛡️ Builds pet avatar with photo or fallback (PADRÃO OBRIGATÓRIO)
-  Widget _buildPetAvatar(Map<String, dynamic> item) {
+  Widget _buildPetAvatar(Map<String, dynamic> item, {double radius = 28}) {
+
     String? imagePath = item['image_path'] as String?;
     
     // Fallback: Check inside data payload
@@ -644,7 +432,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     
     // ✅ PADRÃO OBRIGATÓRIO: CircleAvatar com proteções
     return CircleAvatar(
-      radius: 28,
+      radius: radius,
+
       backgroundColor: AppDesign.warning.withValues(alpha: 0.2),
       // 🛡️ backgroundImage APENAS se imagem válida
       backgroundImage: hasValidImage
@@ -677,7 +466,149 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     );
   }
 
+
+  Widget _buildQuickAction({required IconData icon, required String tooltip, required VoidCallback onTap, Color? color}) {
+    return InkWell(
+      onTap: onTap,
+      child: Tooltip(
+        message: tooltip,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: (color ?? Colors.white).withOpacity(0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: (color ?? Colors.white).withOpacity(0.1)),
+          ),
+          child: Icon(icon, color: color ?? Colors.white70, size: 18),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCTA({required String label, required IconData icon, required Color color, required VoidCallback onTap}) {
+    return ElevatedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 16),
+      label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color.withOpacity(0.1),
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: color.withOpacity(0.2)),
+        ),
+        elevation: 0,
+      ),
+    );
+  }
+
+  Future<void> _handleEditTap(Map<String, dynamic> item, String petName, dynamic data) async {
+    PetProfileExtended? loaded;
+    try {
+      final profileService = PetProfileService();
+      await profileService.init();
+      final existingMap = await profileService.getProfile(petName.trim());
+      if (existingMap != null && existingMap['data'] != null) {
+        final dataMap = deepCastMap(existingMap['data']);
+        loaded = PetProfileExtended.fromJson(dataMap);
+      }
+    } catch (e) {
+      debugPrint('Error loading full profile: $e');
+    }
+
+    if (!mounted) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPetForm(
+          existingProfile: loaded ?? PetProfileExtended(
+            petName: petName,
+            raca: data['breed'] ?? data['identificacao']?['raca_predominante'],
+            nivelAtividade: (data['perfil_comportamental']?['nivel_energia'] is int) 
+                ? ((data['perfil_comportamental']!['nivel_energia'] as int) > 3 ? 'Ativo' : ((data['perfil_comportamental']!['nivel_energia'] as int) < 3 ? 'Sedentário' : 'Moderado'))
+                : 'Moderado',
+            frequenciaBanho: data['higiene']?['banho_e_higiene']?['frequencia']?.toString() ?? 'Quinzenal',
+            imagePath: data['image_path'],
+            lastUpdated: DateTime.parse(data['timestamp'] ?? DateTime.now().toIso8601String()),
+            rawAnalysis: data != null ? deepCastMap(data) : null,
+          ),
+          onSave: (profile) async {
+            final service = PetProfileService();
+            await service.init();
+            final oldName = petName;
+            final newName = profile.petName;
+            
+            await service.saveOrUpdateProfile(newName, profile.toJson());
+            
+            final analysisData = profile.rawAnalysis ?? {};
+            if (profile.raca != null) {
+              if (analysisData['identificacao'] == null) analysisData['identificacao'] = {};
+              analysisData['identificacao']['raca_predominante'] = profile.raca;
+              analysisData['breed'] = profile.raca;
+            }
+            
+            if (oldName != newName) {
+              await HistoryService.deletePet(oldName);
+              await service.deleteProfile(oldName);
+            }
+            
+            await HistoryService().savePetAnalysis(newName, analysisData, imagePath: profile.imagePath);
+          },
+          onDelete: () => _confirmDelete(context, petName),
+        ),
+      ),
+    );
+    if (mounted) _loadHistory();
+  }
+
+  Future<void> _handleMenuGenTap(String petName) async {
+    final l10n = AppLocalizations.of(context)!;
+    final config = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => const PetMenuFilterDialog(),
+    );
+
+    if (config == null || !mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
+    );
+
+    try {
+      final service = PetProfileService();
+      await service.init();
+      final profile = await service.getProfile(petName.trim());
+      
+      await ref.read(petMenuGeneratorProvider).generateAndSave(
+        petId: petName.trim(),
+        profileData: profile?['data'] ?? {},
+        mode: config['mode'],
+        startDate: config['startDate'],
+        endDate: config['endDate'],
+        locale: Localizations.localeOf(context).toString(),
+        dietType: config['dietType'] as String,
+        otherNote: config['otherNote'] as String?,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success));
+        _loadHistory();
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: $e'), backgroundColor: AppDesign.error));
+      }
+    }
+  }
+
   Future<void> _confirmDelete(BuildContext context, String petName) async {
+
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,

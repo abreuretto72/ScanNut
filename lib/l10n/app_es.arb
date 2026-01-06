@@ -1477,5 +1477,16 @@
   "petLabelGrooming": "Higiene",
   "petLabelHealth": "Salud",
   "petLabelLifestyle": "Estilo de Vida",
-  "petLabelBehavior": "Comportamiento"
+  "petLabelBehavior": "Comportamiento",
+  "petMenuFilterTitle": "Generar Menú de Mascota",
+  "petMenuModeWeekly": "Semanal (7 días)",
+  "petMenuModeMonthly": "Mensual (28 días)",
+  "petMenuModeCustom": "Personalizado",
+  "petMenuStartDate": "Fecha de Inicio",
+  "petMenuEndDate": "Fecha de Fin",
+  "petMenuGenerateBtn": "Generar Menú",
+  "petMenuDateRangeError": "El período no puede exceder los 60 días.",
+  "petMenuSuccess": "¡Menú generado con éxito!",
+  "petMenuShoppingList": "Lista de Compras",
+  "petMenuShoppingListEmpty": "Ningún artículo en la lista."
 }

@@ -8434,6 +8434,402 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Comportamento'**
   String get petLabelBehavior;
+
+  /// No description provided for @petMenuFilterTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar Cardápio Pet'**
+  String get petMenuFilterTitle;
+
+  /// No description provided for @petMenuModeWeekly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Semanal (7 dias)'**
+  String get petMenuModeWeekly;
+
+  /// No description provided for @petMenuModeMonthly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mensal (28 dias)'**
+  String get petMenuModeMonthly;
+
+  /// No description provided for @petMenuModeCustom.
+  ///
+  /// In pt, this message translates to:
+  /// **'Personalizado'**
+  String get petMenuModeCustom;
+
+  /// No description provided for @petMenuStartDate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data de Início'**
+  String get petMenuStartDate;
+
+  /// No description provided for @petMenuEndDate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data de Fim'**
+  String get petMenuEndDate;
+
+  /// No description provided for @petMenuGenerateBtn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar Cardápio'**
+  String get petMenuGenerateBtn;
+
+  /// No description provided for @petMenuDateRangeError.
+  ///
+  /// In pt, this message translates to:
+  /// **'O período não pode exceder 60 dias.'**
+  String get petMenuDateRangeError;
+
+  /// No description provided for @petMenuSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cardápio gerado com sucesso!'**
+  String get petMenuSuccess;
+
+  /// No description provided for @petMenuShoppingList.
+  ///
+  /// In pt, this message translates to:
+  /// **'Lista de Compras'**
+  String get petMenuShoppingList;
+
+  /// No description provided for @petMenuShoppingListEmpty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum item na lista.'**
+  String get petMenuShoppingListEmpty;
+
+  /// No description provided for @petTabGenerate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar Cardápio'**
+  String get petTabGenerate;
+
+  /// No description provided for @petTabHistory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Histórico'**
+  String get petTabHistory;
+
+  /// No description provided for @petMenuDeleteWeekConfirm.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir esta semana do histórico?'**
+  String get petMenuDeleteWeekConfirm;
+
+  /// No description provided for @petMenuDeleteDayConfirm.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir o cardápio deste dia?'**
+  String get petMenuDeleteDayConfirm;
+
+  /// No description provided for @petMenuEditDayTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar Refeições do Dia'**
+  String get petMenuEditDayTitle;
+
+  /// No description provided for @petMenuGeneratePdfMulti.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar PDF ({count} semanas)'**
+  String petMenuGeneratePdfMulti(int count);
+
+  /// No description provided for @petMenuSelectionClear.
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpar seleção'**
+  String get petMenuSelectionClear;
+
+  /// No description provided for @petMenuEmptyHistory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum histórico encontrado. Gere um cardápio para começar!'**
+  String get petMenuEmptyHistory;
+
+  /// No description provided for @petMenuEditIngredientsHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Edite os ingredientes ou descrição...'**
+  String get petMenuEditIngredientsHint;
+
+  /// No description provided for @petMenuSaveSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alterações salvas com sucesso!'**
+  String get petMenuSaveSuccess;
+
+  /// No description provided for @petMenuDeletedSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Item excluído com sucesso!'**
+  String get petMenuDeletedSuccess;
+
+  /// No description provided for @petMenuPdfGenerated.
+  ///
+  /// In pt, this message translates to:
+  /// **'PDF gerado com sucesso!'**
+  String get petMenuPdfGenerated;
+
+  /// No description provided for @petViewMenu.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver Cardápio'**
+  String get petViewMenu;
+
+  /// No description provided for @commonItem.
+  ///
+  /// In pt, this message translates to:
+  /// **'Item'**
+  String get commonItem;
+
+  /// No description provided for @commonQuantity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Quantidade'**
+  String get commonQuantity;
+
+  /// No description provided for @commonCategory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Categoria'**
+  String get commonCategory;
+
+  /// No description provided for @dietTypeLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Dieta'**
+  String get dietTypeLabel;
+
+  /// No description provided for @dietRenal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Renal'**
+  String get dietRenal;
+
+  /// No description provided for @dietHepatic.
+  ///
+  /// In pt, this message translates to:
+  /// **'Hepática'**
+  String get dietHepatic;
+
+  /// No description provided for @dietGastrointestinal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gastrointestinal'**
+  String get dietGastrointestinal;
+
+  /// No description provided for @dietHypoallergenic.
+  ///
+  /// In pt, this message translates to:
+  /// **'Hipoalergênica'**
+  String get dietHypoallergenic;
+
+  /// No description provided for @dietObesity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Obesidade (Perda de peso)'**
+  String get dietObesity;
+
+  /// No description provided for @dietDiabetes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diabetes'**
+  String get dietDiabetes;
+
+  /// No description provided for @dietCardiac.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cardíaca'**
+  String get dietCardiac;
+
+  /// No description provided for @dietUrinary.
+  ///
+  /// In pt, this message translates to:
+  /// **'Urinária'**
+  String get dietUrinary;
+
+  /// No description provided for @dietMuscleGain.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ganho muscular'**
+  String get dietMuscleGain;
+
+  /// No description provided for @dietPediatric.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infantil'**
+  String get dietPediatric;
+
+  /// No description provided for @dietGrowth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Crescimento'**
+  String get dietGrowth;
+
+  /// No description provided for @dietOther.
+  ///
+  /// In pt, this message translates to:
+  /// **'Outra'**
+  String get dietOther;
+
+  /// No description provided for @dietOtherHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Especifique (máx 60 caracteres)'**
+  String get dietOtherHint;
+
+  /// No description provided for @dietRequiredError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione um tipo de dieta'**
+  String get dietRequiredError;
+
+  /// No description provided for @dietOtherRequiredError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Especifique a dieta'**
+  String get dietOtherRequiredError;
+
+  /// No description provided for @petEvent_addTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registrar Evento'**
+  String get petEvent_addTitle;
+
+  /// No description provided for @petEvent_notes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Notas/Observações'**
+  String get petEvent_notes;
+
+  /// No description provided for @petEvent_save.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvar Evento'**
+  String get petEvent_save;
+
+  /// No description provided for @petEvent_cancel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cancelar'**
+  String get petEvent_cancel;
+
+  /// No description provided for @petEvent_details.
+  ///
+  /// In pt, this message translates to:
+  /// **'Detalhes Adicionais'**
+  String get petEvent_details;
+
+  /// No description provided for @petEvent_group_food.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimentação'**
+  String get petEvent_group_food;
+
+  /// No description provided for @petEvent_group_health.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde'**
+  String get petEvent_group_health;
+
+  /// No description provided for @petEvent_group_elimination.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fezes/Urina'**
+  String get petEvent_group_elimination;
+
+  /// No description provided for @petEvent_group_grooming.
+  ///
+  /// In pt, this message translates to:
+  /// **'Higiene'**
+  String get petEvent_group_grooming;
+
+  /// No description provided for @petEvent_group_activity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atividade'**
+  String get petEvent_group_activity;
+
+  /// No description provided for @petEvent_group_behavior.
+  ///
+  /// In pt, this message translates to:
+  /// **'Comportamento'**
+  String get petEvent_group_behavior;
+
+  /// No description provided for @petEvent_group_schedule.
+  ///
+  /// In pt, this message translates to:
+  /// **'Agenda'**
+  String get petEvent_group_schedule;
+
+  /// No description provided for @petEvent_group_media.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mídia'**
+  String get petEvent_group_media;
+
+  /// No description provided for @petEvent_group_metrics.
+  ///
+  /// In pt, this message translates to:
+  /// **'Métricas'**
+  String get petEvent_group_metrics;
+
+  /// No description provided for @petEvent_savedSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Evento registrado ✅'**
+  String get petEvent_savedSuccess;
+
+  /// No description provided for @petEvent_saveError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível salvar. Tente novamente.'**
+  String get petEvent_saveError;
+
+  /// No description provided for @petEvent_attachError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível anexar este arquivo.'**
+  String get petEvent_attachError;
+
+  /// No description provided for @petEvent_todayCount.
+  ///
+  /// In pt, this message translates to:
+  /// **'Hoje'**
+  String get petEvent_todayCount;
+
+  /// No description provided for @petEvent_historyTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Linha do Tempo'**
+  String get petEvent_historyTitle;
+
+  /// No description provided for @petEvent_includeInPdf.
+  ///
+  /// In pt, this message translates to:
+  /// **'Incluir no Relatório PDF'**
+  String get petEvent_includeInPdf;
+
+  /// No description provided for @petEvent_emptyHistory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum evento registrado ainda.'**
+  String get petEvent_emptyHistory;
+
+  /// No description provided for @petEvent_group.
+  ///
+  /// In pt, this message translates to:
+  /// **'Grupo'**
+  String get petEvent_group;
+
+  /// No description provided for @petEvent_type.
+  ///
+  /// In pt, this message translates to:
+  /// **'Subtipo'**
+  String get petEvent_type;
 }
 
 class _AppLocalizationsDelegate

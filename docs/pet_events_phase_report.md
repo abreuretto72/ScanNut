@@ -47,6 +47,16 @@
 - **Performance**: Average generation time ~1.5s (with thumbnails). Average size ~200KB-800KB depending on images.
 - **i18n**: Fully localized.
 
+## Phase 6: REFORMA COMPLETA DA UI DO CARD (ESCALABILIDADE)
+- **Status**: PASS ✅
+- **Files Created/Modified**:
+  - `lib/features/pet/presentation/widgets/pet_event_grid.dart` (New Grid 3xN)
+  - `lib/features/pet/presentation/pet_history_screen.dart` (Full overhaul)
+  - `lib/features/pet/presentation/widgets/pet_event_bottom_sheet.dart` (Extra groups)
+  - `lib/l10n/app_pt.arb` & `app_en.arb` (New groups)
+- **Actions**: Implemented the 4-block layout (Identity, Quick Actions, Event Grid, CTAs). Separated pet management from event logging. Scaled to 13 groups.
+- **Visuals**: Circular photo (88px), expansion tile for clean view, and premium semantic grouping.
+
 ---
 **Riscos restantes**:
 - Nenhum risco crítico identificado. Testes de borda com muitos anexos recomendados.

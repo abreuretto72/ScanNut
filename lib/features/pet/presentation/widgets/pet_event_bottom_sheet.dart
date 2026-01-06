@@ -52,7 +52,14 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     'schedule': ['lembrete', 'consulta', 'vacina', 'banho'],
     'media': ['foto', 'vídeo'],
     'metrics': ['peso', 'medidas', 'humor'],
+    'medication': ['comprimido', 'xarope', 'gotas', 'pomada', 'injeção'],
+    'documents': ['registro', 'viagem', 'seguro', 'contrato'],
+    'exams': ['sangue', 'imagem', 'urina', 'fezes', 'biópsia'],
+    'allergies': ['alimentar', 'picada', 'medicamento', 'contato'],
+    'dentistry': ['limpeza', 'extração', 'dor', 'tártaro'],
+    'other': ['anotação', 'evento'],
   };
+
 
   @override
   void initState() {
@@ -617,9 +624,16 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
       case 'schedule': return Icons.event;
       case 'media': return Icons.photo_camera;
       case 'metrics': return Icons.straighten;
+      case 'medication': return Icons.medication;
+      case 'documents': return Icons.description;
+      case 'exams': return Icons.biotech;
+      case 'allergies': return Icons.warning_amber;
+      case 'dentistry': return Icons.health_and_safety;
+      case 'other': return Icons.bookmark_border;
       default: return Icons.event_note;
     }
   }
+
 
   Future<void> _pickDateTime() async {
     final date = await showDatePicker(

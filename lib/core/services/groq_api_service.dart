@@ -77,6 +77,34 @@ class GroqApiService {
     }
   }
 
+  Future<String?> generateText(String prompt) async {
+    try {
+      final response = await _dio.post(
+        '/chat/completions',
+        data: {
+          'model': 'llama3-70b-8192', 
+          'messages': [
+            {
+              'role': 'user',
+              'content': prompt,
+            }
+          ],
+          'temperature': 0.1,
+          'max_tokens': 4096,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final content = response.data['choices'][0]['message']['content'];
+        return content.toString();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error generating text: $e');
+      rethrow;
+    }
+  }
+
   void _showErrorSnackBar(DioException e) {
     String message = 'Imagem difere da categoria ou sem conexão';
     if (e.type == DioExceptionType.connectionTimeout) {

@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/json_cast.dart';
 
 final historyServiceProvider = Provider((ref) => HistoryService());
 
@@ -16,8 +17,9 @@ class HistoryService {
       throw Exception('Database not ready. Please login.');
     }
     final box = Hive.box(boxName);
-    return box.values.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    return deepCastMapList(box.values.toList());
   }
+
 
   static Future<void> deleteItem(int index) async {
      final box = Hive.box(boxName);

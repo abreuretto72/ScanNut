@@ -8,6 +8,8 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'pet_event_service.dart';
+import '../../../core/utils/json_cast.dart';
+
 
 /// Service for managing pet profiles (Raça & ID data)
 class PetProfileService {
@@ -75,7 +77,8 @@ class PetProfileService {
           return null;
       }
       debugPrint('✅ Profile loaded for key: "$key"');
-      return Map<String, dynamic>.from(profile as Map);
+      return deepCastMap(profile);
+
     } catch (e) {
       debugPrint('❌ Error getting profile: $e');
       return null;
@@ -132,8 +135,9 @@ class PetProfileService {
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
-              final map = Map<String, dynamic>.from(entry as Map);
-              final data = Map<String, dynamic>.from(map['data'] as Map);
+              final map = deepCastMap(entry);
+              final data = deepCastMap(map['data']);
+
               data['linked_partner_ids'] = linkedPartnerIds;
               
               map['data'] = data;
@@ -158,8 +162,9 @@ class PetProfileService {
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
-              final map = Map<String, dynamic>.from(entry as Map);
-              final data = Map<String, dynamic>.from(map['data'] as Map);
+              final map = deepCastMap(entry);
+              final data = deepCastMap(map['data']);
+
               data['agendaEvents'] = events;
               
               map['data'] = data;
@@ -184,8 +189,9 @@ class PetProfileService {
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
-              final map = Map<String, dynamic>.from(entry as Map);
-              final data = Map<String, dynamic>.from(map['data'] as Map);
+              final map = deepCastMap(entry);
+              final data = deepCastMap(map['data']);
+
               data['partner_notes'] = notes;
               
               map['data'] = data;
@@ -213,8 +219,9 @@ class PetProfileService {
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
-              final map = Map<String, dynamic>.from(entry as Map);
-              final data = Map<String, dynamic>.from(map['data'] as Map);
+              final map = deepCastMap(entry);
+              final data = deepCastMap(map['data']);
+
               
               // CRITICAL: Preserve all keys (especially 'refeicoes' array)
               final List<Map<String, dynamic>> sanitizedPlan = menuPlan.map((item) {
@@ -261,10 +268,8 @@ class PetProfileService {
               final data = Map<String, dynamic>.from(map['data'] as Map);
               
               // Get existing wound analysis history or create new list
-              final List<Map<String, dynamic>> history = 
-                  (data['wound_analysis_history'] as List?)
-                      ?.map((e) => Map<String, dynamic>.from(e as Map))
-                      .toList() ?? [];
+              final List<Map<String, dynamic>> history = deepCastMapList(data['wound_analysis_history']);
+
               
               // Add new analysis with timestamp
               final newEntry = {
@@ -308,10 +313,8 @@ class PetProfileService {
               final data = Map<String, dynamic>.from(map['data'] as Map);
               
               // Get existing wound analysis history
-              final List<Map<String, dynamic>> history = 
-                  (data['wound_analysis_history'] as List?)
-                      ?.map((e) => Map<String, dynamic>.from(e as Map))
-                      .toList() ?? [];
+              final List<Map<String, dynamic>> history = deepCastMapList(data['wound_analysis_history']);
+
               
               // Remove the analysis with matching date
               history.removeWhere((analysis) => analysis['date'] == analysisDate);
