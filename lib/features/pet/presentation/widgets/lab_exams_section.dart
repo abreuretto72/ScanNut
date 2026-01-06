@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:scannut/l10n/app_localizations.dart';
 import '../../models/lab_exam.dart';
+import '../../../../core/theme/app_design.dart';
 
 /// Expanded Lab Exams Section with Categories, OCR, and AI Explanation
 class LabExamsSection extends StatefulWidget {
@@ -53,7 +54,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
       children: [
         Row(
           children: [
-            const Icon(Icons.science, color: Color(0xFF00E676), size: 20),
+            const Icon(Icons.science, color: AppDesign.petPink, size: 20),
             const SizedBox(width: 8),
             Text(
               '🧪 ${AppLocalizations.of(context)!.labExamsTitle}',
@@ -128,7 +129,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                   ],
                 ),
                 trailing: IconButton(
-                  icon: const Icon(Icons.add_circle_outline, color: Color(0xFF00E676)),
+                  icon: const Icon(Icons.add_circle_outline, color: AppDesign.petPink),
                   onPressed: () => _showAddExamDialog(category),
                   tooltip: '${AppLocalizations.of(context)!.agendaAdd} ${_getCategoryName(category.id, context)}',
                 ),
@@ -257,7 +258,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
           if (exam.isProcessing) ...[
             const SizedBox(height: 12),
             const LinearProgressIndicator(
-              color: Color(0xFF00E676),
+              color: AppDesign.petPink,
               backgroundColor: Colors.white10,
             ),
             const SizedBox(height: 4),
@@ -290,21 +291,21 @@ class _LabExamsSectionState extends State<LabExamsSection> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF00E676).withOpacity(0.1),
+                color: AppDesign.petPink.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3)),
+                border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.lightbulb, color: Color(0xFF00E676), size: 16),
+                      const Icon(Icons.lightbulb, color: AppDesign.petPink, size: 16),
                       const SizedBox(width: 6),
                         Text(
                           AppLocalizations.of(context)!.aiAnalysis,
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF00E676),
+                          color: AppDesign.petPink,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),

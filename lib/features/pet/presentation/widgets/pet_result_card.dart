@@ -537,9 +537,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 pw.Container(
                   padding: const pw.EdgeInsets.all(10),
                   decoration: pw.BoxDecoration(
-                    color: PdfColors.teal50,
+                    color: PdfColors.pink50,
                     borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(color: PdfColors.teal900),
+                    border: pw.Border.all(color: PdfColors.pink900),
                   ),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -547,7 +547,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       pw.Row(
                         children: [
                           pw.Text("🦴 ", style: const pw.TextStyle(fontSize: 12)),
-                          pw.Text(l10n.pdfFieldOralBoneHealth, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.teal900)),
+                          pw.Text(l10n.pdfFieldOralBoneHealth, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
                         ],
                       ),
                       pw.SizedBox(height: 6),
@@ -880,7 +880,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         const SizedBox(height: 16),
         _buildSectionCard(title: AppLocalizations.of(context)!.petPossibleCauses, icon: Icons.list, color: Colors.purpleAccent, child: Text(widget.analysis.possiveisCausas.join('\n• '), style: const TextStyle(color: Colors.white70))),
         const SizedBox(height: 16),
-        _buildSectionCard(title: AppLocalizations.of(context)!.petSpecialistOrientation, icon: Icons.medical_services, color: Colors.tealAccent, child: Text(widget.analysis.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const TextStyle(color: Colors.white))),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petSpecialistOrientation, icon: Icons.medical_services, color: AppDesign.petPink, child: Text(widget.analysis.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const TextStyle(color: Colors.white))),
         const SizedBox(height: 48),
       ],
     );

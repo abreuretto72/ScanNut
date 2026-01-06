@@ -12,6 +12,7 @@ import 'package:scannut/l10n/app_localizations.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
+import '../../../../core/theme/app_design.dart';
 import '../../services/pet_profile_service.dart';
 import '../../services/meal_plan_service.dart';
 import 'edit_pet_form.dart'; // Import to link back
@@ -283,8 +284,8 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF00E676),
-          labelColor: const Color(0xFF00E676),
+          indicatorColor: AppDesign.petPink,
+          labelColor: AppDesign.petPink,
           unselectedLabelColor: Colors.white54,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
           tabs: [
@@ -295,7 +296,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
         ),
       ),
       body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
+        ? const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
         : TabBarView(
             controller: _tabController,
             children: [
@@ -342,7 +343,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                       },
                       icon: const Icon(Icons.edit_calendar, color: Colors.black),
                       label: Text(AppLocalizations.of(context)!.menuGenerateEdit),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
                    ),
                  ],
                ),
@@ -413,8 +414,8 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                     children: [
                        Container(
                           padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: const Color(0xFF00E676).withOpacity(0.2), shape: BoxShape.circle),
-                          child: const Icon(Icons.restaurant, color: Color(0xFF00E676), size: 16),
+                          decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.2), shape: BoxShape.circle),
+                          child: const Icon(Icons.restaurant, color: AppDesign.petPink, size: 16),
                        ),
                        const SizedBox(width: 12),
                        Text(dia, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
@@ -431,7 +432,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                              children: [
                                 Row(
                                    children: [
-                                      Text('${r['hora'] ?? '--:--'}', style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12)),
+                                      Text('${r['hora'] ?? '--:--'}', style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 12)),
                                       const SizedBox(width: 8),
                                       Text(r['titulo'] ?? AppLocalizations.of(context)!.pdfRefeicao, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                                    ],
@@ -479,7 +480,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) => AlertDialog(
           backgroundColor: Colors.grey[900],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: Color(0xFF00E676))),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: const BorderSide(color: AppDesign.petPink)),
           title: Text(AppLocalizations.of(context)!.menuExportTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -492,19 +493,19 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                   children: [
                     CheckboxListTile(
                       title: Text(AppLocalizations.of(context)!.menuLastWeek),
-                      activeColor: const Color(0xFF00E676),
+                      activeColor: AppDesign.petPink,
                       value: includePast,
                       onChanged: (v) => setModalState(() => includePast = v!),
                     ),
                     CheckboxListTile(
                       title: Text(AppLocalizations.of(context)!.menuCurrentWeek),
-                      activeColor: const Color(0xFF00E676),
+                      activeColor: AppDesign.petPink,
                       value: includeCurrent,
                       onChanged: (v) => setModalState(() => includeCurrent = v!),
                     ),
                     CheckboxListTile(
                       title: Text(AppLocalizations.of(context)!.menuNextWeek),
-                      activeColor: const Color(0xFF00E676),
+                      activeColor: AppDesign.petPink,
                       value: includeNext,
                       onChanged: (v) => setModalState(() => includeNext = v!),
                     ),
@@ -520,7 +521,7 @@ class _WeeklyMenuScreenState extends State<WeeklyMenuScreen> with SingleTickerPr
                 Navigator.pop(ctx);
                 _proceedWithPDF(includePast, includeCurrent, includeNext);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+              style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
               child: Text(AppLocalizations.of(context)!.menuExportReport),
             ),
           ],

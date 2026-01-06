@@ -876,14 +876,14 @@ class _EditPetFormState extends State<EditPetForm>
                     Container(
                       margin: const EdgeInsets.only(left: 8),
                       padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(color: const Color(0xFF00E676), shape: BoxShape.circle),
+                      decoration: BoxDecoration(color: AppDesign.petPink, shape: BoxShape.circle),
                       child: Text('${docs.length}', style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
                     ),
                 ],
               ),
               IconButton( // Small Add Button
                 onPressed: () => _addAttachment(type),
-                icon: const Icon(Icons.add_circle_outline, color: Color(0xFF00E676), size: 20),
+                icon: const Icon(Icons.add_circle_outline, color: AppDesign.petPink, size: 20),
                 constraints: const BoxConstraints(),
                 padding: EdgeInsets.zero,
                 tooltip: AppLocalizations.of(context)!.commonAdd,
@@ -964,8 +964,8 @@ class _EditPetFormState extends State<EditPetForm>
           ),
           bottom: TabBar(
             controller: _tabController,
-            indicatorColor: const Color(0xFF00E676),
-            labelColor: const Color(0xFF00E676),
+            indicatorColor: AppDesign.petPink,
+            labelColor: AppDesign.petPink,
             unselectedLabelColor: Colors.white60,
             tabs: [
               Tab(icon: const Icon(Icons.pets), text: AppLocalizations.of(context)!.petIdentity),
@@ -1156,7 +1156,7 @@ class _EditPetFormState extends State<EditPetForm>
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Text(type, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold)),
+                    Text(type, style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold)),
                     const Icon(Icons.history, size: 16, color: Colors.white30)
                 ]),
                 
@@ -1251,9 +1251,9 @@ class _EditPetFormState extends State<EditPetForm>
                                padding: const EdgeInsets.all(8),
                                decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white12)),
                                child: Row(children: [
-                                   const Icon(Icons.image, color: Color(0xFF00E676), size: 20),
+                                   const Icon(Icons.image, color: AppDesign.petPink, size: 20),
                                    const SizedBox(width: 8),
-                                   Expanded(child: Text(AppLocalizations.of(context)!.petAnalysisViewImage, style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12))),
+                                   Expanded(child: Text(AppLocalizations.of(context)!.petAnalysisViewImage, style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 12))),
                                    const Icon(Icons.open_in_new, color: Colors.white30, size: 16)
                                ]),
                            )
@@ -1281,7 +1281,7 @@ class _EditPetFormState extends State<EditPetForm>
                        child: Row(
                            crossAxisAlignment: CrossAxisAlignment.start,
                            children: [
-                               Text('${e.key.toUpperCase().replaceAll('_', ' ')}: ', style: const TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.bold)),
+                               Text('${e.key.toUpperCase().replaceAll('_', ' ')}: ', style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.bold)),
                                Expanded(child: Text(val.toString(), style: const TextStyle(color: Colors.white70, fontSize: 11))),
                            ]
                        ),
@@ -1301,7 +1301,7 @@ class _EditPetFormState extends State<EditPetForm>
         return ps.getAllPartners();
       })(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: AppDesign.petPink));
         
         final allPartners = snapshot.data!;
         final filterAll = AppLocalizations.of(context)!.partnersFilterAll;
@@ -1326,7 +1326,7 @@ class _EditPetFormState extends State<EditPetForm>
                         selected: isSelected,
                         onSelected: (v) => setState(() => _selectedPartnerFilter = cat),
                         backgroundColor: Colors.white.withOpacity(0.05),
-                        selectedColor: const Color(0xFF00E676),
+                        selectedColor: AppDesign.petPink,
                         labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white),
                         checkmarkColor: Colors.black,
                       ),
@@ -1416,7 +1416,7 @@ class _EditPetFormState extends State<EditPetForm>
                               ),
                               Switch(
                                 value: false,
-                                activeColor: const Color(0xFF00E676),
+                                activeColor: AppDesign.petPink,
                                 onChanged: (val) async {
                                   if (val) {
                                     setState(() {
@@ -1548,7 +1548,7 @@ class _EditPetFormState extends State<EditPetForm>
             _onUserTyping();
           },
           icon: Icons.pets,
-          accentColor: const Color(0xFF00E676),
+          accentColor: AppDesign.petPink,
         ),
 
         _buildAttachmentSection('identity', AppLocalizations.of(context)!.pdfIdentitySection),
@@ -2197,7 +2197,7 @@ class _EditPetFormState extends State<EditPetForm>
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white60),
-          prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
+          prefixIcon: Icon(icon, color: AppDesign.petPink),
           filled: true,
           fillColor: Colors.white.withOpacity(0.1),
           border: OutlineInputBorder(
@@ -2206,7 +2206,7 @@ class _EditPetFormState extends State<EditPetForm>
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF00E676), width: 2),
+            borderSide: const BorderSide(color: AppDesign.petPink, width: 2),
           ),
         ),
         validator: validator,
@@ -2234,7 +2234,7 @@ class _EditPetFormState extends State<EditPetForm>
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(color: Colors.white60),
-          prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
+          prefixIcon: Icon(icon, color: AppDesign.petPink),
           filled: true,
           fillColor: Colors.white.withOpacity(0.1),
           border: OutlineInputBorder(
@@ -2274,7 +2274,7 @@ class _EditPetFormState extends State<EditPetForm>
               return Theme(
                 data: Theme.of(context).copyWith(
                   colorScheme: const ColorScheme.dark(
-                    primary: Color(0xFF00E676),
+                    primary: AppDesign.petPink,
                     onSurface: Colors.white,
                   ),
                 ),
@@ -2292,7 +2292,7 @@ class _EditPetFormState extends State<EditPetForm>
           ),
           child: Row(
             children: [
-              Icon(icon, color: const Color(0xFF00E676)),
+              Icon(icon, color: AppDesign.petPink),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -2346,7 +2346,7 @@ class _EditPetFormState extends State<EditPetForm>
                 decoration: InputDecoration(
                   labelText: label,
                   labelStyle: const TextStyle(color: Colors.white60),
-                  prefixIcon: Icon(icon, color: const Color(0xFF00E676)),
+                  prefixIcon: Icon(icon, color: AppDesign.petPink),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),
                   border: OutlineInputBorder(
@@ -2368,7 +2368,7 @@ class _EditPetFormState extends State<EditPetForm>
                   onAdd(controller.text.trim());
                 }
               },
-              icon: const Icon(Icons.add_circle, color: Color(0xFF00E676), size: 32),
+              icon: const Icon(Icons.add_circle, color: AppDesign.petPink, size: 32),
             ),
           ],
         ),
@@ -2421,7 +2421,7 @@ class _EditPetFormState extends State<EditPetForm>
                     backgroundColor: Colors.grey[900],
                     title: Row(
                        children: [
-                          Icon(Icons.auto_awesome, color: const Color(0xFF00E676)),
+                          Icon(Icons.auto_awesome, color: AppDesign.petPink),
                           const SizedBox(width: 10),
                           Text(AppLocalizations.of(context)!.menuPlanTitle, style: const TextStyle(color: Colors.white, fontSize: 16)),
                        ],
@@ -2442,7 +2442,7 @@ class _EditPetFormState extends State<EditPetForm>
                                       initialDateRange: selectedDateRange,
                                       builder: (context, child) => Theme(
                                         data: Theme.of(context).copyWith(
-                                          colorScheme: const ColorScheme.dark(primary: Color(0xFF00E676), onPrimary: Colors.black, onSurface: Colors.white),
+                                          colorScheme: const ColorScheme.dark(primary: AppDesign.petPink, onPrimary: Colors.black, onSurface: Colors.white),
                                         ),
                                         child: child!,
                                       ),
@@ -2461,7 +2461,7 @@ class _EditPetFormState extends State<EditPetForm>
                                             : AppLocalizations.of(context)!.selectDates,
                                             style: const TextStyle(color: Colors.white),
                                          ),
-                                         const Icon(Icons.calendar_today, color: Color(0xFF00E676), size: 16),
+                                         const Icon(Icons.calendar_today, color: AppDesign.petPink, size: 16),
                                       ],
                                    ),
                                 ),
@@ -2471,7 +2471,7 @@ class _EditPetFormState extends State<EditPetForm>
                              CheckboxListTile(
                                 title: Text(AppLocalizations.of(context)!.dietNatural, style: const TextStyle(color: Colors.white, fontSize: 14)),
                                 value: isNatural,
-                                activeColor: const Color(0xFF00E676),
+                                activeColor: AppDesign.petPink,
                                 checkColor: Colors.black,
                                 contentPadding: EdgeInsets.zero,
                                 onChanged: (v) => setDialogState(() => isNatural = v ?? false),
@@ -2479,7 +2479,7 @@ class _EditPetFormState extends State<EditPetForm>
                              CheckboxListTile(
                                 title: Text(AppLocalizations.of(context)!.dietKibble, style: const TextStyle(color: Colors.white, fontSize: 14)),
                                 value: isKibble,
-                                activeColor: const Color(0xFF00E676),
+                                activeColor: AppDesign.petPink,
                                 checkColor: Colors.black,
                                 contentPadding: EdgeInsets.zero,
                                 onChanged: (v) => setDialogState(() => isKibble = v ?? false),
@@ -2515,7 +2515,7 @@ class _EditPetFormState extends State<EditPetForm>
                     actions: [
                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: Colors.white54))),
                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
                           onPressed: () {
                              if (!isNatural && !isKibble) {
                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.selectRegime)));
@@ -2548,7 +2548,7 @@ class _EditPetFormState extends State<EditPetForm>
               child: Column(
                  mainAxisSize: MainAxisSize.min,
                  children: [
-                    const CircularProgressIndicator(color: Color(0xFF00E676)),
+                    const CircularProgressIndicator(color: AppDesign.petPink),
                     const SizedBox(height: 16),
                     Text(
                       AppLocalizations.of(context)!.aiCalculatingMetrics,
@@ -2690,7 +2690,7 @@ class _EditPetFormState extends State<EditPetForm>
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(AppLocalizations.of(context)!.menuPlannedSuccess),
-            backgroundColor: const Color(0xFF00E676),
+            backgroundColor: AppDesign.petPink,
         ));
 
      } catch (e, stack) {
@@ -2728,16 +2728,16 @@ class _EditPetFormState extends State<EditPetForm>
                    Container(
                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                      decoration: BoxDecoration(
-                         color: const Color(0xFF00E676).withOpacity(0.1),
+                         color: AppDesign.petPink.withOpacity(0.1),
                          borderRadius: BorderRadius.circular(20),
-                         border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3))
+                         border: Border.all(color: AppDesign.petPink.withOpacity(0.3))
                      ),
                      child: Row(
                        mainAxisSize: MainAxisSize.min,
                        children: [
-                         Text(AppLocalizations.of(context)!.petSeeFull, style: const TextStyle(color: Color(0xFF00E676), fontSize: 12, fontWeight: FontWeight.bold)),
+                         Text(AppLocalizations.of(context)!.petSeeFull, style: const TextStyle(color: AppDesign.petPink, fontSize: 12, fontWeight: FontWeight.bold)),
                          const SizedBox(width: 4),
-                         const Icon(Icons.arrow_forward, color: Color(0xFF00E676), size: 14),
+                         const Icon(Icons.arrow_forward, color: AppDesign.petPink, size: 14),
                        ],
                      ),
                    )
@@ -2778,7 +2778,7 @@ class _EditPetFormState extends State<EditPetForm>
                ExpansionTile(
                   title: Text(AppLocalizations.of(context)!.petOrigin, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
                   collapsedIconColor: Colors.white54,
-                  iconColor: const Color(0xFF00E676),
+                  iconColor: AppDesign.petPink,
                   children: [Padding(padding: const EdgeInsets.all(8), child: Text(origem, style: const TextStyle(color: Colors.white70)))],
                )
            ],
@@ -2835,7 +2835,7 @@ class _EditPetFormState extends State<EditPetForm>
               child: ElevatedButton.icon(
                   icon: const Icon(Icons.restaurant_menu),
                   label: Text(AppLocalizations.of(context)!.petGenerateWeeklyMenu),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
                   onPressed: _generateNewMenu,
               )
           )
@@ -2861,7 +2861,7 @@ class _EditPetFormState extends State<EditPetForm>
             children: [
                 _buildSectionTitle('📅 ${AppLocalizations.of(context)!.petWeeklyPlanTitle}'),
                 IconButton(
-                    icon: const Icon(Icons.restaurant_menu, color: Color(0xFF00E676)),
+                    icon: const Icon(Icons.restaurant_menu, color: AppDesign.petPink),
                     tooltip: AppLocalizations.of(context)!.petGenerateWeeklyMenu,
                     onPressed: _generateNewMenu,
                 ),
@@ -2925,8 +2925,8 @@ class _EditPetFormState extends State<EditPetForm>
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
                 title: Text(diaTitulo, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                leading: const Icon(Icons.calendar_month, color: Color(0xFF00E676), size: 22),
-                iconColor: const Color(0xFF00E676),
+                leading: const Icon(Icons.calendar_month, color: AppDesign.petPink, size: 22),
+                iconColor: AppDesign.petPink,
                 collapsedIconColor: Colors.white54,
                 children: [
                   ...refeicoes.map((r) => _buildMealDetailItem(r)).toList(),
@@ -2960,8 +2960,8 @@ class _EditPetFormState extends State<EditPetForm>
                       children: [
                           Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(color: const Color(0xFF00E676).withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
-                              child: Text(hora, style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11)),
+                              decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                              child: Text(hora, style: GoogleFonts.poppins(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 11)),
                           ),
                           const SizedBox(width: 10),
                           Expanded(child: Text(titulo, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15))),
@@ -3194,7 +3194,7 @@ class _EditPetFormState extends State<EditPetForm>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.ocrSuccess),
-            backgroundColor: const Color(0xFF00E676),
+            backgroundColor: AppDesign.petPink,
           ),
         );
       }
@@ -3222,7 +3222,7 @@ class _EditPetFormState extends State<EditPetForm>
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00E676)),
+        child: CircularProgressIndicator(color: AppDesign.petPink),
       ),
     );
     
@@ -3669,7 +3669,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
       isDense: true,
       border: const OutlineInputBorder(),
       enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+      focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: AppDesign.petPink)),
     );
   }
 
@@ -3827,7 +3827,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
                const SizedBox(width: 8),
                ElevatedButton(
                  onPressed: _saveEvent,
-                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+                 style: ElevatedButton.styleFrom(backgroundColor: AppDesign.petPink, foregroundColor: Colors.black),
                  child: Text(AppLocalizations.of(context)!.agendaAdd),
                )
              ],
@@ -3862,7 +3862,7 @@ class _PartnerAgendaSheetState extends State<_PartnerAgendaSheet> {
               ),
               if (!_isAdding)
                 IconButton(
-                    icon: const Icon(Icons.add_circle, color: Color(0xFF00E676)), 
+                    icon: const Icon(Icons.add_circle, color: AppDesign.petPink), 
                     onPressed: () => setState(() => _isAdding = true)
                 ),
               IconButton(icon: const Icon(Icons.close, color: Colors.white54), onPressed: () => Navigator.pop(context))
@@ -3981,7 +3981,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
     return Card(
       color: Colors.white.withOpacity(0.08),
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: const Color(0xFF00E676).withOpacity(0.3))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppDesign.petPink.withOpacity(0.3))),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -3996,7 +3996,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                              crossAxisAlignment: CrossAxisAlignment.start,
                              children: [
                                  Text(widget.partner.name, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                 Text(widget.partner.category, style: const TextStyle(color: Color(0xFF00E676), fontSize: 12)),
+                                 Text(widget.partner.category, style: const TextStyle(color: AppDesign.petPink, fontSize: 12)),
                              ],
                          ),
                      ),
@@ -4004,7 +4004,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                        children: [
                          Switch(
                              value: true, 
-                             activeColor: const Color(0xFF00E676),
+                             activeColor: AppDesign.petPink,
                              onChanged: (v) {
                                  if (!v) widget.onUnlink();
                              }
@@ -4055,7 +4055,7 @@ class _LinkedPartnerCardState extends State<_LinkedPartnerCard> {
                                  hintText: AppLocalizations.of(context)!.petPartnersPhoneHint,
                                  hintStyle: const TextStyle(color: Colors.white30),
                                  enabledBorder: InputBorder.none,
-                                 focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF00E676))),
+                                 focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.petPink)),
                              ),
                              keyboardType: TextInputType.phone,
                              onChanged: _updatePhone,

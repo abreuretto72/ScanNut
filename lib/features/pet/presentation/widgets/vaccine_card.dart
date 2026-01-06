@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/vaccine_status_provider.dart';
 import '../../services/vaccine_status_service.dart';
+import '../../../../core/theme/app_design.dart';
 
 class VaccineCard extends StatelessWidget {
   final Map<String, dynamic> vaccinationProtocol;
@@ -117,21 +118,21 @@ class VaccineCard extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: AppDesign.petPink.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.withOpacity(0.3)),
+                border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.calendar_month, color: Colors.greenAccent, size: 20),
+                      const Icon(Icons.calendar_month, color: AppDesign.petPink, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Calendário Preventivo',
                         style: GoogleFonts.poppins(
-                          color: Colors.greenAccent,
+                          color: AppDesign.petPink,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -247,21 +248,21 @@ class VaccineCard extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.teal.withOpacity(0.1),
+                color: AppDesign.petPink.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.teal.withOpacity(0.3)),
+                border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.pets, color: Colors.tealAccent, size: 20),
+                      const Icon(Icons.pets, color: AppDesign.petPink, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Saúde Bucal e Óssea',
                         style: GoogleFonts.poppins(
-                          color: Colors.tealAccent,
+                          color: AppDesign.petPink,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -408,12 +409,12 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: _isChecked 
-            ? Colors.green.withOpacity(0.1)
+            ? AppDesign.petPink.withOpacity(0.1)
             : Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: _isChecked 
-              ? Colors.green.withOpacity(0.5)
+              ? AppDesign.petPink.withOpacity(0.5)
               : Colors.white.withOpacity(0.1),
         ),
       ),
@@ -433,7 +434,7 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
                 margin: const EdgeInsets.only(top: 2),
                 child: Icon(
                   _isChecked ? Icons.check_circle : Icons.circle_outlined,
-                  color: _isChecked ? Colors.green : Colors.white54,
+                  color: _isChecked ? AppDesign.petPink : Colors.white54,
                   size: 24,
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:scannut/l10n/app_localizations.dart';
+import '../../../../core/theme/app_design.dart';
 
 /// Tela de detalhes completos da análise da raça do pet
 class RaceAnalysisDetailScreen extends StatelessWidget {
@@ -104,7 +105,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF00E676), Color(0xFF00C853)],
+                  colors: [AppDesign.petPink, AppDesign.petPink],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -276,7 +277,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
          children: map.entries.map((e) {
             final val = e.value;
             if (val is Map) return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                 Text(e.key.toString().toUpperCase(), style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 12)),
+                 Text(e.key.toString().toUpperCase(), style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 12)),
                  const SizedBox(height: 4),
                  _buildGenericMapCard(val),
                  const SizedBox(height: 8),
@@ -287,7 +288,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text('${e.key.toString().replaceAll('_', ' ').toUpperCase()}: ', style: const TextStyle(color: Color(0xFF00E676), fontWeight: FontWeight.bold, fontSize: 11)),
+                   Text('${e.key.toString().replaceAll('_', ' ').toUpperCase()}: ', style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 11)),
                    Expanded(child: Text(val.toString(), style: const TextStyle(color: Colors.white70, fontSize: 11))),
                 ]
               ),
@@ -300,7 +301,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF00E676), size: 24),
+        Icon(icon, color: AppDesign.petPink, size: 24),
         const SizedBox(width: 8),
         Text(
           title,
@@ -340,7 +341,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
             child: Text(
               label,
               style: GoogleFonts.poppins(
-                color: const Color(0xFF00E676),
+                color: AppDesign.petPink,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -368,7 +369,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
         Text(
           title,
           style: GoogleFonts.poppins(
-            color: const Color(0xFF00E676),
+            color: AppDesign.petPink,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),

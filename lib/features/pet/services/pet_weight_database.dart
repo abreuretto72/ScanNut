@@ -7,6 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../../../core/theme/app_design.dart';
 
 /// Database de referência de pesos ideais por raça e porte
 class PetWeightDatabase {
@@ -148,7 +149,7 @@ class PetWeightDatabase {
       return WeightStatus(
         status: WeightStatusType.normal,
         message: strings.weightStatusNormal,
-        color: const Color(0xFF00E676),
+        color: AppDesign.petPink,
         icon: Icons.check_circle,
         percentage: (ratio * 100).toInt(),
       );
