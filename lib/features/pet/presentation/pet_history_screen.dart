@@ -8,6 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/services/history_service.dart';
 import '../../pet/models/pet_profile_extended.dart';
+import '../../../core/utils/json_cast.dart';
+
 import '../../pet/services/pet_profile_service.dart';
 import 'widgets/edit_pet_form.dart';
 import '../../partners/presentation/partner_agenda_screen.dart';
@@ -22,6 +24,11 @@ import '../../pet/models/pet_event.dart';
 import '../../partners/models/agenda_event.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
+import 'widgets/pet_menu_filter_dialog.dart';
+import '../../pet/services/pet_menu_generator_service.dart';
+import 'widgets/event_action_bar.dart';
+import 'pet_event_history_screen.dart';
+
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
   const PetHistoryScreen({Key? key}) : super(key: key);
@@ -141,7 +148,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
           final petHistory = allItems.where((item) {
              if (item is! Map) return false;
              return item['mode'] == 'Pet';
-          }).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          }).map((e) => deepCastMap(e)).toList();
+
 
           petHistory.sort((a, b) {
             final dateA = DateTime.tryParse(a['timestamp'] ?? '') ?? DateTime(2000);
@@ -285,7 +293,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
                                   if (freshPartner != null) {
                                     final agendaEvents = freshProfile?['data']?['agendaEvents'] as List? ?? [];
-                                    final eventsList = agendaEvents.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+                                    final eventsList = deepCastMapList(agendaEvents);
+
                                     
                                     if (context.mounted) {
                                       await Navigator.push(
@@ -367,49 +376,54 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                               // 2. MENU
                               InkWell(
                                 onTap: () async {
-                                  final service = PetProfileService();
-                                  await service.init();
-                                  final profile = await service.getProfile(petName.trim());
-                                  
-                                  List<dynamic> rawPlan = [];
-                                  String? guidelines;
-                                  
-                                  if (profile != null && profile['data'] != null) {
-                                      final pData = profile['data'];
-                                      rawPlan = pData['plano_semanal'] ?? pData['raw_analysis']?['plano_semanal'] ?? [];
-                                      guidelines = pData['orientacoes_gerais'] ?? pData['raw_analysis']?['orientacoes_gerais'];
-                                  }
-                                  
-                                  if (rawPlan.isEmpty && data['plano_semanal'] != null) {
-                                      rawPlan = data['plano_semanal'];
-                                      guidelines = data['orientacoes_gerais'] ?? guidelines;
-                                  }
+                                  // 1. Show Filter Dialog
+                                  final config = await showDialog<Map<String, dynamic>>(
+                                    context: context,
+                                    builder: (context) => const PetMenuFilterDialog(),
+                                  );
 
-                                    if (rawPlan.isNotEmpty) {
-                                      final List<Map<String, dynamic>> formattedPlan = rawPlan.map((e) {
-                                          return Map<String, dynamic>.from(e as Map);
-                                      }).toList();
+                                  if (config == null || !mounted) return;
 
-                                    if (context.mounted) {
-                                        await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => WeeklyMenuScreen(
-                                                currentWeekPlan: formattedPlan,
-                                                generalGuidelines: guidelines,
-                                                petName: petName,
-                                                raceName: data['breed'] ?? data['identificacao']?['raca'] ?? l10n.petNotIdentified,
-                                              ),
-                                          ),
-                                        );
-                                        if (mounted) _loadHistory(); // Refresh on return
-                                    }
-                                  } else {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(l10n.petNoRecentMenu)),
+                                  // 2. Show Progress
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
+                                  );
+
+                                  try {
+                                      final service = PetProfileService();
+                                      await service.init();
+                                      final profile = await service.getProfile(petName.trim());
+                                      
+                                      // 3. Generate
+                                      await ref.read(petMenuGeneratorProvider).generateAndSave(
+                                          petId: petName.trim(),
+                                          profileData: profile?['data'] ?? {},
+                                          mode: config['mode'],
+                                          startDate: config['startDate'],
+                                          endDate: config['endDate'],
+                                          locale: Localizations.localeOf(context).toString(),
+                                          dietType: config['dietType'] as String,
+                                          otherNote: config['otherNote'] as String?,
                                       );
-                                    }
+
+
+                                      if (mounted) {
+                                          Navigator.pop(context); // Close loading
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success)
+                                          );
+                                          // Force reload history to potentially show updates if we tracked menu gen there
+                                          _loadHistory();
+                                      }
+                                  } catch (e) {
+                                      if (mounted) {
+                                          Navigator.pop(context); // Close loading
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Erro: $e'), backgroundColor: AppDesign.error)
+                                          );
+                                      }
                                   }
                                 },
                                 child: Container(
@@ -434,9 +448,10 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                      await profileService.init();
                                      final existingMap = await profileService.getProfile(petName.trim());
                                      if (existingMap != null && existingMap['data'] != null) {
-                                        final dataMap = _deepConvertMap(existingMap['data']);
+                                        final dataMap = deepCastMap(existingMap['data']);
                                         loaded = PetProfileExtended.fromJson(dataMap);
                                      }
+
                                    } catch (e) {
                                      debugPrint('Error loading full profile: $e');
                                      if (context.mounted) {
@@ -464,7 +479,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                           frequenciaBanho: data['higiene']?['banho_e_higiene']?['frequencia']?.toString() ?? 'Quinzenal',
                                           imagePath: data['image_path'],
                                           lastUpdated: DateTime.parse(data['timestamp'] ?? DateTime.now().toIso8601String()),
-                                          rawAnalysis: data != null ? Map<String, dynamic>.from(data as Map) : null,
+                                          rawAnalysis: data != null ? deepCastMap(data) : null,
+
                                         ),
                                         onSave: (profile) async {
                                           final service = PetProfileService();
@@ -511,9 +527,42 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                   child: const Icon(Icons.edit, color: AppDesign.textPrimaryDark, size: 18),
                                 ),
                               ),
+
+                              const SizedBox(width: 24),
+
+                              // 4. TIMELINE
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PetEventHistoryScreen(
+                                        petId: petName,
+                                        petName: petName,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: AppDesign.petPink.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
+                                  ),
+                                  child: const Icon(Icons.history_edu, color: AppDesign.petPink, size: 18),
+                                ),
+                              ),
                             ],
                           ),
                         ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // --- PET EVENTS ACTION BAR ---
+                        EventActionBar(petId: petName),
+                        
+                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
@@ -656,24 +705,5 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
        if (mounted) _loadHistory();
     }
   }
-
-  /// Helper function to deep convert all nested maps to Map<String, dynamic>
-  static Map<String, dynamic> _deepConvertMap(dynamic data) {
-    if (data is Map) {
-      return data.map((key, value) {
-        if (value is Map) {
-          return MapEntry(key.toString(), _deepConvertMap(value));
-        } else if (value is List) {
-          return MapEntry(key.toString(), value.map((item) {
-            if (item is Map) {
-              return _deepConvertMap(item);
-            }
-            return item;
-          }).toList());
-        }
-        return MapEntry(key.toString(), value);
-      });
-    }
-    return {};
-  }
 }
+
