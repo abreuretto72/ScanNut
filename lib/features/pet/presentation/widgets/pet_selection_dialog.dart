@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/theme/app_design.dart';
 
 /// Dialog for selecting a pet from registered pets or creating a new analysis
 class PetSelectionDialog extends StatelessWidget {
@@ -141,12 +142,12 @@ class PetSelectionDialog extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: isNew 
-                    ? Colors.green.withOpacity(0.2)
+                    ? AppDesign.petPink.withOpacity(0.2)
                     : Colors.blue.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isNew 
-                      ? Colors.green.shade400
+                      ? AppDesign.petPink
                       : Colors.blue.shade400,
                   width: 1.5,
                 ),
@@ -154,7 +155,7 @@ class PetSelectionDialog extends StatelessWidget {
               child: Icon(
                 isNew ? Icons.add_circle_outline : Icons.pets,
                 color: isNew 
-                    ? Colors.green.shade300
+                    ? AppDesign.petPink
                     : Colors.blue.shade300,
                 size: 24,
               ),
