@@ -5,6 +5,8 @@ import '../../../core/theme/app_design.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/pet_event_model.dart';
 import '../services/pet_event_repository.dart';
+import 'widgets/pet_event_report_dialog.dart';
+
 
 class PetEventHistoryScreen extends StatelessWidget {
   final String petId;
@@ -33,7 +35,19 @@ class PetEventHistoryScreen extends StatelessWidget {
           l10n.petEvent_historyTitle,
           style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf, color: AppDesign.petPink),
+            tooltip: l10n.petEvent_generateReport,
+            onPressed: () => showDialog(
+              context: context,
+              builder: (context) => PetEventReportDialog(petId: petId),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
+
       body: ValueListenableBuilder(
         valueListenable: PetEventRepository().listenable,
         builder: (context, box, _) {

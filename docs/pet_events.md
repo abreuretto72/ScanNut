@@ -38,7 +38,13 @@ Use `PetEventRepository` to interact with the data:
 - `updateEvent(PetEventModel)`
 - `deleteEventSoft(eventId)`
 
+## PDF Export
+- Generator: `PetEventsPdfService`
+- Features: Summaries, daily grouping, metadata preservation, and image thumbnails (limit 12).
+- Location: Generated PDFs are saved to `Downloads` (Android/Windows) and held in temporary storage for sharing.
+
 ## Initialization
 Initialized automatically via `SimpleAuthService` during secure data setup.
 Box name: `pet_events_journal`.
 Adapters: `AttachmentModelAdapter` (40), `PetEventModelAdapter` (41).
+

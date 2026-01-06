@@ -1707,6 +1707,22 @@
   "petEvent_includeInPdf": "Include in PDF Report",
   "petEvent_emptyHistory": "No events registered yet.",
   "petEvent_group": "Group",
-  "petEvent_type": "Subtype"
+  "petEvent_type": "Subtype",
+  "petEvent_reportTitle": "Pet Events Report",
+  "petEvent_generateReport": "Generate Report (PDF)",
+  "petEvent_reportCustom": "Custom",
+  "petEvent_reportWeekly": "Weekly",
+  "petEvent_reportMonthly": "Monthly",
+  "petEvent_reportStartDate": "Start Date",
+  "petEvent_reportEndDate": "End Date",
+  "petEvent_reportFilterGroup": "Filter by Group",
+  "petEvent_reportIncludesOnlyPdf": "PDF-marked only",
+  "petEvent_reportSuccess": "PDF generated and saved to Downloads ✅",
+  "petEvent_reportError": "Error generating PDF",
+  "petEvent_reportShare": "Share Report",
+  "petEvent_reportSummary": "Period Summary",
+  "petEvent_reportTotal": "Total Events",
+  "petEvent_reportPeriod": "Period"
 }
+
 
