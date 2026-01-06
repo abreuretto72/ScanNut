@@ -626,13 +626,13 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.history, color: AppDesign.textPrimaryDark),
+                  icon: const Icon(Icons.history, color: AppDesign.foodOrange),
                   tooltip: l10n.historyTitle,
                   onPressed: _showHistory,
                 ),
-                PdfActionButton(onPressed: () => _generatePDF(plan)),
+                PdfActionButton(onPressed: () => _generatePDF(plan), color: AppDesign.foodOrange),
                 IconButton(
-                  icon: const Icon(Icons.refresh, color: AppDesign.accent),
+                  icon: const Icon(Icons.refresh, color: AppDesign.foodOrange),
                   tooltip: l10n.redoPlanAction,
                   onPressed: _showRedoOptions,
                 ),
@@ -671,19 +671,19 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       decoration: BoxDecoration(
         color: AppDesign.warning.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: AppDesign.foodOrange.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline, color: Colors.orange, size: 20),
+              const Icon(Icons.lightbulb_outline, color: AppDesign.foodOrange, size: 20),
               const SizedBox(width: 8),
               Text(
                 l10n.tipsTitle,
                 style: GoogleFonts.poppins(
-                  color: Colors.orange,
+                  color: AppDesign.foodOrange,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
