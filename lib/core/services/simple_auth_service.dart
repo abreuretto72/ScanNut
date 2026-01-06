@@ -24,6 +24,8 @@ import '../../nutrition/data/datasources/meal_log_service.dart';
 import '../../nutrition/data/datasources/shopping_list_service.dart';
 import '../services/partner_service.dart';
 import '../../nutrition/data/datasources/menu_filter_service.dart';
+import '../../features/pet/services/pet_event_repository.dart';
+
 
 class SimpleAuthService {
   static final SimpleAuthService _instance = SimpleAuthService._internal();
@@ -137,6 +139,8 @@ class SimpleAuthService {
       await initService('ShoppingListService', () => ShoppingListService().init(cipher: cipher));
       await initService('PartnerService', () => PartnerService().init(cipher: cipher));
       await initService('MenuFilterService', () => MenuFilterService().init(cipher: cipher));
+      await initService('PetEventRepository', () => PetEventRepository().init(cipher: cipher));
+
       
       logger.info('🚀 Tentativa de abertura de todos os dados concluída.');
       debugPrint('🏁 [SimpleAuthService] initializeSecureData FINISHED.');
@@ -246,8 +250,9 @@ class SimpleAuthService {
       'nutrition_weekly_plans', 'nutrition_shopping_list', 'nutrition_user_profile', 'nutrition_meal_logs',
       'box_nutrition_human', 'box_plants_history', 'vaccine_status', 'pet_events', 'weekly_meal_plans',
       'box_pets_master', 'pet_health_records', 'box_workouts', 'scannut_history', 'scannut_meal_history',
-      'box_user_profile', 'partners_box'
+      'box_user_profile', 'partners_box', 'pet_events_journal'
     ];
+
 
     logger.info('🔄 Starting re-encryption for password change...');
 
