@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.0.0  
+**Versão:** 1.5.2  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -15,9 +15,9 @@ O **ScanNut** é um assistente visual de IA que analisa alimentos, plantas e pet
 #### **1. Análise Nutricional (Alimentos)**
 - 📸 Análise instantânea de alimentos via câmera
 - 🔢 Cálculo automático de calorias, proteínas, carboidratos e gorduras
-- 📊 Comparação com metas diárias personalizadas
 - 📅 Histórico completo de análises
 - 🗓️ Planejamento semanal de refeições
+Lista de compras
 
 #### **2. Identificação Botânica (Plantas)**
 - 🌿 Identificação de espécies de plantas
@@ -42,7 +42,7 @@ O **ScanNut** é um assistente visual de IA que analisa alimentos, plantas e pet
 
 ---
 
-## ✨ **NOVIDADES DA VERSÃO 1.0.0**
+## ✨ **NOVIDADES DA VERSÃO 1.5.2**
 
 ### **🔐 Segurança e Soberania de Dados**
 - 🛡️ **Criptografia de Nível Militar (AES-256)**
