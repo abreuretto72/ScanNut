@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
-import '../../../core/theme/app_design.dart';
-import '../../../l10n/app_localizations.dart';
-import '../services/pet_events_pdf_service.dart';
+import '../../../../core/theme/app_design.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../services/pet_events_pdf_service.dart';
 
 class PetEventReportDialog extends StatefulWidget {
   final String petId;
@@ -199,7 +199,7 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(primary: AppDesign.petPink, onPrimary: Colors.black, surface: AppDesign.surfaceDark),
+            colorScheme: ColorScheme.dark(primary: AppDesign.petPink, onPrimary: Colors.black, surface: AppDesign.surfaceDark),
           ),
           child: child!,
         );

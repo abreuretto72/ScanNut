@@ -11,6 +11,7 @@ import '../../services/pet_shopping_list_service.dart';
 import '../../services/pet_menu_generator_service.dart';
 import '../../../../core/services/export_service.dart';
 import 'pet_menu_filter_dialog.dart';
+import '../../models/meal_plan_request.dart';
 
 class WeeklyMenuScreen extends ConsumerStatefulWidget {
   final String petName;
@@ -293,16 +294,19 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
            'breed': widget.raceName
         };
 
-        await ref.read(petMenuGeneratorProvider).generateAndSave(
+         final request = MealPlanRequest(
             petId: widget.petName.trim(), 
             profileData: profileData,
             mode: config['mode'],
             startDate: config['startDate'],
             endDate: config['endDate'],
             locale: Localizations.localeOf(context).toString(),
-            dietType: config['dietType'] as String,
+            dietType: config['dietType'] as PetDietType,
             otherNote: config['otherNote'] as String?,
-        );
+            source: 'PetProfile', // Authorized Source (WeeklyMenuScreen is reached via PetProfile)
+         );
+
+         await ref.read(petMenuGeneratorProvider).generateAndSave(request);
 
 
         if (mounted) {

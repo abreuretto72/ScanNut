@@ -186,7 +186,7 @@ class PetEventsPdfService {
                                spacing: 8,
                                children: event.data.entries.map((d) {
                                   if (d.value == null || d.value.toString().isEmpty) return pw.SizedBox.shrink();
-                                  return pw.Text('${d.key}: ${d.value}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic));
+                                   return pw.Text('${d.key}: ${d.value}', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic));
                                }).toList(),
                              ),
                           ],

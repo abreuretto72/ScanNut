@@ -123,12 +123,30 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.picture_as_pdf,
             color: Colors.purpleAccent,
           ),
-           const SizedBox(height: 12),
+          const SizedBox(height: 12),
           _buildHelpCard(
             title: l10n.helpMenuTipTitle,
             description: l10n.helpMenuTipDesc,
             icon: Icons.lightbulb,
             color: Colors.yellowAccent,
+          ),
+          const SizedBox(height: 12),
+          _buildHelpCard(
+            title: 'Geração Segura de Cardápios Pet',
+            description: 'Os cardápios de pets só podem ser gerados através do Perfil do Pet, garantindo segurança e controle. '
+                'Acesse o perfil do seu pet, vá até a seção "Nutrição" e clique em "Gerar cardápio". '
+                'O status da última atualização é exibido em tempo real.',
+            icon: Icons.shield_outlined,
+            color: Colors.deepPurple,
+          ),
+          const SizedBox(height: 12),
+          _buildHelpCard(
+            title: 'PDFs Econômicos',
+            description: 'Todos os relatórios em PDF foram otimizados para impressão econômica. '
+                'Usamos apenas preto e branco, sem fundos coloridos, reduzindo o uso de tinta em até 90%. '
+                'Perfeito para imprimir prontuários, relatórios de parceiros e históricos sem gastar muito.',
+            icon: Icons.print,
+            color: Colors.grey,
           ),
           
           const SizedBox(height: 24),

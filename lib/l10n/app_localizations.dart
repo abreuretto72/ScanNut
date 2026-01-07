@@ -8603,6 +8603,12 @@ abstract class AppLocalizations {
   /// **'Tipo de Dieta'**
   String get dietTypeLabel;
 
+  /// No description provided for @petDietGeneral.
+  ///
+  /// In pt, this message translates to:
+  /// **'Geral (Sem restrição)'**
+  String get petDietGeneral;
+
   /// No description provided for @dietRenal.
   ///
   /// In pt, this message translates to:
@@ -8777,6 +8783,42 @@ abstract class AppLocalizations {
   /// **'Métricas'**
   String get petEvent_group_metrics;
 
+  /// No description provided for @petEvent_group_medication.
+  ///
+  /// In pt, this message translates to:
+  /// **'Medicação'**
+  String get petEvent_group_medication;
+
+  /// No description provided for @petEvent_group_documents.
+  ///
+  /// In pt, this message translates to:
+  /// **'Documentos'**
+  String get petEvent_group_documents;
+
+  /// No description provided for @petEvent_group_exams.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exames'**
+  String get petEvent_group_exams;
+
+  /// No description provided for @petEvent_group_allergies.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alergias'**
+  String get petEvent_group_allergies;
+
+  /// No description provided for @petEvent_group_dentistry.
+  ///
+  /// In pt, this message translates to:
+  /// **'Odontologia'**
+  String get petEvent_group_dentistry;
+
+  /// No description provided for @petEvent_group_other.
+  ///
+  /// In pt, this message translates to:
+  /// **'Outros'**
+  String get petEvent_group_other;
+
   /// No description provided for @petEvent_savedSuccess.
   ///
   /// In pt, this message translates to:
@@ -8830,6 +8872,120 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Subtipo'**
   String get petEvent_type;
+
+  /// No description provided for @petEvent_reportTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Relatório de Eventos do Pet'**
+  String get petEvent_reportTitle;
+
+  /// No description provided for @petEvent_generateReport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar Relatório (PDF)'**
+  String get petEvent_generateReport;
+
+  /// No description provided for @petEvent_reportCustom.
+  ///
+  /// In pt, this message translates to:
+  /// **'Personalizado'**
+  String get petEvent_reportCustom;
+
+  /// No description provided for @petEvent_reportWeekly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Semanal'**
+  String get petEvent_reportWeekly;
+
+  /// No description provided for @petEvent_reportMonthly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mensal'**
+  String get petEvent_reportMonthly;
+
+  /// No description provided for @petEvent_reportStartDate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data Inicial'**
+  String get petEvent_reportStartDate;
+
+  /// No description provided for @petEvent_reportEndDate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data Final'**
+  String get petEvent_reportEndDate;
+
+  /// No description provided for @petEvent_reportFilterGroup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Filtrar por Grupo'**
+  String get petEvent_reportFilterGroup;
+
+  /// No description provided for @petEvent_reportIncludesOnlyPdf.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apenas marcados para PDF'**
+  String get petEvent_reportIncludesOnlyPdf;
+
+  /// No description provided for @petEvent_reportSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'PDF gerado e salvo em Downloads ✅'**
+  String get petEvent_reportSuccess;
+
+  /// No description provided for @petEvent_reportError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao gerar PDF'**
+  String get petEvent_reportError;
+
+  /// No description provided for @petEvent_reportShare.
+  ///
+  /// In pt, this message translates to:
+  /// **'Compartilhar Relatório'**
+  String get petEvent_reportShare;
+
+  /// No description provided for @petEvent_reportSummary.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resumo do Período'**
+  String get petEvent_reportSummary;
+
+  /// No description provided for @petEvent_reportTotal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Total de Eventos'**
+  String get petEvent_reportTotal;
+
+  /// No description provided for @petEvent_reportPeriod.
+  ///
+  /// In pt, this message translates to:
+  /// **'Período'**
+  String get petEvent_reportPeriod;
+
+  /// No description provided for @lastUpdated.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atualizado em'**
+  String get lastUpdated;
+
+  /// No description provided for @petEdit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Editar Perfil'**
+  String get petEdit;
+
+  /// No description provided for @petDelete.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir Pet'**
+  String get petDelete;
+
+  /// No description provided for @petMenuGenerate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar Cardápio'**
+  String get petMenuGenerate;
 }
 
 class _AppLocalizationsDelegate

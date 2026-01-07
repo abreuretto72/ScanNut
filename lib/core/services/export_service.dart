@@ -114,14 +114,14 @@ class ExportService {
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 12,
-                        color: PdfColors.white,
+                        color: PdfColors.black, // Changed to black for monochrome
                       ),
                     ),
                     pw.Text(
                       '$dateLabel: $timestamp',
-                      style: pw.TextStyle(
+                      style: const pw.TextStyle(
                         fontSize: 8,
-                        color: PdfColors.white,
+                        color: PdfColors.grey700, // Changed to grey for monochrome
                       ),
                     ),
                   ],
@@ -130,7 +130,7 @@ class ExportService {
             ),
           ),
           pw.SizedBox(height: 5),
-          pw.Container(height: 1.5, color: PdfColors.black), // Black line requested by user
+          pw.Container(height: 1.5, color: PdfColors.black),
           pw.SizedBox(height: 10),
         ],
       ),
@@ -168,9 +168,9 @@ class ExportService {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
+        border: pw.Border.all(color: PdfColors.grey400),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
-        color: PdfColors.grey100,
+        color: PdfColors.white, // No background color
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -180,12 +180,12 @@ class ExportService {
                 pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
                 if (cleaned.isEstimated) ...[
                    pw.SizedBox(width: 4),
-                   pw.Text('*', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.amber700)),
+                   pw.Text('*', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)), // Black asterisk
                 ]
              ],
           ),
           pw.SizedBox(height: 2),
-          pw.Text(cleaned.value, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: color)),
+          pw.Text(cleaned.value, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.black)), // Always black text
         ],
       ),
     );
@@ -216,8 +216,8 @@ class ExportService {
       margin: const pw.EdgeInsets.only(top: 10),
       padding: const pw.EdgeInsets.all(10),
       decoration: pw.BoxDecoration(
-        color: PdfColors.grey50,
-        border: pw.Border.all(color: PdfColors.grey300),
+        color: PdfColors.white, // No background
+        border: pw.Border.all(color: PdfColors.grey400),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
       ),
       width: double.infinity,
@@ -1456,7 +1456,7 @@ class ExportService {
                     width: 200,
                     height: 200,
                     decoration: pw.BoxDecoration(
-                      border: pw.Border.all(color: PdfColors.blue900, width: 4),
+                      border: pw.Border.all(color: PdfColors.black, width: 4), // Black border
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(100)),
                     ),
                     child: pw.ClipRRect(
@@ -1470,14 +1470,14 @@ class ExportService {
                     width: 200,
                     height: 200,
                     decoration: pw.BoxDecoration(
-                      color: PdfColors.grey100,
-                      border: pw.Border.all(color: PdfColors.blue900, width: 4),
+                      color: PdfColors.white, // White background
+                      border: pw.Border.all(color: PdfColors.black, width: 4), // Black border
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(100)),
                     ),
                     child: pw.Center(
                       child: pw.Icon(
                         pw.IconData(0xe91f), 
-                        color: PdfColors.blue900, 
+                        color: PdfColors.black, 
                         size: 80,
                       ),
                     ),
@@ -1490,7 +1490,7 @@ class ExportService {
                   style: pw.TextStyle(
                     fontSize: 42,
                     fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.blue900,
+                    color: PdfColors.black,
                   ),
                 ),
                 pw.SizedBox(height: 10),
@@ -1509,7 +1509,7 @@ class ExportService {
                   padding: const pw.EdgeInsets.all(20),
                   decoration: pw.BoxDecoration(
                     color: PdfColors.white,
-                    border: pw.Border.all(color: PdfColors.blue900, width: 2),
+                    border: pw.Border.all(color: PdfColors.black, width: 2), // Black border
                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(12)),
                   ),
                   child: pw.Column(
@@ -1518,7 +1518,7 @@ class ExportService {
                         profile.raca ?? strings.petBreedMixed,
                         style: pw.TextStyle(
                           fontSize: 18,
-                          color: PdfColors.blue900,
+                          color: PdfColors.black, // Black text
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
@@ -1585,13 +1585,13 @@ class ExportService {
             if (profile.preferencias.isNotEmpty) ...[
               pw.SizedBox(height: 15),
               pw.Text('${strings.pdfPreferenciasAlimentares}:', 
-                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.green700)),
+                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
               pw.SizedBox(height: 5),
               pw.Container(
                 padding: const pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(
-                  color: PdfColors.green50,
-                  border: pw.Border.all(color: PdfColors.green200),
+                  color: PdfColors.white,
+                  border: pw.Border.all(color: PdfColors.grey400),
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                 ),
                 child: pw.Text(
@@ -1669,12 +1669,12 @@ class ExportService {
             
             // Vacinas
             pw.Text('${strings.pdfVacinaV10} & ${strings.pdfVacinaAntirrabica}:', 
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
             pw.SizedBox(height: 5),
             pw.Table.fromTextArray(
-              border: pw.TableBorder.all(color: PdfColors.blue800, width: 0.8),
-              headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
-              headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10),
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
+              headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellPadding: const pw.EdgeInsets.all(6),
               headers: [strings.pdfFieldLabel, strings.pdfLastDose, strings.pdfNextDose],
@@ -1704,14 +1704,14 @@ class ExportService {
             
             // Alergias e Restrições
             pw.Text('${strings.petAllergies}:', 
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.red700)),
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
             pw.SizedBox(height: 5),
             pw.Container(
               padding: const pw.EdgeInsets.all(10),
               decoration: pw.BoxDecoration(
-                color: profile.alergiasConhecidas.isEmpty ? PdfColors.green50 : PdfColors.red50,
+                color: PdfColors.white,
                 border: pw.Border.all(
-                  color: profile.alergiasConhecidas.isEmpty ? PdfColors.green200 : PdfColors.red200,
+                  color: PdfColors.grey400,
                   width: 1.5,
                 ),
                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
@@ -1723,7 +1723,7 @@ class ExportService {
                 style: pw.TextStyle(
                   fontSize: 9,
                   fontWeight: pw.FontWeight.bold,
-                  color: profile.alergiasConhecidas.isEmpty ? PdfColors.green900 : PdfColors.red900,
+                  color: PdfColors.black,
                 ),
               ),
             ),
@@ -1733,7 +1733,7 @@ class ExportService {
             if (medicalEvents.isNotEmpty) ...[
                 pw.SizedBox(height: 15),
                 pw.Text('${strings.pdfHistClinico}:', 
-                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
                 pw.SizedBox(height: 5),
                 pw.Table.fromTextArray(
                     border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
@@ -1755,7 +1755,7 @@ class ExportService {
             if (profile.labExams.isNotEmpty) ...[
               pw.SizedBox(height: 15),
               pw.Text('${strings.pdfExamesLab}:', 
-                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
               pw.SizedBox(height: 5),
               ...profile.labExams.map((examJson) {
                 final exam = LabExam.fromJson(examJson);
@@ -1763,8 +1763,8 @@ class ExportService {
                   margin: const pw.EdgeInsets.only(bottom: 8),
                   padding: const pw.EdgeInsets.all(8),
                   decoration: pw.BoxDecoration(
-                    color: PdfColors.blue50,
-                    border: pw.Border.all(color: PdfColors.blue200),
+                    color: PdfColors.white,
+                    border: pw.Border.all(color: PdfColors.grey400),
                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                   ),
                   child: pw.Column(
@@ -1795,7 +1795,8 @@ class ExportService {
                         pw.Container(
                           padding: const pw.EdgeInsets.all(4),
                           decoration: pw.BoxDecoration(
-                            color: PdfColors.green50,
+                            color: PdfColors.white,
+                            border: pw.Border.all(color: PdfColors.grey400),
                             borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
                           ),
                           child: pw.Text(
@@ -1814,7 +1815,7 @@ class ExportService {
             if (woundsWithImages.isNotEmpty) ...[
               pw.SizedBox(height: 15),
               pw.Text('${strings.pdfAnaliseFeridas}:', 
-                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.red700)),
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
               pw.SizedBox(height: 5),
               ...woundsWithImages.map((analysis) {
                 final dateStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.tryParse(analysis['date']?.toString() ?? '') ?? DateTime.now());
@@ -1824,16 +1825,15 @@ class ExportService {
                 
                 final pdfImage = analysis['pdfImage'] as pw.ImageProvider?;
                 
-                PdfColor severityColor = PdfColors.green700;
-                if (severity == 'Alta' || severity.toLowerCase().contains('high')) severityColor = PdfColors.red700;
-                else if (severity == 'Média' || severity.toLowerCase().contains('medium') || severity.toLowerCase().contains('moderate')) severityColor = PdfColors.orange700;
+                PdfColor severityColor = PdfColors.black;
+                // No colors for severity
 
                 return pw.Container(
                   margin: const pw.EdgeInsets.only(bottom: 8),
                   padding: const pw.EdgeInsets.all(8),
                   decoration: pw.BoxDecoration(
-                    color: PdfColors.red50,
-                    border: pw.Border.all(color: PdfColors.red200),
+                    color: PdfColors.white,
+                    border: pw.Border.all(color: PdfColors.grey400),
                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                   ),
                   child: pw.Row(
@@ -1869,12 +1869,12 @@ class ExportService {
                                       pw.Container(
                                         padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: pw.BoxDecoration(
-                                          color: severityColor,
+                                          color: PdfColors.grey300,
                                           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                                         ),
                                         child: pw.Text(
                                           severity.toUpperCase(),
-                                          style: pw.TextStyle(color: PdfColors.white, fontSize: 8, fontWeight: pw.FontWeight.bold),
+                                          style: pw.TextStyle(color: PdfColors.black, fontSize: 8, fontWeight: pw.FontWeight.bold),
                                         ),
                                       ),
                                     ],
@@ -1934,7 +1934,7 @@ class ExportService {
             // Plano Semanal Completo
             if (profile.rawAnalysis != null && profile.rawAnalysis!['plano_semanal'] != null) ...[
               pw.Text('${strings.pdfCardapioDetalhado}:', 
-                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
               pw.SizedBox(height: 8),
               
               ...(profile.rawAnalysis!['plano_semanal'] as List).asMap().entries.map((entry) {
@@ -1968,7 +1968,7 @@ class ExportService {
                   return pw.Container(
                       margin: const pw.EdgeInsets.only(bottom: 12),
                       decoration: pw.BoxDecoration(
-                        border: pw.Border.all(color: PdfColors.blue800, width: 1),
+                        border: pw.Border.all(color: PdfColors.black, width: 1),
                         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                       ),
                       child: pw.Column(
@@ -2014,7 +2014,7 @@ class ExportService {
                                             style: pw.TextStyle(
                                               fontWeight: pw.FontWeight.bold,
                                               fontSize: 9,
-                                              color: PdfColors.blue900,
+                                              color: PdfColors.black,
                                             ),
                                           ),
                                           if (meal['kcal'] != null)
@@ -2117,7 +2117,7 @@ class ExportService {
             
             if (otherDocNames.isNotEmpty) ...[
                 pw.SizedBox(height: 15),
-                pw.Text(strings.pdfAttachedDocs, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue900)),
+                pw.Text(strings.pdfAttachedDocs, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)),
                 pw.SizedBox(height: 5),
                 ...otherDocNames.map((name) => pw.Container(
                     margin: const pw.EdgeInsets.only(bottom: 4),
@@ -2142,7 +2142,7 @@ class ExportService {
             // Parceiros Vinculados
             if (profile.linkedPartnerIds.isNotEmpty) ...[
               pw.Text(strings.pdfLinkedPartners, 
-                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
               pw.SizedBox(height: 8),
               
               // Display pre-loaded partner data
@@ -2152,8 +2152,8 @@ class ExportService {
                     margin: const pw.EdgeInsets.only(bottom: 8),
                     padding: const pw.EdgeInsets.all(10),
                     decoration: pw.BoxDecoration(
-                      color: PdfColors.blue50,
-                      border: pw.Border.all(color: PdfColors.blue200),
+                      color: PdfColors.white,
+                      border: pw.Border.all(color: PdfColors.grey400),
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
                     ),
                     child: pw.Column(
@@ -2165,18 +2165,18 @@ class ExportService {
                             pw.Expanded(
                               child: pw.Text(
                                 partnerData['name'] ?? 'Parceiro',
-                                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900),
+                                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                               ),
                             ),
                             pw.Container(
                               padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: pw.BoxDecoration(
-                                color: PdfColors.blue700,
+                                color: PdfColors.grey300,
                                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
                               ),
                               child: pw.Text(
                                 partnerData['category'] ?? 'Parceiro',
-                                style: const pw.TextStyle(fontSize: 7, color: PdfColors.white),
+                                style: const pw.TextStyle(fontSize: 7, color: PdfColors.black),
                               ),
                             ),
                           ],
@@ -2216,8 +2216,8 @@ class ExportService {
                 pw.Container(
                   padding: const pw.EdgeInsets.all(8),
                   decoration: pw.BoxDecoration(
-                    color: PdfColors.orange50,
-                    border: pw.Border.all(color: PdfColors.orange200),
+                    color: PdfColors.white,
+                    border: pw.Border.all(color: PdfColors.grey300),
                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                   ),
                   child: pw.Text(
@@ -2298,7 +2298,7 @@ class ExportService {
             
             pw.Text(
               strings.pdfHistoryUpcoming,
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700),
+              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
             ),
             pw.SizedBox(height: 8),
             
@@ -2314,12 +2314,13 @@ class ExportService {
                   pw.Container(
                     padding: const pw.EdgeInsets.all(8),
                     decoration: pw.BoxDecoration(
-                      color: PdfColors.green50,
+                      color: PdfColors.white,
+                      border: pw.Border.all(color: PdfColors.grey400),
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
                     ),
                     child: pw.Text(
                       '🔔 ${strings.pdfUpcomingEvents} (${upcomingEvents.length})',
-                      style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.green900),
+                      style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
                     ),
                   ),
                   pw.SizedBox(height: 6),
@@ -2332,7 +2333,8 @@ class ExportService {
                   pw.Container(
                     padding: const pw.EdgeInsets.all(8),
                     decoration: pw.BoxDecoration(
-                      color: PdfColors.grey100,
+                      color: PdfColors.white,
+                      border: pw.Border.all(color: PdfColors.grey400),
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
                     ),
                     child: pw.Text(
@@ -2442,8 +2444,8 @@ class ExportService {
           // TABELA
           pw.Table.fromTextArray(
             border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
-            headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
-            headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 9),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300), // Grey header
+            headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9), // Black text
             cellStyle: const pw.TextStyle(fontSize: 8),
             headers: reportType == strings.partnersSummary 
               ? [strings.pdfFieldName, strings.partnersCategory, strings.pdfFieldPhone]
@@ -2631,9 +2633,9 @@ class ExportService {
       margin: const pw.EdgeInsets.only(bottom: 6),
       padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
-        color: isUpcoming ? PdfColors.green50 : PdfColors.grey50,
+        color: PdfColors.white, // No background
         border: pw.Border.all(
-          color: isUpcoming ? PdfColors.green200 : PdfColors.grey300,
+          color: PdfColors.grey400,
           width: 0.5,
         ),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
@@ -2664,7 +2666,7 @@ class ExportService {
                         style: pw.TextStyle(
                           fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
-                          color: color,
+                          color: PdfColors.black,
                         ),
                       ),
                     ),

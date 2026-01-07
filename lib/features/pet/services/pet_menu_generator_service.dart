@@ -1,84 +1,89 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import '../../../core/services/groq_api_service.dart';
+import '../../../core/services/gemini_service.dart';
 import '../../pet/models/weekly_meal_plan.dart';
 import '../../pet/services/meal_plan_service.dart';
 import '../../pet/services/pet_shopping_list_service.dart';
-import '../../pet/models/pet_profile_extended.dart';
+import '../../pet/models/meal_plan_request.dart';
 import '../../../core/utils/json_cast.dart';
 
 
+
 final petMenuGeneratorProvider = Provider<PetMenuGeneratorService>((ref) {
-  final groqService = ref.watch(groqApiServiceProvider);
-  return PetMenuGeneratorService(groqService);
+  final geminiService = ref.watch(geminiServiceProvider);
+  return PetMenuGeneratorService(geminiService);
 });
 
 class PetMenuGeneratorService {
-  final GroqApiService _groqService;
+  final GeminiService _geminiService;
   
-  PetMenuGeneratorService(this._groqService);
+  PetMenuGeneratorService(this._geminiService);
 
-  Future<void> generateAndSave({
-    required String petId, 
-    required Map<String, dynamic> profileData,
-    required String mode,
-    required DateTime startDate,
-    required DateTime endDate,
-    required String locale,
-    required String dietType, // New
-    String? otherNote,        // New
-  }) async {
-    // 1. VALIDATION
-    if (petId.trim().isEmpty) throw Exception('Nome do Pet é obrigatório.');
-    if (profileData.isEmpty) throw Exception('Perfl incompleto.');
-    if (dietType.isEmpty) throw Exception('Tipo de dieta obrigatório.');
+  Future<void> generateAndSave(MealPlanRequest request) async {
+    // 1. VALIDATION (Blindada)
+    try {
+      request.validateOrThrow();
+      
+      // 🛡️ ARCHITECTURE BLINDAGE: Source Enforcement
+      if (request.source != 'PetProfile') {
+          debugPrint('🚨 [PetMenu] SECURITY_BLOCK: Unauthorized generation source: ${request.source}');
+          return; // Block execution
+      }
+    } catch (e) {
+      debugPrint('🚨 [PetMenu] Validation failed: $e');
+      rethrow;
+    }
 
     // 2. LOGIC
-    DateTime chunkStart = startDate;
+    DateTime chunkStart = request.startDate;
     int safeGuard = 0;
     
-    // Construct simplified diet string for storage/display
-    String finalDietLabel = dietType;
-    if (dietType == 'other') {
-       finalDietLabel = "Outra: ${otherNote ?? ''}"; 
+    // Construct diet label using localized version or note
+    String dietLabel = request.dietType.toString().split('.').last; // Logic ID
+    if (request.dietType == PetDietType.other) {
+       dietLabel = "Other: ${request.otherNote ?? ''}"; 
     }
 
     try {
-      while (chunkStart.isBefore(endDate) && safeGuard < 10) {
+      while (chunkStart.isBefore(request.endDate) && safeGuard < 10) {
          safeGuard++;
          DateTime chunkEnd = chunkStart.add(const Duration(days: 6));
-         if (chunkEnd.isAfter(endDate)) {
-           chunkEnd = endDate;
+         if (chunkEnd.isAfter(request.endDate)) {
+           chunkEnd = request.endDate;
          }
 
-         debugPrint('🦴 [PetMenu] Generating chunk: $chunkStart, Diet: $finalDietLabel');
+         debugPrint('🦴 [PetMenu] GENERATING CHUNK: $chunkStart to $chunkEnd');
+         debugPrint('📊 [PetMenu] REQUEST_PAYLOAD: ${request.toJson()}');
          
          await _generateSingleWeek(
-           petId, profileData, chunkStart, locale, finalDietLabel
+           request.petId, 
+           request.profileData, 
+           chunkStart, 
+           request.locale, 
+           dietLabel,
+           request.dietType
          );
 
          chunkStart = chunkStart.add(const Duration(days: 7));
       }
     } catch (e) {
-      debugPrint('🚨 [PetMenu] PET_MEALPLAN_PARSE_ERROR: $e');
-      if (e.toString().contains('400') || e.toString().contains('Bad Request')) {
-         throw Exception('Não foi possível gerar o cardápio agora. Tente novamente.');
-      }
+      debugPrint('🚨 [PetMenu] GENERATION_ERROR: $e');
       throw Exception('Não foi possível gerar o cardápio agora. Tente novamente.');
     }
-
   }
+
 
   Future<void> _generateSingleWeek(
     String petId, 
     Map<String, dynamic> profileData, 
     DateTime startOfWeek, 
     String locale,
-    String dietLabel
+    String dietLabel,
+    PetDietType dietType
   ) async {
+
       final species = profileData['species'] ?? 'Dog';
       final breed = profileData['breed'] ?? 'Unknown';
       final weight = profileData['weight']?.toString() ?? 'Unknown';
@@ -128,28 +133,33 @@ class PetMenuGeneratorService {
       }
       """;
       
-      // LOG PROMPT
-      debugPrint('📝 [PetMenu] Prompt Truncated: ${prompt.substring(0, 100)}...');
+      final finalPrompt = """
+      $prompt
+      
+      RETORNE APENAS JSON VÁLIDO E COMPLETO (sem ```). Não trunque strings e não inclua texto fora do JSON.
+      IMPORTANTE: Finalize exatamente com o token __END_JSON__ logo após o fechamento do objeto JSON (ex: }__END_JSON__).
+      """;
+      
+      // LOG PROMPT (Phase 3)
+      debugPrint('🦴 [PetMenu] Prompt Size: ${finalPrompt.length}');
+      debugPrint('📝 [PetMenu] Request Sample: ${finalPrompt.substring(0, finalPrompt.length > 200 ? 200 : finalPrompt.length)}...');
 
-      String? jsonString;
+      Map<String, dynamic>? data;
       try {
-         jsonString = await _groqService.generateText(prompt);
+         // Using Gemini implementation directly for PetMenu (Phase 2)
+         data = await _geminiService.generatePetMealPlan(finalPrompt);
+         debugPrint('✅ [PetMenu] Response Status: 200');
+         
+         // Log sample of response (Phase 3)
+         String rawRes = jsonEncode(data);
+         debugPrint('📄 [PetMenu] Response Body: ${rawRes.substring(0, rawRes.length > 2000 ? 2000 : rawRes.length)}');
+
       } catch (e) {
-         debugPrint('❌ [PetMenu] API Error: $e');
+         debugPrint('❌ [PetMenu] Gemini Error: $e');
          rethrow;
       }
 
-      if (jsonString == null) throw Exception('Empty AI Response');
-      
-      String cleanJson = jsonString;
-      if (cleanJson.contains('```json')) {
-        cleanJson = cleanJson.split('```json').last.split('```').first.trim();
-      } else if (cleanJson.contains('```')) {
-        cleanJson = cleanJson.split('```').last.split('```').first.trim();
-      }
-      
-      final dynamic decoded = jsonDecode(cleanJson);
-      final Map<String, dynamic> data = deepCastMap(decoded);
+      if (data == null || data.isEmpty) throw Exception('Empty AI Response');
 
       
       final List<DailyMealItem> dailyItems = [];

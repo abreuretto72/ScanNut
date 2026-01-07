@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
+import '../../models/meal_plan_request.dart';
+
 
 class PetMenuFilterDialog extends StatefulWidget {
   final Map<String, dynamic>? initialConfig;
@@ -22,8 +24,9 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
   DateTime? _endDate;
   
   // Diet
-  String? _selectedDietKey;
+  PetDietType? _selectedDietType;
   final TextEditingController _otherNoteController = TextEditingController();
+
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -75,7 +78,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-             colorScheme: const ColorScheme.dark(
+             colorScheme: ColorScheme.dark(
                primary: AppDesign.petPink,
                onPrimary: Colors.black,
                surface: AppDesign.surfaceDark,
@@ -106,10 +109,11 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
     if (!_formKey.currentState!.validate()) return;
     
     // Validate Diet
-    if (_selectedDietKey == null) {
+    if (_selectedDietType == null) {
        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.dietRequiredError), backgroundColor: AppDesign.error));
        return;
     }
+
 
     // Validate Custom Date
     if (_selectedMode == 'custom') {
@@ -129,30 +133,18 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       'mode': _selectedMode,
       'startDate': _startDate,
       'endDate': _endDate,
-      'dietType': _selectedDietKey,
+      'dietType': _selectedDietType,
       'otherNote': _otherNoteController.text.trim(),
     });
+
   }
 
-  Map<String, String> _getDietOptions(AppLocalizations l10n) => {
-    'renal': l10n.dietRenal,
-    'hepatic': l10n.dietHepatic,
-    'gastrointestinal': l10n.dietGastrointestinal,
-    'hypoallergenic': l10n.dietHypoallergenic,
-    'obesity': l10n.dietObesity,
-    'diabetes': l10n.dietDiabetes,
-    'cardiac': l10n.dietCardiac,
-    'urinary': l10n.dietUrinary,
-    'muscle_gain': l10n.dietMuscleGain,
-    'pediatric': l10n.dietPediatric,
-    'growth': l10n.dietGrowth,
-    'other': l10n.dietOther,
-  };
+  // Removed _getDietOptions map as we use Enum now
+
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final dietOptions = _getDietOptions(l10n);
 
     return AlertDialog(
       backgroundColor: AppDesign.surfaceDark,
@@ -172,8 +164,8 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
               Text(l10n.dietTypeLabel.toUpperCase(), style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 12, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               
-              DropdownButtonFormField<String>(
-                value: _selectedDietKey,
+              DropdownButtonFormField<PetDietType>(
+                value: _selectedDietType,
                 dropdownColor: AppDesign.surfaceDark,
                 decoration: InputDecoration(
                    filled: true,
@@ -184,22 +176,23 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
                 style: GoogleFonts.poppins(color: Colors.white),
                 hint: Text(l10n.dietRequiredError, style: const TextStyle(color: Colors.white54)),
                 icon: const Icon(Icons.keyboard_arrow_down, color: AppDesign.petPink),
-                items: dietOptions.entries.map((e) {
+                items: PetDietType.values.map((diet) {
                   return DropdownMenuItem(
-                    value: e.key,
-                    child: Text(e.value),
+                    value: diet,
+                    child: Text(diet.localizedLabel(l10n)),
                   );
                 }).toList(),
                 onChanged: (val) {
                   setState(() {
-                    _selectedDietKey = val;
-                    if (val != 'other') _otherNoteController.clear();
+                    _selectedDietType = val;
+                    if (val != PetDietType.other) _otherNoteController.clear();
                   });
                 },
                 validator: (val) => val == null ? l10n.dietRequiredError : null,
               ),
 
-              if (_selectedDietKey == 'other') ...[
+              if (_selectedDietType == PetDietType.other) ...[
+
                  const SizedBox(height: 12),
                  TextFormField(
                     controller: _otherNoteController,

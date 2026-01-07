@@ -4502,6 +4502,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dietTypeLabel => 'Diet Type';
 
   @override
+  String get petDietGeneral => 'General (No restrictions)';
+
+  @override
   String get dietRenal => 'Renal';
 
   @override
@@ -4589,6 +4592,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petEvent_group_metrics => 'Metrics';
 
   @override
+  String get petEvent_group_medication => 'Medication';
+
+  @override
+  String get petEvent_group_documents => 'Documents';
+
+  @override
+  String get petEvent_group_exams => 'Exams';
+
+  @override
+  String get petEvent_group_allergies => 'Allergies';
+
+  @override
+  String get petEvent_group_dentistry => 'Dentistry';
+
+  @override
+  String get petEvent_group_other => 'Other';
+
+  @override
   String get petEvent_savedSuccess => 'Event registered ✅';
 
   @override
@@ -4614,4 +4635,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petEvent_type => 'Subtype';
+
+  @override
+  String get petEvent_reportTitle => 'Pet Events Report';
+
+  @override
+  String get petEvent_generateReport => 'Generate Report (PDF)';
+
+  @override
+  String get petEvent_reportCustom => 'Custom';
+
+  @override
+  String get petEvent_reportWeekly => 'Weekly';
+
+  @override
+  String get petEvent_reportMonthly => 'Monthly';
+
+  @override
+  String get petEvent_reportStartDate => 'Start Date';
+
+  @override
+  String get petEvent_reportEndDate => 'End Date';
+
+  @override
+  String get petEvent_reportFilterGroup => 'Filter by Group';
+
+  @override
+  String get petEvent_reportIncludesOnlyPdf => 'PDF-marked only';
+
+  @override
+  String get petEvent_reportSuccess => 'PDF generated and saved to Downloads ✅';
+
+  @override
+  String get petEvent_reportError => 'Error generating PDF';
+
+  @override
+  String get petEvent_reportShare => 'Share Report';
+
+  @override
+  String get petEvent_reportSummary => 'Period Summary';
+
+  @override
+  String get petEvent_reportTotal => 'Total Events';
+
+  @override
+  String get petEvent_reportPeriod => 'Period';
+
+  @override
+  String get lastUpdated => 'Updated at';
+
+  @override
+  String get petEdit => 'Edit Profile';
+
+  @override
+  String get petDelete => 'Delete Pet';
+
+  @override
+  String get petMenuGenerate => 'Generate Menu';
 }

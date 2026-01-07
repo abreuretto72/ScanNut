@@ -30,6 +30,16 @@ class GroqApiService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onError: (DioException e, ErrorInterceptorHandler handler) {
+          final status = e.response?.statusCode;
+          final uri = e.requestOptions.uri;
+          final method = e.requestOptions.method;
+
+          debugPrint('🚨 [DIO ERROR] status=$status type=${e.type}');
+          debugPrint('🚨 [DIO ERROR] URL=$method $uri');
+          debugPrint('🚨 [DIO ERROR] REQUEST_HEADERS=${e.requestOptions.headers}');
+          debugPrint('🚨 [DIO ERROR] REQUEST_BODY=${e.requestOptions.data}');
+          debugPrint('🚨 [DIO ERROR] RESPONSE_BODY=${e.response?.data}');
+          
           _showErrorSnackBar(e);
           return handler.next(e);
         },

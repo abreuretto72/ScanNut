@@ -5,8 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../enums/scannut_mode.dart';
 import '../utils/prompt_factory.dart';
+
+final geminiServiceProvider = Provider<GeminiService>((ref) => GeminiService());
 
 class GeminiService {
   late final Dio _dio;
@@ -30,6 +33,7 @@ class GeminiService {
     if (_cachedModel != null) return _cachedModel;
 
     final modelsToTry = [
+      'gemini-2.0-flash',
       'gemini-1.5-flash',
       'gemini-2.0-flash-exp',
       'gemini-1.5-pro',
@@ -598,6 +602,100 @@ class GeminiService {
       throw GeminiException('Erro ao gerar dieta: $e', type: GeminiErrorType.serverError);
     }
   }
+
+  /// Specialized generation for Pet Meal Plan (Phase 2 & 3)
+  Future<Map<String, dynamic>> generatePetMealPlan(String prompt) async {
+    if (_apiKey.isEmpty) {
+      throw GeminiException('API Key missing', type: GeminiErrorType.configuration);
+    }
+
+    // Using the fixed endpoint requested by the user
+    final String url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$_apiKey';
+
+    final requestData = {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [{"text": prompt}]
+        }
+      ],
+      "generationConfig": {
+        "temperature": 0.1,
+        "maxOutputTokens": 8192, // Increased as requested
+        "responseMimeType": "application/json"
+      }
+    };
+
+    String rawText = '';
+    try {
+      debugPrint('🚀 [Gemini] PetMenu Generation - Endpoint: gemini-2.5-flash');
+      
+      final response = await _dio.post(
+        url,
+        data: requestData,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+        ),
+      ).timeout(const Duration(seconds: 90)); // Increased timeout
+
+      final fetchedText = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      if (fetchedText == null) throw Exception('Empty response parts');
+      rawText = fetchedText.toString();
+
+      return _extractJson(rawText);
+    } on DioException catch (e) {
+      debugPrint('🚨 [Gemini] DIO ERROR: ${e.response?.data}');
+      rethrow;
+    } catch (e) {
+      // Diagnostic Logging (Phase 1 of user request)
+      if (rawText.isNotEmpty) {
+          debugPrint('🚨 [Gemini] Diagnostics: raw length=${rawText.length}');
+          final tail = rawText.length > 200 ? rawText.substring(rawText.length - 200) : rawText;
+          debugPrint('🚨 [Gemini] Diagnostics: raw tail=${tail.replaceAll('\n', '\\n')}');
+      }
+
+      debugPrint('🚨 [Gemini] Parse Error, attempting repair: $e');
+      
+      // Phase 2: JSON Repair Retry
+      try {
+        final repairPrompt = "Você me enviou um JSON inválido ou incompleto. Por favor, corrija-o para que seja um JSON válido de acordo com o formato solicitado anteriormente. Retorne APENAS o JSON corrigido.";
+        
+        final repairResponse = await _dio.post(
+          url,
+          data: {
+            "contents": [
+              {
+                "role": "user",
+                "parts": [{"text": prompt}]
+              },
+              {
+                "role": "model",
+                "parts": [{"text": "Aqui está o JSON inválido que gerei..."}]
+              },
+              {
+                "role": "user",
+                "parts": [{"text": repairPrompt}]
+              }
+            ],
+            "generationConfig": {
+              "temperature": 0.0, // Stable retry
+              "maxOutputTokens": 8192,
+              "responseMimeType": "application/json"
+            }
+          },
+        ).timeout(const Duration(seconds: 60));
+
+        final repairText = repairResponse.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        if (repairText != null) {
+          return _extractJson(repairText.toString());
+        }
+      } catch (repairError) {
+        debugPrint('🚨 [Gemini] Repair failed: $repairError');
+      }
+      
+      rethrow;
+    }
+  }
   
   /// Generate plain text response (not JSON)
   Future<String> generatePlainText(String prompt) async {
@@ -707,7 +805,10 @@ class GeminiService {
         }
       }
       
-      // 2. Remove markdown code blocks if still present
+      // 2. Remove sentinel if present
+      jsonString = jsonString.split('__END_JSON__').first;
+
+      // 3. Remove markdown code blocks if still present
       jsonString = jsonString
           .replaceAll('```json', '')
           .replaceAll('```', '')
@@ -715,7 +816,7 @@ class GeminiService {
 
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ Failed to extract/decode JSON: $e');
+      debugPrint('❌ Failed to extract/decode JSON. String sample: ${text.length > 100 ? text.substring(0, 100) : text}');
       throw const FormatException('Invalid JSON format');
     }
   }

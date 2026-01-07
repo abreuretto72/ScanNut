@@ -41,8 +41,10 @@ import '../../services/pet_weight_database.dart';
 import '../../services/pet_profile_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/pet_menu_generator_service.dart';
+import '../../services/meal_plan_service.dart';
 import 'pet_menu_filter_dialog.dart';
 import 'weekly_menu_screen.dart';
+import '../../models/meal_plan_request.dart';
 
 enum SaveStatus { saved, saving, error }
 
@@ -125,6 +127,7 @@ class _EditPetFormState extends State<EditPetForm>
   };
   
   Map<String, dynamic>? _currentRawAnalysis;
+  DateTime? _lastMealPlanDate;
   File? _profileImage;
   String? _initialImagePath;
 
@@ -389,6 +392,7 @@ class _EditPetFormState extends State<EditPetForm>
       _observacoesGaleria = existing.observacoesGaleria;
       _observacoesPrac = existing.observacoesPrac;
       _loadLinkedPartners(); // Async load
+      _loadMealPlanStatus(); // Async load meal plan status
       _currentRawAnalysis = existing.rawAnalysis != null 
           ? Map<String, dynamic>.from(existing.rawAnalysis!) 
           : {};
@@ -557,6 +561,23 @@ class _EditPetFormState extends State<EditPetForm>
         if (mounted) setState(() => _linkedPartnerModels = matches);
     } catch (e) {
         debugPrint('Error loading linked partners: $e');
+    }
+  }
+
+  // Meal Plan Status
+  Future<void> _loadMealPlanStatus() async {
+    final petName = widget.existingProfile?.petName ?? _nameController.text.trim();
+    if (petName.isEmpty) return;
+
+    try {
+        final plans = await MealPlanService().getPlansForPet(petName);
+        if (plans.isNotEmpty && mounted) {
+            setState(() {
+                _lastMealPlanDate = plans.first.startDate;
+            });
+        }
+    } catch (e) {
+        debugPrint('Error loading meal plan status: $e');
     }
   }
 
@@ -2962,22 +2983,29 @@ class _EditPetFormState extends State<EditPetForm>
              'age': _idadeController.text,
           };
           
-          await ref.read(petMenuGeneratorProvider).generateAndSave(
+          final request = MealPlanRequest(
               petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
               profileData: profileData,
               mode: config['mode'],
               startDate: config['startDate'],
               endDate: config['endDate'],
               locale: Localizations.localeOf(context).toString(),
-              dietType: config['dietType'] as String,
+              dietType: config['dietType'] as PetDietType,
               otherNote: config['otherNote'] as String?,
+              source: 'PetProfile', // Authorized Source
           );
+
+          await ref.read(petMenuGeneratorProvider).generateAndSave(request);
+
 
           if (mounted) {
               Navigator.pop(context); // loading
               ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success)
               );
+              
+              // Update status
+              _loadMealPlanStatus();
               
               // Open Weekly Menu
               Navigator.push(context, MaterialPageRoute(builder: (_) => WeeklyMenuScreen(
@@ -3019,6 +3047,38 @@ class _EditPetFormState extends State<EditPetForm>
                 'Visualize o histórico completo, lista de compras e gere novos cardápios personalizados.',
                 style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              
+              // Status Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _lastMealPlanDate != null ? AppDesign.success.withOpacity(0.1) : Colors.white10,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _lastMealPlanDate != null ? AppDesign.success.withOpacity(0.3) : Colors.white24),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _lastMealPlanDate != null ? Icons.check_circle : Icons.pending,
+                      size: 14,
+                      color: _lastMealPlanDate != null ? AppDesign.success : Colors.white38,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _lastMealPlanDate != null 
+                        ? 'Atualizado em ${DateFormat('dd/MM/yyyy').format(_lastMealPlanDate!)}'
+                        : 'Nenhum cardápio ativo',
+                      style: GoogleFonts.poppins(
+                        color: _lastMealPlanDate != null ? AppDesign.success : Colors.white38,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
               

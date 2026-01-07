@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../controllers/nutrition_providers.dart';
 import '../../data/models/shopping_list_item.dart';
 import 'package:scannut/l10n/app_localizations.dart';
-import '../../core/theme/app_design.dart';
+import '../../../core/theme/app_design.dart';
 
 class ShoppingListScreen extends ConsumerWidget {
   const ShoppingListScreen({Key? key}) : super(key: key);

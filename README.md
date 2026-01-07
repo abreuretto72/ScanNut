@@ -31,9 +31,14 @@ O **ScanNut** é um assistente visual de IA que analisa alimentos, plantas e pet
 - 🩺 Análise visual de feridas e lesões
 - 📋 Prontuário completo do pet
 - 💉 Controle de vacinas e eventos
-- 🍖 Plano alimentar personalizado
+- 🍖 **Plano alimentar personalizado (exclusivo via Pet Profile)**
+  - Geração segura e controlada
+  - Histórico completo de cardápios
+  - Lista de compras automática
+  - Status de atualização em tempo real
 - 🏥 Rede de parceiros (veterinários, pet shops)
 - ☁️ **NOVO:** Backup automático no Google Drive
+- 🖨️ **NOVO:** PDFs otimizados para impressão econômica (preto e branco)
 
 ---
 
@@ -73,6 +78,30 @@ O **ScanNut** é um assistente visual de IA que analisa alimentos, plantas e pet
 - ☁️ Backup automático no Google Drive
 - 🎯 Planos alimentares personalizados
 - 🏥 Rede de parceiros expandida
+
+### **🐾 Segurança e Controle de Cardápios Pet**
+- 🛡️ **Blindagem Arquitetural:** Geração de cardápios APENAS via Pet Profile
+  - Proteção contra geração não autorizada
+  - Validação de origem em todas as requisições
+  - Logs de segurança para auditoria
+- 📊 **Status em Tempo Real:** Badge mostrando última atualização do cardápio
+- 🔄 **Histórico Completo:** Acesso a todos os cardápios gerados
+- 🛒 **Lista de Compras Automática:** Gerada junto com o cardápio
+
+### **🖨️ PDFs Econômicos e Profissionais**
+- 💰 **Economia de Tinta:** Todos os PDFs em preto e branco
+  - Sem fundos coloridos
+  - Bordas finas em cinza/preto
+  - Hierarquia visual por tamanho e peso de fonte
+- 📄 **Otimização para Impressão:**
+  - Redução de até 90% no uso de tinta
+  - Legibilidade mantida
+  - Padrão profissional
+- 📋 **Aplicado a Todos os Relatórios:**
+  - Prontuários de pets
+  - Relatórios de parceiros
+  - Análises de plantas
+  - Histórico de eventos
 
 ---
 

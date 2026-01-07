@@ -1670,7 +1670,9 @@
   "commonCategory": "Category",
   
   "dietTypeLabel": "Diet Type",
+  "petDietGeneral": "General (No restrictions)",
   "dietRenal": "Renal",
+
   "dietHepatic": "Hepatic",
   "dietGastrointestinal": "Gastrointestinal",
   "dietHypoallergenic": "Hypoallergenic",
@@ -1729,7 +1731,14 @@
   "petEvent_reportShare": "Share Report",
   "petEvent_reportSummary": "Period Summary",
   "petEvent_reportTotal": "Total Events",
-  "petEvent_reportPeriod": "Period"
+  "petEvent_reportPeriod": "Period",
+  "lastUpdated": "Updated at",
+  "petEdit": "Edit Profile",
+  "petDelete": "Delete Pet",
+  "petMenuGenerate": "Generate Menu"
 }
+
+
+
 
 
