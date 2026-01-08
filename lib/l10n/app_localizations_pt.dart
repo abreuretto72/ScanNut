@@ -5453,6 +5453,46 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get petAddRestriction => 'Adicionar restrição';
+
+  @override
+  String get petDossierTitle => 'Análise Veterinária 360°';
+
+  @override
+  String get petDossierDisclaimer =>
+      'Conteúdo gerado por IA. Use como referência. Não substitui avaliação veterinária.';
+
+  @override
+  String get petDossierAnalyzedImage => 'Imagem Analisada';
+
+  @override
+  String get petDossierViewFull => 'Expandir';
+
+  @override
+  String get petDossierSignals => 'Sinais';
+
+  @override
+  String get petDossierRisk => 'Risco';
+
+  @override
+  String get petDossierPrecision => 'Precisão';
+
+  @override
+  String get petDossierStatus => 'Status';
+
+  @override
+  String get petSectionIdentity => 'Identificação Visual';
+
+  @override
+  String get petSectionPreventive => 'Saúde Preventiva';
+
+  @override
+  String get petSectionGrowth => 'Curva de Crescimento';
+
+  @override
+  String get petActionViewProfile => 'Ver Perfil do Pet';
+
+  @override
+  String get petActionSharePDF => 'Compartilhar PDF';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).

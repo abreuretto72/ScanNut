@@ -94,7 +94,10 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
       ),
       centerTitle: true,
       actions: [
-        PdfActionButton(onPressed: widget.onGeneratePDF),
+        PdfActionButton(
+          onPressed: widget.onGeneratePDF,
+          color: AppDesign.petPink, // HIGHLIGHTED
+        ),
         const SizedBox(width: 8),
       ],
     );
@@ -108,7 +111,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
     // Breed & Species logic
     final species = widget.petProfile?.especie ?? widget.analysis.especie;
     final breed = widget.petProfile?.raca ?? widget.analysis.raca;
-    final age = widget.petProfile?.idadeExata ?? widget.analysis.identificacao.idadeAparente;
+    final age = widget.petProfile?.idadeExata; // Logic simplified in previous step
 
     // Image Source: Profile Image (if exists) > Analysis Image (as fallback avatar)
     String? avatarPath = widget.petProfile?.imagePath;
@@ -250,7 +253,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
         signalCount = '${widget.analysis.possiveisCausas.length} causas';
     } else {
         // For identification, maybe visual characteristics count
-        signalCount = '${widget.analysis.identificacao.aparenciaVisual.split(',').length} traços';
+        signalCount = 'Bio-Visual';
     }
 
     return Padding(
@@ -396,32 +399,36 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
       child: Column(
         children: [
           _buildAccordion('identificacao', l10n.petSectionIdentity, Icons.pets, {
-            'Aparência': widget.analysis.identificacao.aparenciaVisual,
-            'Pelagem': widget.analysis.identificacao.tipoPelagem,
-            'Cor': widget.analysis.identificacao.corPredominante,
+            'Raça Predominante': widget.analysis.identificacao.racaPredominante,
+            'Linhagem': widget.analysis.identificacao.linhagemSrdProvavel,
+            'Porte': widget.analysis.identificacao.porteEstimado,
+            'Expectativa de Vida': widget.analysis.identificacao.expectativaVidaMedia,
           }),
           _buildAccordion('nutricao', l10n.petSectionNutrition, Icons.restaurant, {
-             'Meta Calórica': widget.analysis.nutricao.metaCalorica['kcal_adulto'] ?? 'N/A',
-             'Frequência': widget.analysis.nutricao.recomendacoesAlimentares['frequencia_diaria'] ?? 'N/A',
-             'Nutrientes': widget.analysis.nutricao.nutrientesAlvo.join(', '),
+             'Meta Calórica (Adulto)': widget.analysis.nutricao.metaCalorica['kcal_adulto'] ?? 'N/A',
+             'Meta Calórica (Filhote)': widget.analysis.nutricao.metaCalorica['kcal_filhote'] ?? 'N/A',
+             'Nutrientes Alvo': widget.analysis.nutricao.nutrientesAlvo.join(', '),
           }),
           _buildAccordion('higiene', l10n.petSectionGrooming, Icons.shower, {
-             'Banho': widget.analysis.higiene.banhoEHigiene['frequencia_ideal_banho'] ?? 'N/A',
+             'Tipo de Pelo': widget.analysis.higiene.manutencaoPelagem['tipo_pelo'] ?? 'N/A',
              'Escovação': widget.analysis.higiene.manutencaoPelagem['frequencia_escovacao_semanal'] ?? 'N/A',
+             'Alerta': widget.analysis.higiene.manutencaoPelagem['alerta_subpelo'] ?? 'N/A',
           }),
           _buildAccordion('saude', l10n.petSectionPreventive, Icons.favorite, {
              'Predisposições': widget.analysis.saude.predisposicaoDoencas.join('\n'),
-             'Sinais Alerta': widget.analysis.saude.sinaisAlertaGerais.join('\n'),
-             'Pontos Anatômicos': widget.analysis.saude.pontosCriticosAnatomia.join(', '),
+             'Pontos Anatômicos': widget.analysis.saude.pontosCriticosAnatomicos.join(', '),
+             'Checkup': widget.analysis.saude.checkupVeterinario['exames_obrigatorios_anuais']?.toString() ?? 'N/A',
           }),
           _buildAccordion('lifestyle', l10n.petSectionLifestyle, Icons.park, {
-             'Ambiente': widget.analysis.lifestyle.ambienteIdeal['tipo_ambiente_sugerido'] ?? 'N/A',
-             'Exercício': widget.analysis.lifestyle.necessidadesExercicio['tempo_diario_minutos'] ?? 'N/A',
-             'Estimulação': widget.analysis.lifestyle.estimuloMental['necessidade_estimulo_mental'] ?? 'N/A',
+             'Ambiente Ideal': widget.analysis.lifestyle.ambienteIdeal['necessidade_de_espaco_aberto'] ?? 'N/A',
+             'Estímulo Mental': widget.analysis.lifestyle.estimuloMental['necessidade_estimulo_mental'] ?? 'N/A',
+             'Adestramento': widget.analysis.lifestyle.treinamento['dificuldade_adestramento'] ?? 'N/A',
           }),
-          if (widget.analysis.lifestyle.curvaCrescimentoEstimada.isNotEmpty)
+          if (widget.analysis.identificacao.curvaCrescimento.isNotEmpty)
              _buildAccordion('crescimento', l10n.petSectionGrowth, Icons.trending_up, {
-                 'Curva': widget.analysis.lifestyle.curvaCrescimentoEstimada.toString(),
+                 'Peso 3 Meses': widget.analysis.identificacao.curvaCrescimento['peso_3_meses'] ?? 'N/A',
+                 'Peso 6 Meses': widget.analysis.identificacao.curvaCrescimento['peso_6_meses'] ?? 'N/A',
+                 'Peso Adulto': widget.analysis.identificacao.curvaCrescimento['peso_adulto'] ?? 'N/A',
              }),
         ],
       ),
@@ -488,7 +495,6 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
         child: Row(
           children: [
             Expanded(
-              flex: 2,
               child: ElevatedButton(
                 onPressed: widget.onViewProfile ?? () {
                    debugPrint('❌ onViewProfile callback is NULL');
@@ -496,7 +502,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppDesign.petPink,
-                  foregroundColor: Colors.white,
+                  foregroundColor: Colors.black, // FIXED: High Contrast
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 4,
@@ -507,20 +513,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 1,
-              child: OutlinedButton(
-                onPressed: widget.onGeneratePDF,
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.white24),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('PDF'),
-              ),
-            ),
+            // REMOVED Redundant PDF Button
           ],
         ),
       ),

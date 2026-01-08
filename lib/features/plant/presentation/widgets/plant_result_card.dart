@@ -22,6 +22,7 @@ import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../services/botany_service.dart';
 import '../../models/botany_history_item.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../botany_history_screen.dart';
 
 class PlantResultCard extends StatefulWidget {
   final PlantAnalysisModel analysis;
@@ -327,6 +328,46 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               // TabBarView
               Expanded(
                 child: _buildTabContent(null), // ScrollController is managed by ListView itself now
+              ),
+
+              // Navigation to History
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppDesign.backgroundDark,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.05),
+                      offset: const Offset(0, -4),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const BotanyHistoryScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _themeColor, // AppDesign.success / Plant Color
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        "Ir para a lista de análises",
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

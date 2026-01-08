@@ -10414,6 +10414,84 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Adicionar restrição'**
   String get petAddRestriction;
+
+  /// No description provided for @petDossierTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Veterinária 360°'**
+  String get petDossierTitle;
+
+  /// No description provided for @petDossierDisclaimer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conteúdo gerado por IA. Use como referência. Não substitui avaliação veterinária.'**
+  String get petDossierDisclaimer;
+
+  /// No description provided for @petDossierAnalyzedImage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Imagem Analisada'**
+  String get petDossierAnalyzedImage;
+
+  /// No description provided for @petDossierViewFull.
+  ///
+  /// In pt, this message translates to:
+  /// **'Expandir'**
+  String get petDossierViewFull;
+
+  /// No description provided for @petDossierSignals.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais'**
+  String get petDossierSignals;
+
+  /// No description provided for @petDossierRisk.
+  ///
+  /// In pt, this message translates to:
+  /// **'Risco'**
+  String get petDossierRisk;
+
+  /// No description provided for @petDossierPrecision.
+  ///
+  /// In pt, this message translates to:
+  /// **'Precisão'**
+  String get petDossierPrecision;
+
+  /// No description provided for @petDossierStatus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Status'**
+  String get petDossierStatus;
+
+  /// No description provided for @petSectionIdentity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificação Visual'**
+  String get petSectionIdentity;
+
+  /// No description provided for @petSectionPreventive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde Preventiva'**
+  String get petSectionPreventive;
+
+  /// No description provided for @petSectionGrowth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Curva de Crescimento'**
+  String get petSectionGrowth;
+
+  /// No description provided for @petActionViewProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver Perfil do Pet'**
+  String get petActionViewProfile;
+
+  /// No description provided for @petActionSharePDF.
+  ///
+  /// In pt, this message translates to:
+  /// **'Compartilhar PDF'**
+  String get petActionSharePDF;
 }
 
 class _AppLocalizationsDelegate

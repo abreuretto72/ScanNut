@@ -25,7 +25,9 @@ import '../../../nutrition/domain/usecases/scan_to_nutrition_mapper.dart';
 import '../../../nutrition/presentation/controllers/nutrition_providers.dart';
 import '../../../nutrition/data/models/meal_log.dart';
 import '../../../nutrition/data/models/plan_day.dart';
+import '../../../nutrition/data/models/plan_day.dart';
 import '../../../core/theme/app_design.dart';
+import 'nutrition_history_screen.dart';
 
 class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -222,6 +224,44 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             _buildNutrientesTab(),
             _buildGastronomiaTab(),
           ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.white.withOpacity(0.05),
+              offset: const Offset(0, -4),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const NutritionHistoryScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppDesign.foodOrange,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              child: Text(
+                "Ir para a lista de análises",
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
+          ),
         ),
       ),
     );
