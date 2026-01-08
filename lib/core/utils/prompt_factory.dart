@@ -336,7 +336,7 @@ Mantenha as chaves JSON em inglês.
         ''';
   }
 
-  static String getPrompt(ScannutMode mode, {String locale = 'pt'}) {
+  static String getPrompt(ScannutMode mode, {String locale = 'pt', Map<String, String>? contextData}) {
     // Map locale code to full language name and strict instruction
     String languageName;
     String languageInstruction;
@@ -372,8 +372,76 @@ Mantenha as chaves JSON em inglês.
         return PetPrompts.getPetIdentificationPrompt(languageName, languageInstruction);
 
       case ScannutMode.petDiagnosis:
-        return PetPrompts.getPetDiagnosisPrompt(languageName, languageInstruction, isPortuguese);
+        return PetPrompts.getPetDiagnosisPrompt(languageName, languageInstruction, isPortuguese, contextData: contextData);
+
+      case ScannutMode.petVisualAnalysis:
+        return getPetVisualPrompt(languageName, languageInstruction, contextData: contextData);
+
+      case ScannutMode.petDocumentOCR:
+        return getPetOCRPrompt(languageName, languageInstruction);
     }
+  }
+
+  static String getPetVisualPrompt(String languageName, String languageInstruction, {Map<String, String>? contextData}) {
+    // 🛡️ Context Injection
+    String contextBlock = "";
+    if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
+        contextBlock = '''
+        CONTEXT (SOURCE OF TRUTH): 
+        Target Pet Species: ${contextData['species'] ?? 'Unknown'}
+        Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
+        
+        INSTRUCTION: You are analyzing THIS specific pet. Do not infer a different species or breed.
+        Customize your analysis for a ${contextData['breed']}.
+        ''';
+    }
+
+    return '''
+            $languageInstruction
+            $contextBlock
+            
+            [ROLE]
+            ACT AS A VETERINARY DIAGNOSTICIAN.
+            Analyze the attached image (Pet Photo, Wound, Symptom).
+            
+            MISSION:
+            1. Describe VISUAL FINDINGS (appearance, color, swelling, behavior).
+            2. Identify potential CAUSES for these symptoms.
+            3. Suggest immediate ACTIONS and urgency level.
+            
+            OUTPUT FORMAT (JSON):
+            {
+              "type": "Visual Analysis",
+              "summary": "Short diagnosis summary",
+              "details": "Detailed visual description",
+              "alerts": ["Urgency level", "Critical signs"]
+            }
+            Respond in $languageName. Keep keys in English.
+    ''';
+  }
+
+  static String getPetOCRPrompt(String languageName, String languageInstruction) {
+    return '''
+            $languageInstruction
+            
+            [ROLE]
+            ACT AS A MEDICAL DATA EXTRACTION SPECIALIST (OCR).
+            Extract text from the attached document (Lab Result, Prescription, Invoice).
+            
+            MISSION:
+            1. Transcribe formatted text accurately.
+            2. Extract NUMERICAL VALUES and UNITS from lab results.
+            3. Identify MEDICATIONS and DOSAGES from prescriptions.
+            
+            OUTPUT FORMAT (JSON):
+            {
+              "type": "Document/OCR",
+              "summary": "Document type and main finding",
+              "details": "Full extracted text or structured values",
+              "alerts": ["Abnormal values (High/Low)", "Warnings"]
+            }
+            Respond in $languageName. Keep keys in English.
+    ''';
   }
 
 }

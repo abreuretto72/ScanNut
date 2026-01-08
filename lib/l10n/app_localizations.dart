@@ -527,6 +527,12 @@ abstract class AppLocalizations {
   /// **'Cancelar'**
   String get cancel;
 
+  /// No description provided for @commonBack.
+  ///
+  /// In pt, this message translates to:
+  /// **'Voltar'**
+  String get commonBack;
+
   /// No description provided for @permissionCameraDisclosureTitle.
   ///
   /// In pt, this message translates to:
@@ -1310,7 +1316,7 @@ abstract class AppLocalizations {
   /// No description provided for @petNotOffice.
   ///
   /// In pt, this message translates to:
-  /// **'Tipo de dieta não especificado'**
+  /// **'Não informado'**
   String get petNotOffice;
 
   /// No description provided for @whatsappInitialMessage.
@@ -4445,6 +4451,198 @@ abstract class AppLocalizations {
   /// **'Plano Alimentar Sugerido'**
   String get petSuggestedPlan;
 
+  /// No description provided for @petResultTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Veterinária 360°'**
+  String get petResultTitle;
+
+  /// No description provided for @petResultViewProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'VER PERFIL DO PET'**
+  String get petResultViewProfile;
+
+  /// No description provided for @petResultSave.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvar apenas'**
+  String get petResultSave;
+
+  /// No description provided for @petResultGeneratePDF.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar PDF'**
+  String get petResultGeneratePDF;
+
+  /// No description provided for @petResultDossier.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dossiê 360°'**
+  String get petResultDossier;
+
+  /// No description provided for @petSectionObservedSigns.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais Observados'**
+  String get petSectionObservedSigns;
+
+  /// No description provided for @petSectionNutrition.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutrição & Dieta'**
+  String get petSectionNutrition;
+
+  /// No description provided for @petSectionGrooming.
+  ///
+  /// In pt, this message translates to:
+  /// **'Grooming & Higiene'**
+  String get petSectionGrooming;
+
+  /// No description provided for @petSectionHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde Preventiva'**
+  String get petSectionHealth;
+
+  /// No description provided for @petSectionLifestyle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Lifestyle & Educação'**
+  String get petSectionLifestyle;
+
+  /// No description provided for @petInsightSpecialist.
+  ///
+  /// In pt, this message translates to:
+  /// **'Insight do Especialista'**
+  String get petInsightSpecialist;
+
+  /// No description provided for @petDisclaimerAI.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conteúdo gerado por IA. Não substitui diagnóstico veterinário.'**
+  String get petDisclaimerAI;
+
+  /// No description provided for @petMetaPuppy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Meta Filhote'**
+  String get petMetaPuppy;
+
+  /// No description provided for @petMetaAdult.
+  ///
+  /// In pt, this message translates to:
+  /// **'Meta Adulto'**
+  String get petMetaAdult;
+
+  /// No description provided for @petMetaSenior.
+  ///
+  /// In pt, this message translates to:
+  /// **'Meta Sênior'**
+  String get petMetaSenior;
+
+  /// No description provided for @petTargetNutrients.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutrientes Alvo'**
+  String get petTargetNutrients;
+
+  /// No description provided for @petCoatType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Pelagem'**
+  String get petCoatType;
+
+  /// No description provided for @petBrushingFreq.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escovação'**
+  String get petBrushingFreq;
+
+  /// No description provided for @petBathSug.
+  ///
+  /// In pt, this message translates to:
+  /// **'Banho Sugerido'**
+  String get petBathSug;
+
+  /// No description provided for @petPredispositions.
+  ///
+  /// In pt, this message translates to:
+  /// **'Predisposições'**
+  String get petPredispositions;
+
+  /// No description provided for @petCheckup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Checkup'**
+  String get petCheckup;
+
+  /// No description provided for @petNoData.
+  ///
+  /// In pt, this message translates to:
+  /// **'--'**
+  String get petNoData;
+
+  /// No description provided for @petSavingProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvando no Histórico...'**
+  String get petSavingProfile;
+
+  /// No description provided for @petSavedHistory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvo no Histórico!'**
+  String get petSavedHistory;
+
+  /// No description provided for @petProfileCreated.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil criado com sucesso!'**
+  String get petProfileCreated;
+
+  /// No description provided for @petSaveError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao salvar perfil. Tente novamente.'**
+  String get petSaveError;
+
+  /// No description provided for @petGeneratingPDF.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerando PDF... (Simulação)'**
+  String get petGeneratingPDF;
+
+  /// No description provided for @petUrgencyRed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Urgência Veterinária'**
+  String get petUrgencyRed;
+
+  /// No description provided for @petUrgencyYellow.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atenção Necessária'**
+  String get petUrgencyYellow;
+
+  /// No description provided for @petUrgencyGreen.
+  ///
+  /// In pt, this message translates to:
+  /// **'Observação'**
+  String get petUrgencyGreen;
+
+  /// No description provided for @petSignCritical.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais clínicos de risco detectados.'**
+  String get petSignCritical;
+
+  /// No description provided for @petImmediateOrientation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Orientação Imediata:'**
+  String get petImmediateOrientation;
+
   /// No description provided for @petDailyCaloricGoals.
   ///
   /// In pt, this message translates to:
@@ -4468,12 +4666,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Segurança & Suplementos'**
   String get petSecuritySupplements;
-
-  /// No description provided for @petTargetNutrients.
-  ///
-  /// In pt, this message translates to:
-  /// **'Nutrientes Alvo'**
-  String get petTargetNutrients;
 
   /// No description provided for @petSupplementation.
   ///
@@ -4516,12 +4708,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Predisposição'**
   String get petPredisposition;
-
-  /// No description provided for @petCheckup.
-  ///
-  /// In pt, this message translates to:
-  /// **'Checkup'**
-  String get petCheckup;
 
   /// No description provided for @petTrainingEnvironment.
   ///
@@ -4604,7 +4790,7 @@ abstract class AppLocalizations {
   /// No description provided for @petIntact.
   ///
   /// In pt, this message translates to:
-  /// **'Intacto'**
+  /// **'Inteiro'**
   String get petIntact;
 
   /// No description provided for @petActivityModerate.
@@ -5738,31 +5924,31 @@ abstract class AppLocalizations {
   /// No description provided for @petCoatShort.
   ///
   /// In pt, this message translates to:
-  /// **'Pelo Curto'**
+  /// **'Curto'**
   String get petCoatShort;
 
   /// No description provided for @petCoatLong.
   ///
   /// In pt, this message translates to:
-  /// **'Pelo Longo'**
+  /// **'Longo'**
   String get petCoatLong;
 
   /// No description provided for @petCoatDouble.
   ///
   /// In pt, this message translates to:
-  /// **'Pelo Duplo'**
+  /// **'Duplo'**
   String get petCoatDouble;
 
   /// No description provided for @petCoatWire.
   ///
   /// In pt, this message translates to:
-  /// **'Pelo Duro'**
+  /// **'Duro'**
   String get petCoatWire;
 
   /// No description provided for @petCoatCurly.
   ///
   /// In pt, this message translates to:
-  /// **'Pelo Encaracolado'**
+  /// **'Encaracolado'**
   String get petCoatCurly;
 
   /// No description provided for @petFullAnalysisTitle.
@@ -5818,12 +6004,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Expectativa de Vida'**
   String get petExpectancy;
-
-  /// No description provided for @petCoatType.
-  ///
-  /// In pt, this message translates to:
-  /// **'Tipo de Pelagem'**
-  String get petCoatType;
 
   /// No description provided for @petCommonColors.
   ///
@@ -6200,31 +6380,31 @@ abstract class AppLocalizations {
   /// No description provided for @petConsultVet.
   ///
   /// In pt, this message translates to:
-  /// **'Consulte veterinário para predisposições específicas'**
+  /// **'Consulte veterinário'**
   String get petConsultVet;
 
   /// No description provided for @petHemogramaCheckup.
   ///
   /// In pt, this message translates to:
-  /// **'Hemograma e Checkup Geral'**
+  /// **'Hemograma'**
   String get petHemogramaCheckup;
 
   /// No description provided for @petPositiveReinforcement.
   ///
   /// In pt, this message translates to:
-  /// **'Reforço positivo'**
+  /// **'Reforço Positivo'**
   String get petPositiveReinforcement;
 
   /// No description provided for @petInteractiveToys.
   ///
   /// In pt, this message translates to:
-  /// **'Brinquedos interativos e passeios'**
+  /// **'Brinquedos Interativos'**
   String get petInteractiveToys;
 
   /// No description provided for @petConsultVetCare.
   ///
   /// In pt, this message translates to:
-  /// **'Consulte um Vet.'**
+  /// **'Cuidados Veterinários'**
   String get petConsultVetCare;
 
   /// No description provided for @pdfFieldObservations.
@@ -7256,7 +7436,7 @@ abstract class AppLocalizations {
   /// No description provided for @agendaRequired.
   ///
   /// In pt, this message translates to:
-  /// **'Obrigatório'**
+  /// **'Campo obrigatório'**
   String get agendaRequired;
 
   /// No description provided for @btnDelete.
@@ -8285,6 +8465,66 @@ abstract class AppLocalizations {
   /// **'ℹ️ Dica Importante'**
   String get helpMenuTipTitle;
 
+  /// No description provided for @petTechnicalDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Detalhes Técnicos'**
+  String get petTechnicalDetails;
+
+  /// No description provided for @petObservedSigns.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais Observados'**
+  String get petObservedSigns;
+
+  /// No description provided for @petHomeCare.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cuidados em Casa'**
+  String get petHomeCare;
+
+  /// No description provided for @petVetCare.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cuidados Veterinários'**
+  String get petVetCare;
+
+  /// No description provided for @petResult.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resultado'**
+  String get petResult;
+
+  /// No description provided for @petNoRelevantChanges.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma alteração relevante detectada'**
+  String get petNoRelevantChanges;
+
+  /// No description provided for @commonNormal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Normal'**
+  String get commonNormal;
+
+  /// No description provided for @commonModerate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Moderado'**
+  String get commonModerate;
+
+  /// No description provided for @commonShare.
+  ///
+  /// In pt, this message translates to:
+  /// **'Compartilhar'**
+  String get commonShare;
+
+  /// No description provided for @petResult_viewProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver Perfil do Pet'**
+  String get petResult_viewProfile;
+
   /// No description provided for @helpMenuTipDesc.
   ///
   /// In pt, this message translates to:
@@ -8986,6 +9226,1194 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Gerar Cardápio'**
   String get petMenuGenerate;
+
+  /// No description provided for @feedingEventGroupLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Grupo de Evento'**
+  String get feedingEventGroupLabel;
+
+  /// No description provided for @feedingEventTypeLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Ocorrência'**
+  String get feedingEventTypeLabel;
+
+  /// No description provided for @feedingEventSeverityLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gravidade'**
+  String get feedingEventSeverityLabel;
+
+  /// No description provided for @feedingEventAcceptanceLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aceitação'**
+  String get feedingEventAcceptanceLabel;
+
+  /// No description provided for @feedingEventQuantityLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Quantidade Ingerida'**
+  String get feedingEventQuantityLabel;
+
+  /// No description provided for @feedingEventRelatedToMeal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Relacionado à Refeição'**
+  String get feedingEventRelatedToMeal;
+
+  /// No description provided for @feedingGroup_normalFeeding.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimentação Normal'**
+  String get feedingGroup_normalFeeding;
+
+  /// No description provided for @feedingGroup_behavioralOccurrence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ocorrência Comportamental'**
+  String get feedingGroup_behavioralOccurrence;
+
+  /// No description provided for @feedingGroup_digestiveIntercurrence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Intercorrência Digestiva'**
+  String get feedingGroup_digestiveIntercurrence;
+
+  /// No description provided for @feedingGroup_intestinalIntercurrence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Intercorrência Intestinal'**
+  String get feedingGroup_intestinalIntercurrence;
+
+  /// No description provided for @feedingGroup_nutritionalMetabolic.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutricional/Metabólica'**
+  String get feedingGroup_nutritionalMetabolic;
+
+  /// No description provided for @feedingGroup_therapeuticDiet.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dieta Terapêutica'**
+  String get feedingGroup_therapeuticDiet;
+
+  /// No description provided for @feedingType_mealCompleted.
+  ///
+  /// In pt, this message translates to:
+  /// **'Refeição realizada'**
+  String get feedingType_mealCompleted;
+
+  /// No description provided for @feedingType_mealDelayed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Refeição atrasada'**
+  String get feedingType_mealDelayed;
+
+  /// No description provided for @feedingType_mealSkipped.
+  ///
+  /// In pt, this message translates to:
+  /// **'Refeição pulada'**
+  String get feedingType_mealSkipped;
+
+  /// No description provided for @feedingType_foodChange.
+  ///
+  /// In pt, this message translates to:
+  /// **'Troca de alimento'**
+  String get feedingType_foodChange;
+
+  /// No description provided for @feedingType_reducedIntake.
+  ///
+  /// In pt, this message translates to:
+  /// **'Redução da ingestão'**
+  String get feedingType_reducedIntake;
+
+  /// No description provided for @feedingType_increasedAppetite.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aumento do apetite'**
+  String get feedingType_increasedAppetite;
+
+  /// No description provided for @feedingType_reluctantToEat.
+  ///
+  /// In pt, this message translates to:
+  /// **'Relutância em comer'**
+  String get feedingType_reluctantToEat;
+
+  /// No description provided for @feedingType_eatsSlowly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Come devagar'**
+  String get feedingType_eatsSlowly;
+
+  /// No description provided for @feedingType_eatsTooFast.
+  ///
+  /// In pt, this message translates to:
+  /// **'Come muito rápido'**
+  String get feedingType_eatsTooFast;
+
+  /// No description provided for @feedingType_selectiveEating.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seleciona alimento'**
+  String get feedingType_selectiveEating;
+
+  /// No description provided for @feedingType_hidesFood.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esconde comida'**
+  String get feedingType_hidesFood;
+
+  /// No description provided for @feedingType_aggressiveWhileEating.
+  ///
+  /// In pt, this message translates to:
+  /// **'Agressividade ao comer'**
+  String get feedingType_aggressiveWhileEating;
+
+  /// No description provided for @feedingType_anxietyWhileEating.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ansiedade ao se alimentar'**
+  String get feedingType_anxietyWhileEating;
+
+  /// No description provided for @feedingType_vomitingImmediate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vômito imediato'**
+  String get feedingType_vomitingImmediate;
+
+  /// No description provided for @feedingType_vomitingDelayed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vômito tardio'**
+  String get feedingType_vomitingDelayed;
+
+  /// No description provided for @feedingType_nausea.
+  ///
+  /// In pt, this message translates to:
+  /// **'Náusea'**
+  String get feedingType_nausea;
+
+  /// No description provided for @feedingType_choking.
+  ///
+  /// In pt, this message translates to:
+  /// **'Engasgo'**
+  String get feedingType_choking;
+
+  /// No description provided for @feedingType_regurgitation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Regurgitação'**
+  String get feedingType_regurgitation;
+
+  /// No description provided for @feedingType_excessiveFlatulence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Flatulência excessiva'**
+  String get feedingType_excessiveFlatulence;
+
+  /// No description provided for @feedingType_apparentAbdominalPain.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dor abdominal aparente'**
+  String get feedingType_apparentAbdominalPain;
+
+  /// No description provided for @feedingType_diarrhea.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diarreia'**
+  String get feedingType_diarrhea;
+
+  /// No description provided for @feedingType_softStool.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fezes amolecidas'**
+  String get feedingType_softStool;
+
+  /// No description provided for @feedingType_constipation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Constipação'**
+  String get feedingType_constipation;
+
+  /// No description provided for @feedingType_stoolWithMucus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fezes com muco'**
+  String get feedingType_stoolWithMucus;
+
+  /// No description provided for @feedingType_stoolWithBlood.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fezes com sangue'**
+  String get feedingType_stoolWithBlood;
+
+  /// No description provided for @feedingType_stoolColorChange.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alteração de cor das fezes'**
+  String get feedingType_stoolColorChange;
+
+  /// No description provided for @feedingType_abnormalStoolOdor.
+  ///
+  /// In pt, this message translates to:
+  /// **'Odor fecal anormal'**
+  String get feedingType_abnormalStoolOdor;
+
+  /// No description provided for @feedingType_weightGain.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ganho de peso'**
+  String get feedingType_weightGain;
+
+  /// No description provided for @feedingType_weightLoss.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perda de peso'**
+  String get feedingType_weightLoss;
+
+  /// No description provided for @feedingType_excessiveThirst.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sede excessiva'**
+  String get feedingType_excessiveThirst;
+
+  /// No description provided for @feedingType_lowWaterIntake.
+  ///
+  /// In pt, this message translates to:
+  /// **'Baixa ingestão de água'**
+  String get feedingType_lowWaterIntake;
+
+  /// No description provided for @feedingType_suspectedFoodIntolerance.
+  ///
+  /// In pt, this message translates to:
+  /// **'Suspeita de intolerância alimentar'**
+  String get feedingType_suspectedFoodIntolerance;
+
+  /// No description provided for @feedingType_suspectedFoodAllergy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Suspeita de alergia alimentar'**
+  String get feedingType_suspectedFoodAllergy;
+
+  /// No description provided for @feedingType_adverseFoodReaction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Reação adversa ao alimento'**
+  String get feedingType_adverseFoodReaction;
+
+  /// No description provided for @feedingType_dietNotTolerated.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dieta não tolerada'**
+  String get feedingType_dietNotTolerated;
+
+  /// No description provided for @feedingType_therapeuticDietRefusal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recusa de dieta terapêutica'**
+  String get feedingType_therapeuticDietRefusal;
+
+  /// No description provided for @feedingType_clinicalImprovementWithDiet.
+  ///
+  /// In pt, this message translates to:
+  /// **'Melhora clínica com dieta'**
+  String get feedingType_clinicalImprovementWithDiet;
+
+  /// No description provided for @feedingType_clinicalWorseningAfterMeal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Piora clínica após refeição'**
+  String get feedingType_clinicalWorseningAfterMeal;
+
+  /// No description provided for @feedingType_needForDietAdjustment.
+  ///
+  /// In pt, this message translates to:
+  /// **'Necessidade de ajuste de dieta'**
+  String get feedingType_needForDietAdjustment;
+
+  /// No description provided for @feedingType_feedingWithMedication.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimentação associada a medicamento'**
+  String get feedingType_feedingWithMedication;
+
+  /// No description provided for @feedingType_assistedFeeding.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alimentação assistida (seringa/sonda)'**
+  String get feedingType_assistedFeeding;
+
+  /// No description provided for @feedingSeverity_none.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem gravidade'**
+  String get feedingSeverity_none;
+
+  /// No description provided for @feedingSeverity_mild.
+  ///
+  /// In pt, this message translates to:
+  /// **'Leve'**
+  String get feedingSeverity_mild;
+
+  /// No description provided for @feedingSeverity_moderate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Moderada'**
+  String get feedingSeverity_moderate;
+
+  /// No description provided for @feedingSeverity_severe.
+  ///
+  /// In pt, this message translates to:
+  /// **'Grave'**
+  String get feedingSeverity_severe;
+
+  /// No description provided for @feedingAcceptance_good.
+  ///
+  /// In pt, this message translates to:
+  /// **'Boa'**
+  String get feedingAcceptance_good;
+
+  /// No description provided for @feedingAcceptance_partial.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parcial'**
+  String get feedingAcceptance_partial;
+
+  /// No description provided for @feedingAcceptance_refused.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recusou'**
+  String get feedingAcceptance_refused;
+
+  /// No description provided for @feedingClinicalIntercurrence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Intercorrência Clínica'**
+  String get feedingClinicalIntercurrence;
+
+  /// No description provided for @feedingMarkAsClinical.
+  ///
+  /// In pt, this message translates to:
+  /// **'Marcar como intercorrência clínica'**
+  String get feedingMarkAsClinical;
+
+  /// No description provided for @feedingClinicalAlert.
+  ///
+  /// In pt, this message translates to:
+  /// **'⚠️ Este evento será destacado no PDF como intercorrência clínica'**
+  String get feedingClinicalAlert;
+
+  /// No description provided for @healthEventTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registrar Saúde'**
+  String get healthEventTitle;
+
+  /// No description provided for @healthEventSelectType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione o tipo de ocorrência'**
+  String get healthEventSelectType;
+
+  /// No description provided for @healthEventSeverityLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gravidade'**
+  String get healthEventSeverityLabel;
+
+  /// No description provided for @healthEventEmergencyToggle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Marcar como emergência'**
+  String get healthEventEmergencyToggle;
+
+  /// No description provided for @healthEventEmergencyAlert.
+  ///
+  /// In pt, this message translates to:
+  /// **'🚨 Se o pet estiver em risco, procure atendimento veterinário imediatamente.'**
+  String get healthEventEmergencyAlert;
+
+  /// No description provided for @healthEventDetailsHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registrar a ocorrência em detalhes'**
+  String get healthEventDetailsHint;
+
+  /// No description provided for @healthEventSpeechToText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Usar voz para registrar'**
+  String get healthEventSpeechToText;
+
+  /// No description provided for @healthEventListening.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ouvindo...'**
+  String get healthEventListening;
+
+  /// No description provided for @healthEventSpeechError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao reconhecer voz. Tente novamente.'**
+  String get healthEventSpeechError;
+
+  /// No description provided for @health_group_daily_monitoring.
+  ///
+  /// In pt, this message translates to:
+  /// **'Monitoramento Diário'**
+  String get health_group_daily_monitoring;
+
+  /// No description provided for @health_group_acute_symptoms.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sintomas Agudos'**
+  String get health_group_acute_symptoms;
+
+  /// No description provided for @health_group_infectious.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infeccioso/Parasitário'**
+  String get health_group_infectious;
+
+  /// No description provided for @health_group_dermatological.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dermatológico'**
+  String get health_group_dermatological;
+
+  /// No description provided for @health_group_mobility.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mobilidade/Ortopédico'**
+  String get health_group_mobility;
+
+  /// No description provided for @health_group_neurological.
+  ///
+  /// In pt, this message translates to:
+  /// **'Neurológico/Sensorial'**
+  String get health_group_neurological;
+
+  /// No description provided for @health_group_treatment.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tratamento/Procedimento'**
+  String get health_group_treatment;
+
+  /// No description provided for @health_type_temperature_check.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verificação de Temperatura'**
+  String get health_type_temperature_check;
+
+  /// No description provided for @health_type_weight_check.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verificação de Peso'**
+  String get health_type_weight_check;
+
+  /// No description provided for @health_type_appetite_monitoring.
+  ///
+  /// In pt, this message translates to:
+  /// **'Monitoramento de Apetite'**
+  String get health_type_appetite_monitoring;
+
+  /// No description provided for @health_type_hydration_check.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verificação de Hidratação'**
+  String get health_type_hydration_check;
+
+  /// No description provided for @health_type_energy_level.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nível de Energia'**
+  String get health_type_energy_level;
+
+  /// No description provided for @health_type_behavior_observation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Observação de Comportamento'**
+  String get health_type_behavior_observation;
+
+  /// No description provided for @health_type_fever.
+  ///
+  /// In pt, this message translates to:
+  /// **'Febre'**
+  String get health_type_fever;
+
+  /// No description provided for @health_type_vomiting.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vômito'**
+  String get health_type_vomiting;
+
+  /// No description provided for @health_type_diarrhea.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diarreia'**
+  String get health_type_diarrhea;
+
+  /// No description provided for @health_type_lethargy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Letargia'**
+  String get health_type_lethargy;
+
+  /// No description provided for @health_type_loss_of_appetite.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perda de Apetite'**
+  String get health_type_loss_of_appetite;
+
+  /// No description provided for @health_type_excessive_thirst.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sede Excessiva'**
+  String get health_type_excessive_thirst;
+
+  /// No description provided for @health_type_difficulty_breathing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dificuldade Respiratória'**
+  String get health_type_difficulty_breathing;
+
+  /// No description provided for @health_type_coughing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tosse'**
+  String get health_type_coughing;
+
+  /// No description provided for @health_type_sneezing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Espirros'**
+  String get health_type_sneezing;
+
+  /// No description provided for @health_type_nasal_discharge.
+  ///
+  /// In pt, this message translates to:
+  /// **'Secreção Nasal'**
+  String get health_type_nasal_discharge;
+
+  /// No description provided for @health_type_suspected_infection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Suspeita de Infecção'**
+  String get health_type_suspected_infection;
+
+  /// No description provided for @health_type_wound_infection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infecção em Ferida'**
+  String get health_type_wound_infection;
+
+  /// No description provided for @health_type_ear_infection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infecção de Ouvido'**
+  String get health_type_ear_infection;
+
+  /// No description provided for @health_type_eye_infection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infecção Ocular'**
+  String get health_type_eye_infection;
+
+  /// No description provided for @health_type_urinary_infection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infecção Urinária'**
+  String get health_type_urinary_infection;
+
+  /// No description provided for @health_type_parasite_detected.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parasita Detectado'**
+  String get health_type_parasite_detected;
+
+  /// No description provided for @health_type_tick_found.
+  ///
+  /// In pt, this message translates to:
+  /// **'Carrapato Encontrado'**
+  String get health_type_tick_found;
+
+  /// No description provided for @health_type_flea_infestation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infestação de Pulgas'**
+  String get health_type_flea_infestation;
+
+  /// No description provided for @health_type_skin_rash.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erupção Cutânea'**
+  String get health_type_skin_rash;
+
+  /// No description provided for @health_type_itching.
+  ///
+  /// In pt, this message translates to:
+  /// **'Coceira'**
+  String get health_type_itching;
+
+  /// No description provided for @health_type_hair_loss.
+  ///
+  /// In pt, this message translates to:
+  /// **'Queda de Pelo'**
+  String get health_type_hair_loss;
+
+  /// No description provided for @health_type_hot_spot.
+  ///
+  /// In pt, this message translates to:
+  /// **'Hot Spot'**
+  String get health_type_hot_spot;
+
+  /// No description provided for @health_type_wound.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ferida'**
+  String get health_type_wound;
+
+  /// No description provided for @health_type_abscess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Abscesso'**
+  String get health_type_abscess;
+
+  /// No description provided for @health_type_allergic_reaction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Reação Alérgica'**
+  String get health_type_allergic_reaction;
+
+  /// No description provided for @health_type_swelling.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inchaço'**
+  String get health_type_swelling;
+
+  /// No description provided for @health_type_limping.
+  ///
+  /// In pt, this message translates to:
+  /// **'Manqueira'**
+  String get health_type_limping;
+
+  /// No description provided for @health_type_joint_pain.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dor Articular'**
+  String get health_type_joint_pain;
+
+  /// No description provided for @health_type_difficulty_walking.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dificuldade para Andar'**
+  String get health_type_difficulty_walking;
+
+  /// No description provided for @health_type_stiffness.
+  ///
+  /// In pt, this message translates to:
+  /// **'Rigidez'**
+  String get health_type_stiffness;
+
+  /// No description provided for @health_type_muscle_weakness.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fraqueza Muscular'**
+  String get health_type_muscle_weakness;
+
+  /// No description provided for @health_type_fall.
+  ///
+  /// In pt, this message translates to:
+  /// **'Queda'**
+  String get health_type_fall;
+
+  /// No description provided for @health_type_fracture_suspected.
+  ///
+  /// In pt, this message translates to:
+  /// **'Suspeita de Fratura'**
+  String get health_type_fracture_suspected;
+
+  /// No description provided for @health_type_seizure.
+  ///
+  /// In pt, this message translates to:
+  /// **'Convulsão'**
+  String get health_type_seizure;
+
+  /// No description provided for @health_type_tremors.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tremores'**
+  String get health_type_tremors;
+
+  /// No description provided for @health_type_disorientation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desorientação'**
+  String get health_type_disorientation;
+
+  /// No description provided for @health_type_loss_of_balance.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perda de Equilíbrio'**
+  String get health_type_loss_of_balance;
+
+  /// No description provided for @health_type_vision_problems.
+  ///
+  /// In pt, this message translates to:
+  /// **'Problemas de Visão'**
+  String get health_type_vision_problems;
+
+  /// No description provided for @health_type_hearing_problems.
+  ///
+  /// In pt, this message translates to:
+  /// **'Problemas de Audição'**
+  String get health_type_hearing_problems;
+
+  /// No description provided for @health_type_head_tilt.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inclinação da Cabeça'**
+  String get health_type_head_tilt;
+
+  /// No description provided for @health_type_medication_administered.
+  ///
+  /// In pt, this message translates to:
+  /// **'Medicamento Administrado'**
+  String get health_type_medication_administered;
+
+  /// No description provided for @health_type_vaccine_given.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacina Aplicada'**
+  String get health_type_vaccine_given;
+
+  /// No description provided for @health_type_wound_cleaning.
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpeza de Ferida'**
+  String get health_type_wound_cleaning;
+
+  /// No description provided for @health_type_bandage_change.
+  ///
+  /// In pt, this message translates to:
+  /// **'Troca de Curativo'**
+  String get health_type_bandage_change;
+
+  /// No description provided for @health_type_vet_visit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Consulta Veterinária'**
+  String get health_type_vet_visit;
+
+  /// No description provided for @health_type_surgery.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cirurgia'**
+  String get health_type_surgery;
+
+  /// No description provided for @health_type_emergency_care.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atendimento de Emergência'**
+  String get health_type_emergency_care;
+
+  /// No description provided for @health_type_hospitalization.
+  ///
+  /// In pt, this message translates to:
+  /// **'Internação'**
+  String get health_type_hospitalization;
+
+  /// No description provided for @petActionAgenda.
+  ///
+  /// In pt, this message translates to:
+  /// **'Agenda'**
+  String get petActionAgenda;
+
+  /// No description provided for @petActionMenu.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cardápio'**
+  String get petActionMenu;
+
+  /// No description provided for @petAgendaTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Agenda do Pet'**
+  String get petAgendaTitle;
+
+  /// No description provided for @foodHelpTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exemplos de Ocorrências'**
+  String get foodHelpTitle;
+
+  /// No description provided for @foodHelpRoutine.
+  ///
+  /// In pt, this message translates to:
+  /// **'• Rotina: Alimentação normal, recusa ou aumento de apetite'**
+  String get foodHelpRoutine;
+
+  /// No description provided for @foodHelpAcute.
+  ///
+  /// In pt, this message translates to:
+  /// **'• Agudo: Vômito pós-refeição, engasgo ou dificuldade'**
+  String get foodHelpAcute;
+
+  /// No description provided for @foodHelpDietChange.
+  ///
+  /// In pt, this message translates to:
+  /// **'• Dieta: Troca de ração, início de AN ou ingestão indevida'**
+  String get foodHelpDietChange;
+
+  /// No description provided for @foodHelpSupplements.
+  ///
+  /// In pt, this message translates to:
+  /// **'• Suplementos: Vitaminas ou probióticos'**
+  String get foodHelpSupplements;
+
+  /// No description provided for @foodHelpHydration.
+  ///
+  /// In pt, this message translates to:
+  /// **'• Hidratação: Consumo excessivo ou recusa de água'**
+  String get foodHelpHydration;
+
+  /// No description provided for @petAttachmentAnalyzeTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Inteligente'**
+  String get petAttachmentAnalyzeTitle;
+
+  /// No description provided for @petAttachmentAnalyzeQuestion.
+  ///
+  /// In pt, this message translates to:
+  /// **'Como deseja analisar este anexo?'**
+  String get petAttachmentAnalyzeQuestion;
+
+  /// No description provided for @petAttachmentOptionPhoto.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisar Foto (Visual)'**
+  String get petAttachmentOptionPhoto;
+
+  /// No description provided for @petAttachmentOptionOCR.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ler Documento (OCR)'**
+  String get petAttachmentOptionOCR;
+
+  /// No description provided for @petAttachmentAnalyzeButton.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisar'**
+  String get petAttachmentAnalyzeButton;
+
+  /// No description provided for @petAttachmentAnalysing.
+  ///
+  /// In pt, this message translates to:
+  /// **'C.Ai analisando...'**
+  String get petAttachmentAnalysing;
+
+  /// No description provided for @petAttachmentAnalysisSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise concluída!'**
+  String get petAttachmentAnalysisSuccess;
+
+  /// No description provided for @petAttachmentAnalysisError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha na análise.'**
+  String get petAttachmentAnalysisError;
+
+  /// No description provided for @petAnalysisViewResult.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver Análise IA'**
+  String get petAnalysisViewResult;
+
+  /// No description provided for @petAttachmentNameTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nomear Anexo'**
+  String get petAttachmentNameTitle;
+
+  /// No description provided for @petAttachmentNameHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ex: Exame, Receita...'**
+  String get petAttachmentNameHint;
+
+  /// No description provided for @analysis_title.
+  ///
+  /// In pt, this message translates to:
+  /// **'Resultado da Análise IA'**
+  String get analysis_title;
+
+  /// No description provided for @btn_close.
+  ///
+  /// In pt, this message translates to:
+  /// **'Entendi'**
+  String get btn_close;
+
+  /// No description provided for @petEvent_errorRequired.
+  ///
+  /// In pt, this message translates to:
+  /// **'Por favor, descreva a ocorrência.'**
+  String get petEvent_errorRequired;
+
+  /// No description provided for @petProfile_breed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Raça'**
+  String get petProfile_breed;
+
+  /// No description provided for @petProfile_breedHint.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ex: Labrador/SRD'**
+  String get petProfile_breedHint;
+
+  /// No description provided for @petProfile_reproductiveStatus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Status Reprodutivo'**
+  String get petProfile_reproductiveStatus;
+
+  /// No description provided for @petProfile_neutered.
+  ///
+  /// In pt, this message translates to:
+  /// **'Castrado'**
+  String get petProfile_neutered;
+
+  /// No description provided for @petProfile_intact.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não Castrado (Inteiro)'**
+  String get petProfile_intact;
+
+  /// No description provided for @petProfile_errorBreed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe a raça.'**
+  String get petProfile_errorBreed;
+
+  /// No description provided for @petProfile_errorReproductive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe o status reprodutivo.'**
+  String get petProfile_errorReproductive;
+
+  /// No description provided for @petProfile_errorGender.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione o sexo.'**
+  String get petProfile_errorGender;
+
+  /// No description provided for @gender_male.
+  ///
+  /// In pt, this message translates to:
+  /// **'Macho'**
+  String get gender_male;
+
+  /// No description provided for @gender_female.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fêmea'**
+  String get gender_female;
+
+  /// No description provided for @gender_required.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione o sexo do pet'**
+  String get gender_required;
+
+  /// No description provided for @breed_required.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informe a raça'**
+  String get breed_required;
+
+  /// No description provided for @petProfile_male.
+  ///
+  /// In pt, this message translates to:
+  /// **'Macho'**
+  String get petProfile_male;
+
+  /// No description provided for @petProfile_female.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fêmea'**
+  String get petProfile_female;
+
+  /// No description provided for @showEvents.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mostrar Eventos'**
+  String get showEvents;
+
+  /// No description provided for @petMenuCalculating.
+  ///
+  /// In pt, this message translates to:
+  /// **'Calculando a melhor dieta para {name}...'**
+  String petMenuCalculating(String name);
+
+  /// No description provided for @petMenuIncompleteTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil Incompleto'**
+  String get petMenuIncompleteTitle;
+
+  /// No description provided for @petMenuIncompleteProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados incompletos. Por favor, preencha o perfil do pet (Peso, Idade, Sexo, Status Reprodutivo) para garantir uma dieta segura.'**
+  String get petMenuIncompleteProfile;
+
+  /// No description provided for @commonRequired.
+  ///
+  /// In pt, this message translates to:
+  /// **'Campo obrigatório'**
+  String get commonRequired;
+
+  /// No description provided for @detecting_pet.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificando seu pet...'**
+  String get detecting_pet;
+
+  /// No description provided for @auto_fill_success.
+  ///
+  /// In pt, this message translates to:
+  /// **'Campos preenchidos automaticamente!'**
+  String get auto_fill_success;
+
+  /// No description provided for @is_pet_breed_correct.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificamos que seu pet é um {breed}. Isso está correto?'**
+  String is_pet_breed_correct(Object breed);
+
+  /// No description provided for @species_label.
+  ///
+  /// In pt, this message translates to:
+  /// **'Espécie'**
+  String get species_label;
+
+  /// No description provided for @species_dog.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cão'**
+  String get species_dog;
+
+  /// No description provided for @species_cat.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gato'**
+  String get species_cat;
+
+  /// No description provided for @petMenuSpeciesRequired.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione se o seu pet é um cão ou gato para continuar.'**
+  String get petMenuSpeciesRequired;
+
+  /// No description provided for @missing_species_alert.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione se o seu pet é um cão ou gato para continuar.'**
+  String get missing_species_alert;
+
+  /// No description provided for @reliability_label.
+  ///
+  /// In pt, this message translates to:
+  /// **'Confiança da Análise'**
+  String get reliability_label;
+
+  /// No description provided for @activitySedentary.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sedentário'**
+  String get activitySedentary;
+
+  /// No description provided for @activityModerate.
+  ///
+  /// In pt, this message translates to:
+  /// **'Moderado'**
+  String get activityModerate;
+
+  /// No description provided for @activityActive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ativo'**
+  String get activityActive;
+
+  /// No description provided for @activityVeryActive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Muito Ativo'**
+  String get activityVeryActive;
+
+  /// No description provided for @bathFrequencyWeekly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Semanal'**
+  String get bathFrequencyWeekly;
+
+  /// No description provided for @bathFrequencyBiweekly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Quinzenal'**
+  String get bathFrequencyBiweekly;
+
+  /// No description provided for @bathFrequencyMonthly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mensal'**
+  String get bathFrequencyMonthly;
+
+  /// No description provided for @bathFrequencyAsNeeded.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sob Demanda'**
+  String get bathFrequencyAsNeeded;
+
+  /// No description provided for @reproductiveNeutered.
+  ///
+  /// In pt, this message translates to:
+  /// **'Castrado'**
+  String get reproductiveNeutered;
+
+  /// No description provided for @reproductiveIntact.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inteiro'**
+  String get reproductiveIntact;
+
+  /// No description provided for @reproductiveNursing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gesta/Lactante'**
+  String get reproductiveNursing;
+
+  /// No description provided for @petFoodRestrictions.
+  ///
+  /// In pt, this message translates to:
+  /// **'Restrições'**
+  String get petFoodRestrictions;
+
+  /// No description provided for @petFoodRestrictionsDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ingredientes proibidos ou a evitar (ex: sem frango, sem glúten).'**
+  String get petFoodRestrictionsDesc;
+
+  /// No description provided for @petAddRestriction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Adicionar restrição'**
+  String get petAddRestriction;
 }
 
 class _AppLocalizationsDelegate

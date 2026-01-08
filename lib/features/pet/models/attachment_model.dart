@@ -25,6 +25,9 @@ class AttachmentModel extends HiveObject {
   @HiveField(6)
   final DateTime createdAt;
 
+  @HiveField(7)
+  final String? analysisResult;
+
   AttachmentModel({
     required this.id,
     required this.kind,
@@ -33,5 +36,6 @@ class AttachmentModel extends HiveObject {
     required this.size,
     required this.hash,
     required this.createdAt,
+    this.analysisResult,
   });
 }

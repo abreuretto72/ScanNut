@@ -11,8 +11,10 @@ class PetAnalysisResult {
   
   final String? petName;
   final String analysisType;
+  final String? reliability; // Added Reliability
 
   // Diagnosis Specific Fields (Compatibility)
+  final String? especieId; // Added for identification mode
   final String? especieDiag;
   final String? racaDiag;
   final String? caracteristicasDiag;
@@ -38,6 +40,8 @@ class PetAnalysisResult {
     required this.dica,
     this.petName,
     this.analysisType = 'identification',
+    this.reliability, // Added
+    this.especieId, // Added
     this.especieDiag,
     this.racaDiag,
     this.caracteristicasDiag,
@@ -55,7 +59,7 @@ class PetAnalysisResult {
 
   // Backward compatibility getters
   String get raca => analysisType == 'diagnosis' ? (racaDiag ?? 'N/A') : identificacao.racaPredominante;
-  String get especie => analysisType == 'diagnosis' ? (especieDiag ?? 'Animal') : "Animal";
+  String get especie => analysisType == 'diagnosis' ? (especieDiag ?? 'Animal') : (especieId ?? "Animal");
   String get caracteristicas => analysisType == 'diagnosis' ? (caracteristicasDiag ?? 'N/A') : identificacao.porteEstimado;
   String get descricaoVisual => analysisType == 'diagnosis' ? (descricaoVisualDiag ?? 'N/A') : perfilComportamental.driveAncestral;
   String get urgenciaNivel => analysisType == 'diagnosis' ? (urgenciaNivelDiag ?? 'Verde') : "Verde"; 
@@ -100,10 +104,11 @@ class PetAnalysisResult {
     }
 
     // "Inference Master" Mapping
+    final idMap = _safeMap(json['identification']);
     return PetAnalysisResult(
       analysisType: 'identification',
       identificacao: IdentificacaoPet.fromTotalInference(
-        _safeMap(json['identification']),
+        idMap,
         _safeMap(json['growth_curve'])
       ),
       perfilComportamental: PerfilComportamental.empty(),
@@ -113,7 +118,9 @@ class PetAnalysisResult {
       lifestyle: LifestyleEEducacao.fromTotalInference(_safeMap(json['lifestyle'])),
       dica: DicaEspecialista.empty(),
       limitacoesAnalise: null,
+      especieId: idMap['species']?.toString(), // Capture species from identification
       petName: json['pet_name'] ?? 'Pet',
+      reliability: json['metadata']?['reliability']?.toString() ?? '85%', // Capture reliability
       tabelaBenigna: [],
       tabelaMaligna: [],
       planoSemanal: [],

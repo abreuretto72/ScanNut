@@ -35,6 +35,7 @@ import '../../food/presentation/widgets/result_card.dart';
 import '../../food/presentation/food_result_screen.dart';
 import '../../plant/presentation/widgets/plant_result_card.dart';
 import '../../pet/presentation/widgets/pet_result_card.dart';
+import '../../pet/presentation/pet_result_screen.dart';
 import '../../pet/presentation/widgets/pet_selection_dialog.dart';
 import '../../pet/presentation/pet_history_screen.dart';
 import '../../pet/services/pet_profile_service.dart';
@@ -299,8 +300,25 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         debugPrint('✅ _onCapture: Excluded ingredients: ${excludedIngredients.length}');
       }
 
-      debugPrint('🚀 _onCapture: Starting analysis...');
-      
+      // 🛡️ Phase 4: Inject Context Data
+      Map<String, String>? contextData;
+      if (_petName != null) {
+          try {
+              final pSrv = PetProfileService();
+              await pSrv.init();
+              final pMap = await pSrv.getProfile(_petName!);
+              if (pMap != null && pMap['data'] != null) {
+                  final pd = pMap['data'];
+                  contextData = {
+                      'species': pd['especie']?.toString() ?? 'Unknown',
+                      'breed': pd['raca']?.toString() ?? 'Unknown',
+                  };
+              }
+          } catch (e) {
+              debugPrint('Error loading context for analysis: $e');
+          }
+      }
+
       // Language Shield: Enforce en_US if English is detected to prevent mixed responses
       String localeCode = Localizations.localeOf(context).toString();
       if (localeCode.toLowerCase().contains('en')) {
@@ -313,6 +331,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         petName: _petName,
         excludedBases: excludedIngredients,
         locale: localeCode,
+        contextData: contextData,
       );
       
       // Capture the success state BEFORE resetting the provider
@@ -379,7 +398,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           );
         } else if (state.data is PetAnalysisResult) {
           final petAnalysis = state.data as PetAnalysisResult;
-          
+
           // If in diagnosis mode and a pet was selected (not NOVO), save wound analysis
           if (_petMode == 1 && _petName != null) {
             debugPrint('💾 Saving wound analysis for pet: $_petName');
@@ -388,15 +407,21 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             debugPrint('ℹ️ NOVO selected - showing analysis without saving');
           }
           
-          _showResultSheet(
-            context,
-            PetResultCard(
-              analysis: petAnalysis,
-              imagePath: _capturedImage!.path,
-              onSave: () => _handleSave('Pet', data: state.data),
-              petName: _petName,
-            ),
-          );
+          // Clean up state before navigation
+          ref.read(analysisNotifierProvider.notifier).reset();
+
+          // Navigate to Full Screen Result
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PetResultScreen(
+                  imageFile: _capturedImage!,
+                  existingResult: petAnalysis,
+                ),
+              ),
+            );
+          }
         }
       }
     } catch (e, stackTrace) {
@@ -621,10 +646,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           child: Text(
                             _getHintText(context),
                             style: GoogleFonts.poppins(
-                              color: (_currentIndex == 2) ? AppDesign.textPrimaryLight : Colors.white, // Pink bg needs dark text? Or white is fine? Request says verify legibility.
-                              // Pet Pink (0xFFFADADD) is very light, so Dark Text (textPrimaryLight) is better.
-                              // Food Purple (0xFF5E4B6B) is dark, White text.
-                              // Plant Green (0xFF4CAF50) is mid-tone, White text is standard.
+                              color: Colors.black, // Pure Black as requested
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
@@ -719,7 +741,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           // 2.5 PET MODE TOGGLES (Top Center)
           if (_currentIndex == 2)
             Positioned(
-              top: 100,
+              top: 160, // Deep optical centering (~160px from top)
               left: 0,
               right: 0,
               child: Center(
@@ -729,6 +751,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     color: AppDesign.backgroundDark.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(color: Colors.white24),
+                    boxShadow: const [
+                       BoxShadow(
+                         color: Colors.black26, 
+                         blurRadius: 8, 
+                         offset: Offset(0, 4)
+                       )
+                    ],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -745,10 +774,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.pets, size: 20, color: _petMode == 0 ? AppDesign.textPrimaryLight : AppDesign.textPrimaryDark),
+                              Icon(Icons.pets, size: 20, color: _petMode == 0 ? Colors.black : AppDesign.textPrimaryDark), // Black Text
                               if (_petMode == 0) ...[
                                 const SizedBox(width: 8),
-                                Text(AppLocalizations.of(context)!.modePetIdentification, style: const TextStyle(color: AppDesign.textPrimaryLight, fontWeight: FontWeight.bold)),
+                                Text(AppLocalizations.of(context)!.modePetIdentification, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)), // Black Text
                               ]
                             ],
                           ),
@@ -767,10 +796,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.health_and_safety, size: 20, color: AppDesign.textPrimaryDark),
+                              Icon(Icons.health_and_safety, size: 20, color: _petMode == 1 ? Colors.black : AppDesign.textPrimaryDark),
                               if (_petMode == 1) ...[
                                 const SizedBox(width: 8),
-                                Text(AppLocalizations.of(context)!.modePetHealth, style: const TextStyle(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
+                                Text(AppLocalizations.of(context)!.modePetHealth, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                               ]
                             ],
                           ),
@@ -962,7 +991,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           // 3. Shutter Button (Center) - Only show when mode is selected
           if (_currentIndex != -1)
             Positioned(
-              bottom: 120, // Position above bottom bar
+              bottom: 155, // Lifted +5px (Total 155px)
               left: 0,
               right: 0,
               child: Center(
@@ -1065,28 +1094,79 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   Widget _buildBottomBar() {
     final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 30, left: 20, right: 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(25),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.4),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                if (ref.watch(settingsProvider).showFoodButton) _buildNavItem(0, Icons.restaurant, l10n.tabFood, AppDesign.getModeColor(0)),
-                if (ref.watch(settingsProvider).showPlantButton) _buildNavItem(1, Icons.grass, l10n.tabPlants, AppDesign.getModeColor(1)),
-                if (ref.watch(settingsProvider).showPetButton) _buildNavItem(2, Icons.pets, l10n.tabPets, AppDesign.getModeColor(2)),
-              ],
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(25),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.transparent, // Transparent background as requested
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (ref.watch(settingsProvider).showFoodButton) _buildNavItem(0, Icons.restaurant, l10n.tabFood, AppDesign.getModeColor(0)),
+                  if (ref.watch(settingsProvider).showPlantButton) _buildNavItem(1, Icons.grass, l10n.tabPlants, AppDesign.getModeColor(1)),
+                  if (ref.watch(settingsProvider).showPetButton) _buildNavItem(2, Icons.pets, l10n.tabPets, AppDesign.getModeColor(2)),
+                ],
+              ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  // ... (Helper skipped) ...
+
+  Widget _buildNavItem(int index, IconData icon, String label, Color activeColor) {
+    final isSelected = _currentIndex == index;
+    return GestureDetector(
+      onTap: () async {
+        setState(() {
+          _capturedImage = null;
+          _currentIndex = index;
+          if (index == 2) {
+            _petMode = 0;
+          }
+        });
+        
+        // Initialize camera when mode is selected (if not already initialized)
+        if (!_isCameraInitialized) {
+          await _initCamera();
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? activeColor.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? activeColor : Colors.white60, // Restore white for dark bg
+              size: 28,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? activeColor : Colors.white60, // Restore white for dark bg
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1117,52 +1197,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, Color activeColor) {
-    final isSelected = _currentIndex == index;
-    return GestureDetector(
-      onTap: () async {
-        setState(() {
-          _capturedImage = null;
-          _currentIndex = index;
-          if (index == 2) {
-            _petMode = 0;
-          }
-        });
-        
-        // Initialize camera when mode is selected (if not already initialized)
-        if (!_isCameraInitialized) {
-          await _initCamera();
-        }
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? activeColor : Colors.white60,
-              size: 28,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? activeColor : Colors.white60,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
   // Helper dialog to ask for pet name
   Future<String?> _promptPetName() async {
     String? petName;

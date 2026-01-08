@@ -11,6 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/nutrition_history_item.dart';
 import '../models/food_analysis_model.dart';
 import '../../../core/services/file_upload_service.dart';
+import '../../../core/services/permanent_backup_service.dart';
 
 class NutritionService {
   static final NutritionService _instance = NutritionService._internal();
@@ -88,6 +89,13 @@ class NutritionService {
       debugPrint('✅ [NutritionService] Saved item: ${item.foodName} to box (Total items: ${box.length})');
       // Force verify save
       debugPrint('   [Verify] Box keys: ${box.keys.toList()}');
+      
+      // 🔄 Trigger automatic permanent backup
+      PermanentBackupService().createAutoBackup().then((_) {
+        debugPrint('💾 Backup permanente atualizado após salvar comida');
+      }).catchError((e) {
+        debugPrint('⚠️ Backup automático falhou: $e');
+      });
     } catch (e, stack) {
       debugPrint('❌ [NutritionService] CRITICAL ERROR SAVING: $e');
       debugPrint(stack.toString());

@@ -118,9 +118,9 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                 setState(() { _isLoading = true; });
                 _loadHistory();
             },
-            icon: const Icon(Icons.refresh, color: Colors.black),
+            icon: const Icon(Icons.refresh, color: Colors.white), // Icon White
             label: Text(l10n.foodReload),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676), foregroundColor: Colors.black),
+            style: ElevatedButton.styleFrom(backgroundColor: AppDesign.foodOrange, foregroundColor: Colors.white), // Food Orange Theme
           ),
         ],
       ),

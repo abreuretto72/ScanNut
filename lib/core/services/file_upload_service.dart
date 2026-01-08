@@ -119,7 +119,13 @@ class FileUploadService {
       // Generate unique filename
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final extension = path.extension(file.path);
-      final newFileName = '${attachmentType}_${timestamp}$extension';
+      
+      String typeCode = 'G'; // Galeria/Geral
+      if (attachmentType.toLowerCase().contains('foto')) typeCode = 'F'; // Foto (Camera)
+      else if (attachmentType.toLowerCase().contains('analysis')) typeCode = 'A'; // Analysis (IA)
+      
+      final safePetName = petName.replaceAll(RegExp(r'\s+'), '_').toLowerCase();
+      final newFileName = '${timestamp}_${typeCode}_${safePetName}$extension';
       final newPath = '${medicalDocsDir.path}/$newFileName';
 
       // Copy file

@@ -70,6 +70,7 @@
   "generateMenu": "Generar Menú",
   "selectDates": "Seleccionar Fechas",
   "cancel": "Cancelar",
+  "commonBack": "Volver",
   "permissionCameraDisclosureTitle": "Uso de la Cámara",
   "permissionCameraDisclosureBody": "ScanNut necesita acceder a su cámara para analizar la salud de la piel, pelaje y ojos de su mascota, además de registrar documentos veterinarios.",
   "permissionMicrophoneDisclosureTitle": "Uso del Micrófono",

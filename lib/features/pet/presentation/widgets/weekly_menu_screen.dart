@@ -9,9 +9,11 @@ import '../../models/weekly_meal_plan.dart';
 import '../../services/meal_plan_service.dart';
 import '../../services/pet_shopping_list_service.dart';
 import '../../services/pet_menu_generator_service.dart';
+import '../../services/pet_profile_service.dart'; // Added
 import '../../../../core/services/export_service.dart';
 import 'pet_menu_filter_dialog.dart';
 import '../../models/meal_plan_request.dart';
+import 'meal_plan_loading_widget.dart';
 
 class WeeklyMenuScreen extends ConsumerStatefulWidget {
   final String petName;
@@ -257,14 +259,60 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                    elevation: 4,
                  ),
                  onPressed: () async {
-                    // Trigger Filter
-                    final config = await showDialog<Map<String, dynamic>>(
-                      context: context,
-                      builder: (context) => const PetMenuFilterDialog(),
-                    );
+                    // VALIDATION SAFETY CHECK (Trava de Segurança)
+                    final profileService = PetProfileService();
+                    await profileService.init();
+                    final profile = await profileService.getProfile(widget.petName);
                     
-                    if (config != null && mounted) {
-                       _runGeneration(config);
+                     if (profile != null && profile['data'] != null) {
+                          final d = profile['data'];
+                          // 🛡️ Phase 7 Pre-request Validation
+                          final species = d['especie'] ?? d['species'];
+                          final raca = d['raca'] ?? d['breed'];
+                          final age = d['idade_exata'] ?? d['age'];
+                          final weight = d['peso_atual'] ?? d['weight'];
+                          final size = d['porte'] ?? d['size'];
+                          
+                          bool valid = (species != null && species.toString().isNotEmpty) &&
+                                       (raca != null && raca.toString().isNotEmpty) &&
+                                       (age != null && age.toString().isNotEmpty) &&
+                                       (weight != null && weight.toString() != '0.0' && weight.toString().isNotEmpty) &&
+                                       (size != null && size.toString().isNotEmpty);
+
+                          if (!valid) {
+                              if (!mounted) return;
+                              showDialog(
+                                 context: context,
+                                 builder: (ctx) => AlertDialog(
+                                    title: const Text("Perfil Incompleto", style: TextStyle(color: AppDesign.textPrimaryDark)),
+                                    content: const Text(
+                                        "Complete os dados do perfil do pet para gerar o cardápio.", 
+                                        style: TextStyle(color: Colors.white70)
+                                    ),
+                                    backgroundColor: AppDesign.surfaceDark,
+                                    actions: [
+                                      TextButton(
+                                        onPressed: ()=>Navigator.pop(ctx), 
+                                        child: const Text("OK", style: TextStyle(color: AppDesign.accent))
+                                      )
+                                    ],
+                                 )
+                              );
+                              return;
+                          }
+                         
+                         // PROCEED
+                         final config = await showDialog<Map<String, dynamic>>(
+                           context: context,
+                           builder: (context) => const PetMenuFilterDialog(),
+                         );
+                         
+                         if (config != null && mounted) {
+                            _runGeneration(config, d); // Pass full data
+                         }
+                    } else {
+                       // Profile not found error?
+                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error loading profile data")));
                     }
                  },
                  child: Text(
@@ -279,20 +327,36 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
     );
   }
 
-  Future<void> _runGeneration(Map<String, dynamic> config) async {
+  Future<void> _runGeneration(Map<String, dynamic> config, Map<String, dynamic> fullProfileData) async {
      final l10n = AppLocalizations.of(context)!;
      
+     // Feedback Visual Específico
      showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
+        builder: (ctx) => Dialog(
+           backgroundColor: AppDesign.surfaceDark,
+           child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                 mainAxisSize: MainAxisSize.min,
+                 children: [
+                    const LinearProgressIndicator(color: AppDesign.petPink, backgroundColor: Colors.white10),
+                    const SizedBox(height: 24),
+                    Text(
+                       l10n.petMenuCalculating(widget.petName),
+                       textAlign: TextAlign.center,
+                       style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+                    )
+                 ],
+              ),
+           ),
+        ),
      );
      
      try {
-        Map<String, dynamic> profileData = {
-           'name': widget.petName,
-           'breed': widget.raceName
-        };
+        // Prepare Request using Full Data
+        Map<String, dynamic> profileData = Map<String, dynamic>.from(fullProfileData);
 
          final request = MealPlanRequest(
             petId: widget.petName.trim(), 

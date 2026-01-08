@@ -6,16 +6,21 @@ import '../../../core/utils/json_cast.dart';
 class PetProfileExtended {
   // Identidade Biológica
   final String petName;
+  final String? especie;
   final String? raca;
   final String? idadeExata; // "2 anos 3 meses" ou "15 meses"
   final double? pesoAtual; // kg
   final double? pesoIdeal; // kg - Target Weight
   final String? nivelAtividade; // Sedentário, Moderado, Ativo
   final String? statusReprodutivo; // Castrado, Inteiro
+  final String? sex; // Macho, Fêmea
+  final String? porte; // Pequeno, Médio, Grande, Gigante
+  final String? reliability; // % of AI confidence
   
   // Restrições Alimentares
   final List<String> alergiasConhecidas;
   final List<String> preferencias;
+  final List<String> restricoes;
   
   // Configurações de Lifestyle
   final DateTime? dataUltimaV10;
@@ -44,14 +49,17 @@ class PetProfileExtended {
 
   PetProfileExtended({
     required this.petName,
+    this.especie,
     this.raca,
     this.idadeExata,
     this.pesoAtual,
     this.pesoIdeal,
     this.nivelAtividade,
     this.statusReprodutivo,
+    this.sex,
     this.alergiasConhecidas = const [],
     this.preferencias = const [],
+    this.restricoes = const [],
     this.dataUltimaV10,
     this.dataUltimaAntirrabica,
     this.frequenciaBanho,
@@ -69,6 +77,8 @@ class PetProfileExtended {
     required this.lastUpdated,
     this.imagePath,
     this.rawAnalysis,
+    this.reliability,
+    this.porte,
   });
 
   factory PetProfileExtended.fromJson(Map<String, dynamic> json) {
@@ -76,14 +86,18 @@ class PetProfileExtended {
       return PetProfileExtended(
 
       petName: (json['pet_name'] ?? json['name'] ?? '').toString(),
+      especie: json['especie'] as String?,
       raca: json['raca'] as String?,
       idadeExata: json['idade_exata'] as String?,
       pesoAtual: (json['peso_atual'] as num?)?.toDouble(),
       pesoIdeal: (json['peso_ideal'] as num?)?.toDouble(),
       nivelAtividade: json['nivel_atividade'] as String?,
       statusReprodutivo: json['status_reprodutivo'] as String?,
+      sex: json['sex'] as String?,
+      porte: json['porte'] as String?,
       alergiasConhecidas: (json['alergias_conhecidas'] as List?)?.cast<String>() ?? [],
       preferencias: (json['preferencias'] as List?)?.cast<String>() ?? [],
+      restricoes: (json['restricoes'] as List?)?.cast<String>() ?? [],
       dataUltimaV10: json['data_ultima_v10'] != null 
           ? DateTime.parse(json['data_ultima_v10'] as String)
           : null,
@@ -91,6 +105,7 @@ class PetProfileExtended {
           ? DateTime.parse(json['data_ultima_antirrabica'] as String)
           : null,
       frequenciaBanho: json['frequencia_banho'] as String?,
+      reliability: json['reliability'] as String?,
       linkedPartnerIds: (json['linked_partner_ids'] as List?)?.cast<String>() ?? [],
       partnerNotes: (json['partner_notes'] as Map?)?.map(
             (k, v) => MapEntry(k.toString(), deepCastMapList(v)),
@@ -189,37 +204,46 @@ class PetProfileExtended {
      
      return PetProfileExtended(
          petName: result.petName ?? '',
-         raca: normalizeBreed(result.identificacao.racaPredominante, null),
+         especie: _normalizeSpecies(result.especie),
+         raca: _formatBreedWithLineage(result),
+         reliability: result.reliability,
          nivelAtividade: nivelAtiv,
          rawAnalysis: rawAnalysis,
          imagePath: imagePath,
-         lastUpdated: DateTime.now(),
-         alergiasConhecidas: [],
-         preferencias: [],
-         frequenciaBanho: 'Quinzenal',
+          lastUpdated: DateTime.now(),
+          alergiasConhecidas: [],
+          preferencias: [],
+          restricoes: [],
+          frequenciaBanho: 'Quinzenal',
          linkedPartnerIds: [],
          partnerNotes: {},
          weightHistory: [],
          labExams: [],
          woundAnalysisHistory: [],
-         analysisHistory: [rawAnalysis],
+          analysisHistory: [rawAnalysis],
+          porte: result.identificacao.porteEstimado,
      );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'pet_name': petName,
+      if (especie != null) 'especie': especie,
       if (raca != null) 'raca': raca,
       if (idadeExata != null) 'idade_exata': idadeExata,
       if (pesoAtual != null) 'peso_atual': pesoAtual,
       if (pesoIdeal != null) 'peso_ideal': pesoIdeal,
       if (nivelAtividade != null) 'nivel_atividade': nivelAtividade,
       if (statusReprodutivo != null) 'status_reprodutivo': statusReprodutivo,
+      if (sex != null) 'sex': sex,
+      if (porte != null) 'porte': porte,
       'alergias_conhecidas': alergiasConhecidas,
       'preferencias': preferencias,
+      'restricoes': restricoes,
       if (dataUltimaV10 != null) 'data_ultima_v10': dataUltimaV10!.toIso8601String(),
       if (dataUltimaAntirrabica != null) 'data_ultima_antirrabica': dataUltimaAntirrabica!.toIso8601String(),
       if (frequenciaBanho != null) 'frequencia_banho': frequenciaBanho,
+      if (reliability != null) 'reliability': reliability,
       'linked_partner_ids': linkedPartnerIds,
       'partner_notes': partnerNotes,
       'weight_history': weightHistory,
@@ -268,14 +292,17 @@ class PetProfileExtended {
 
   PetProfileExtended copyWith({
     String? petName,
+    String? especie,
     String? raca,
     String? idadeExata,
     double? pesoAtual,
     double? pesoIdeal,
     String? nivelAtividade,
     String? statusReprodutivo,
+    String? sex,
     List<String>? alergiasConhecidas,
     List<String>? preferencias,
+    List<String>? restricoes,
     DateTime? dataUltimaV10,
     DateTime? dataUltimaAntirrabica,
     String? frequenciaBanho,
@@ -293,17 +320,22 @@ class PetProfileExtended {
     DateTime? lastUpdated,
     String? imagePath,
     Map<String, dynamic>? rawAnalysis,
+    String? reliability,
+    String? porte,
   }) {
     return PetProfileExtended(
       petName: petName ?? this.petName,
+      especie: especie ?? this.especie,
       raca: raca ?? this.raca,
       idadeExata: idadeExata ?? this.idadeExata,
       pesoAtual: pesoAtual ?? this.pesoAtual,
       pesoIdeal: pesoIdeal ?? this.pesoIdeal,
       nivelAtividade: nivelAtividade ?? this.nivelAtividade,
       statusReprodutivo: statusReprodutivo ?? this.statusReprodutivo,
+      sex: sex ?? this.sex,
       alergiasConhecidas: alergiasConhecidas ?? this.alergiasConhecidas,
       preferencias: preferencias ?? this.preferencias,
+      restricoes: restricoes ?? this.restricoes,
       dataUltimaV10: dataUltimaV10 ?? this.dataUltimaV10,
       dataUltimaAntirrabica: dataUltimaAntirrabica ?? this.dataUltimaAntirrabica,
       frequenciaBanho: frequenciaBanho ?? this.frequenciaBanho,
@@ -321,8 +353,36 @@ class PetProfileExtended {
       lastUpdated: lastUpdated ?? this.lastUpdated,
       imagePath: imagePath ?? this.imagePath,
       rawAnalysis: rawAnalysis ?? this.rawAnalysis,
+      reliability: reliability ?? this.reliability,
+      porte: porte ?? this.porte,
     );
   }
+  static String? _normalizeSpecies(String? raw) {
+      if (raw == null) return null;
+      final s = raw.toUpperCase();
+      if (s.contains('CÃO') || s.contains('CAO') || s.contains('DOG') || s.contains('CACHORRO') || s.contains('CANIN')) {
+          return 'Cão'; // Standard internal/localized key for Radio
+      }
+      if (s.contains('GATO') || s.contains('CAT') || s.contains('FELIN')) {
+          return 'Gato'; // Standard internal/localized key for Radio
+      }
+      return raw;
+  }
+
+  static String _formatBreedWithLineage(PetAnalysisResult result) {
+      final breed = normalizeBreed(result.identificacao.racaPredominante, result.especie);
+      final lineage = result.identificacao.linhagemSrdProvavel;
+      
+      if (lineage != null && 
+          lineage.isNotEmpty && 
+          lineage.toUpperCase() != 'N/A' && 
+          lineage.toUpperCase() != 'NULL' &&
+          lineage != breed) {
+          return '$breed ($lineage)';
+      }
+      return breed ?? 'SRD';
+  }
+
   static String? normalizeBreed(String? raw, String? species) {
       if (raw == null) return null;
       var processed = raw.trim();

@@ -9,6 +9,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'pet_event_service.dart';
 import '../../../core/utils/json_cast.dart';
+import '../../../core/services/simple_auth_service.dart';
+import '../../../core/services/permanent_backup_service.dart';
 
 
 /// Service for managing pet profiles (Raça & ID data)
@@ -21,12 +23,15 @@ class PetProfileService {
   Box? _profileBox;
 
   Future<void> init({HiveCipher? cipher}) async {
+    // 🛡️ PROTEÇÃO: Se não passar cipher, tenta pegar o global do SimpleAuthService
+    final effectiveCipher = cipher ?? SimpleAuthService().encryptionCipher;
+
     // Prevent multiple opens if already ready
     if (_profileBox != null && _profileBox!.isOpen) return;
     
     try {
         if (!Hive.isBoxOpen(_profileBoxName)) {
-            _profileBox = await Hive.openBox(_profileBoxName, encryptionCipher: cipher);
+            _profileBox = await Hive.openBox(_profileBoxName, encryptionCipher: effectiveCipher);
         } else {
             _profileBox = Hive.box(_profileBoxName);
         }
@@ -61,8 +66,15 @@ class PetProfileService {
         'data': profileData,
       });
       await _profileBox!.flush(); // Force write to disk
-      debugPrint('HIVE: Objeto ["$key"] persistido no disco com sucesso. (Display: $petName)');
-    } catch (e, stack) {
+    debugPrint('HIVE: Objeto ["$key"] persistido no disco com sucesso. (Display: $petName)');
+    
+    // 🔄 Trigger automatic permanent backup
+    PermanentBackupService().createAutoBackup().then((_) {
+      debugPrint('💾 Backup permanente atualizado após salvar pet');
+    }).catchError((e) {
+      debugPrint('⚠️ Backup automático falhou: $e');
+    });
+  } catch (e, stack) {
       debugPrint('❌ Error saving profile: $e\n$stack');
     }
   }

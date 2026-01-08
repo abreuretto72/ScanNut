@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -36,8 +35,9 @@ class PetResultCard extends StatefulWidget {
   final String imagePath;
   final VoidCallback onSave;
   final String? petName;
+  final PetProfileExtended? petProfile; // 🛡️ Source of Truth
 
-  const PetResultCard({Key? key, required this.analysis, required this.imagePath, required this.onSave, this.petName}) : super(key: key);
+  const PetResultCard({Key? key, required this.analysis, required this.imagePath, required this.onSave, this.petName, this.petProfile}) : super(key: key);
 
   @override
   State<PetResultCard> createState() => _PetResultCardState();
@@ -52,7 +52,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
-    _tabController.addListener(_handleTabSelection);
+    // Removed listener as we are switching to a unified scrollable list
     HapticFeedback.mediumImpact();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -109,7 +109,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   }
   
   String get _localizedRaca {
-    final raca = widget.analysis.raca;
+    // 🛡️ Source of Truth: Use Profile if available
+    final raca = widget.petProfile?.raca ?? widget.analysis.raca;
+    
     if (raca.toLowerCase() == 'vira-lata' || raca.toLowerCase() == 'srd' || raca.toLowerCase().contains('sem raça')) {
        return AppLocalizations.of(context)!.breedMixed;
     }
@@ -176,7 +178,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                pw.SizedBox(height: 10),
                if (image != null) pw.Center(child: pw.Image(image, height: 200)),
                pw.SizedBox(height: 20),
-               pw.Text("${l10n.pdfFieldBreedSpecies}: ${pet.especie} - ${pet.raca}"),
+               pw.Text("${l10n.pdfFieldBreedSpecies}: ${widget.petProfile?.especie ?? pet.especie} - ${widget.petProfile?.raca ?? pet.raca}"),
                pw.Row(
                  children: [
                    pw.Text("${l10n.pdfFieldUrgency}: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
@@ -230,8 +232,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             pw.SizedBox(height: 20),
             
             // === SEÇÃO 1: IDENTIDADE E PERFIL ===
-            pw.Text(l10n.pdfSectionIdentity, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
-            pw.Divider(color: PdfColors.blue900),
+            pw.Text(l10n.pdfSectionIdentity, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
+            pw.Divider(color: PdfColors.pink900),
             pw.Text("${l10n.pdfFieldPredominantBreed}: ${pet.identificacao.racaPredominante}"),
             pw.Text("${l10n.petLineage}: ${pet.identificacao.linhagemSrdProvavel}"),
             pw.Text("${l10n.petSize}: ${pet.identificacao.porteEstimado}"),
@@ -257,8 +259,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             ],
 
             // === SEÇÃO 2: NUTRIÇÃO E DIETA ===
-            pw.Text(l10n.pdfSectionNutrition, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.orange900)),
-            pw.Divider(color: PdfColors.orange900),
+            pw.Text(l10n.pdfSectionNutrition, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
+            pw.Divider(color: PdfColors.pink900),
             
             // Metas Calóricas
             pw.Text("${l10n.pdfFieldDailyCaloricGoals}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
@@ -320,7 +322,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 pw.Container(
                   padding: const pw.EdgeInsets.all(8),
                   decoration: pw.BoxDecoration(
-                    color: PdfColors.orange50,
+                    color: PdfColors.pink50,
                     borderRadius: pw.BorderRadius.circular(8),
                   ),
                   child: pw.Text("💡 ${pet.orientacoesGerais}", style: const pw.TextStyle(fontSize: 11)),
@@ -349,10 +351,10 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                     pw.Row(
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
-                        pw.Text(dia, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12, color: PdfColors.blue800)),
+                        pw.Text(dia, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12, color: PdfColors.pink900)),
                         pw.RichText(text: pw.TextSpan(children: [
                              pw.TextSpan(text: 'Meta: ', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-                             pw.TextSpan(text: dailyKcal, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.red800)),
+                             pw.TextSpan(text: dailyKcal, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
                         ])),
                       ],
                     ),
@@ -369,8 +371,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             ],
 
             // === SEÇÃO 3: GROOMING E HIGIENE ===
-            pw.Text(l10n.pdfSectionGrooming, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.amber900)),
-            pw.Divider(color: PdfColors.amber900),
+            pw.Text(l10n.pdfSectionGrooming, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
+            pw.Divider(color: PdfColors.pink900),
             pw.Text("${l10n.pdfFieldCoatType}: ${pet.higiene.manutencaoPelagem['tipo_pelo'] ?? 'N/A'}"),
             pw.Text("${l10n.pdfFieldBrushingFrequency}: ${pet.higiene.manutencaoPelagem['frequencia_escovacao_semanal'] ?? 'N/A'}"),
             pw.Text("${l10n.pdfFieldBathFrequency}: ${pet.higiene.banhoEHigiene['frequencia_ideal_banho'] ?? 'N/A'}"),
@@ -380,10 +382,10 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 margin: const pw.EdgeInsets.only(top: 8),
                 padding: const pw.EdgeInsets.all(8),
                 decoration: pw.BoxDecoration(
-                  color: PdfColors.cyan50,
+                  color: PdfColors.grey50,
                   borderRadius: pw.BorderRadius.circular(6),
                 ),
-                child: pw.Text("⚠️ ${pet.higiene.manutencaoPelagem['alerta_subpelo']}", style: const pw.TextStyle(color: PdfColors.cyan900)),
+                child: pw.Text("⚠️ ${pet.higiene.manutencaoPelagem['alerta_subpelo']}", style: const pw.TextStyle(color: PdfColors.grey900)),
               ),
             pw.SizedBox(height: 15),
 
@@ -418,7 +420,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
             // Protocolo de Imunização
             if (pet.protocoloImunizacao != null) ...[
-              pw.Text(l10n.pdfSectionImmunization, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+              pw.Text(l10n.pdfSectionImmunization, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
               pw.SizedBox(height: 8),
               
               // Vacinas Essenciais
@@ -434,7 +436,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                     margin: const pw.EdgeInsets.only(bottom: 6),
                     padding: const pw.EdgeInsets.all(8),
                     decoration: pw.BoxDecoration(
-                      color: PdfColors.blue50,
+                      color: PdfColors.pink50,
                       borderRadius: pw.BorderRadius.circular(6),
                     ),
                     child: pw.Column(
@@ -488,9 +490,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 pw.Container(
                   padding: const pw.EdgeInsets.all(10),
                   decoration: pw.BoxDecoration(
-                    color: PdfColors.orange50,
+                    color: PdfColors.pink50,
                     borderRadius: pw.BorderRadius.circular(8),
-                    border: pw.Border.all(color: PdfColors.orange900),
+                    border: pw.Border.all(color: PdfColors.pink900),
                   ),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -498,7 +500,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       pw.Row(
                         children: [
                           pw.Text("🐛 ", style: const pw.TextStyle(fontSize: 12)),
-                          pw.Text(l10n.pdfFieldParasitePrevention, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.orange900)),
+                          pw.Text(l10n.pdfFieldParasitePrevention, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
                         ],
                       ),
                       pw.SizedBox(height: 6),
@@ -579,8 +581,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             ],
 
             // === SEÇÃO 5: LIFESTYLE E EDUCAÇÃO ===
-            pw.Text(l10n.pdfSectionLifestyle, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)),
-            pw.Divider(color: PdfColors.purple900),
+            pw.Text(l10n.pdfSectionLifestyle, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
+            pw.Divider(color: PdfColors.pink900),
             
             pw.Text("${l10n.pdfFieldTraining}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
             pw.Bullet(text: "${l10n.pdfFieldTrainingDifficulty}: ${pet.lifestyle.treinamento['dificuldade_adestramento'] ?? 'N/A'}"),
@@ -601,14 +603,14 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             pw.Container(
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
-                color: PdfColors.purple50,
+                color: PdfColors.pink50,
                 borderRadius: pw.BorderRadius.circular(10),
-                border: pw.Border.all(color: PdfColors.purple900),
+                border: pw.Border.all(color: PdfColors.pink900),
               ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                   pw.Text("💡 ${l10n.pdfFieldExpertInsight}", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)),
+                   pw.Text("💡 ${l10n.pdfFieldExpertInsight}", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
                   pw.SizedBox(height: 6),
                   pw.Text(pet.dica.insightExclusivo.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const pw.TextStyle(fontSize: 11)),
                 ],
@@ -669,6 +671,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return DraggableScrollableSheet(
       initialChildSize: 0.95,
       minChildSize: 0.95,
@@ -681,16 +684,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             child: Column(
                 children: [
                    _buildHeader(),
-                   if (widget.analysis.analysisType == 'diagnosis') 
-                     Expanded(child: _buildDiagnosisContent(scrollController))
-                   else ...[
-                     _buildTabBar(),
-                     Expanded(
-                       child: _buildTabContent(scrollController),
-                     ),
-                   ],
-                   // Disclaimer removed by user request
-
+                   Expanded(
+                     child: _buildMainContent(scrollController),
+                   ),
                 ],
               ),
             ),
@@ -699,52 +695,463 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       );
     }
 
+  Widget _buildMainContent(ScrollController sc) {
+    return ListView(
+      controller: sc,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      children: [
+        _buildSummaryCard(),
+        const SizedBox(height: 12),
+        _buildSignsCard(),
+        const SizedBox(height: 12),
+        _buildRecommendationsCard(),
+        const SizedBox(height: 12),
+        _buildTechnicalExpansion(),
+        const SizedBox(height: 32),
+        _buildFooterActions(),
+        const SizedBox(height: 48),
+      ],
+    );
+  }
+
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: const BoxDecoration(
+        color: AppDesign.surfaceDark,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
       child: Column(
         children: [
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: AppDesign.textSecondaryDark.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 40, 
+            height: 4, 
+            decoration: BoxDecoration(
+              color: Colors.white24, 
+              borderRadius: BorderRadius.circular(2)
+            )
+          ),
           const SizedBox(height: 16),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close_rounded, color: AppDesign.petPink),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.petResult,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.white
+                  ),
+                ),
+              ),
+              PdfActionButton(onPressed: _generatePDF),
+              const SizedBox(width: 12),
+              IconButton(
+                onPressed: () {
+                  if (!_isSaved) {
+                    setState(() => _isSaved = true);
+                    widget.onSave();
+                  }
+                }, 
+                icon: Icon(_isSaved ? Icons.check_circle_rounded : Icons.save_rounded, color: AppDesign.petPink),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard() {
+    final l10n = AppLocalizations.of(context)!;
+    final isDiag = widget.analysis.analysisType == 'diagnosis';
+    final title = widget.petName ?? (isDiag ? widget.analysis.raca : _localizedRaca);
+    final subtitle = isDiag ? widget.analysis.especie : (widget.petProfile?.especie ?? widget.analysis.especie);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppDesign.surfaceDark,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Text(
+                l10n.tabSummary,
+                style: GoogleFonts.poppins(
+                  fontSize: 12, 
+                  fontWeight: FontWeight.bold, 
+                  color: AppDesign.petPink, 
+                  letterSpacing: 1.2
+                ),
+              ),
+              if (widget.analysis.reliability != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppDesign.petPink.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    "${l10n.petLabelConfidence}: ${widget.analysis.reliability}",
+                    style: GoogleFonts.poppins(
+                      fontSize: 10, 
+                      fontWeight: FontWeight.bold, 
+                      color: AppDesign.petPink
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildPetAvatarCard(),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.petName ?? _localizedRaca,
-                      style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark),
+                      title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 22, 
+                        fontWeight: FontWeight.bold, 
+                        color: Colors.white
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      widget.petName != null ? _localizedRaca : widget.analysis.especie,
-                      style: GoogleFonts.poppins(fontSize: 14, color: AppDesign.textSecondaryDark),
+                      subtitle,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14, 
+                        color: Colors.white60
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PdfActionButton(onPressed: _generatePDF),
-                  IconButton(
-                    onPressed: () {
-                      if (!_isSaved) {
-                        setState(() => _isSaved = true);
-                        widget.onSave();
-                      }
-                    }, 
-                    icon: Icon(_isSaved ? Icons.check : Icons.save, color: _themeColor)
-                  ),
-                ],
-              )
             ],
-          )
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isDiag ? widget.analysis.descricaoVisual : widget.analysis.identificacao.linhagemSrdProvavel,
+            style: GoogleFonts.poppins(
+              fontSize: 14, 
+              color: Colors.white, 
+              height: 1.5
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPetAvatarCard() {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        color: AppDesign.petPink.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        image: widget.imagePath.isNotEmpty
+            ? DecorationImage(
+                image: FileImage(File(widget.imagePath)),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+      child: widget.imagePath.isEmpty
+          ? const Icon(Icons.pets_rounded, color: AppDesign.petPink, size: 30)
+          : null,
+    );
+  }
+
+  Widget _buildSignsCard() {
+    final l10n = AppLocalizations.of(context)!;
+    final isDiag = widget.analysis.analysisType == 'diagnosis';
+    final signs = isDiag 
+        ? widget.analysis.possiveisCausas 
+        : [
+            _bestEffortTranslate(widget.analysis.identificacao.porteEstimado),
+            _bestEffortTranslate(widget.analysis.higiene.manutencaoPelagem['tipo_pelo'] ?? l10n.commonNormal),
+            _bestEffortTranslate(widget.analysis.lifestyle.estimuloMental['necessidade_estimulo_mental'] ?? l10n.commonModerate),
+          ];
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppDesign.surfaceDark,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.petObservedSigns,
+            style: GoogleFonts.poppins(
+              fontSize: 16, 
+              fontWeight: FontWeight.bold, 
+              color: Colors.white
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (signs.isEmpty || (signs.length == 1 && signs[0].isEmpty))
+            Text(
+              l10n.petNoRelevantChanges,
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white54, fontStyle: FontStyle.italic),
+            )
+          else
+            ...signs.map((sign) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.check_circle_outline_rounded, color: AppDesign.petPink, size: 18),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          sign,
+                          style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withOpacity(0.9)),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecommendationsCard() {
+    final l10n = AppLocalizations.of(context)!;
+    final isDiag = widget.analysis.analysisType == 'diagnosis';
+    
+    final homeCare = isDiag 
+        ? widget.analysis.orientacaoImediata 
+        : (widget.analysis.nutricao.nutrientesAlvo.isNotEmpty 
+            ? "${l10n.petSupplementation}: ${widget.analysis.nutricao.nutrientesAlvo.join(', ')}" 
+            : l10n.petCheckup);
+
+    final vetCare = isDiag
+        ? "${l10n.petLabelUrgencyLevel}: ${widget.analysis.urgenciaNivel}"
+        : l10n.petCheckup;
+
+    final isEmergency = isDiag && (widget.analysis.urgenciaNivel.toLowerCase().contains('emergência') || 
+                                    widget.analysis.urgenciaNivel.toLowerCase().contains('red') || 
+                                    widget.analysis.urgenciaNivel.toLowerCase().contains('vermelho'));
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppDesign.surfaceDark,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: isEmergency ? Colors.red.withOpacity(0.3) : Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.petLabelRecommendations,
+            style: GoogleFonts.poppins(
+              fontSize: 16, 
+              fontWeight: FontWeight.bold, 
+              color: Colors.white
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildCareSection(l10n.petHomeCare, homeCare, Icons.home_rounded),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: Colors.white10),
+          ),
+          _buildCareSection(l10n.petVetCare, vetCare, Icons.medical_services_rounded, isAlert: isEmergency),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCareSection(String title, String content, IconData icon, {bool isAlert = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: isAlert ? Colors.redAccent : AppDesign.petPink, size: 18),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 12, 
+                fontWeight: FontWeight.bold, 
+                color: isAlert ? Colors.redAccent : Colors.white60
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          content,
+          style: GoogleFonts.poppins(
+            fontSize: 14, 
+            color: Colors.white, 
+            height: 1.4
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTechnicalExpansion() {
+    final l10n = AppLocalizations.of(context)!;
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        title: Text(
+          l10n.petTechnicalDetails,
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        leading: const Icon(Icons.analytics_rounded, color: AppDesign.petPink),
+        backgroundColor: AppDesign.surfaceDark,
+        collapsedBackgroundColor: AppDesign.surfaceDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        children: [
+           _buildTechnicalGrid(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTechnicalGrid() {
+    final nut = widget.analysis.nutricao;
+    final id = widget.analysis.identificacao;
+    
+    return Column(
+      children: [
+        if (nut.metaCalorica.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _buildCaloricMetrics(nut.metaCalorica),
+          const SizedBox(height: 16),
+        ],
+        _buildInfoRow(AppLocalizations.of(context)!.petSize, _bestEffortTranslate(id.porteEstimado)),
+        _buildInfoRow(AppLocalizations.of(context)!.petLongevity, _bestEffortTranslate(id.expectativaVidaMedia)),
+        _buildInfoRow(AppLocalizations.of(context)!.petLineage, _bestEffortTranslate(id.linhagemSrdProvavel)),
+      ],
+    );
+  }
+
+  Widget _buildCaloricMetrics(Map<String, String> meta) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          _buildMetricRow(l10n.petAdult, meta['kcal_adulto'] ?? 'N/A'),
+          const SizedBox(height: 8),
+          _buildMetricRow(l10n.petPuppy, meta['kcal_filhote'] ?? 'N/A'),
+          const SizedBox(height: 8),
+          _buildMetricRow(l10n.petSenior, meta['kcal_senior'] ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricRow(String label, String value) {
+    final cleanValue = value.replaceAll('[ESTIMATED]', '').trim();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
+        Text(
+          cleanValue,
+          style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooterActions() {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: () {
+               // Navigation to pet profile
+               Navigator.pop(context);
+            },
+            icon: const Icon(Icons.pets_rounded),
+            label: Text(l10n.petResult_viewProfile),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppDesign.petPink,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 0,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: _generatePDF,
+                icon: const Icon(Icons.picture_as_pdf_rounded),
+                label: Text(l10n.commonShare),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppDesign.petPink,
+                  side: const BorderSide(color: AppDesign.petPink),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            if (!_isSaved)
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() => _isSaved = true);
+                    widget.onSave();
+                  },
+                  icon: const Icon(Icons.save_rounded),
+                  label: Text(l10n.commonSave),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white24),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -878,7 +1285,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         const SizedBox(height: 24),
         _buildSectionCard(title: AppLocalizations.of(context)!.petVisualDescription, icon: Icons.visibility, color: Colors.blueAccent, child: Text(widget.analysis.descricaoVisual.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const TextStyle(color: Colors.white70))),
         const SizedBox(height: 16),
-        _buildSectionCard(title: AppLocalizations.of(context)!.petPossibleCauses, icon: Icons.list, color: Colors.purpleAccent, child: Text(widget.analysis.possiveisCausas.join('\n• '), style: const TextStyle(color: Colors.white70))),
+        _buildSectionCard(title: AppLocalizations.of(context)!.petPossibleCauses, icon: Icons.list, color: AppDesign.petPink, child: Text(widget.analysis.possiveisCausas.join('\n• '), style: const TextStyle(color: Colors.white70))),
         const SizedBox(height: 16),
         _buildSectionCard(title: AppLocalizations.of(context)!.petSpecialistOrientation, icon: Icons.medical_services, color: AppDesign.petPink, child: Text(widget.analysis.orientacaoImediata.replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet').replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: const TextStyle(color: Colors.white))),
         const SizedBox(height: 48),
@@ -941,8 +1348,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
           ),
         ],
         const SizedBox(height: 24),
-        _buildStatLine(AppLocalizations.of(context)!.petEnergy, pc.nivelEnergia / 5.0, Colors.orange),
-        _buildStatLine(AppLocalizations.of(context)!.petIntelligence, pc.nivelInteligencia / 5.0, Colors.purpleAccent),
+        _buildStatLine(AppLocalizations.of(context)!.petEnergy, pc.nivelEnergia / 5.0, AppDesign.petPink),
+        _buildStatLine(AppLocalizations.of(context)!.petIntelligence, pc.nivelInteligencia / 5.0, AppDesign.petPink),
         _buildStatLine(AppLocalizations.of(context)!.petSociability, pc.sociabilidadeGeral / 5.0, AppDesign.petPink),
         _buildInfoLabel("${AppLocalizations.of(context)!.petDrive}:", pc.driveAncestral),
         const SizedBox(height: 24),
@@ -1050,9 +1457,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Widget _buildLifestyleTab(ScrollController sc) {
     final life = widget.analysis.lifestyle;
     return ListView(controller: sc, padding: const EdgeInsets.fromLTRB(24, 24, 24, 100), children: [
-        _buildSectionCard(title: AppLocalizations.of(context)!.petTrainingEnvironment, icon: Icons.psychology, color: Colors.purpleAccent, child: Column(children: [
+        _buildSectionCard(title: AppLocalizations.of(context)!.petTrainingEnvironment, icon: Icons.psychology, color: AppDesign.petPink, child: Column(children: [
               _buildInfoRow("${AppLocalizations.of(context)!.petTraining}:", _bestEffortTranslate(life.treinamento['dificuldade_adestramento'] ?? 'N/A')),
-              _buildStatLine(AppLocalizations.of(context)!.petApartmentRef, (life.ambienteIdeal['adaptacao_apartamento_score'] ?? 3) / 5.0, Colors.cyan),
+              _buildStatLine(AppLocalizations.of(context)!.petApartmentRef, (life.ambienteIdeal['adaptacao_apartamento_score'] ?? 3) / 5.0, AppDesign.petPink),
         ])),
     ]);
   }
@@ -1084,14 +1491,87 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     )
   );
 
-  Widget _buildStatLine(String label, double percent, Color color) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)), const SizedBox(height: 4), LinearPercentIndicator(lineHeight: 6, percent: percent.clamp(0.0, 1.0), progressColor: color, backgroundColor: Colors.white10, barRadius: const Radius.circular(3), padding: EdgeInsets.zero, animation: true), const SizedBox(height: 12)]);
 
+  Widget _buildStatLine(String label, double percent, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+              Text("${(percent * 100).toInt()}%", style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: percent,
+              backgroundColor: Colors.white10,
+              valueColor: AlwaysStoppedAnimation<Color>(AppDesign.petPink),
+              minHeight: 6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildInfoLabel(String label, String value) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white54, fontSize: 11)), Text(value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±').replaceAll('veterinário', 'Vet').replaceAll('Veterinário', 'Vet'), style: const TextStyle(color: Colors.white, fontSize: 13))]));
+  Widget _buildInfoLabel(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(text: "$label ", style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.bold)),
+            TextSpan(text: value, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13)),
+          ],
+        ),
+      ),
+    );
+  }
 
-  Widget _buildToggleInfo(String label, bool value) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12), overflow: TextOverflow.ellipsis)), Icon(value ? Icons.report_problem : Icons.check_circle, color: value ? Colors.redAccent : AppDesign.petPink, size: 16)]);
+  Widget _buildToggleInfo(String label, bool value) {
+     return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(value ? Icons.check_circle_rounded : Icons.cancel_rounded, color: value ? AppDesign.petPink : Colors.white24, size: 16),
+          const SizedBox(width: 8),
+          Text(label, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildInsightCard(String insight) => Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(gradient: LinearGradient(colors: [Colors.purple.withOpacity(0.2), Colors.blue.withOpacity(0.2)]), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.white10)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text("💡 ${AppLocalizations.of(context)!.petExclusiveInsight}", style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold, fontSize: 12)), const SizedBox(height: 8), Text(insight, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontStyle: FontStyle.italic))]));
+  Widget _buildInsightCard(String insight) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppDesign.petPink.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.lightbulb_outline_rounded, color: AppDesign.petPink),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              insight,
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, height: 1.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCaloricRow(String label, String value, Color color) {
     final isEstimated = value.contains('[ESTIMATED]');
     final cleanValue = value
@@ -1108,7 +1588,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(isEstimated ? Icons.auto_awesome : Icons.label_important, color: color.withOpacity(0.5), size: 14),
+          Icon(isEstimated ? Icons.auto_awesome : Icons.label_important, color: AppDesign.petPink.withOpacity(0.5), size: 14),
           const SizedBox(width: 10),
           SizedBox(
             width: 85,

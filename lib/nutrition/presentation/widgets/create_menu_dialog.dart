@@ -93,7 +93,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: AppDesign.accent,
+              primary: AppDesign.foodOrange,
               onPrimary: AppDesign.surfaceDark,
               surface: AppDesign.surfaceDark,
               onSurface: AppDesign.textPrimaryDark,
@@ -131,7 +131,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: AppDesign.accent,
+              primary: AppDesign.foodOrange,
               onPrimary: AppDesign.surfaceDark,
               surface: AppDesign.surfaceDark,
               onSurface: AppDesign.textPrimaryDark,
@@ -189,7 +189,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     const colorCard = Color(0xFF1E1E1E);
     const colorTextPrimary = Colors.white;
     const colorTextSecondary = Colors.grey;
-    const colorAccent = AppDesign.accent;
+    const colorAccent = AppDesign.foodOrange;
 
     return Dialog(
       backgroundColor: colorBg,
@@ -373,7 +373,6 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                              color: isSelected ? colorAccent : Colors.white12,
                            ),
                          ),
-                         showCheckmark: false,
                       );
                     }).toList(),
                   ),
@@ -495,7 +494,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
             const SizedBox(height: 2),
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 14, color: AppDesign.accent),
+                const Icon(Icons.calendar_today, size: 14, color: AppDesign.foodOrange),
                 const SizedBox(width: 8),
                 Text(
                   DateFormat('dd/MM/yy').format(date),

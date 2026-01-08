@@ -23,7 +23,7 @@ class GeminiService {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
       connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 90), // Increased for meal plan generation
       sendTimeout: const Duration(seconds: 30),
     ));
   }
@@ -108,6 +108,7 @@ class GeminiService {
     required ScannutMode mode,
     List<String> excludedBases = const [],
     String locale = 'pt', // Default to Portuguese
+    Map<String, String>? contextData, // 🛡️ NEW: Context Injection
   }) async {
     try {
       if (_apiKey.isEmpty) {
@@ -161,7 +162,7 @@ class GeminiService {
 
       // Encode image
       final base64Image = base64Encode(imageBytes);
-      String prompt = PromptFactory.getPrompt(mode, locale: locale);
+      String prompt = PromptFactory.getPrompt(mode, locale: locale, contextData: contextData);
       
       // Inject meal rotation restriction if applicable
       if (mode == ScannutMode.petIdentification && excludedBases.isNotEmpty) {

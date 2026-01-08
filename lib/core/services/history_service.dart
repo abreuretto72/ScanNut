@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import '../utils/json_cast.dart';
+
+import 'simple_auth_service.dart';
 
 final historyServiceProvider = Provider((ref) => HistoryService());
 
@@ -9,25 +13,36 @@ class HistoryService {
   static const String boxName = 'scannut_history';
 
   Future<void> init({HiveCipher? cipher}) async {
-    await Hive.openBox(boxName, encryptionCipher: cipher);
+    final effectiveCipher = cipher ?? SimpleAuthService().encryptionCipher;
+    await Hive.openBox(boxName, encryptionCipher: effectiveCipher);
+  }
+
+  static Future<Box> getBox() async {
+    if (Hive.isBoxOpen(boxName)) {
+      return Hive.box(boxName);
+    } else {
+      // 🛡️ Safe open
+      return await Hive.openBox(boxName, encryptionCipher: SimpleAuthService().encryptionCipher);
+    }
   }
 
   static Future<List<Map<String, dynamic>>> getHistory() async {
-    if (!Hive.isBoxOpen(boxName)) {
-      throw Exception('Database not ready. Please login.');
+    try {
+      final box = await getBox();
+      return deepCastMapList(box.values.toList());
+    } catch (e) {
+      debugPrint('⚠️ Error loading history info: $e');
+      return [];
     }
-    final box = Hive.box(boxName);
-    return deepCastMapList(box.values.toList());
   }
 
-
   static Future<void> deleteItem(int index) async {
-     final box = Hive.box(boxName);
+     final box = await getBox();
      await box.deleteAt(index);
   }
 
   static Future<void> deletePet(String petName) async {
-    final box = Hive.box(boxName);
+    final box = await getBox();
     final key = 'pet_${petName.toLowerCase().trim()}';
     if (box.containsKey(key)) {
       await box.delete(key);
@@ -45,48 +60,51 @@ class HistoryService {
   }
 
   Future<void> saveAnalysis(Map<String, dynamic> analysis, String mode, {String? imagePath}) async {
-    if (!Hive.isBoxOpen(boxName)) {
-      throw Exception('Database not ready. Please login.');
+    try {
+      final box = await getBox();
+      final entry = {
+        'timestamp': DateTime.now().toIso8601String(),
+        'mode': mode,
+        'data': analysis,
+        if (imagePath != null) 'image_path': imagePath,
+      };
+      await box.add(entry);
+      await box.flush(); // Ensure persistence
+    } catch (e) {
+      debugPrint('❌ Error saving analysis: $e');
     }
-    final box = Hive.box(boxName);
-    final entry = {
-      'timestamp': DateTime.now().toIso8601String(),
-      'mode': mode,
-      'data': analysis,
-      if (imagePath != null) 'image_path': imagePath,
-    };
-    await box.add(entry);
-    await box.flush(); // Ensure persistence
   }
 
 
   Future<void> savePetAnalysis(String petName, Map<String, dynamic> analysis, {String? imagePath}) async {
-    if (!Hive.isBoxOpen(boxName)) {
-      throw Exception('Database not ready. Please login.');
+    try {
+      final box = await getBox();
+      final key = 'pet_${petName.toLowerCase().trim()}';
+      
+      final entry = {
+        'id': key,
+        'timestamp': DateTime.now().toIso8601String(),
+        'mode': 'Pet',
+        'pet_name': petName,
+        'data': analysis,
+        if (imagePath != null) 'image_path': imagePath,
+      };
+      
+      await box.put(key, entry);
+      await box.flush(); // Ensure persistence
+    } catch (e) {
+       debugPrint('❌ Error saving pet analysis: $e');
+       throw Exception('Não foi possível salvar os dados do pet. Tente novamente.');
     }
-    final box = Hive.box(boxName);
-    final key = 'pet_${petName.toLowerCase().trim()}';
-    
-    final entry = {
-      'id': key,
-      'timestamp': DateTime.now().toIso8601String(),
-      'mode': 'Pet',
-      'pet_name': petName,
-      'data': analysis,
-      if (imagePath != null) 'image_path': imagePath,
-    };
-    
-    await box.put(key, entry);
-    await box.flush(); // Ensure persistence
   }
 
   Future<void> clearHistory() async {
-    final box = Hive.box(boxName);
+    final box = await getBox();
     await box.clear();
   }
 
   Future<void> clearAllPets() async {
-    final box = Hive.box(boxName);
+    final box = await getBox();
     final keysToDelete = <dynamic>[];
     
     for (var key in box.keys) {
@@ -100,7 +118,7 @@ class HistoryService {
   }
 
   Future<void> clearAllPlants() async {
-    final box = Hive.box(boxName);
+    final box = await getBox();
     final keysToDelete = <dynamic>[];
     
     for (var key in box.keys) {
@@ -111,10 +129,26 @@ class HistoryService {
     }
     
     await box.deleteAll(keysToDelete);
+
+    // Also clear botany boxes
+    final plantBoxes = ['box_botany_intel', 'box_plants_history'];
+    for(var b in plantBoxes) {
+      try {
+        if (Hive.isBoxOpen(b)) await Hive.box(b).clear();
+        else await Hive.deleteBoxFromDisk(b);
+      } catch (e) { debugPrint('Error clearing $b: $e'); }
+    }
+
+    // Physically delete plant images
+    try {
+       final appDir = await getApplicationDocumentsDirectory();
+       final botanyDir = Directory('${appDir.path}/botany_images');
+       if (await botanyDir.exists()) await botanyDir.delete(recursive: true);
+    } catch (e) { debugPrint('Error deleting botany images: $e'); }
   }
 
   Future<void> clearAllFood() async {
-    final box = Hive.box(boxName);
+    final box = await getBox();
     final keysToDelete = <dynamic>[];
     
     for (var key in box.keys) {
@@ -126,17 +160,37 @@ class HistoryService {
     
     await box.deleteAll(keysToDelete);
 
-    // Also clear the dedicated nutrition box
-    try {
-      const nutritionBoxName = 'box_nutrition_human';
-      if (Hive.isBoxOpen(nutritionBoxName)) {
-        await Hive.box(nutritionBoxName).close();
-      }
-      await Hive.deleteBoxFromDisk(nutritionBoxName);
-      debugPrint('✅ [Danger Zone] Physically deleted $nutritionBoxName');
-    } catch (e) {
-      debugPrint('❌ [Danger Zone] Error deleting nutrition box: $e');
+    // Also clear the dedicated nutrition boxes
+    final foodBoxes = ['box_nutrition_human', 'nutrition_weekly_plans', 'meal_log', 'nutrition_shopping_list', 'scannut_meal_history'];
+    for(var b in foodBoxes) {
+      try {
+        if (Hive.isBoxOpen(b)) await Hive.box(b).clear();
+        else await Hive.deleteBoxFromDisk(b);
+      } catch (e) { debugPrint('Error clearing $b: $e'); }
     }
+
+    // Clear Food Events from Pet Journal
+    try {
+      if (Hive.isBoxOpen('pet_events_journal')) {
+        final journal = Hive.box('pet_events_journal');
+        final keysToDelete = journal.keys.where((k) {
+          final val = journal.get(k);
+          // Check if it's a Map or PetEventModel and has group 'food'
+          if (val is Map) return val['group'] == 'food';
+          // If it's the model, we can't easily check without casting but we can try common keys
+          try { return (val as dynamic).group == 'food'; } catch(_) { return false; }
+        }).toList();
+        await journal.deleteAll(keysToDelete);
+        debugPrint('🧹 Cleared ${keysToDelete.length} food events from journal');
+      }
+    } catch (e) { debugPrint('Error clearing food journal: $e'); }
+
+    // Physically delete food images
+    try {
+       final appDir = await getApplicationDocumentsDirectory();
+       final foodDir = Directory('${appDir.path}/nutrition_images');
+       if (await foodDir.exists()) await foodDir.delete(recursive: true);
+    } catch (e) { debugPrint('Error deleting food images: $e'); }
   }
 
   Future<void> hardResetAllDatabases() async {
@@ -164,7 +218,8 @@ class HistoryService {
       'meal_log',
       'workout_plans',
       'partners_box',
-      'pet_health_records'
+      'pet_health_records',
+      'pet_events_journal'
     ];
 
     for (var name in boxes) {
@@ -179,6 +234,23 @@ class HistoryService {
         debugPrint('⚠️ [Nuclear Delete] Could not destroy $name: $e');
       }
     }
+
+    // Physically wipe ALL files in documents directory
+    try {
+       final appDir = await getApplicationDocumentsDirectory();
+       if (await appDir.exists()) {
+          final entities = appDir.listSync();
+          for (var entity in entities) {
+             // Don't delete our .env if it was copied there, but usually it's not.
+             // Be aggressive. 
+             await entity.delete(recursive: true);
+          }
+       }
+       debugPrint('☢️  FILESYSTEM WIPE CONCLUÍDO.');
+    } catch (e) {
+       debugPrint('⚠️  FILESYSTEM WIPE ERROR: $e');
+    }
+
     debugPrint('☢️  SISTEMA RESETADO DE FÁBRICA.');
   }
 }

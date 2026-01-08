@@ -3,4 +3,6 @@ enum ScannutMode {
   plant,
   petIdentification,
   petDiagnosis,
+  petVisualAnalysis,
+  petDocumentOCR,
 }

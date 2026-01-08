@@ -39,10 +39,17 @@ Lista de compras
 - 🏥 Rede de parceiros (veterinários, pet shops)
 - ☁️ **NOVO:** Backup automático no Google Drive
 - 🖨️ **NOVO:** PDFs otimizados para impressão econômica (preto e branco)
+- 🤖 **NOVO:** Análise Inteligente de Anexos (Visual e OCR)
 
 ---
 
 ## ✨ **NOVIDADES DA VERSÃO 1.5.2**
+
+### **🤖 Inteligência Híbrida (Novo)**
+- **Análise de Anexos (Dual Mode):**
+  - 📸 **Visual:** Detecção automática de sintomas em fotos
+  - 📄 **OCR:** Digitalização de laudos e receitas
+- **Histórico Inteligente:** Visualização imediata dos resultados da IA
 
 ### **🔐 Segurança e Soberania de Dados**
 - 🛡️ **Criptografia de Nível Militar (AES-256)**

@@ -262,11 +262,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             title: l10n.settingsDeletePets,
                             subtitle: l10n.settingsDeletePetsSubtitle,
                             onTap: () => _confirmDeleteAction('Pets', () async {
-                                final petBoxes = ['box_pets_master', 'pet_health_records', 'weekly_meal_plans', 'pet_events', 'vaccine_status'];
-                                for(var b in petBoxes) {
-                                  if (Hive.isBoxOpen(b)) await Hive.box(b).close();
-                                  await Hive.deleteBoxFromDisk(b);
+                                final historyService = ref.read(historyServiceProvider);
+                                await historyService.clearAllPets();
+                                
+                                // Reset specific pet boxes not covered by clearAllPets (if any)
+                                final petSpecificBoxes = ['box_pets_master', 'pet_health_records', 'weekly_meal_plans', 'pet_events', 'vaccine_status'];
+                                for(var b in petSpecificBoxes) {
+                                  if (Hive.isBoxOpen(b)) await Hive.box(b).clear();
+                                  else await Hive.deleteBoxFromDisk(b);
                                 }
+                                
+                                // Invalidate relevant providers
+                                ref.invalidate(vaccineStatusServiceProvider);
+                                ref.invalidate(petEventServiceProvider);
+                                ref.invalidate(partnerServiceProvider);
                             }),
                          ),
                          const Divider(height: 1, color: Colors.white10),
@@ -274,11 +283,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             title: l10n.settingsDeletePlants,
                             subtitle: l10n.settingsDeletePlantsSubtitle,
                             onTap: () => _confirmDeleteAction('Plantas', () async {
-                              final plantBoxes = ['box_botany_intel', 'box_plants_history'];
-                              for(var b in plantBoxes) {
-                                if (Hive.isBoxOpen(b)) await Hive.box(b).close();
-                                await Hive.deleteBoxFromDisk(b);
-                              }
+                               final historyService = ref.read(historyServiceProvider);
+                               await historyService.clearAllPlants();
                             }),
                          ),
                          const Divider(height: 1, color: Colors.white10),
@@ -286,11 +292,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             title: l10n.settingsDeleteFood,
                             subtitle: l10n.settingsDeleteFoodSubtitle,
                             onTap: () => _confirmDeleteAction('Alimentos', () async {
-                              final foodBoxes = ['box_nutrition_human', 'nutrition_weekly_plans', 'meal_log', 'nutrition_shopping_list'];
-                              for(var b in foodBoxes) {
-                                if (Hive.isBoxOpen(b)) await Hive.box(b).close();
-                                await Hive.deleteBoxFromDisk(b);
-                              }
+                               final historyService = ref.read(historyServiceProvider);
+                               await historyService.clearAllFood();
+                               
+                               // Invalidate nutrition/food providers to clear RAM cache
+                               ref.invalidate(nutritionProfileProvider);
+                               ref.invalidate(weeklyPlanHistoryProvider);
+                               ref.invalidate(currentWeekPlanProvider);
+                               ref.invalidate(mealLogsProvider);
+                               ref.invalidate(shoppingListProvider);
                             }),
                          ),
                          const Divider(height: 1, color: Colors.white10),
@@ -633,13 +643,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       
       if (!mounted) return;
       
-      // 4. Shimmer/Wait for UI
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All data has been successfully deleted.'),
-          backgroundColor: AppDesign.success,
-        ),
-      );
+      // 4. Logout (Clears Encryption Key and Session)
+      await simpleAuthService.logout();
 
       // 5. Force navigate to Root (Splash) - This will re-trigger init sequence
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);

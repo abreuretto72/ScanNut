@@ -229,6 +229,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cancel => 'Cancelar';
 
   @override
+  String get commonBack => 'Voltar';
+
+  @override
   String get permissionCameraDisclosureTitle => 'Uso da Câmera';
 
   @override
@@ -653,7 +656,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petBathMonthly => 'Mensal';
 
   @override
-  String get petNotOffice => 'Tipo de dieta não especificado';
+  String get petNotOffice => 'Não informado';
 
   @override
   String get whatsappInitialMessage =>
@@ -2318,6 +2321,103 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petSuggestedPlan => 'Plano Alimentar Sugerido';
 
   @override
+  String get petResultTitle => 'Análise Veterinária 360°';
+
+  @override
+  String get petResultViewProfile => 'VER PERFIL DO PET';
+
+  @override
+  String get petResultSave => 'Salvar apenas';
+
+  @override
+  String get petResultGeneratePDF => 'Gerar PDF';
+
+  @override
+  String get petResultDossier => 'Dossiê 360°';
+
+  @override
+  String get petSectionObservedSigns => 'Sinais Observados';
+
+  @override
+  String get petSectionNutrition => 'Nutrição & Dieta';
+
+  @override
+  String get petSectionGrooming => 'Grooming & Higiene';
+
+  @override
+  String get petSectionHealth => 'Saúde Preventiva';
+
+  @override
+  String get petSectionLifestyle => 'Lifestyle & Educação';
+
+  @override
+  String get petInsightSpecialist => 'Insight do Especialista';
+
+  @override
+  String get petDisclaimerAI =>
+      'Conteúdo gerado por IA. Não substitui diagnóstico veterinário.';
+
+  @override
+  String get petMetaPuppy => 'Meta Filhote';
+
+  @override
+  String get petMetaAdult => 'Meta Adulto';
+
+  @override
+  String get petMetaSenior => 'Meta Sênior';
+
+  @override
+  String get petTargetNutrients => 'Nutrientes Alvo';
+
+  @override
+  String get petCoatType => 'Tipo de Pelagem';
+
+  @override
+  String get petBrushingFreq => 'Escovação';
+
+  @override
+  String get petBathSug => 'Banho Sugerido';
+
+  @override
+  String get petPredispositions => 'Predisposições';
+
+  @override
+  String get petCheckup => 'Checkup';
+
+  @override
+  String get petNoData => '--';
+
+  @override
+  String get petSavingProfile => 'Salvando no Histórico...';
+
+  @override
+  String get petSavedHistory => 'Salvo no Histórico!';
+
+  @override
+  String get petProfileCreated => 'Perfil criado com sucesso!';
+
+  @override
+  String get petSaveError => 'Erro ao salvar perfil. Tente novamente.';
+
+  @override
+  String get petGeneratingPDF => 'Gerando PDF... (Simulação)';
+
+  @override
+  String get petUrgencyRed => 'Urgência Veterinária';
+
+  @override
+  String get petUrgencyYellow => 'Atenção Necessária';
+
+  @override
+  String get petUrgencyGreen => 'Observação';
+
+  @override
+  String get petSignCritical => 'Sinais clínicos de risco detectados.';
+
+  @override
+  String get petImmediateOrientation => 'Orientação Imediata:';
+
+  @override
   String get petDailyCaloricGoals => 'Metas Calóricas Diárias';
 
   @override
@@ -2328,9 +2428,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get petSecuritySupplements => 'Segurança & Suplementos';
-
-  @override
-  String get petTargetNutrients => 'Nutrientes Alvo';
 
   @override
   String get petSupplementation => 'Suplementação';
@@ -2352,9 +2449,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get petPredisposition => 'Predisposição';
-
-  @override
-  String get petCheckup => 'Checkup';
 
   @override
   String get petTrainingEnvironment => 'Treino & Ambiente';
@@ -2396,7 +2490,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petNeutered => 'Castrado';
 
   @override
-  String get petIntact => 'Intacto';
+  String get petIntact => 'Inteiro';
 
   @override
   String get petActivityModerate => 'Moderado';
@@ -2999,19 +3093,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petSizeGiant => 'Gigante';
 
   @override
-  String get petCoatShort => 'Pelo Curto';
+  String get petCoatShort => 'Curto';
 
   @override
-  String get petCoatLong => 'Pelo Longo';
+  String get petCoatLong => 'Longo';
 
   @override
-  String get petCoatDouble => 'Pelo Duplo';
+  String get petCoatDouble => 'Duplo';
 
   @override
-  String get petCoatWire => 'Pelo Duro';
+  String get petCoatWire => 'Duro';
 
   @override
-  String get petCoatCurly => 'Pelo Encaracolado';
+  String get petCoatCurly => 'Encaracolado';
 
   @override
   String get petFullAnalysisTitle => 'Análise Completa da Raça';
@@ -3039,9 +3133,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get petExpectancy => 'Expectativa de Vida';
-
-  @override
-  String get petCoatType => 'Tipo de Pelagem';
 
   @override
   String get petCommonColors => 'Cores Comuns';
@@ -3237,20 +3328,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get commonPDFFile => 'Arquivo PDF';
 
   @override
-  String get petConsultVet =>
-      'Consulte veterinário para predisposições específicas';
+  String get petConsultVet => 'Consulte veterinário';
 
   @override
-  String get petHemogramaCheckup => 'Hemograma e Checkup Geral';
+  String get petHemogramaCheckup => 'Hemograma';
 
   @override
-  String get petPositiveReinforcement => 'Reforço positivo';
+  String get petPositiveReinforcement => 'Reforço Positivo';
 
   @override
-  String get petInteractiveToys => 'Brinquedos interativos e passeios';
+  String get petInteractiveToys => 'Brinquedos Interativos';
 
   @override
-  String get petConsultVetCare => 'Consulte um Vet.';
+  String get petConsultVetCare => 'Cuidados Veterinários';
 
   @override
   String get pdfFieldObservations => 'Observações';
@@ -3780,7 +3870,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get agendaVaccineOther => 'Outra vacina';
 
   @override
-  String get agendaRequired => 'Obrigatório';
+  String get agendaRequired => 'Campo obrigatório';
 
   @override
   String get btnDelete => 'Excluir';
@@ -4360,6 +4450,36 @@ class AppLocalizationsPt extends AppLocalizations {
   String get helpMenuTipTitle => 'ℹ️ Dica Importante';
 
   @override
+  String get petTechnicalDetails => 'Detalhes Técnicos';
+
+  @override
+  String get petObservedSigns => 'Sinais Observados';
+
+  @override
+  String get petHomeCare => 'Cuidados em Casa';
+
+  @override
+  String get petVetCare => 'Cuidados Veterinários';
+
+  @override
+  String get petResult => 'Resultado';
+
+  @override
+  String get petNoRelevantChanges => 'Nenhuma alteração relevante detectada';
+
+  @override
+  String get commonNormal => 'Normal';
+
+  @override
+  String get commonModerate => 'Moderado';
+
+  @override
+  String get commonShare => 'Compartilhar';
+
+  @override
+  String get petResult_viewProfile => 'Ver Perfil do Pet';
+
+  @override
   String get helpMenuTipDesc =>
       'Sempre revise o resumo antes de gerar um cardápio.\nAssim você garante que o período, o objetivo e as preferências estão corretos.';
 
@@ -4715,6 +4835,624 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get petMenuGenerate => 'Gerar Cardápio';
+
+  @override
+  String get feedingEventGroupLabel => 'Grupo de Evento';
+
+  @override
+  String get feedingEventTypeLabel => 'Tipo de Ocorrência';
+
+  @override
+  String get feedingEventSeverityLabel => 'Gravidade';
+
+  @override
+  String get feedingEventAcceptanceLabel => 'Aceitação';
+
+  @override
+  String get feedingEventQuantityLabel => 'Quantidade Ingerida';
+
+  @override
+  String get feedingEventRelatedToMeal => 'Relacionado à Refeição';
+
+  @override
+  String get feedingGroup_normalFeeding => 'Alimentação Normal';
+
+  @override
+  String get feedingGroup_behavioralOccurrence => 'Ocorrência Comportamental';
+
+  @override
+  String get feedingGroup_digestiveIntercurrence => 'Intercorrência Digestiva';
+
+  @override
+  String get feedingGroup_intestinalIntercurrence =>
+      'Intercorrência Intestinal';
+
+  @override
+  String get feedingGroup_nutritionalMetabolic => 'Nutricional/Metabólica';
+
+  @override
+  String get feedingGroup_therapeuticDiet => 'Dieta Terapêutica';
+
+  @override
+  String get feedingType_mealCompleted => 'Refeição realizada';
+
+  @override
+  String get feedingType_mealDelayed => 'Refeição atrasada';
+
+  @override
+  String get feedingType_mealSkipped => 'Refeição pulada';
+
+  @override
+  String get feedingType_foodChange => 'Troca de alimento';
+
+  @override
+  String get feedingType_reducedIntake => 'Redução da ingestão';
+
+  @override
+  String get feedingType_increasedAppetite => 'Aumento do apetite';
+
+  @override
+  String get feedingType_reluctantToEat => 'Relutância em comer';
+
+  @override
+  String get feedingType_eatsSlowly => 'Come devagar';
+
+  @override
+  String get feedingType_eatsTooFast => 'Come muito rápido';
+
+  @override
+  String get feedingType_selectiveEating => 'Seleciona alimento';
+
+  @override
+  String get feedingType_hidesFood => 'Esconde comida';
+
+  @override
+  String get feedingType_aggressiveWhileEating => 'Agressividade ao comer';
+
+  @override
+  String get feedingType_anxietyWhileEating => 'Ansiedade ao se alimentar';
+
+  @override
+  String get feedingType_vomitingImmediate => 'Vômito imediato';
+
+  @override
+  String get feedingType_vomitingDelayed => 'Vômito tardio';
+
+  @override
+  String get feedingType_nausea => 'Náusea';
+
+  @override
+  String get feedingType_choking => 'Engasgo';
+
+  @override
+  String get feedingType_regurgitation => 'Regurgitação';
+
+  @override
+  String get feedingType_excessiveFlatulence => 'Flatulência excessiva';
+
+  @override
+  String get feedingType_apparentAbdominalPain => 'Dor abdominal aparente';
+
+  @override
+  String get feedingType_diarrhea => 'Diarreia';
+
+  @override
+  String get feedingType_softStool => 'Fezes amolecidas';
+
+  @override
+  String get feedingType_constipation => 'Constipação';
+
+  @override
+  String get feedingType_stoolWithMucus => 'Fezes com muco';
+
+  @override
+  String get feedingType_stoolWithBlood => 'Fezes com sangue';
+
+  @override
+  String get feedingType_stoolColorChange => 'Alteração de cor das fezes';
+
+  @override
+  String get feedingType_abnormalStoolOdor => 'Odor fecal anormal';
+
+  @override
+  String get feedingType_weightGain => 'Ganho de peso';
+
+  @override
+  String get feedingType_weightLoss => 'Perda de peso';
+
+  @override
+  String get feedingType_excessiveThirst => 'Sede excessiva';
+
+  @override
+  String get feedingType_lowWaterIntake => 'Baixa ingestão de água';
+
+  @override
+  String get feedingType_suspectedFoodIntolerance =>
+      'Suspeita de intolerância alimentar';
+
+  @override
+  String get feedingType_suspectedFoodAllergy =>
+      'Suspeita de alergia alimentar';
+
+  @override
+  String get feedingType_adverseFoodReaction => 'Reação adversa ao alimento';
+
+  @override
+  String get feedingType_dietNotTolerated => 'Dieta não tolerada';
+
+  @override
+  String get feedingType_therapeuticDietRefusal =>
+      'Recusa de dieta terapêutica';
+
+  @override
+  String get feedingType_clinicalImprovementWithDiet =>
+      'Melhora clínica com dieta';
+
+  @override
+  String get feedingType_clinicalWorseningAfterMeal =>
+      'Piora clínica após refeição';
+
+  @override
+  String get feedingType_needForDietAdjustment =>
+      'Necessidade de ajuste de dieta';
+
+  @override
+  String get feedingType_feedingWithMedication =>
+      'Alimentação associada a medicamento';
+
+  @override
+  String get feedingType_assistedFeeding =>
+      'Alimentação assistida (seringa/sonda)';
+
+  @override
+  String get feedingSeverity_none => 'Sem gravidade';
+
+  @override
+  String get feedingSeverity_mild => 'Leve';
+
+  @override
+  String get feedingSeverity_moderate => 'Moderada';
+
+  @override
+  String get feedingSeverity_severe => 'Grave';
+
+  @override
+  String get feedingAcceptance_good => 'Boa';
+
+  @override
+  String get feedingAcceptance_partial => 'Parcial';
+
+  @override
+  String get feedingAcceptance_refused => 'Recusou';
+
+  @override
+  String get feedingClinicalIntercurrence => 'Intercorrência Clínica';
+
+  @override
+  String get feedingMarkAsClinical => 'Marcar como intercorrência clínica';
+
+  @override
+  String get feedingClinicalAlert =>
+      '⚠️ Este evento será destacado no PDF como intercorrência clínica';
+
+  @override
+  String get healthEventTitle => 'Registrar Saúde';
+
+  @override
+  String get healthEventSelectType => 'Selecione o tipo de ocorrência';
+
+  @override
+  String get healthEventSeverityLabel => 'Gravidade';
+
+  @override
+  String get healthEventEmergencyToggle => 'Marcar como emergência';
+
+  @override
+  String get healthEventEmergencyAlert =>
+      '🚨 Se o pet estiver em risco, procure atendimento veterinário imediatamente.';
+
+  @override
+  String get healthEventDetailsHint => 'Registrar a ocorrência em detalhes';
+
+  @override
+  String get healthEventSpeechToText => 'Usar voz para registrar';
+
+  @override
+  String get healthEventListening => 'Ouvindo...';
+
+  @override
+  String get healthEventSpeechError =>
+      'Erro ao reconhecer voz. Tente novamente.';
+
+  @override
+  String get health_group_daily_monitoring => 'Monitoramento Diário';
+
+  @override
+  String get health_group_acute_symptoms => 'Sintomas Agudos';
+
+  @override
+  String get health_group_infectious => 'Infeccioso/Parasitário';
+
+  @override
+  String get health_group_dermatological => 'Dermatológico';
+
+  @override
+  String get health_group_mobility => 'Mobilidade/Ortopédico';
+
+  @override
+  String get health_group_neurological => 'Neurológico/Sensorial';
+
+  @override
+  String get health_group_treatment => 'Tratamento/Procedimento';
+
+  @override
+  String get health_type_temperature_check => 'Verificação de Temperatura';
+
+  @override
+  String get health_type_weight_check => 'Verificação de Peso';
+
+  @override
+  String get health_type_appetite_monitoring => 'Monitoramento de Apetite';
+
+  @override
+  String get health_type_hydration_check => 'Verificação de Hidratação';
+
+  @override
+  String get health_type_energy_level => 'Nível de Energia';
+
+  @override
+  String get health_type_behavior_observation => 'Observação de Comportamento';
+
+  @override
+  String get health_type_fever => 'Febre';
+
+  @override
+  String get health_type_vomiting => 'Vômito';
+
+  @override
+  String get health_type_diarrhea => 'Diarreia';
+
+  @override
+  String get health_type_lethargy => 'Letargia';
+
+  @override
+  String get health_type_loss_of_appetite => 'Perda de Apetite';
+
+  @override
+  String get health_type_excessive_thirst => 'Sede Excessiva';
+
+  @override
+  String get health_type_difficulty_breathing => 'Dificuldade Respiratória';
+
+  @override
+  String get health_type_coughing => 'Tosse';
+
+  @override
+  String get health_type_sneezing => 'Espirros';
+
+  @override
+  String get health_type_nasal_discharge => 'Secreção Nasal';
+
+  @override
+  String get health_type_suspected_infection => 'Suspeita de Infecção';
+
+  @override
+  String get health_type_wound_infection => 'Infecção em Ferida';
+
+  @override
+  String get health_type_ear_infection => 'Infecção de Ouvido';
+
+  @override
+  String get health_type_eye_infection => 'Infecção Ocular';
+
+  @override
+  String get health_type_urinary_infection => 'Infecção Urinária';
+
+  @override
+  String get health_type_parasite_detected => 'Parasita Detectado';
+
+  @override
+  String get health_type_tick_found => 'Carrapato Encontrado';
+
+  @override
+  String get health_type_flea_infestation => 'Infestação de Pulgas';
+
+  @override
+  String get health_type_skin_rash => 'Erupção Cutânea';
+
+  @override
+  String get health_type_itching => 'Coceira';
+
+  @override
+  String get health_type_hair_loss => 'Queda de Pelo';
+
+  @override
+  String get health_type_hot_spot => 'Hot Spot';
+
+  @override
+  String get health_type_wound => 'Ferida';
+
+  @override
+  String get health_type_abscess => 'Abscesso';
+
+  @override
+  String get health_type_allergic_reaction => 'Reação Alérgica';
+
+  @override
+  String get health_type_swelling => 'Inchaço';
+
+  @override
+  String get health_type_limping => 'Manqueira';
+
+  @override
+  String get health_type_joint_pain => 'Dor Articular';
+
+  @override
+  String get health_type_difficulty_walking => 'Dificuldade para Andar';
+
+  @override
+  String get health_type_stiffness => 'Rigidez';
+
+  @override
+  String get health_type_muscle_weakness => 'Fraqueza Muscular';
+
+  @override
+  String get health_type_fall => 'Queda';
+
+  @override
+  String get health_type_fracture_suspected => 'Suspeita de Fratura';
+
+  @override
+  String get health_type_seizure => 'Convulsão';
+
+  @override
+  String get health_type_tremors => 'Tremores';
+
+  @override
+  String get health_type_disorientation => 'Desorientação';
+
+  @override
+  String get health_type_loss_of_balance => 'Perda de Equilíbrio';
+
+  @override
+  String get health_type_vision_problems => 'Problemas de Visão';
+
+  @override
+  String get health_type_hearing_problems => 'Problemas de Audição';
+
+  @override
+  String get health_type_head_tilt => 'Inclinação da Cabeça';
+
+  @override
+  String get health_type_medication_administered => 'Medicamento Administrado';
+
+  @override
+  String get health_type_vaccine_given => 'Vacina Aplicada';
+
+  @override
+  String get health_type_wound_cleaning => 'Limpeza de Ferida';
+
+  @override
+  String get health_type_bandage_change => 'Troca de Curativo';
+
+  @override
+  String get health_type_vet_visit => 'Consulta Veterinária';
+
+  @override
+  String get health_type_surgery => 'Cirurgia';
+
+  @override
+  String get health_type_emergency_care => 'Atendimento de Emergência';
+
+  @override
+  String get health_type_hospitalization => 'Internação';
+
+  @override
+  String get petActionAgenda => 'Agenda';
+
+  @override
+  String get petActionMenu => 'Cardápio';
+
+  @override
+  String get petAgendaTitle => 'Agenda do Pet';
+
+  @override
+  String get foodHelpTitle => 'Exemplos de Ocorrências';
+
+  @override
+  String get foodHelpRoutine =>
+      '• Rotina: Alimentação normal, recusa ou aumento de apetite';
+
+  @override
+  String get foodHelpAcute =>
+      '• Agudo: Vômito pós-refeição, engasgo ou dificuldade';
+
+  @override
+  String get foodHelpDietChange =>
+      '• Dieta: Troca de ração, início de AN ou ingestão indevida';
+
+  @override
+  String get foodHelpSupplements => '• Suplementos: Vitaminas ou probióticos';
+
+  @override
+  String get foodHelpHydration =>
+      '• Hidratação: Consumo excessivo ou recusa de água';
+
+  @override
+  String get petAttachmentAnalyzeTitle => 'Análise Inteligente';
+
+  @override
+  String get petAttachmentAnalyzeQuestion => 'Como deseja analisar este anexo?';
+
+  @override
+  String get petAttachmentOptionPhoto => 'Analisar Foto (Visual)';
+
+  @override
+  String get petAttachmentOptionOCR => 'Ler Documento (OCR)';
+
+  @override
+  String get petAttachmentAnalyzeButton => 'Analisar';
+
+  @override
+  String get petAttachmentAnalysing => 'C.Ai analisando...';
+
+  @override
+  String get petAttachmentAnalysisSuccess => 'Análise concluída!';
+
+  @override
+  String get petAttachmentAnalysisError => 'Falha na análise.';
+
+  @override
+  String get petAnalysisViewResult => 'Ver Análise IA';
+
+  @override
+  String get petAttachmentNameTitle => 'Nomear Anexo';
+
+  @override
+  String get petAttachmentNameHint => 'Ex: Exame, Receita...';
+
+  @override
+  String get analysis_title => 'Resultado da Análise IA';
+
+  @override
+  String get btn_close => 'Entendi';
+
+  @override
+  String get petEvent_errorRequired => 'Por favor, descreva a ocorrência.';
+
+  @override
+  String get petProfile_breed => 'Raça';
+
+  @override
+  String get petProfile_breedHint => 'Ex: Labrador/SRD';
+
+  @override
+  String get petProfile_reproductiveStatus => 'Status Reprodutivo';
+
+  @override
+  String get petProfile_neutered => 'Castrado';
+
+  @override
+  String get petProfile_intact => 'Não Castrado (Inteiro)';
+
+  @override
+  String get petProfile_errorBreed => 'Informe a raça.';
+
+  @override
+  String get petProfile_errorReproductive => 'Informe o status reprodutivo.';
+
+  @override
+  String get petProfile_errorGender => 'Selecione o sexo.';
+
+  @override
+  String get gender_male => 'Macho';
+
+  @override
+  String get gender_female => 'Fêmea';
+
+  @override
+  String get gender_required => 'Selecione o sexo do pet';
+
+  @override
+  String get breed_required => 'Informe a raça';
+
+  @override
+  String get petProfile_male => 'Macho';
+
+  @override
+  String get petProfile_female => 'Fêmea';
+
+  @override
+  String get showEvents => 'Mostrar Eventos';
+
+  @override
+  String petMenuCalculating(String name) {
+    return 'Calculando a melhor dieta para $name...';
+  }
+
+  @override
+  String get petMenuIncompleteTitle => 'Perfil Incompleto';
+
+  @override
+  String get petMenuIncompleteProfile =>
+      'Dados incompletos. Por favor, preencha o perfil do pet (Peso, Idade, Sexo, Status Reprodutivo) para garantir uma dieta segura.';
+
+  @override
+  String get commonRequired => 'Campo obrigatório';
+
+  @override
+  String get detecting_pet => 'Identificando seu pet...';
+
+  @override
+  String get auto_fill_success => 'Campos preenchidos automaticamente!';
+
+  @override
+  String is_pet_breed_correct(Object breed) {
+    return 'Identificamos que seu pet é um $breed. Isso está correto?';
+  }
+
+  @override
+  String get species_label => 'Espécie';
+
+  @override
+  String get species_dog => 'Cão';
+
+  @override
+  String get species_cat => 'Gato';
+
+  @override
+  String get petMenuSpeciesRequired =>
+      'Selecione se o seu pet é um cão ou gato para continuar.';
+
+  @override
+  String get missing_species_alert =>
+      'Selecione se o seu pet é um cão ou gato para continuar.';
+
+  @override
+  String get reliability_label => 'Confiança da Análise';
+
+  @override
+  String get activitySedentary => 'Sedentário';
+
+  @override
+  String get activityModerate => 'Moderado';
+
+  @override
+  String get activityActive => 'Ativo';
+
+  @override
+  String get activityVeryActive => 'Muito Ativo';
+
+  @override
+  String get bathFrequencyWeekly => 'Semanal';
+
+  @override
+  String get bathFrequencyBiweekly => 'Quinzenal';
+
+  @override
+  String get bathFrequencyMonthly => 'Mensal';
+
+  @override
+  String get bathFrequencyAsNeeded => 'Sob Demanda';
+
+  @override
+  String get reproductiveNeutered => 'Castrado';
+
+  @override
+  String get reproductiveIntact => 'Inteiro';
+
+  @override
+  String get reproductiveNursing => 'Gesta/Lactante';
+
+  @override
+  String get petFoodRestrictions => 'Restrições';
+
+  @override
+  String get petFoodRestrictionsDesc =>
+      'Ingredientes proibidos ou a evitar (ex: sem frango, sem glúten).';
+
+  @override
+  String get petAddRestriction => 'Adicionar restrição';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).

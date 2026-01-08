@@ -118,9 +118,9 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                   color: Colors.white,
                 ),
                 IconButton(
-                  icon: Icon(_isSaved ? Icons.check : Icons.save, color: _isSaved ? AppDesign.foodOrange : Colors.white),
-                  onPressed: _isSaved ? null : _saveToHistory,
-                  tooltip: _isSaved ? 'Salvo' : 'Salvar no Histórico',
+                  icon: const Icon(Icons.check_circle, color: AppDesign.foodOrange), // Synced with Food Domain
+                  onPressed: null, // No action needed
+                  tooltip: 'Salvo Automaticamente',
                 ),
                 const SizedBox(width: 8),
               ],

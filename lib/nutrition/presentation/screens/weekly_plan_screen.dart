@@ -431,7 +431,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                                     DateFormat('dd/MM', locale).format(plan.weekStartDate),
                                   ),
                                   style: GoogleFonts.poppins(
-                                    color: isCurrent ? AppDesign.accent : AppDesign.textPrimaryDark,
+                                    color: isCurrent ? AppDesign.foodOrange : AppDesign.textPrimaryDark,
                                     fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
                                   ),
                                 ),
@@ -585,8 +585,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _showCreateMenuDialog,
-                style: ElevatedButton.styleFrom(backgroundColor: AppDesign.accent),
-                child: Text(l10n.createPlanButton, style: GoogleFonts.poppins(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(backgroundColor: AppDesign.foodOrange), // Synced with Footer Icon
+                child: Text(l10n.createPlanButton, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -796,7 +796,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isToday ? AppDesign.accent : AppDesign.textPrimaryDark.withOpacity(0.12),
+          color: isToday ? AppDesign.foodOrange : AppDesign.foodOrange.withOpacity(0.3), // Food Domain Border
           width: isToday ? 2 : 1,
         ),
       ),

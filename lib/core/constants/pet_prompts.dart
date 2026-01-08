@@ -7,9 +7,23 @@
 
 class PetPrompts {
   /// Prompt de Diagnóstico de Feridas (Triagem Veterinária)
-  static String getPetDiagnosisPrompt(String languageName, String languageInstruction, bool isPortuguese) {
+  static String getPetDiagnosisPrompt(String languageName, String languageInstruction, bool isPortuguese, {Map<String, String>? contextData}) {
+    // 🛡️ Context Injection
+    String contextBlock = "";
+    if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
+        contextBlock = '''
+        CONTEXT (SOURCE OF TRUTH): 
+        Target Pet Species: ${contextData['species'] ?? 'Unknown'}
+        Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
+        
+        INSTRUCTION: You are analyzing THIS specific pet. Do not infer a different species or breed. 
+        Focus ONLY on the condition.
+        ''';
+    }
+
     return '''
 $languageInstruction
+$contextBlock
 
 Act as a specialized Veterinary Triage Assistant and Veterinary Dermatologist. 
 You are analyzing a close-up image of a pet's skin condition, wound, or abnormality.
@@ -23,8 +37,8 @@ CRITICAL LANGUAGE RULE:
 Mandatory JSON Structure:
 {
   "analysis_type": "diagnosis",
-  "species": "string (Identify species in $languageName, e.g., 'Cão', 'Gato', 'Dog', 'Cat')", 
-  "breed": "string (Identify breed in $languageName if visible, else 'N/A')",
+  // "species": DO NOT RETURN SPECIES. Use context.
+  // "breed": DO NOT RETURN BREED. Use context.
   "characteristics": "string (Brief description of the area affected in $languageName)",
   "visual_description": "string (Detailed clinical description of the wound/condition in $languageName)", 
   "possible_causes": ["list of strings (Potential causes in $languageName: parasites, trauma, allergy, etc.)"], 
@@ -76,6 +90,7 @@ You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze
 [STRUCTURE]
 {
   "identification": {
+    "species": "string (Identify species in $languageName - e.g. Cão/Gato)",
     "breed": "string (Identify breed in $languageName)",
     "lineage": "string",
     "size": "string (Small/Medium/Large/Giant - translated to $languageName)",
@@ -105,6 +120,9 @@ You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze
     "activity_level": "string (strictly in $languageName)",
     "environment_type": "string (strictly in $languageName)",
     "training_intelligence": "string (in $languageName)"
+  },
+  "metadata": {
+    "reliability": "string (e.g. 95% - estimate AI confidence)"
   }
 }
 

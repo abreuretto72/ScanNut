@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path/path.dart' as path;
+
+import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_design.dart';
@@ -6,6 +10,10 @@ import '../../../l10n/app_localizations.dart';
 import '../models/pet_event_model.dart';
 import '../services/pet_event_repository.dart';
 import 'widgets/pet_event_report_dialog.dart';
+import 'widgets/attachment_analysis_dialog.dart';
+import 'pet_result_screen.dart';
+import '../models/pet_analysis_result.dart';
+import 'dart:io';
 
 
 class PetEventHistoryScreen extends StatelessWidget {
@@ -31,9 +39,16 @@ class PetEventHistoryScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          l10n.petEvent_historyTitle,
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(petName, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(
+              l10n.petEvent_historyTitle,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -153,9 +168,15 @@ class PetEventHistoryScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          Text(
-                            timeFormat.format(event.timestamp),
-                            style: const TextStyle(color: Colors.white30, fontSize: 11),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                               Text(petName, style: const TextStyle(color: AppDesign.accent, fontSize: 10, fontWeight: FontWeight.bold)),
+                               Text(
+                                 timeFormat.format(event.timestamp),
+                                 style: const TextStyle(color: Colors.white30, fontSize: 11),
+                               ),
+                            ],
                           ),
                         ],
                       ),
@@ -208,7 +229,37 @@ class PetEventHistoryScreen extends StatelessWidget {
                                   border: Border.all(color: AppDesign.petPink.withOpacity(0.2)),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Icon(a.kind == 'file' ? Icons.description : Icons.image, color: AppDesign.petPink, size: 16),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                     GestureDetector(
+                                       onTap: () => OpenFilex.open(a.path),
+                                       child: Row(
+                                         mainAxisSize: MainAxisSize.min,
+                                         children: [
+                                           Icon(a.kind == 'file' ? Icons.description : Icons.image, color: AppDesign.petPink, size: 16),
+                                           const SizedBox(width: 6),
+                                           ConstrainedBox(
+                                              constraints: const BoxConstraints(maxWidth: 80),
+                                              child: Text(
+                                                  _parseAttachmentName(a.path),
+                                                  style: const TextStyle(color: Colors.white70, fontSize: 10),
+                                                  overflow: TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                              ),
+                                           ),
+                                         ],
+                                       ),
+                                     ),
+                                     if (a.analysisResult != null && a.analysisResult!.isNotEmpty) ...[
+                                        const SizedBox(width: 8),
+                                        GestureDetector(
+                                          onTap: () => _openAnalysisResult(context, a.analysisResult!, a.path),
+                                          child: const Icon(Icons.psychology, color: Colors.greenAccent, size: 18), 
+                                        ),
+                                     ]
+                                  ],
+                                ),
                               );
                            }).toList(),
                          ),
@@ -269,5 +320,41 @@ class PetEventHistoryScreen extends StatelessWidget {
     if (confirmed == true) {
       await PetEventRepository().deleteEventSoft(eventId);
     }
+  }
+
+  void _openAnalysisResult(BuildContext context, String jsonString, String imagePath) {
+    try {
+      final decoded = jsonDecode(jsonString);
+      if (decoded is! Map<String, dynamic>) throw Exception("Invalid format");
+      
+      // Try parsing full result
+      final result = PetAnalysisResult.fromJson(decoded);
+      
+      Navigator.push(
+        context, 
+        MaterialPageRoute(
+          builder: (_) => PetResultScreen(
+            imageFile: File(imagePath),
+            existingResult: result,
+            isHistoryView: true,
+          )
+        )
+      );
+    } catch (e) {
+      debugPrint("Error opening analysis: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+         const SnackBar(content: Text('Não foi possível carregar os detalhes desta análise.'), backgroundColor: AppDesign.warning)
+      );
+    }
+  }
+
+  String _parseAttachmentName(String filePath) {
+    final filename = path.basenameWithoutExtension(filePath);
+    // Format: yyyyMMdd_HHmmss_P_Name
+    final parts = filename.split('_');
+    if (parts.length >= 4) { // 0:date, 1:time, 2:prefix, 3:name
+       return parts.sublist(3).join('_');
+    }
+    return filename; // Fallback
   }
 }

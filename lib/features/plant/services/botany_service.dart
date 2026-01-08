@@ -11,6 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/botany_history_item.dart';
 import '../models/plant_analysis_model.dart';
 import '../../../core/services/file_upload_service.dart';
+import '../../../core/services/permanent_backup_service.dart';
 
 class BotanyService {
   static final BotanyService _instance = BotanyService._internal();
@@ -105,6 +106,13 @@ class BotanyService {
     try {
       await box.add(item);
       debugPrint("✅ Gravado no histórico com sucesso! ID: ${item.id}");
+      
+      // 🔄 Trigger automatic permanent backup
+      PermanentBackupService().createAutoBackup().then((_) {
+        debugPrint('💾 Backup permanente atualizado após salvar planta');
+      }).catchError((e) {
+        debugPrint('⚠️ Backup automático falhou: $e');
+      });
     } catch (e, stack) {
       debugPrint("❌ ERRO AO GRAVAR: $e");
       debugPrint("TRACE: $stack");

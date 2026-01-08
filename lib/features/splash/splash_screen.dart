@@ -178,26 +178,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                        child: Container(
                          width: 120,
                          height: 120,
-                         decoration: BoxDecoration(
-                           shape: BoxShape.circle,
-                           gradient: LinearGradient(
-                             colors: [
-                               AppDesign.accent,
-                               AppDesign.accent.withOpacity(0.6),
-                             ],
-                           ),
-                           boxShadow: [
-                             BoxShadow(
-                               color: AppDesign.accent.withOpacity(0.5),
-                               blurRadius: 40,
-                               spreadRadius: 10,
-                             ),
-                           ],
-                         ),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white,
+                                Colors.white.withOpacity(0.9),
+                              ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white.withOpacity(0.3),
+                                blurRadius: 40,
+                                spreadRadius: 10,
+                              ),
+                            ],
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Image.asset(
-                              'assets/images/app_logo.png',
+                              'imagens/icone_app.png',
                               fit: BoxFit.contain,
                             ),
                           ),
@@ -249,27 +249,27 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                        children: [
                          _buildTag('🍎', food),
                          const SizedBox(width: 8),
-                         Container(
-                           width: 4,
-                           height: 4,
-                           decoration: const BoxDecoration(
-                             color: AppDesign.accent,
-                             shape: BoxShape.circle,
-                           ),
-                         ),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: const BoxDecoration(
+                              color: AppDesign.foodOrange,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildTag('🌿', plants),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: const BoxDecoration(
+                              color: AppDesign.foodOrange,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                          const SizedBox(width: 8),
-                         _buildTag('🌿', plants),
-                         const SizedBox(width: 8),
-                         Container(
-                           width: 4,
-                           height: 4,
-                           decoration: const BoxDecoration(
-                             color: AppDesign.accent,
-                             shape: BoxShape.circle,
-                           ),
-                         ),
-                         const SizedBox(width: 8),
-                         _buildTag('🐾', pets),
+                         _buildTag('', pets, icon: Icons.pets, iconColor: AppDesign.petPink),
                        ],
                      ),
                    ),
@@ -284,7 +284,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         height: 30,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppDesign.accent),
+                          valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFFF69B4)),
                         ),
                       ),
                     ),
@@ -308,7 +308,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.auto_awesome, color: AppDesign.accent, size: 16),
+                        const Icon(Icons.auto_awesome, color: AppDesign.foodOrange, size: 16),
                         const SizedBox(width: 8),
                         Text(
                           poweredBy,
@@ -330,10 +330,13 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
 
-  Widget _buildTag(String emoji, String label) {
+  Widget _buildTag(String emoji, String label, {IconData? icon, Color? iconColor}) {
     return Row(
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
+        if (icon != null)
+          Icon(icon, size: 16, color: iconColor ?? AppDesign.textSecondaryDark)
+        else
+          Text(emoji, style: const TextStyle(fontSize: 16)),
         const SizedBox(width: 4),
         Text(
           label,
@@ -361,7 +364,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: AppDesign.accent.withOpacity(0.3),
+            color: const Color(0xFFFF69B4).withOpacity(0.3),
             shape: BoxShape.circle,
           ),
         ),

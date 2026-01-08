@@ -24,13 +24,14 @@ class AttachmentModelAdapter extends TypeAdapter<AttachmentModel> {
       size: fields[4] as int,
       hash: fields[5] as String,
       createdAt: fields[6] as DateTime,
+      analysisResult: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AttachmentModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class AttachmentModelAdapter extends TypeAdapter<AttachmentModel> {
       ..writeByte(5)
       ..write(obj.hash)
       ..writeByte(6)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(7)
+      ..write(obj.analysisResult);
   }
 
   @override

@@ -14,6 +14,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'core/services/history_service.dart';
 import 'core/services/file_upload_service.dart';
 import 'core/services/simple_auth_service.dart';
+import 'core/services/permanent_backup_service.dart';
 
 import 'core/services/meal_history_service.dart';
 import 'features/pet/models/pet_event.dart';
@@ -67,6 +68,17 @@ void main() async {
     // Initialize Hive
     await Hive.initFlutter();
     
+    // 🔄 AUTO-RECOVERY: Restaurar dados de backup permanente (se existir)
+    try {
+      final permanentBackup = PermanentBackupService();
+      final recovered = await permanentBackup.autoRecovery();
+      if (recovered) {
+        debugPrint('✅ Dados restaurados automaticamente do backup permanente!');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Auto-recovery falhou (primeira instalação ou erro): $e');
+    }
+    
     // Register Hive adapters for PetEvent
     if (!Hive.isAdapterRegistered(4)) {
       Hive.registerAdapter(EventTypeAdapter());
@@ -87,6 +99,18 @@ void main() async {
     // STARTUP SEQUENTIAL: 
     // 1. Initialize Auth only (the ONLY box open at start)
     await simpleAuthService.init();
+
+    // 🛡️ PROACTIVE BOX OPENING (As requested by user to prevent "Box not found" errors)
+    try {
+        await Hive.openBox('box_pets_master'); // Correct master box for pet profiles
+        await Hive.openBox('scannut_history');  // Correct box for analysis history
+        // Optional/Requested by prompt:
+        await Hive.openBox('pets'); 
+        await Hive.openBox('settings');
+        debugPrint('📦 Pre-emptive Hive boxes opened.');
+    } catch (e) {
+        debugPrint('⚠️ Pre-emptive boxes failed (likely already open or encrypted): $e');
+    }
     
     // Cleanup temporary files
     await FileUploadService().cleanupTemporaryCache();

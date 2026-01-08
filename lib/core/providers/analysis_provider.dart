@@ -7,6 +7,7 @@ import '../services/gemini_service.dart';
 import '../services/groq_api_service.dart';
 import '../services/history_service.dart';
 import '../services/meal_history_service.dart';
+import '../../features/food/services/nutrition_service.dart';
 import '../enums/scannut_mode.dart';
 import '../utils/prompt_factory.dart';
 import '../../features/food/models/food_analysis_model.dart';
@@ -33,6 +34,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     String? petName,
     List<String> excludedBases = const [],
     String locale = 'pt', // Default to Portuguese
+    Map<String, String>? contextData, // 🛡️ NEW: Context Injection
   }) async {
     state = AnalysisLoading(
       message: _getLoadingMessage(mode),
@@ -53,6 +55,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           mode: mode,
           excludedBases: excludedBases, 
           locale: normalizedLocale,
+          contextData: contextData, // 🛡️ Pass context
         );
       } on GeminiException catch (geminiError) { // Changed catch type to GeminiException for clarity
         debugPrint('⚠️ Gemini falhou, tentando Groq: $geminiError');
@@ -63,7 +66,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         
         while (retries >= 0) {
           try {
-            final prompt = PromptFactory.getPrompt(mode, locale: normalizedLocale);
+            final prompt = PromptFactory.getPrompt(mode, locale: normalizedLocale, contextData: contextData);
             groqResponse = await _groqService.analyzeImage(imageFile, prompt);
             if (groqResponse != null) break;
           } catch (e) {
@@ -112,6 +115,31 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         }
       }
 
+      // 🛡️ SHIELDING: Enforce Source of Truth for species/breed
+      if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
+          final knownSpecies = contextData['species'];
+          final knownBreed = contextData['breed'];
+
+          // Phase 4: Debug Logging of restricted fields
+          final aiSpecies = jsonResponse['species'] ?? jsonResponse['identification']?['species'];
+          final aiBreed = jsonResponse['breed'] ?? jsonResponse['identification']?['breed'];
+          
+          if (aiSpecies != null && aiSpecies.toString().toLowerCase() != 'n/a' && aiSpecies != knownSpecies) {
+               debugPrint('🛡️ DEBUG: [SOURCE OF TRUTH BREACH] AI returned species: $aiSpecies');
+          }
+          if (aiBreed != null && aiBreed.toString().toLowerCase() != 'n/a' && aiBreed != knownBreed) {
+               debugPrint('🛡️ DEBUG: [SOURCE OF TRUTH BREACH] AI returned breed: $aiBreed');
+          }
+          
+          if (knownSpecies != null) jsonResponse['species'] = knownSpecies;
+          if (knownBreed != null) jsonResponse['breed'] = knownBreed;
+          
+          if (jsonResponse.containsKey('identification') && jsonResponse['identification'] is Map) {
+              if (knownSpecies != null) jsonResponse['identification']['species'] = knownSpecies;
+              if (knownBreed != null) jsonResponse['identification']['breed'] = knownBreed;
+          }
+      }
+
       // Save to history
       await _historyService.saveAnalysis(jsonResponse, mode.toString());
 
@@ -119,6 +147,16 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       switch (mode) {
         case ScannutMode.food:
           final foodAnalysis = FoodAnalysisModel.fromJson(jsonResponse);
+          
+          // AUTO-SAVE: Immediately persist food analysis
+          try {
+            await NutritionService().saveFoodAnalysis(foodAnalysis, imageFile);
+            debugPrint('✅ [AnalysisNotifier] Food Analysis Auto-Saved.');
+          } catch (e) {
+            debugPrint('⚠️ [AnalysisNotifier] Auto-Save Warning: $e');
+            // Don't block UI flow for save error, but log it
+          }
+
           state = AnalysisSuccess<FoodAnalysisModel>(foodAnalysis);
           break;
 
@@ -163,6 +201,9 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           
           state = AnalysisSuccess<PetAnalysisResult>(petAnalysis);
           break;
+
+        default:
+          break;
       }
     } on GeminiException catch (e) {
       // Use user-friendly message key
@@ -200,6 +241,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       case ScannutMode.petIdentification:
         return 'loadingPetBreed';
       case ScannutMode.petDiagnosis:
+      case ScannutMode.petVisualAnalysis:
+      case ScannutMode.petDocumentOCR:
          return 'loadingPetHealth';
     }
   }

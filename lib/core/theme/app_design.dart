@@ -40,7 +40,7 @@ class AppDesign {
   static const Color iconActive        = accent;
 
   // CORES DOS DOMÍNIOS
-  static const Color foodOrange = Color(0xFFFF9800); // Laranja Comida
+  static const Color foodOrange = Color(0xFFFF9800); // Laranja Comida (Corrected)
   static const Color plantGreen = Color(0xFF4CAF50); // Verde Plantas
   static const Color petPink    = Color(0xFFFADADD); // Rosa Pets
 

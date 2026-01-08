@@ -75,10 +75,28 @@ class MealPlanRequest {
   void validateOrThrow() {
     if (petId.trim().isEmpty) throw ArgumentError('petId obrigatório');
     if (profileData.isEmpty) throw ArgumentError('profileData obrigatório');
+    
+    // 🛡️ mandatory Fields (Source: PetProfile DB)
+    final species = profileData['especie'] ?? profileData['species'];
+    final breed = profileData['raca'] ?? profileData['breed'];
+    final age = profileData['idade_exata'] ?? profileData['age'];
+    final weight = profileData['peso_atual'] ?? profileData['weight'];
+    final size = profileData['porte'] ?? profileData['size'];
+
+    if (species == null || species.toString().isEmpty) throw ArgumentError('Espécie obrigatória');
+    if (breed == null || breed.toString().isEmpty) throw ArgumentError('Raça obrigatória');
+    if (age == null || age.toString().isEmpty) throw ArgumentError('Idade obrigatória');
+    if (weight == null || weight.toString() == '0.0' || weight.toString().isEmpty) throw ArgumentError('Peso obrigatório');
+    if (size == null || size.toString().isEmpty) throw ArgumentError('Porte/Tamanho obrigatório');
+
     if (!['weekly', 'monthly', 'custom'].contains(mode)) throw ArgumentError('mode inválido');
     
-    final days = endDate.difference(startDate).inDays;
-    if (days < 0) throw ArgumentError('Data final deve ser após a inicial');
+    final days = endDate.difference(startDate).inDays + 1;
+    if (days <= 0) throw ArgumentError('Data final deve ser após a inicial');
+    
+    // Strict rules for modes
+    if (mode == 'weekly' && days != 7) throw ArgumentError('Modo semanal requer exatamente 7 dias');
+    if (mode == 'monthly' && days != 28) throw ArgumentError('Modo mensal requer exatamente 28 dias');
     if (mode == 'custom' && days > 60) throw ArgumentError('Limite máximo de 60 dias para modo personalizado');
     
     if (dietType == PetDietType.other && (otherNote == null || otherNote!.trim().isEmpty)) {
