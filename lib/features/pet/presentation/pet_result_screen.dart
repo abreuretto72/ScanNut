@@ -139,10 +139,6 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
   // --- WIDGET COMPONENTS ---
 
-  Widget _buildBottomActionBar(BuildContext context, PetAnalysisResult? result) {
-
-
-
 
   // --- LOGIC ---
 
