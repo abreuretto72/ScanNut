@@ -77,9 +77,10 @@ class _PetDossierViewState extends State<PetDossierView> {
       title: Text(
         'Análise Veterinária 360°',
         style: GoogleFonts.poppins(
-          fontSize: 18,
+          fontSize: 19,
           fontWeight: FontWeight.w600,
           color: Colors.white,
+          letterSpacing: 0.2,
         ),
       ),
       actions: [
@@ -95,7 +96,7 @@ class _PetDossierViewState extends State<PetDossierView> {
     final subtitle = widget.petProfile?.especie ?? widget.analysis.especie;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -129,17 +130,19 @@ class _PetDossierViewState extends State<PetDossierView> {
                 Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 20,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
+                    height: 1.3,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.black54,
+                    fontSize: 15,
+                    color: Colors.black.withOpacity(0.6),
+                    height: 1.4,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -175,9 +178,10 @@ class _PetDossierViewState extends State<PetDossierView> {
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: Colors.black87,
+              letterSpacing: 0.1,
             ),
           ),
         ],
@@ -187,7 +191,7 @@ class _PetDossierViewState extends State<PetDossierView> {
 
   Widget _buildAIBanner(AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.amber.shade50,
         borderRadius: BorderRadius.circular(12),
@@ -201,8 +205,9 @@ class _PetDossierViewState extends State<PetDossierView> {
             child: Text(
               'Conteúdo gerado por IA. Não substitui diagnóstico veterinário.',
               style: GoogleFonts.poppins(
-                fontSize: 12,
+                fontSize: 13,
                 color: Colors.black87,
+                height: 1.5,
               ),
             ),
           ),
@@ -252,7 +257,7 @@ class _PetDossierViewState extends State<PetDossierView> {
     final isExpanded = _expandedSections.contains(section.id);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -278,7 +283,7 @@ class _PetDossierViewState extends State<PetDossierView> {
           },
           borderRadius: BorderRadius.circular(18),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -297,9 +302,10 @@ class _PetDossierViewState extends State<PetDossierView> {
                       child: Text(
                         section.title,
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
+                          letterSpacing: 0.1,
                         ),
                       ),
                     ),
@@ -316,9 +322,9 @@ class _PetDossierViewState extends State<PetDossierView> {
                   Text(
                     section.content,
                     style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.black87,
-                      height: 1.5,
+                      fontSize: 15,
+                      color: Colors.black.withOpacity(0.8),
+                      height: 1.6,
                     ),
                   ),
                 ],
@@ -361,8 +367,9 @@ class _PetDossierViewState extends State<PetDossierView> {
                 child: Text(
                   'Ver Perfil do Pet',
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
@@ -378,11 +385,12 @@ class _PetDossierViewState extends State<PetDossierView> {
               icon: Icon(
                 _isSaved ? Icons.check_circle : Icons.bookmark_outline,
                 color: AppDesign.petPink,
-                size: 28,
+                size: 30,
               ),
               style: IconButton.styleFrom(
                 backgroundColor: AppDesign.petPink.withOpacity(0.1),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
+                minimumSize: const Size(48, 48),
               ),
             ),
           ],
