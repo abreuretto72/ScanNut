@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
+import 'dart:typed_data';
 import '../../../../core/theme/app_design.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../services/pet_events_pdf_service.dart';
+import '../../../../core/widgets/pdf_preview_screen.dart';
 
 class PetEventReportDialog extends StatefulWidget {
   final String petId;
@@ -226,34 +228,30 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
     setState(() => _isGenerating = true);
 
     try {
-      final file = await PetEventsPdfService().generateReport(
-        petId: widget.petId,
-        start: _startDate,
-        end: _endDate,
-        groupFilter: _selectedGroup,
-        onlyIncludeInPdf: _onlyPdf,
-        l10n: l10n,
-      );
+      // 🚀 REDIRECIONAMENTO PARA PDFPREVIEW (PADRÃO SCAN NUT)
+      Navigator.pop(context); // Close dialog
 
-      if (file != null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(
-               content: Text(l10n.petEvent_reportSuccess),
-               backgroundColor: AppDesign.success,
-               action: SnackBarAction(
-                 label: l10n.petEvent_reportShare,
-                 textColor: Colors.white,
-                 onPressed: () => Share.shareXFiles([XFile(file.path)]),
-               ),
-             ),
-          );
-          Navigator.pop(context);
-        }
-      } else {
-        throw Exception('File generation failed');
-      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfPreviewScreen(
+            title: l10n.petEvent_reportTitle,
+            buildPdf: (format) async {
+              final bytes = await PetEventsPdfService().buildReportBytes(
+                petId: widget.petId,
+                start: _startDate,
+                end: _endDate,
+                groupFilter: _selectedGroup,
+                onlyIncludeInPdf: _onlyPdf,
+                l10n: l10n,
+              );
+              return bytes ?? Uint8List(0);
+            },
+          ),
+        ),
+      );
     } catch (e) {
+      debugPrint('❌ PDF_GEN: Error $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
            SnackBar(content: Text(l10n.petEvent_reportError), backgroundColor: AppDesign.error),

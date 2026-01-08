@@ -5248,7 +5248,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get health_type_hospitalization => 'Internação';
 
   @override
-  String get petActionAgenda => 'Agenda';
+  String get petActionAgenda => 'Ocorrência';
 
   @override
   String get petActionMenu => 'Cardápio';

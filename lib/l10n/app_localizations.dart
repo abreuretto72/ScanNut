@@ -10028,7 +10028,7 @@ abstract class AppLocalizations {
   /// No description provided for @petActionAgenda.
   ///
   /// In pt, this message translates to:
-  /// **'Agenda'**
+  /// **'Ocorrência'**
   String get petActionAgenda;
 
   /// No description provided for @petActionMenu.

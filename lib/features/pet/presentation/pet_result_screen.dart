@@ -17,6 +17,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import '../../../core/theme/app_design.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/services/media_vault_service.dart';
 
 final petResultProvider = StateProvider<PetAnalysisResult?>((ref) => null);
 
@@ -69,24 +70,21 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       final service = ref.read(petAnalysisServiceProvider);
       final result = await service.analyzePet(widget.imageFile, ScannutMode.petIdentification);
       
-      // 📸 MOVER PARA PERMANENTE IMEDIATAMENTE (Organizado por Pet)
+      // 🔐 VACUUM VAULT: Move to Secure Storage immediately
       try {
-          final fileService = FileUploadService();
-          final savedPath = await fileService.saveMedicalDocument(
-            file: widget.imageFile,
-            petName: result.petName ?? 'Unknown',
-            attachmentType: 'analysis',
+          final vault = MediaVaultService();
+          final petNameForPath = result.petName ?? 'Unknown_${DateTime.now().millisecondsSinceEpoch}';
+          final savedPath = await vault.secureClone(
+              widget.imageFile, 
+              MediaVaultService.PETS_DIR, 
+              petNameForPath
           );
           
-          if (savedPath != null) {
-              _permanentImage = File(savedPath);
-              debugPrint('✅ Imagem salva permanentemente via FileService: $savedPath');
-          } else {
-              _permanentImage = widget.imageFile;
-          }
+          _permanentImage = File(savedPath);
+          debugPrint('✅ Vault Secure Save: $savedPath');
       } catch (e) {
-          debugPrint('⚠️ Erro ao mover imagem para permanente: $e');
-          _permanentImage = widget.imageFile; // Fallback
+          debugPrint('⚠️ Vault Save Failed: $e');
+          _permanentImage = widget.imageFile; // Fallback to cache (better than nothing)
       }
 
       // AUTO-SAVE LOGIC

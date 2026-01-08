@@ -104,6 +104,8 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   Widget _buildPlantCard(BotanyHistoryItem item) {
     final l10n = AppLocalizations.of(context)!;
     Color semaphoreColor;
+    
+    // Determine Color based on Health Status
     switch (item.survivalSemaphore.toLowerCase()) {
       case 'verde': semaphoreColor = AppDesign.success; break;
       case 'amarelo': semaphoreColor = AppDesign.warning; break;
@@ -111,186 +113,142 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       default: semaphoreColor = AppDesign.success;
     }
 
+    final isToxic = item.toxicityStatus != 'safe';
+    final toxicityColor = isToxic ? Colors.redAccent : const Color(0xFF00E676);
+    final toxicityBg = isToxic ? Colors.redAccent.withOpacity(0.2) : const Color(0xFF00E676).withOpacity(0.15);
+    final toxicityText = isToxic ? (l10n.botanyToxicHuman) : "Segura / Safe";
+
     return GestureDetector(
       onTap: () => _showFullResult(item),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
+        height: 120, // 📏 COMPACT FIXED HEIGHT
+        margin: const EdgeInsets.only(bottom: 12), // Tighter spacing
         decoration: BoxDecoration(
-          color: AppDesign.surfaceDark.withOpacity(0.8),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: semaphoreColor.withOpacity(0.3), width: 1.5),
+          color: AppDesign.surfaceDark,
+          borderRadius: BorderRadius.circular(16),
+          // Subtle border for high-end look
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          boxShadow: [
+             BoxShadow(
+               color: Colors.black.withOpacity(0.3),
+               blurRadius: 8,
+               offset: const Offset(0, 4),
+             )
+          ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            // Header with Image and Semaphore
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  child: item.imagePath != null
+            // 📸 LEFT: SQUARE PHOTO (COMPACT)
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                   width: 100,
+                   height: 100,
+                   child: item.imagePath != null
                       ? Image.file(
                           File(item.imagePath!),
-                          height: 160,
-                          width: double.infinity,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                             // 🛡️ MEDIA VAULT ERROR HANDLER
+                             return Container(
+                                color: Colors.grey[800],
+                                child: const Center(child: Icon(Icons.park, color: Colors.white24, size: 30)),
+                             );
+                          },
                         )
                       : Container(
-                          height: 160,
-                          width: double.infinity,
-                          color: AppDesign.surfaceDark,
-                          child: const Icon(Icons.park, color: Colors.white12, size: 50),
+                          color: Colors.grey[800],
+                          child: const Center(child: Icon(Icons.park, color: Colors.white24, size: 30)),
                         ),
                 ),
-                // Semaphore Indicator
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppDesign.backgroundDark.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: semaphoreColor),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: semaphoreColor,
-                            boxShadow: [BoxShadow(color: semaphoreColor, blurRadius: 4)],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${l10n.botanyStatus}: ${_getLocalizedStatus(item.survivalSemaphore)}',
-                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 10, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Date & Locale
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.black54,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          DateFormat('dd MMM yyyy', Localizations.localeOf(context).toString()).format(item.timestamp),
-                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 10),
-                        ),
-                      ),
-                      if (item.locale != null && item.locale != Localizations.localeOf(context).toString()) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppDesign.warning.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppDesign.warning, width: 0.5),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.language, color: AppDesign.textPrimaryDark, size: 10),
-                              const SizedBox(width: 4),
-                              Text(
-                                item.locale!.toUpperCase().replaceAll('_', '-'),
-                                style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                // Delete Button
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppDesign.backgroundDark.withOpacity(0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.delete_sweep_outlined, color: AppDesign.error),
-                      onPressed: () => _confirmDeletePlant(item),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
             
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AutoSizeText(
-                    item.plantName,
-                    style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark),
-                    maxLines: 1,
-                    minFontSize: 14,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.healthStatus,
-                    style: GoogleFonts.poppins(color: semaphoreColor, fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Needs Icons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNeedIcon(Icons.light_mode, item.lightWaterSoilNeeds['luz'] ?? 'N/A', AppDesign.warning),
-                      _buildNeedIcon(Icons.water_drop, item.lightWaterSoilNeeds['agua'] ?? 'N/A', AppDesign.info),
-                      _buildNeedIcon(Icons.grass, item.lightWaterSoilNeeds['solo'] ?? 'N/A', AppDesign.textSecondaryDark),
-                    ],
-                  ),
-  
-                  const SizedBox(height: 16),
-                  // toxicity warning if any
-                  if (item.toxicityStatus != 'safe')
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppDesign.error.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.warning_amber_rounded, color: AppDesign.error, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: AutoSizeText(
-                              item.toxicityStatus == 'toxic' ? l10n.botanyToxicHuman : l10n.botanyDangerousPet,
-                              style: GoogleFonts.poppins(color: AppDesign.error, fontSize: 12, fontWeight: FontWeight.w600),
-                              maxLines: 1,
-                              minFontSize: 8,
+            // 📝 RIGHT: METADATA COLUMN
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // TOP ROW: Name + Delete
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                         Expanded(
+                           child: Text(
+                             item.plantName,
+                             style: GoogleFonts.poppins(
+                               fontWeight: FontWeight.bold,
+                               fontSize: 15,
+                               color: Colors.white, // Preto Puro equivalent in Dark Mode
+                             ),
+                             maxLines: 1,
+                             overflow: TextOverflow.ellipsis,
+                           ),
+                         ),
+                         // Mini Delete Action
+                         GestureDetector(
+                            onTap: () => _confirmDeletePlant(item),
+                            child: const Padding(
+                              padding: EdgeInsets.only(left: 8.0),
+                              child: Icon(Icons.close_rounded, size: 16, color: Colors.white24),
                             ),
-                          ),
-                        ],
-                      ),
+                         ),
+                      ],
                     ),
-  
-                  const SizedBox(height: 16),
-                  _buildActionButtons(item),
-                ],
+                    const SizedBox(height: 4),
+
+                    // DATE
+                    Text(
+                         DateFormat('dd MMM yyyy', Localizations.localeOf(context).toString()).format(item.timestamp),
+                         style: GoogleFonts.poppins(color: Colors.grey, fontSize: 11),
+                    ),
+                    
+                    const Spacer(),
+
+                    // BOTTOM ROW: BADGES (Toxicity + Status)
+                    Row(
+                      children: [
+                         // 1) Health Status Badge
+                         Container(
+                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                           decoration: BoxDecoration(
+                              color: semaphoreColor.withOpacity(0.2), 
+                              borderRadius: BorderRadius.circular(6),
+                           ),
+                           child: Text(
+                              // Using localized abbreviated status logic
+                              _getLocalizedStatus(item.survivalSemaphore).split('/')[0].trim(),
+                              style: TextStyle(color: semaphoreColor, fontSize: 10, fontWeight: FontWeight.bold),
+                           ),
+                         ),
+                         const SizedBox(width: 8),
+
+                         // 2) Toxicity Badge (Compact)
+                         Expanded(
+                           child: Container(
+                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                             decoration: BoxDecoration(
+                                color: toxicityBg,
+                                borderRadius: BorderRadius.circular(6),
+                             ),
+                             child: Text(
+                                toxicityText.toUpperCase(),
+                                style: TextStyle(color: toxicityColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                             ),
+                           ),
+                         ),
+                      ],
+                    )
+                  ],
+                ),
               ),
             ),
           ],

@@ -5,12 +5,14 @@
 /// Data de Congelamento: 29/12/2025
 /// ============================================================================
 
+import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'pet_event_service.dart';
 import '../../../core/utils/json_cast.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
+import '../../../core/services/media_vault_service.dart';
 
 
 /// Service for managing pet profiles (Raça & ID data)
@@ -35,10 +37,54 @@ class PetProfileService {
         } else {
             _profileBox = Hive.box(_profileBoxName);
         }
+        
+        // 🧹 RESET TÉCNICO: Limpeza de Paths Órfãos (Cache)
+        await _sanitizeOrphanedCachePaths();
+        
         debugPrint('✅ PetProfileService initialized (Secure). Box Open: ${_profileBox?.isOpen}');
     } catch (e, stack) {
         debugPrint('❌ CRITICAL: Failed to open Secure Pet Profile Box: $e\n$stack');
     }
+  }
+
+  /// 🧹 ONE-TIME DISINFECTION: Removes paths pointing to volatile cache
+  Future<void> _sanitizeOrphanedCachePaths() async {
+      if (_profileBox == null) return;
+      
+      final keys = _profileBox!.keys.toList();
+      for (var key in keys) {
+          final entry = _profileBox!.get(key);
+          if (entry is Map) {
+              final map = deepCastMap(entry);
+              bool changed = false;
+              final petName = map['pet_name'] ?? key;
+              
+              // Check Top Level
+              String? photoPath = map['photo_path'];
+              if (photoPath != null && photoPath.contains('cache')) {
+                  debugPrint('🧹 [SANITIZER] Clearing phantom CACHE path for "$petName" (Top-Level)');
+                  map['photo_path'] = null;
+                  changed = true;
+              }
+              
+              // Check Data Level
+              if (map['data'] != null && map['data'] is Map) {
+                  final data = deepCastMap(map['data']);
+                  String? innerPath = data['image_path'];
+                  if (innerPath != null && innerPath.contains('cache')) {
+                      debugPrint('🧹 [SANITIZER] Clearing phantom CACHE path for "$petName" (Data-Level)');
+                      data['image_path'] = null;
+                      map['data'] = data;
+                      changed = true;
+                  }
+              }
+              
+              if (changed) {
+                  await _profileBox!.put(key, map);
+                  debugPrint('   ✨ Path Reset applied for "$petName". Ready for new secure photo.');
+              }
+          }
+      }
   }
 
   ValueListenable<Box>? get listenable => _profileBox?.listenable();
@@ -56,6 +102,29 @@ class PetProfileService {
          if (_profileBox == null || !(_profileBox?.isOpen ?? false)) {
              throw HiveError('Failed to open Hive Box $_profileBoxName');
          }
+      }
+      
+      // 🛡️ ZERO CACHE INTERVENTION: Enforce Vault Storage
+      final rawPath = profileData['image_path'] as String?;
+      if (rawPath != null && rawPath.isNotEmpty) {
+          final vault = MediaVaultService();
+          if (!vault.isPathSecure(rawPath)) {
+             final file = File(rawPath);
+             if (await file.exists()) {
+                 try {
+                     debugPrint('🔒 SECURING IMAGE: Moving from volatile cache to Vault...');
+                     final securePath = await vault.secureClone(
+                         file, 
+                         MediaVaultService.PETS_DIR, 
+                         petName // Use pet name for organization
+                     );
+                     profileData['image_path'] = securePath;
+                     debugPrint('✅ IMAGE SECURED at: $securePath');
+                 } catch (e) {
+                     debugPrint('❌ Failed to secure image (saving invalid path): $e');
+                 }
+             }
+          }
       }
       
       final key = _normalizeKey(petName);
@@ -85,11 +154,37 @@ class PetProfileService {
       final key = _normalizeKey(petName);
       final profile = _profileBox?.get(key);
       if (profile == null) {
-          debugPrint('⚠️ Profile not found for key: "$key"');
+          debugPrint('⚠️ [PROFILE_TRACE] Profile not found for key: "$key"');
           return null;
       }
-      debugPrint('✅ Profile loaded for key: "$key"');
-      return deepCastMap(profile);
+      
+      final map = deepCastMap(profile);
+
+      // 🛡️ DATA SURVIVAL CHECK (Self-Healing)
+      try {
+        String? pathCheck = map['photo_path'] as String?;
+        if (pathCheck == null && map['data'] != null && map['data'] is Map) {
+            pathCheck = map['data']['image_path'] as String?;
+        }
+        
+        debugPrint('🔍 [PROFILE_TRACE] Checking image for $petName ($key)');
+        debugPrint('   [PROFILE_TRACE] Raw Path: $pathCheck');
+        
+        if (pathCheck != null && pathCheck.isNotEmpty) {
+             final healedPath = await MediaVaultService().attemptRecovery(pathCheck);
+             debugPrint('   [PROFILE_TRACE] Healed Path: $healedPath');
+             // Update in memory map (optional: could save back to DB?)
+             if (map['data'] != null && map['data'] is Map) {
+                 map['data']['image_path'] = healedPath;
+             }
+             map['photo_path'] = healedPath; // Update top level too
+        }
+      } catch (e) {
+        debugPrint('⚠️ [PROFILE_TRACE] Self-healing check failed gracefully: $e');
+      }
+
+      debugPrint('✅ [PROFILE_TRACE] Profile loaded & verified for key: "$key"');
+      return map;
 
     } catch (e) {
       debugPrint('❌ Error getting profile: $e');

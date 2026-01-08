@@ -92,6 +92,28 @@ class EventTypeAdapter extends TypeAdapter<EventType> {
         return EventType.medication;
       case 5:
         return EventType.other;
+      case 6:
+        return EventType.food;
+      case 7:
+        return EventType.elimination;
+      case 8:
+        return EventType.activity;
+      case 9:
+        return EventType.behavior;
+      case 10:
+        return EventType.media;
+      case 11:
+        return EventType.metrics;
+      case 12:
+        return EventType.documents;
+      case 13:
+        return EventType.exams;
+      case 14:
+        return EventType.dentistry;
+      case 15:
+        return EventType.parasite;
+      case 16:
+        return EventType.surgery;
       default:
         return EventType.vaccine;
     }
@@ -117,6 +139,39 @@ class EventTypeAdapter extends TypeAdapter<EventType> {
         break;
       case EventType.other:
         writer.writeByte(5);
+        break;
+      case EventType.food:
+        writer.writeByte(6);
+        break;
+      case EventType.elimination:
+        writer.writeByte(7);
+        break;
+      case EventType.activity:
+        writer.writeByte(8);
+        break;
+      case EventType.behavior:
+        writer.writeByte(9);
+        break;
+      case EventType.media:
+        writer.writeByte(10);
+        break;
+      case EventType.metrics:
+        writer.writeByte(11);
+        break;
+      case EventType.documents:
+        writer.writeByte(12);
+        break;
+      case EventType.exams:
+        writer.writeByte(13);
+        break;
+      case EventType.dentistry:
+        writer.writeByte(14);
+        break;
+      case EventType.parasite:
+        writer.writeByte(15);
+        break;
+      case EventType.surgery:
+        writer.writeByte(16);
         break;
     }
   }

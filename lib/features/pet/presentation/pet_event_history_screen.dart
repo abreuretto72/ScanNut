@@ -130,8 +130,8 @@ class PetEventHistoryScreen extends StatelessWidget {
             child: Column(
               children: [
                 Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: AppDesign.surfaceDark,
                     borderRadius: BorderRadius.circular(16),
@@ -149,41 +149,52 @@ class PetEventHistoryScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: AppDesign.petPink.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppDesign.petPink.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(_getGroupIcon(event.group), color: AppDesign.petPink, size: 14),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  event.title,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                                 ),
-                                child: Icon(_getGroupIcon(event.group), color: AppDesign.petPink, size: 14),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                event.title,
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                              ),
-                            ],
+                                Text(
+                                  dateFormat.format(event.timestamp),
+                                  style: const TextStyle(color: AppDesign.petPink, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                               Text(petName, style: const TextStyle(color: AppDesign.accent, fontSize: 10, fontWeight: FontWeight.bold)),
-                               Text(
-                                 timeFormat.format(event.timestamp),
-                                 style: const TextStyle(color: Colors.white30, fontSize: 11),
-                               ),
+                              Row(
+                                children: [
+                                  Text(petName, style: const TextStyle(color: AppDesign.accent, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () => _confirmDelete(context, event.id),
+                                    child: const Icon(Icons.delete_outline, color: Colors.white24, size: 16),
+                                  ),
+                                ],
+                              ),
+                              Text(
+                                timeFormat.format(event.timestamp),
+                                style: const TextStyle(color: Colors.white30, fontSize: 11),
+                              ),
                             ],
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        dateFormat.format(event.timestamp),
-                        style: const TextStyle(color: AppDesign.petPink, fontSize: 10, fontWeight: FontWeight.bold),
                       ),
                       if (event.notes.isNotEmpty) ...[
                         const SizedBox(height: 10),
@@ -206,7 +217,7 @@ class PetEventHistoryScreen extends StatelessWidget {
                                  color: Colors.black26,
                                  borderRadius: BorderRadius.circular(8),
                                  border: Border.all(color: Colors.white.withOpacity(0.03)),
-                               ),
+                                ),
                                child: Text(
                                  '${e.key.toUpperCase()}: ${e.value}', 
                                  style: const TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.w600),
@@ -217,62 +228,85 @@ class PetEventHistoryScreen extends StatelessWidget {
                       ],
                       // Attachments List
                       if (event.attachments.isNotEmpty) ...[
-                         const SizedBox(height: 16),
+                         const SizedBox(height: 12),
                          const Divider(color: Colors.white10),
                          const SizedBox(height: 8),
-                         Wrap(
-                           spacing: 8,
-                           children: event.attachments.map((a) {
-                              return Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppDesign.petPink.withOpacity(0.2)),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                     GestureDetector(
-                                       onTap: () => OpenFilex.open(a.path),
-                                       child: Row(
-                                         mainAxisSize: MainAxisSize.min,
-                                         children: [
-                                           Icon(a.kind == 'file' ? Icons.description : Icons.image, color: AppDesign.petPink, size: 16),
-                                           const SizedBox(width: 6),
-                                           ConstrainedBox(
-                                              constraints: const BoxConstraints(maxWidth: 80),
-                                              child: Text(
-                                                  _parseAttachmentName(a.path),
-                                                  style: const TextStyle(color: Colors.white70, fontSize: 10),
-                                                  overflow: TextOverflow.ellipsis,
-                                                  maxLines: 1,
-                                              ),
-                                           ),
-                                         ],
-                                       ),
-                                     ),
-                                     if (a.analysisResult != null && a.analysisResult!.isNotEmpty) ...[
-                                        const SizedBox(width: 8),
-                                        GestureDetector(
-                                          onTap: () => _openAnalysisResult(context, a.analysisResult!, a.path),
-                                          child: const Icon(Icons.psychology, color: Colors.greenAccent, size: 18), 
-                                        ),
-                                     ]
-                                  ],
-                                ),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: event.attachments
+                                .where((a) => a.analysisResult != 'SIDEAR_FILE')
+                                .expand((a) {
+                              final sidecarPath = path.join(
+                                path.dirname(a.path), 
+                                "${path.basenameWithoutExtension(a.path)}_ResuAnalise.json"
                               );
-                           }).toList(),
-                         ),
+                              
+                              return [
+                                // Original Attachment
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.05),
+                                    border: Border.all(color: AppDesign.petPink.withOpacity(0.2)),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () => OpenFilex.open(a.path),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(a.kind == 'file' ? Icons.description : Icons.image, color: AppDesign.petPink, size: 16),
+                                        const SizedBox(width: 8),
+                                        ConstrainedBox(
+                                          constraints: const BoxConstraints(maxWidth: 100),
+                                          child: Text(
+                                            _parseAttachmentName(a.path),
+                                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                
+                                // SIDEAR RESULT FILE (If exists on disk)
+                                if (File(sidecarPath).existsSync())
+                                  GestureDetector(
+                                    onTap: () {
+                                       try {
+                                          final content = File(sidecarPath).readAsStringSync();
+                                          AttachmentAnalysisDialog.show(context, content);
+                                       } catch (e) {
+                                          debugPrint("Error reading sidecar: $e");
+                                       }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.greenAccent.withOpacity(0.12),
+                                        border: Border.all(color: Colors.greenAccent.withOpacity(0.35)),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.assignment_turned_in_outlined, color: Colors.greenAccent, size: 14),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            "LAUDO CLÍNICO IA",
+                                            style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ];
+                            }).toList(),
+                          ),
                       ],
-                      
-                      // Delete Option
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.white24, size: 18),
-                          onPressed: () => _confirmDelete(context, event.id),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -350,11 +384,8 @@ class PetEventHistoryScreen extends StatelessWidget {
 
   String _parseAttachmentName(String filePath) {
     final filename = path.basenameWithoutExtension(filePath);
-    // Format: yyyyMMdd_HHmmss_P_Name
-    final parts = filename.split('_');
-    if (parts.length >= 4) { // 0:date, 1:time, 2:prefix, 3:name
-       return parts.sublist(3).join('_');
-    }
-    return filename; // Fallback
+    // Remove pattern: yyyyMMdd_HHmmss_X_ (ScanNut Standard)
+    return filename.replaceFirst(RegExp(r'^\d{8}_\d{6}_[A-Z]_'), '')
+                   .replaceFirst(RegExp(r'^\d{8}_\d{6}_'), '');
   }
 }

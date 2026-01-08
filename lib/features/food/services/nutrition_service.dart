@@ -13,6 +13,8 @@ import '../models/food_analysis_model.dart';
 import '../../../core/services/file_upload_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
 
+import '../../../core/services/media_vault_service.dart';
+
 class NutritionService {
   static final NutritionService _instance = NutritionService._internal();
   factory NutritionService() => _instance;
@@ -23,6 +25,45 @@ class NutritionService {
 
   Future<void> init({HiveCipher? cipher}) async {
     await _ensureBox(cipher: cipher);
+    // 🧹 GLOBAL RESET: Limpeza de Paths Órfãos (Cache/Temp)
+    await _sanitizeOrphanedCachePaths();
+  }
+
+  /// 🧹 ONE-TIME DISINFECTION: Removes paths pointing to volatile cache
+  Future<void> _sanitizeOrphanedCachePaths() async {
+    try {
+      final box = await _ensureBox();
+      final keys = box.keys.toList();
+      
+      for (var key in keys) {
+        final item = box.get(key);
+        if (item != null) {
+          String? path = item.imagePath;
+          if (path != null && (path.contains('cache') || path.contains('temp'))) {
+             debugPrint('🧹 [NUTRITION SANITIZER] Clearing phantom path for Food "${item.foodName}"');
+             
+             final newItem = NutritionHistoryItem(
+                 id: item.id,
+                 timestamp: item.timestamp,
+                 foodName: item.foodName,
+                 calories: item.calories,
+                 proteins: item.proteins,
+                 carbs: item.carbs,
+                 fats: item.fats,
+                 isUltraprocessed: item.isUltraprocessed,
+                 biohackingTips: item.biohackingTips,
+                 recipesList: item.recipesList,
+                 imagePath: null, // CLEAR PATH
+                 rawMetadata: item.rawMetadata
+             );
+             
+             await box.put(key, newItem);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Sanitizer error in NutritionService: $e');
+    }
   }
 
   Future<Box<NutritionHistoryItem>> _ensureBox({HiveCipher? cipher}) async {
@@ -54,11 +95,18 @@ class NutritionService {
     
     String? savedPath;
     if (image != null) {
-      savedPath = await FileUploadService().saveAnalysisImage(
-        file: image,
-        type: 'food',
-        name: analysis.identidade.nome,
-      );
+      try {
+           savedPath = await MediaVaultService().secureClone(
+              image,
+              MediaVaultService.FOOD_DIR,
+              analysis.identidade.nome
+           );
+           debugPrint('✅ Food Image Secured in Vault: $savedPath');
+      } catch (e) {
+           debugPrint('❌ Failed to save to Vault (Food): $e');
+           // Fallback to legacy if critical, but user wants strict vault.
+           // We'll let it be null rather than cache.
+      }
     }
 
     try {

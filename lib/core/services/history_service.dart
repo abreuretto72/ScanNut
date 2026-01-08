@@ -15,6 +15,52 @@ class HistoryService {
   Future<void> init({HiveCipher? cipher}) async {
     final effectiveCipher = cipher ?? SimpleAuthService().encryptionCipher;
     await Hive.openBox(boxName, encryptionCipher: effectiveCipher);
+    
+    // 🧹 GLOBAL RESET: Limpeza de Paths Órfãos (Cache/Temp)
+    await _sanitizeOrphanedCachePaths();
+  }
+
+  /// 🧹 ONE-TIME DISINFECTION: Removes paths pointing to volatile cache
+  Future<void> _sanitizeOrphanedCachePaths() async {
+      try {
+          final box = await getBox();
+          if (!box.isOpen) return;
+
+          final keys = box.keys.toList();
+          for (var key in keys) {
+             final val = box.get(key);
+             if (val is Map) {
+                final map = deepCastMap(val);
+                bool changed = false;
+                
+                // Top Level
+                String? path = map['image_path'];
+                if (path != null && (path.contains('cache') || path.contains('temp'))) {
+                     debugPrint('🧹 [HISTORY SANITIZER] Clearing phantom path for History Key $key');
+                     map['image_path'] = null;
+                     changed = true;
+                }
+                
+                // Data Level
+                if (map['data'] != null && map['data'] is Map) {
+                    final data = deepCastMap(map['data']);
+                    String? innerPath = data['image_path'];
+                    if (innerPath != null && (innerPath.contains('cache') || innerPath.contains('temp'))) {
+                        debugPrint('🧹 [HISTORY SANITIZER] Clearing phantom inner path for History Key $key');
+                        data['image_path'] = null;
+                        map['data'] = data;
+                        changed = true;
+                    }
+                }
+                
+                if (changed) {
+                    await box.put(key, map);
+                }
+             }
+          }
+      } catch (e) {
+          debugPrint('⚠️ Sanitizer error in HistoryService: $e');
+      }
   }
 
   static Future<Box> getBox() async {

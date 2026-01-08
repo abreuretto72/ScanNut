@@ -14,6 +14,7 @@ import '../../core/models/user_profile.dart';
 import '../../core/services/user_profile_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/food/services/nutrition_service.dart';
+import '../../features/plant/services/botany_service.dart';
 import '../../core/services/simple_auth_service.dart';
 import '../../nutrition/presentation/controllers/nutrition_providers.dart';
 import '../../core/providers/vaccine_status_provider.dart';
@@ -23,6 +24,7 @@ import '../../core/utils/app_logger.dart';
 import 'screens/diagnostics_screen.dart';
 import 'screens/auth_certificates_screen.dart';
 import 'screens/change_password_screen.dart';
+import '../../core/services/media_vault_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -265,6 +267,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 final historyService = ref.read(historyServiceProvider);
                                 await historyService.clearAllPets();
                                 
+                                // 💣 ATOMIC CLEANUP: Physically delete all pet media
+                                await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
+                                await MediaVaultService().clearDomain(MediaVaultService.WOUNDS_DIR);
+                                
                                 // Reset specific pet boxes not covered by clearAllPets (if any)
                                 final petSpecificBoxes = ['box_pets_master', 'pet_health_records', 'weekly_meal_plans', 'pet_events', 'vaccine_status'];
                                 for(var b in petSpecificBoxes) {
@@ -284,23 +290,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             subtitle: l10n.settingsDeletePlantsSubtitle,
                             onTap: () => _confirmDeleteAction('Plantas', () async {
                                final historyService = ref.read(historyServiceProvider);
-                               await historyService.clearAllPlants();
+                               await historyService.clearAllPlants(); // Clears legacy
+                               await BotanyService().clearAll(); // Clears Box
+                               await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR); // Clears Vault Images
+                               debugPrint('🧹 Zona de Perigo: Histórico de Plantas APAGADO (Hive + Arquivos)');
                             }),
                          ),
                          const Divider(height: 1, color: Colors.white10),
                          _buildDangerTile(
                             title: l10n.settingsDeleteFood,
                             subtitle: l10n.settingsDeleteFoodSubtitle,
-                            onTap: () => _confirmDeleteAction('Alimentos', () async {
-                               final historyService = ref.read(historyServiceProvider);
-                               await historyService.clearAllFood();
-                               
-                               // Invalidate nutrition/food providers to clear RAM cache
-                               ref.invalidate(nutritionProfileProvider);
-                               ref.invalidate(weeklyPlanHistoryProvider);
-                               ref.invalidate(currentWeekPlanProvider);
-                               ref.invalidate(mealLogsProvider);
-                               ref.invalidate(shoppingListProvider);
+                             onTap: () => _confirmDeleteAction('Alimentos', () async {
+                                final historyService = ref.read(historyServiceProvider);
+                                await historyService.clearAllFood(); // Clears Box
+                                await NutritionService().clearAllFood(); // Clears Nutrition Box
+                                await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR); // Clears Vault Images
+                                
+                                // Invalidate nutrition/food providers to clear RAM cache
+                                ref.invalidate(nutritionProfileProvider);
+                                ref.invalidate(weeklyPlanHistoryProvider);
+                                ref.invalidate(currentWeekPlanProvider);
+                                ref.invalidate(mealLogsProvider);
+                                ref.invalidate(shoppingListProvider);
+                                debugPrint('🧹 Zona de Perigo: Histórico de Comida APAGADO (Hive + Arquivos)');
                             }),
                          ),
                          const Divider(height: 1, color: Colors.white10),
@@ -622,6 +634,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       
       // 2. Hard reset all Hive databases
       await ref.read(historyServiceProvider).hardResetAllDatabases();
+
+      // 💣 NUCLEAR CLEANUP: Physically delete ALL media in vault
+      await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
+      await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR);
+      await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR);
+      await MediaVaultService().clearDomain(MediaVaultService.WOUNDS_DIR);
       
       // 3. Invalidate Providers to clear RAM cache (Exhaustive)
       final providersToInvalidate = [

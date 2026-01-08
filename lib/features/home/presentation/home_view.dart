@@ -617,6 +617,59 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             else
               Container(color: AppDesign.backgroundDark),
           ],
+          
+          // 🛡️ LOADING OVERLAY (Analysis State)
+          if (ref.watch(analysisNotifierProvider) is AnalysisLoading)
+            Container(
+              color: Colors.black.withOpacity(0.7), // Dimmed background
+              width: double.infinity,
+              height: double.infinity,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white, // White card for Black Text contrast
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5))
+                    ]
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Loading Indicator (Orange for Food)
+                      const SizedBox(
+                        width: 40, 
+                        height: 40, 
+                        child: CircularProgressIndicator(
+                          color: AppDesign.foodOrange, // Food Domain Color
+                          strokeWidth: 3,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "Analisando imagem...",
+                        style: GoogleFonts.poppins(
+                          color: Colors.black, // PRETO PURO (Requested)
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Por favor, aguarde.",
+                        style: GoogleFonts.poppins(
+                          color: Colors.black54, 
+                          fontSize: 12,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           // 2. Scan Frame Overlay - Show when mode selected OR when we have a captured image
           if (_currentIndex != -1 || _capturedImage != null)
@@ -671,6 +724,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           child: Image.file(
                             _capturedImage!,
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                    color: Colors.white10,
+                                    child: const Center(
+                                        child: Icon(Icons.broken_image, color: Colors.white24, size: 40)
+                                    ),
+                                );
+                            },
                           ),
                         ),
                       ),

@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+part 'partner_model.g.dart';
 
 @HiveType(typeId: 5)
 class PartnerModel {

@@ -385,14 +385,50 @@ Mantenha as chaves JSON em inglês.
   static String getPetVisualPrompt(String languageName, String languageInstruction, {Map<String, String>? contextData}) {
     // 🛡️ Context Injection
     String contextBlock = "";
+    final groupId = contextData?['groupId'] ?? 'generic';
+    
+    // Domain Specific Contextual Instructions
+    String specializedInstr = "";
+    switch (groupId) {
+      case 'food':
+      case 'dentistry':
+        specializedInstr = "ANALYSIS FOCUS: Objects, food items, bones, or oral tools. EXPLICITLY FORBIDDEN: Do not attempt to identify pet breeds or animals in this specific analysis. Focus on the condition of the object or food quality.";
+        break;
+      case 'exams':
+      case 'medication':
+      case 'documents':
+        specializedInstr = "ANALYSIS FOCUS: OCR (Text reading). Extract technical terms, dosages, numerical values from charts, and specific medical findings. Precision in text transcription is the priority.";
+        break;
+      case 'health':
+      case 'allergies':
+        specializedInstr = "ANALYSIS FOCUS: Clinical symptoms, skin lesions, wounds, or allergic reactions. Describe texture, color, and level of inflammation. Provide urgency level based on clinical appearance.";
+        break;
+      case 'behavior':
+        specializedInstr = "ANALYSIS FOCUS: Posture, facial expression, and behavioral cues. Infer emotional state or physical discomfort from the pet's body language.";
+        break;
+      case 'grooming':
+        specializedInstr = "ANALYSIS FOCUS: Coat condition, cleanliness, nail length, and hygiene highlights. Identify areas that need attention.";
+        break;
+      default:
+        specializedInstr = "ANALYSIS FOCUS: General pet observation. Identify the subject and any noteworthy details relevant to the event category: $groupId.";
+    }
+
     if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
         contextBlock = '''
         CONTEXT (SOURCE OF TRUTH): 
         Target Pet Species: ${contextData['species'] ?? 'Unknown'}
         Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
+        Category Context: $groupId
         
-        INSTRUCTION: You are analyzing THIS specific pet. Do not infer a different species or breed.
+        $specializedInstr
+        
+        INSTRUCTION: You are analyzing THIS specific pet. Do not infer a different species or breed unless the image clearly shows otherwise (and even then, stay focused on the clinical/category context).
         Customize your analysis for a ${contextData['breed']}.
+        ''';
+    } else {
+        contextBlock = '''
+        Category Context: $groupId
+        $specializedInstr
         ''';
     }
 
@@ -401,44 +437,47 @@ Mantenha as chaves JSON em inglês.
             $contextBlock
             
             [ROLE]
-            ACT AS A VETERINARY DIAGNOSTICIAN.
-            Analyze the attached image (Pet Photo, Wound, Symptom).
+            ACT AS A VETERINARY SPECIALIST (ScanNut OMNI-ENGINE).
+            Analyze the attached image based on the specific CATEGORY CONTEXT provided.
             
             MISSION:
-            1. Describe VISUAL FINDINGS (appearance, color, swelling, behavior).
-            2. Identify potential CAUSES for these symptoms.
+            1. Describe VISUAL FINDINGS accurately for the category: $groupId.
+            2. Identify potential CAUSES or technical data if it's a document/test.
             3. Suggest immediate ACTIONS and urgency level.
             
             OUTPUT FORMAT (JSON):
             {
-              "type": "Visual Analysis",
-              "summary": "Short diagnosis summary",
-              "details": "Detailed visual description",
-              "alerts": ["Urgency level", "Critical signs"]
+              "type": "Visual Analysis ($groupId)",
+              "summary": "Short context-aware summary",
+              "details": "Detailed visual or technical description",
+              "alerts": ["Urgency level", "Critical findings"]
             }
             Respond in $languageName. Keep keys in English.
     ''';
   }
 
-  static String getPetOCRPrompt(String languageName, String languageInstruction) {
+  static String getPetOCRPrompt(String languageName, String languageInstruction, {Map<String, String>? contextData}) {
+    final groupId = contextData?['groupId'] ?? 'documents';
+    
     return '''
             $languageInstruction
             
             [ROLE]
-            ACT AS A MEDICAL DATA EXTRACTION SPECIALIST (OCR).
+            ACT AS A MEDICAL DATA EXTRACTION SPECIALIST (ScanNut OCR ENGINE).
             Extract text from the attached document (Lab Result, Prescription, Invoice).
+            Category context: $groupId.
             
             MISSION:
             1. Transcribe formatted text accurately.
-            2. Extract NUMERICAL VALUES and UNITS from lab results.
-            3. Identify MEDICATIONS and DOSAGES from prescriptions.
+            2. Extract NUMERICAL VALUES and UNITS (especially for blood/urine tests).
+            3. Identify MEDICATIONS, DOSAGES and DURATION from prescriptions.
             
             OUTPUT FORMAT (JSON):
             {
-              "type": "Document/OCR",
+              "type": "Document/OCR ($groupId)",
               "summary": "Document type and main finding",
               "details": "Full extracted text or structured values",
-              "alerts": ["Abnormal values (High/Low)", "Warnings"]
+              "alerts": ["Abnormal values (High/Low)", "Warnings/Interactions"]
             }
             Respond in $languageName. Keep keys in English.
     ''';

@@ -261,6 +261,19 @@ class _EditPetFormState extends State<EditPetForm>
 
        await widget.onSave(profile);
 
+       // 🛡️ CRITICAL FIX: Update baseline state to prevent storage bloat
+       // Sync local state with the persisted reality immediately
+       if (mounted && finalImagePath != null) {
+           setState(() {
+               _initialImagePath = finalImagePath; 
+               // Also update the _profileImage to point to the canonical persisted file
+               // This prevents (source != initial) logic from triggering another copy
+               if (_profileImage != null && _profileImage!.path != finalImagePath) {
+                   _profileImage = File(finalImagePath!);
+               }
+           });
+       }
+
        // Save modified partners
        if (_modifiedPartners.isNotEmpty) {
            for (final p in _modifiedPartners.values) {
@@ -726,15 +739,53 @@ class _EditPetFormState extends State<EditPetForm>
     }
   }
 
+  Future<void> _handleNewImageSelection(File tempFile) async {
+    // 🛡️ CRITICAL FIX: Immediate Persistence
+    // Prevent data loss by saving to Documents immediately, even before the form is saved.
+    String petName = _nameController.text.trim();
+    if (petName.isEmpty) petName = "New_Pet_${DateTime.now().millisecondsSinceEpoch}";
+    
+    try {
+        final permanentPath = await _fileService.saveMedicalDocument(
+            file: tempFile,
+            petName: petName,
+            attachmentType: 'profile_pic_source'
+        );
+        
+        if (permanentPath != null) {
+            final permFile = File(permanentPath);
+            debugPrint('✅ Immediate Persistence: Image secured at $permanentPath');
+            
+            if (mounted) {
+                setState(() {
+                    _profileImage = permFile;
+                    // Note: We don't update _initialImagePath here because we want _saveNow 
+                    // to detect this as a "change" and update the ID/Hive record.
+                });
+                _markDirty(); // Trigger Profile Update
+                _analyzePetProfile(permFile);
+            }
+        }
+    } catch (e) {
+        debugPrint('❌ Critical Error: Failed to secure image: $e');
+        // Fallback to temp file (Better than nothing)
+         if (mounted) {
+            setState(() => _profileImage = tempFile);
+            _markDirty();
+            _analyzePetProfile(tempFile);
+         }
+    }
+  }
+
   Future<void> _pickProfileImage() async {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Permite que o bottom sheet suba corretamente
+      isScrollControlled: true, 
       backgroundColor: AppDesign.surfaceDark,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom), // Evita teclado se houver
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom), 
           child: Container(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -748,11 +799,7 @@ class _EditPetFormState extends State<EditPetForm>
                   onTap: () async {
                     Navigator.pop(ctx);
                     final file = await _fileService.pickFromCamera();
-                    if (file != null) {
-                       setState(() => _profileImage = file);
-                       _markDirty();
-                       _analyzePetProfile(file);
-                    }
+                    if (file != null) _handleNewImageSelection(file);
                   },
                 ),
                 ListTile(
@@ -761,14 +808,10 @@ class _EditPetFormState extends State<EditPetForm>
                   onTap: () async {
                     Navigator.pop(ctx);
                     final file = await _fileService.pickFromGallery();
-                    if (file != null) {
-                       setState(() => _profileImage = file);
-                       _markDirty();
-                       _analyzePetProfile(file);
-                    }
+                    if (file != null) _handleNewImageSelection(file);
                   },
                 ),
-                SizedBox(height: 20), // Padding extra de segurança visual
+                const SizedBox(height: 20), 
               ],
             ),
           ),

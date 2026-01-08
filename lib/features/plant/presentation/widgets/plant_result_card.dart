@@ -57,7 +57,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     _isSaved = widget.isReadOnly; // If viewing from history, already saved
     _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(_handleTabSelection);
-    HapticFeedback.mediumImpact();
+    if (!widget.isReadOnly) {
+       HapticFeedback.mediumImpact();
+    }
     
     // Check for toxicity status to enable the alert button
     if (widget.analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true ||
@@ -65,8 +67,19 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         widget.analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true) {
       _isToxic = true;
     }
-    // TIMER REMOVED: Prevent conflict with manual tap
-    // Future.delayed(const Duration(milliseconds: 1500), () { ... });
+    
+    // 🛡️ CRITICAL FIX: Trigger Auto-Save only for NEW analyses
+    // We check if it's NOT read-only (new scan) and NOT saved yet.
+    if (!widget.isReadOnly && !_isSaved) {
+       // Using Future.delayed to ensure build phase is complete before callback
+       Future.delayed(Duration.zero, () {
+          if (mounted && !_isSaved) {
+             debugPrint("🌱 Auto-Saving Plant Analysis...");
+             widget.onSave(); // Trigger the parent callback
+             setState(() => _isSaved = true);
+          }
+       });
+    }
   }
 
   @override

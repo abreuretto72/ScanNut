@@ -17,6 +17,28 @@ enum EventType {
   medication,
   @HiveField(5)
   other,
+  @HiveField(6)
+  food,
+  @HiveField(7)
+  elimination,
+  @HiveField(8)
+  activity,
+  @HiveField(9)
+  behavior,
+  @HiveField(10)
+  media,
+  @HiveField(11)
+  metrics,
+  @HiveField(12)
+  documents,
+  @HiveField(13)
+  exams,
+  @HiveField(14)
+  dentistry,
+  @HiveField(15)
+  parasite,
+  @HiveField(16)
+  surgery,
 }
 
 @HiveType(typeId: 5)
@@ -91,52 +113,70 @@ class PetEvent extends HiveObject {
 
   String _getLegacyTypeLabel() {
     switch (type) {
-      case EventType.vaccine:
-        return 'Vacina';
-      case EventType.bath:
-        return 'Banho';
-      case EventType.grooming:
-        return 'Tosa';
-      case EventType.veterinary:
-        return 'Veterinário';
-      case EventType.medication:
-        return 'Medicamento';
-      case EventType.other:
-        return 'Outro';
+      case EventType.vaccine: return 'Vacina';
+      case EventType.bath: return 'Banho';
+      case EventType.grooming: return 'Tosa';
+      case EventType.veterinary: return 'Veterinário';
+      case EventType.medication: return 'Medicamento';
+      case EventType.food: return 'Alimentação';
+      case EventType.elimination: return 'Fezes/Urina';
+      case EventType.activity: return 'Atividade';
+      case EventType.behavior: return 'Comportamento';
+      case EventType.media: return 'Mídia';
+      case EventType.metrics: return 'Métricas';
+      case EventType.documents: return 'Documentos';
+      case EventType.exams: return 'Exames';
+      case EventType.dentistry: return 'Odontologia';
+      case EventType.parasite: return 'Parasitas';
+      case EventType.surgery: return 'Cirurgia';
+      case EventType.other: return 'Outro';
+      default: return 'Outro';
     }
   }
 
   String getLocalizedTypeLabel(AppLocalizations strings) {
     switch (type) {
-      case EventType.vaccine:
-        return strings.eventVaccine;
-      case EventType.bath:
-        return strings.eventBath;
-      case EventType.grooming:
-        return strings.eventGrooming;
-      case EventType.veterinary:
-        return strings.eventVeterinary;
-      case EventType.medication:
-        return strings.eventMedication;
-      case EventType.other:
-        return strings.eventOther;
+      case EventType.vaccine: return strings.eventVaccine;
+      case EventType.bath: return strings.eventBath;
+      case EventType.grooming: return strings.eventGrooming;
+      case EventType.veterinary: return strings.eventVeterinary;
+      case EventType.medication: return strings.eventMedication;
+      case EventType.food: return strings.petEvent_group_food;
+      case EventType.elimination: return strings.petEvent_group_elimination;
+      case EventType.activity: return strings.petEvent_group_activity;
+      case EventType.behavior: return strings.petEvent_group_behavior;
+      case EventType.media: return strings.petEvent_group_media;
+      case EventType.metrics: return strings.petEvent_group_metrics;
+      case EventType.documents: return strings.petEvent_group_documents ?? 'Documentos';
+      case EventType.exams: return strings.petEvent_group_exams ?? 'Exames';
+      case EventType.dentistry: return strings.petEvent_group_dentistry ?? 'Dentição';
+      case EventType.parasite: return 'Antiparasitário';
+      case EventType.surgery: return 'Cirurgia';
+      case EventType.other: return strings.eventOther;
+      default: return strings.eventOther;
     }
   }
 
   String get typeEmoji {
     switch (type) {
-      case EventType.vaccine:
-        return '💉';
-      case EventType.bath:
-        return '🛁';
-      case EventType.grooming:
-        return '✂️';
-      case EventType.veterinary:
-        return '🏥';
-      case EventType.medication:
-        return '💊';
-      case EventType.other:
-        return '📌';
+      case EventType.vaccine: return '💉';
+      case EventType.bath: return '🛁';
+      case EventType.grooming: return '✂️';
+      case EventType.veterinary: return '🏥';
+      case EventType.medication: return '💊';
+      case EventType.food: return '🍴';
+      case EventType.elimination: return '🚽';
+      case EventType.activity: return '🐕';
+      case EventType.behavior: return '🧠';
+      case EventType.media: return '📸';
+      case EventType.metrics: return '📏';
+      case EventType.documents: return '📄';
+      case EventType.exams: return '🧪';
+      case EventType.dentistry: return '🦷';
+      case EventType.parasite: return '🐛';
+      case EventType.surgery: return '🔪';
+      case EventType.other: return '📌';
+      default: return '📌';
     }
   }
 

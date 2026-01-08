@@ -31,13 +31,18 @@ class PetEventGrid extends StatelessWidget {
       {'id': 'exams', 'icon': Icons.biotech, 'label': l10n.petEvent_group_exams},
       {'id': 'allergies', 'icon': Icons.warning_amber, 'label': l10n.petEvent_group_allergies},
       {'id': 'dentistry', 'icon': Icons.health_and_safety, 'label': l10n.petEvent_group_dentistry},
+      {'id': 'metrics', 'icon': Icons.straighten, 'label': l10n.petEvent_group_metrics},
+      {'id': 'media', 'icon': Icons.photo_library, 'label': l10n.petEvent_group_media},
       {'id': 'other', 'icon': Icons.bookmark_border, 'label': l10n.petEvent_group_other},
     ];
+
+    // Sort alphabetically by label
+    groups.sort((a, b) => (a['label'] as String).compareTo(b['label'] as String));
 
     return ValueListenableBuilder<Box<PetEventModel>>(
       valueListenable: PetEventRepository().listenable,
       builder: (context, box, _) {
-        final todayCounts = PetEventRepository().listTodayCountByGroup(petId);
+        final totalCounts = PetEventRepository().listTotalCountByGroup(petId);
 
         return GridView.builder(
           shrinkWrap: true,
@@ -52,7 +57,7 @@ class PetEventGrid extends StatelessWidget {
           itemCount: groups.length,
           itemBuilder: (context, index) {
             final group = groups[index];
-            final count = todayCounts[group['id']] ?? 0;
+            final count = totalCounts[group['id']] ?? 0;
 
             return InkWell(
               onTap: () => _openEventSheet(context, group['id'] as String, group['label'] as String),
@@ -83,11 +88,11 @@ class PetEventGrid extends StatelessWidget {
                             top: -5,
                             child: Container(
                               padding: const EdgeInsets.all(5),
-                              decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                              decoration: const BoxDecoration(color: AppDesign.petPink, shape: BoxShape.circle),
                               constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                               child: Text(
                                 '$count',
-                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.center,
                               ),
                             ),

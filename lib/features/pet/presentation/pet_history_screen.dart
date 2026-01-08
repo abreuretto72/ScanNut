@@ -374,7 +374,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.petActionAgenda, // "Agenda" ou "Novo Evento"
+                          "Ocorrência", // Updated from Agenda
                           style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         Text(
@@ -394,12 +394,13 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                           ),
                       );
                     },
-                    icon: const Icon(Icons.history, size: 16, color: Colors.white),
-                    label: Text(l10n.showEvents, style: const TextStyle(color: Colors.white)),
+                    icon: const Icon(Icons.history, size: 16, color: Colors.black),
+                    label: Text("Mostrar todas", style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppDesign.petPink,
+                      foregroundColor: Colors.black,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 0,
                     ),
                   ),
                 ],
@@ -414,13 +415,16 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
   }
 
   
-  /// 🛡️ Builds pet avatar with photo or fallback (PADRÃO OBRIGATÓRIO)
+    // 🛡️ Builds pet avatar with photo or fallback (PADRÃO OBRIGATÓRIO)
   Widget _buildPetAvatar(Map<String, dynamic> item, {double radius = 28}) {
     final l10n = AppLocalizations.of(context)!;
     final petName = item['pet_name'] as String? ?? l10n.petUnknown;
 
+    debugPrint('🔍 [UI_TRACE] Avatar Build for: $petName');
+
     // 1. Try to get FRESH image from Profile Service cache
     String? imagePath = _currentProfileImages[petName];
+    debugPrint('   [UI_TRACE] Profile Cache Path: $imagePath');
     
     // 2. Fallback to history item data if cache is empty
     if (imagePath == null) {
@@ -428,6 +432,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
         if (imagePath == null && item['data'] != null && item['data'] is Map) {
             imagePath = item['data']['image_path']?.toString();
         }
+        debugPrint('   [UI_TRACE] History Fallback Path: $imagePath');
     }
     
     // 🛡️ Verificar se imagem existe e é válida
@@ -435,8 +440,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                           imagePath.isNotEmpty &&
                           File(imagePath).existsSync();
     
+    debugPrint('   [UI_TRACE] Initial Valid Check: $hasValidImage');
+    
     // 🚑 RECOVERY STRATEGY: Global Search for file in Documents
     if (!hasValidImage && imagePath != null && _appDocsDir != null) {
+        debugPrint('   [UI_TRACE] Entering Emergency UI Recovery...');
         try {
             final filename = path.basename(imagePath);
             
@@ -451,7 +459,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
             }
 
             if (rFile.existsSync()) {
-                debugPrint('🚑 Rescued image for $petName at: $rPath');
+                debugPrint('🚑 [UI_TRACE] Rescued image for $petName at: $rPath');
                 imagePath = rPath;
                 hasValidImage = true;
             }
@@ -461,9 +469,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     }
     
     if (hasValidImage) {
-      debugPrint('   ✅ Valid image found for $petName: $imagePath');
+      debugPrint('   ✅ [UI_TRACE] Valid image found for $petName: $imagePath');
     } else {
-      debugPrint('   ℹ️ No valid image for $petName - using fallback');
+      debugPrint('   ℹ️ [UI_TRACE] No valid image for $petName - using fallback');
     }
     
     // 🎨 Obter iniciais do nome para placeholder

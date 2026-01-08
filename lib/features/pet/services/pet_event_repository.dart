@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/pet_event_model.dart';
 import '../models/attachment_model.dart';
+import '../models/pet_event.dart';
+import 'pet_event_service.dart';
 
 class PetEventRepository {
   static final PetEventRepository _instance = PetEventRepository._internal();
@@ -14,8 +17,6 @@ class PetEventRepository {
   Future<void> init({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return;
     try {
-      // Adapters are usually registered in main.dart, but we ensure here if needed
-      // Check if already registered to avoid errors (typeIds 40, 41)
       if (!Hive.isAdapterRegistered(40)) {
         Hive.registerAdapter(AttachmentModelAdapter());
       }
@@ -24,9 +25,45 @@ class PetEventRepository {
       }
       
       _box = await Hive.openBox<PetEventModel>(_boxName, encryptionCipher: cipher);
-      debugPrint('✅ PET_EVENTS: Repository initialized (Box: $_boxName). Items: ${_box?.length}');
+      
+      // 🚀 MIGRATION SCRIPT: Reset volatile cache paths to avoid 'Photo Not Found' errors
+      await _sanitizeOrphanedCachePaths();
+      
+      debugPrint('✅ PET_EVENTS: Repository initialized. Items: ${_box?.length}');
     } catch (e, stack) {
       debugPrint('❌ PET_EVENTS: Failed to initialize Repository: $e\n$stack');
+    }
+  }
+
+  /// 🧹 RESET TÉCNICO: Limpeza de Paths Órfãos (Cache) conforme PROMPT V6
+  Future<void> _sanitizeOrphanedCachePaths() async {
+    if (_box == null) return;
+    
+    bool changedGlobal = false;
+    for (var key in _box!.keys) {
+      final event = _box!.get(key);
+      if (event != null) {
+        bool eventChanged = false;
+        final updatedAttachments = event.attachments.map((a) {
+          if (a.path.contains('/cache/') || a.path.contains('/tmp/')) {
+            eventChanged = true;
+            debugPrint('🧹 [SANITIZER] Clearing volatile path for event ${event.id}: ${a.path}');
+            // We return a "placeholder" or null-path as per user instruction (Icone neutro)
+            // But AttachmentModel.path is usually required. Let's set it to an empty but detectable string.
+            return a.copyWith(path: 'REMOVED_BY_SANITIZER');
+          }
+          return a;
+        }).toList();
+
+        if (eventChanged) {
+          await _box!.put(key, event.copyWith(attachments: updatedAttachments));
+          changedGlobal = true;
+        }
+      }
+    }
+    if (changedGlobal) {
+      await _box!.flush();
+      debugPrint('✨ [SANITIZER] Pet Event pathways cleaned and reset to safe defaults.');
     }
   }
 
@@ -44,9 +81,53 @@ class PetEventRepository {
       await _openBox.put(event.id, event);
       await _openBox.flush();
       debugPrint('✅ PET_EVENTS: Event saved: ${event.id} [${event.group}]');
+
+      // 🔄 MIRROR TO GLOBAL AGENDA
+      await _mirrorToAgenda(event);
     } catch (e) {
       debugPrint('❌ PET_EVENTS: Save error: $e');
       rethrow;
+    }
+  }
+
+  /// 🔄 CONSOLIDATION MOTOR: Mirrors journal entry to Global Agenda
+  Future<void> _mirrorToAgenda(PetEventModel model) async {
+    try {
+      final agendaService = PetEventService();
+      await agendaService.init();
+
+      EventType type = EventType.other;
+      switch (model.group) {
+        case 'food': type = EventType.food; break;
+        case 'health': type = EventType.veterinary; break;
+        case 'elimination': type = EventType.elimination; break;
+        case 'grooming': type = EventType.grooming; break;
+        case 'activity': type = EventType.activity; break;
+        case 'behavior': type = EventType.behavior; break;
+        case 'medication': type = EventType.medication; break;
+        case 'documents': type = EventType.documents; break;
+        case 'exams': type = EventType.exams; break;
+        case 'dentistry': type = EventType.dentistry; break;
+        case 'metrics': type = EventType.metrics; break;
+        case 'media': type = EventType.media; break;
+        case 'allergies': type = EventType.veterinary; break; // Health related
+        case 'schedule': type = EventType.other; break;
+        default: type = EventType.other; break;
+      }
+
+      final agendaEvent = PetEvent(
+        id: model.id, // Keep same ID for easy sync/delete
+        petName: model.petId,
+        title: model.title,
+        type: type,
+        dateTime: model.timestamp,
+        notes: model.notes,
+      );
+
+      await agendaService.addEvent(agendaEvent);
+      debugPrint('🔗 PET_EVENTS: Agenda Mirrored for ${model.id}');
+    } catch (e) {
+       debugPrint('⚠️ PET_EVENTS: Mirror Agenda failed: $e');
     }
   }
 
@@ -67,6 +148,19 @@ class PetEventRepository {
       debugPrint('❌ PET_EVENTS: List error: $e');
       return [];
     }
+  }
+
+  Map<String, int> listTotalCountByGroup(String petId) {
+    final counts = <String, int>{};
+    final events = _openBox.values.where((e) => 
+      e.petId == petId && 
+      !e.isDeleted
+    );
+
+    for (var e in events) {
+      counts[e.group] = (counts[e.group] ?? 0) + 1;
+    }
+    return counts;
   }
 
   Map<String, int> listTodayCountByGroup(String petId) {
@@ -93,6 +187,7 @@ class PetEventRepository {
       await _openBox.put(event.id, event);
       await _openBox.flush();
       debugPrint('✅ PET_EVENTS: Event updated: ${event.id}');
+      await _mirrorToAgenda(event);
     } catch (e) {
        debugPrint('❌ PET_EVENTS: Update error: $e');
        rethrow;
@@ -106,6 +201,15 @@ class PetEventRepository {
       await _openBox.put(eventId, deleted);
       await _openBox.flush();
       debugPrint('🗑️ PET_EVENTS: Event soft-deleted: $eventId');
+      
+      // Cleanup Agenda
+      try {
+        final agendaService = PetEventService();
+        await agendaService.init();
+        await agendaService.deleteEvent(eventId);
+      } catch (e) {
+        debugPrint('⚠️ PET_EVENTS: Failed to cleanup mirroring agenda: $e');
+      }
     }
   }
 

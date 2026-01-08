@@ -136,6 +136,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                         child: Image.file(
                           widget.imageFile!,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: Colors.grey.shade900,
+                            child: const Center(child: Icon(Icons.broken_image, size: 50, color: Colors.white24)),
+                          ),
                         ),
                       )
                     else

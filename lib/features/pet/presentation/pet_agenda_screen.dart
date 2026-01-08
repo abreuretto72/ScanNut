@@ -644,233 +644,279 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.existingEvent != null;
-    return AlertDialog(
-      backgroundColor: Colors.grey[900],
-      title: Text(
-        isEdit ? AppLocalizations.of(context)!.agendaEditEvent : AppLocalizations.of(context)!.agendaNewEvent,
-        style: GoogleFonts.poppins(color: Colors.white),
-      ),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Title/Vaccine Selection
-              if (_selectedType == EventType.vaccine) ...[
-                // Vaccine dropdown
-                DropdownButtonFormField<String>(
-                  value: _selectedVaccine,
-                  dropdownColor: Colors.grey[800],
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.agendaFieldVaccineSelect,
-                    labelStyle: const TextStyle(color: Colors.white54),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: AppDesign.petPink),
-                    ),
-                  ),
-                  items: _availableVaccines.map((vaccine) {
-                    return DropdownMenuItem(
-                      value: vaccine,
-                      child: Text(vaccine),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedVaccine = value;
-                      if (value != 'Outra vacina') {
-                        _titleController.text = value ?? '';
-                      } else {
-                        _titleController.clear();
-                      }
-                    });
-                  },
-                  validator: (value) => value == null ? AppLocalizations.of(context)!.agendaFieldVaccineSelect : null,
-                ),
-                const SizedBox(height: 16),
-                // Show text field if "Outra vacina" is selected
-                if (_selectedVaccine == 'Outra vacina')
-                  TextFormField(
-                    controller: _titleController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.agendaFieldVaccineName,
-                      labelStyle: const TextStyle(color: Colors.white54),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+    return Dialog(
+      backgroundColor: Colors.transparent, // Let Scaffold handle visual
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Scaffold(
+          backgroundColor: Colors.grey[900],
+          appBar: AppBar(
+            backgroundColor: Colors.grey[900],
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              isEdit ? AppLocalizations.of(context)!.agendaEditEvent : AppLocalizations.of(context)!.agendaNewEvent,
+              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Title/Vaccine Selection
+                          if (_selectedType == EventType.vaccine) ...[
+                            DropdownButtonFormField<String>(
+                              value: _selectedVaccine,
+                              dropdownColor: Colors.grey[800],
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: AppLocalizations.of(context)!.agendaFieldVaccineSelect,
+                                labelStyle: const TextStyle(color: Colors.white54),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppDesign.petPink),
+                                ),
+                              ),
+                              items: _availableVaccines.map((vaccine) {
+                                return DropdownMenuItem(
+                                  value: vaccine,
+                                  child: Text(vaccine),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedVaccine = value;
+                                  if (value != 'Outra vacina') {
+                                    _titleController.text = value ?? '';
+                                  } else {
+                                    _titleController.clear();
+                                  }
+                                });
+                              },
+                              validator: (value) => value == null ? AppLocalizations.of(context)!.agendaFieldVaccineSelect : null,
+                            ),
+                            const SizedBox(height: 16),
+                            if (_selectedVaccine == 'Outra vacina')
+                              TextFormField(
+                                controller: _titleController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  labelText: AppLocalizations.of(context)!.agendaFieldVaccineName,
+                                  labelStyle: const TextStyle(color: Colors.white54),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                  ),
+                                  focusedBorder: const OutlineInputBorder(
+                                    borderSide: BorderSide(color: AppDesign.petPink),
+                                  ),
+                                ),
+                                validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
+                              ),
+                          ] else
+                            TextFormField(
+                              controller: _titleController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: AppLocalizations.of(context)!.agendaFieldTitle,
+                                labelStyle: const TextStyle(color: Colors.white54),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppDesign.petPink),
+                                ),
+                              ),
+                              validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
+                            ),
+                          const SizedBox(height: 16),
+                          // Type
+                          DropdownButtonFormField<EventType>(
+                            value: _selectedType,
+                            dropdownColor: Colors.grey[800],
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: AppLocalizations.of(context)!.agendaFieldType,
+                              labelStyle: const TextStyle(color: Colors.white54),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: AppDesign.petPink),
+                              ),
+                            ),
+                            items: EventType.values.map((type) {
+                              final dummyEvent = PetEvent(
+                                id: '',
+                                petName: '',
+                                title: '',
+                                type: type,
+                                dateTime: DateTime.now(),
+                              );
+                              return DropdownMenuItem(
+                                value: type,
+                                child: Row(
+                                  children: [
+                                    Text(dummyEvent.typeEmoji),
+                                    const SizedBox(width: 8),
+                                    Text(dummyEvent.typeLabel),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedType = value!;
+                                if (value != EventType.vaccine) {
+                                  _selectedVaccine = null;
+                                  if (_titleController.text.isEmpty) {
+                                    _titleController.clear();
+                                  }
+                                } else {
+                                  _titleController.clear();
+                                  _selectedVaccine = null;
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          // Date and Time
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _selectDate,
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16)
+                                  ),
+                                  icon: const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                                  label: Text(
+                                    DateFormat('dd/MM/yyyy').format(_selectedDate),
+                                    style: GoogleFonts.poppins(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: _selectTime,
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 16)
+                                  ),
+                                  icon: const Icon(Icons.access_time, color: Colors.white, size: 20),
+                                  label: Text(
+                                    _selectedTime.format(context),
+                                    style: GoogleFonts.poppins(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Recurrence
+                          DropdownButtonFormField<RecurrenceType>(
+                            value: _selectedRecurrence,
+                            dropdownColor: Colors.grey[800],
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: 'Recorrência',
+                              labelStyle: const TextStyle(color: Colors.white54),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: AppDesign.petPink),
+                              ),
+                            ),
+                            items: RecurrenceType.values.map((type) {
+                              final dummyEvent = PetEvent(
+                                id: '',
+                                petName: '',
+                                title: '',
+                                type: EventType.other,
+                                dateTime: DateTime.now(),
+                                recurrence: type,
+                              );
+                              return DropdownMenuItem(
+                                value: type,
+                                child: Text(dummyEvent.recurrenceLabel),
+                              );
+                            }).toList(),
+                            onChanged: (value) => setState(() => _selectedRecurrence = value!),
+                          ),
+                          const SizedBox(height: 16),
+                          // Notes
+                          TextFormField(
+                            controller: _notesController,
+                            style: const TextStyle(color: Colors.white),
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              labelText: 'Observações (opcional)',
+                              labelStyle: const TextStyle(color: Colors.white54),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(color: AppDesign.petPink),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(color: AppDesign.petPink),
+                    ),
+                  ),
+                ),
+                // 🦶 BUTTON AREA (FULL WIDTH + SAFE AREA)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _saveEvent,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppDesign.petPink,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            'SALVAR',
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              letterSpacing: 1.2
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
-                  ),
-              ] else
-                // Regular title field for non-vaccine events
-                TextFormField(
-                  controller: _titleController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.agendaFieldTitle,
-                    labelStyle: const TextStyle(color: Colors.white54),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: AppDesign.petPink),
-                    ),
-                  ),
-                  validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
-                ),
-              const SizedBox(height: 16),
-              // Type
-              DropdownButtonFormField<EventType>(
-                value: _selectedType,
-                dropdownColor: Colors.grey[800],
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.agendaFieldType,
-                  labelStyle: const TextStyle(color: Colors.white54),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: AppDesign.petPink),
+                      const SizedBox(height: 20), // Padding below button as requested
+                    ],
                   ),
                 ),
-                items: EventType.values.map((type) {
-                  final dummyEvent = PetEvent(
-                    id: '',
-                    petName: '',
-                    title: '',
-                    type: type,
-                    dateTime: DateTime.now(),
-                  );
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Row(
-                      children: [
-                        Text(dummyEvent.typeEmoji),
-                        const SizedBox(width: 8),
-                        Text(dummyEvent.typeLabel),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedType = value!;
-                    // Clear vaccine selection when changing from vaccine to something else
-                    if (value != EventType.vaccine) {
-                      _selectedVaccine = null;
-                      if (_titleController.text.isEmpty) {
-                        _titleController.clear();
-                      }
-                    } else {
-                      // Reset title when switching to vaccine type
-                      _titleController.clear();
-                      _selectedVaccine = null;
-                    }
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              // Date and Time
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _selectDate,
-                      icon: const Icon(Icons.calendar_today, color: Colors.white),
-                      label: Text(
-                        DateFormat('dd/MM/yyyy').format(_selectedDate),
-                        style: GoogleFonts.poppins(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _selectTime,
-                      icon: const Icon(Icons.access_time, color: Colors.white),
-                      label: Text(
-                        _selectedTime.format(context),
-                        style: GoogleFonts.poppins(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Recurrence
-              DropdownButtonFormField<RecurrenceType>(
-                value: _selectedRecurrence,
-                dropdownColor: Colors.grey[800],
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Recorrência',
-                  labelStyle: const TextStyle(color: Colors.white54),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: AppDesign.petPink),
-                  ),
-                ),
-                items: RecurrenceType.values.map((type) {
-                  final dummyEvent = PetEvent(
-                    id: '',
-                    petName: '',
-                    title: '',
-                    type: EventType.other,
-                    dateTime: DateTime.now(),
-                    recurrence: type,
-                  );
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(dummyEvent.recurrenceLabel),
-                  );
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedRecurrence = value!),
-              ),
-              const SizedBox(height: 16),
-              // Notes
-              TextFormField(
-                controller: _notesController,
-                style: const TextStyle(color: Colors.white),
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Observações (opcional)',
-                  labelStyle: const TextStyle(color: Colors.white54),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: AppDesign.petPink),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancelar', style: GoogleFonts.poppins(color: Colors.white54)),
-        ),
-        ElevatedButton(
-          onPressed: _saveEvent,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppDesign.petPink,
-          ),
-          child: Text('Salvar', style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
-        ),
-      ],
     );
   }
 }

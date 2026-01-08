@@ -38,4 +38,20 @@ class AttachmentModel extends HiveObject {
     required this.createdAt,
     this.analysisResult,
   });
+
+  AttachmentModel copyWith({
+    String? path,
+    String? analysisResult,
+  }) {
+    return AttachmentModel(
+      id: id,
+      kind: kind,
+      path: path ?? this.path,
+      mimeType: mimeType,
+      size: size,
+      hash: hash,
+      createdAt: createdAt,
+      analysisResult: analysisResult ?? this.analysisResult,
+    );
+  }
 }

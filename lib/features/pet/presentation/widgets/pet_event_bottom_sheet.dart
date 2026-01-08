@@ -6,14 +6,20 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../../core/theme/app_design.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../models/pet_event_model.dart';
 import '../../models/attachment_model.dart';
 import '../../services/pet_event_repository.dart';
+import '../../services/pet_profile_service.dart';
+import '../../../../core/models/partner_model.dart';
+import '../../../../core/services/partner_service.dart';
+import '../../../partners/presentation/partner_registration_screen.dart';
 import '../../../../core/services/file_upload_service.dart';
 import '../../../../core/services/gemini_service.dart';
+import '../../../../core/services/media_vault_service.dart';
 import '../../../../core/enums/scannut_mode.dart';
 import 'attachment_analysis_dialog.dart';
 
@@ -48,6 +54,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
   bool _isSaving = false;
   bool _showValidationError = false; // Validation state
   bool _showDetails = false;
+  bool _isAnalyzing = false; // Controls the analysis overlay
   
   final List<AttachmentModel> _attachments = [];
   final Map<String, dynamic> _dynamicData = {};
@@ -81,6 +88,8 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     }
     // Initialize speech to text
     _speech = stt.SpeechToText();
+    // Initialize Partner Service
+    PartnerService().init();
   }
 
   @override
@@ -223,8 +232,80 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
       );
   }
 
-  void _showFoodInfoDialog(BuildContext context) {
+  void _showCategoryHelp(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    
+    // Map of help content based on groupId
+    // Using prompt definitions:
+    String helpText = '';
+    String title = '';
+    
+    switch (widget.groupId) {
+      case 'food':
+        title = 'Alimentação';
+        helpText = "Registre trocas de ração, petiscos novos ou dietas naturais. Anexe fotos da embalagem ou do prato.";
+        break;
+      case 'health':
+        title = 'Saúde';
+        helpText = "Registre sintomas, feridas ou mal-estar. Anexe fotos de lesões para análise clínica.";
+        break;
+      case 'elimination':
+        title = 'Fezes/Urina';
+        helpText = "Monitore alterações de cor ou consistência. Anexe fotos para identificação de anomalias.";
+        break;
+      case 'medication':
+        title = 'Medicação';
+        helpText = "Registre receitas e horários. Anexe a bula ou a receita física para leitura por IA.";
+        break;
+      case 'grooming':
+        title = 'Higiene';
+        helpText = "Banhos, tosas e corte de unhas. Monitore a frequência e alergias a shampoos.";
+        break;
+      case 'activity':
+        title = 'Atividade';
+        helpText = "Passeios, treinamentos e exercícios físicos. Registre o progresso e o cansaço.";
+        break;
+      case 'behavior':
+        title = 'Comportamento';
+        helpText = "Mudanças de humor, medo ou agressividade. Útil para identificar gatilhos de estresse.";
+        break;
+      case 'schedule':
+        title = 'Agenda';
+        helpText = "Lembretes de retorno ao veterinário, check-ups ou compromissos futuros.";
+        break;
+      case 'documents':
+        title = 'Documentos';
+        helpText = "Guarde RGs, Pedigrees, microchips e contratos de compra/adoção.";
+        break;
+      case 'exams':
+        title = 'Exames';
+        helpText = "Anexe aqui resultados de sangue, urina ou imagem. A IA extrairá os dados técnicos.";
+        break;
+      case 'allergies':
+        title = 'Alergias';
+        helpText = "Registre reações alérgicas e coceiras. Ajuda a identificar padrões sazonais ou alimentares.";
+        break;
+      case 'dentistry':
+        title = 'Odontologia';
+        helpText = "Saúde bucal: tártaro, gengivas e dentes. Anexe fotos da boca para monitoramento.";
+        break;
+      case 'metrics':
+        title = 'Métricas';
+        helpText = "Acompanhe peso, altura e medidas corporais. Gere gráficos de crescimento.";
+        break;
+      case 'media':
+        title = 'Mídia/Fotos';
+        helpText = "Galeria de fotos e vídeos do pet. Registre momentos especiais.";
+        break;
+      case 'other':
+        title = 'Outros';
+        helpText = "Qualquer registro geral que não se encaixe nas categorias acima.";
+        break;
+      default:
+        title = widget.groupLabel;
+        helpText = "Anexe arquivos e descreva o evento para manter o histórico do pet completo.";
+    }
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -234,20 +315,10 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
             children: [
                 const Icon(Icons.info_outline, color: AppDesign.petPink),
                 const SizedBox(width: 10),
-                Expanded(child: Text(l10n.foodHelpTitle, style: const TextStyle(color: Colors.white, fontSize: 18))),
+                Expanded(child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 18))),
             ]
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-             Text(l10n.foodHelpRoutine, style: const TextStyle(color: Colors.white70, height: 1.5)),
-             Text(l10n.foodHelpAcute, style: const TextStyle(color: Colors.white70, height: 1.5)),
-             Text(l10n.foodHelpDietChange, style: const TextStyle(color: Colors.white70, height: 1.5)),
-             Text(l10n.foodHelpSupplements, style: const TextStyle(color: Colors.white70, height: 1.5)),
-             Text(l10n.foodHelpHydration, style: const TextStyle(color: Colors.white70, height: 1.5)),
-          ],
-        ),
+        content: Text(helpText, style: const TextStyle(color: Colors.white70, height: 1.5, fontSize: 16)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx), 
@@ -278,11 +349,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     try {
       String title = _titleController.text.trim();
       if (title.isEmpty) {
-        if (widget.groupId == 'food') {
-           title = widget.groupLabel;
-        } else {
-           title = '${widget.groupLabel} — ${_selectedSubtype ?? ""}';
-        }
+         title = widget.groupLabel;
       }
 
       final event = PetEventModel(
@@ -328,47 +395,50 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     final theme = Theme.of(context);
     final isFood = widget.groupId.trim().toLowerCase() == 'food';
 
-    return Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      decoration: const BoxDecoration(
-        color: AppDesign.surfaceDark,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.85, // Fixed height for consistency
+      child: Stack(
         children: [
-          // Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            decoration: const BoxDecoration(
+              color: AppDesign.surfaceDark,
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Icon(_getGroupIcon(), color: AppDesign.petPink),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.groupLabel,
-                      style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    if (isFood)
-                       IconButton(
-                          icon: const Icon(Icons.info_outline, color: Colors.white60, size: 20),
-                          onPressed: () => _showFoodInfoDialog(context),
-                          tooltip: 'Exemplos',
-                       ),
-                  ],
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(_getGroupIcon(), color: AppDesign.petPink),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.groupLabel,
+                            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                           IconButton(
+                              icon: const Icon(Icons.info_outline, color: Colors.white60, size: 20),
+                              onPressed: () => _showCategoryHelp(context),
+                              tooltip: 'Ajuda',
+                           ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white60),
+                        onPressed: () => Navigator.pop(context),
+                      )
+                    ],
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white60),
-                  onPressed: () => Navigator.pop(context),
-                )
-              ],
-            ),
-          ),
           
           Flexible(
             child: SingleChildScrollView(
@@ -379,6 +449,8 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Subtypes Chips (Hidden for Food)
+                    // Subtypes Chips REMOVED as per request
+                    /* 
                     if (!isFood) ...[
                       Text(l10n.petEvent_type.toUpperCase(), style: const TextStyle(color: AppDesign.petPink, fontSize: 12, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 10),
@@ -399,6 +471,8 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                       ),
                       const SizedBox(height: 20),
                     ],
+                    */
+
                     
                     // Date Time Picker
                     InkWell(
@@ -440,9 +514,9 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                       decoration: InputDecoration(
                         errorText: _showValidationError ? l10n.petEvent_errorRequired : null,
                         errorStyle: const TextStyle(color: Colors.redAccent),
-                        hintText: (widget.groupId == 'health' || isFood)
-                            ? 'Descreva a ocorrência em detalhes'
-                            : l10n.petEvent_notes,
+                        hintText: widget.groupId == 'schedule' 
+                            ? 'O que vai ser feito nesta data?' 
+                            : 'Descreva a ocorrência com detalhes',
                         hintStyle: const TextStyle(color: Colors.white30),
                         filled: true,
                         fillColor: AppDesign.backgroundDark,
@@ -450,20 +524,18 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        suffixIcon: (widget.groupId == 'health' || isFood)
-                            ? IconButton(
-                                icon: Icon(
-                                  _isListening ? Icons.mic : Icons.mic_none,
-                                  color: _isListening ? Colors.red : AppDesign.petPink,
-                                ),
-                                onPressed: _listen,
-                                tooltip: 'Gravar por voz',
-                              )
-                            : null,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isListening ? Icons.mic : Icons.mic_none,
+                            color: _isListening ? Colors.red : AppDesign.petPink,
+                          ),
+                          onPressed: _listen,
+                          tooltip: 'Gravar por voz',
+                        ),
                       ),
                     ),
                     
-                    if (_isListening && widget.groupId == 'health')
+                    if (_isListening)
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
@@ -475,6 +547,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                           ),
                         ),
                       ),
+
                     
                     const SizedBox(height: 20),
                     
@@ -483,47 +556,11 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                     
                     const SizedBox(height: 10),
                     
-                    // Expandable Details (Hidden for Food)
-                    if (!isFood)
-                      InkWell(
-                        onTap: () => setState(() => _showDetails = !_showDetails),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(l10n.petEvent_details, style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold)),
-                            Icon(_showDetails ? Icons.expand_less : Icons.expand_more, color: AppDesign.petPink),
-                          ],
-                        ),
-                      ),
-                    ),
-                    
-                    if (_showDetails) ...[
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _titleController,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          hintText: 'Título customizado (opcional)',
-                          hintStyle: const TextStyle(color: Colors.white30),
-                          filled: true,
-                          fillColor: AppDesign.backgroundDark,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SwitchListTile(
-                        title: Text(l10n.petEvent_includeInPdf, style: const TextStyle(color: Colors.white, fontSize: 14)),
-                        value: _includeInPdf,
-                        activeColor: AppDesign.petPink,
-                        onChanged: (val) => setState(() => _includeInPdf = val),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ],
-                    
+
+                    // Expandable Details REMOVED as per request
+
                     const SizedBox(height: 20),
-                    
+
                     // Attachments
                     _buildAttachmentsSection(l10n),
                     
@@ -545,26 +582,62 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                             onPressed: _isSaving ? null : _save,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppDesign.petPink,
-                              foregroundColor: Colors.black,
+                              foregroundColor: Colors.black, // TEXTO PRETO PURO
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             child: _isSaving 
                               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                              : Text(l10n.petEvent_save.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              : const Text('SALVAR', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    // SAFE AREA / PADDING EXTRA
+                    SizedBox(height: 24 + MediaQuery.of(context).padding.bottom),
                   ],
                 ),
               ),
             ),
-          )
-        ],
+          ),
+          ],
+        ),
       ),
-    );
+      if (_isAnalyzing)
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                    const Icon(Icons.hourglass_empty, color: AppDesign.petPink, size: 80),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppDesign.petPink, 
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, spreadRadius: 5)
+                        ]
+                      ),
+                      child: const Text(
+                        "Analisando imagem", 
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+    ],
+  ),
+);
   }
 
   Widget _buildAttachmentsSection(AppLocalizations l10n) {
@@ -596,22 +669,62 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                   color: AppDesign.backgroundDark,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  children: [
-                    Icon(a.kind == 'file' ? Icons.description : Icons.image, color: AppDesign.petPink, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Anexo ${index + 1} (${(a.size / 1024 / 1024).toStringAsFixed(1)}MB)',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
-                      onPressed: () => setState(() => _attachments.removeAt(index)),
-                    ),
-                  ],
+                child: FutureBuilder<String>(
+                  future: MediaVaultService().attemptRecovery(a.path),
+                  builder: (context, snapshot) {
+                    final currentPath = snapshot.data ?? a.path;
+                    final isBroken = currentPath == 'REMOVED_BY_SANITIZER' || !File(currentPath).existsSync();
+                    final isSidecar = a.analysisResult == 'SIDEAR_FILE';
+                    
+                    return Row(
+                      children: [
+                        Icon(
+                          isBroken 
+                             ? Icons.broken_image_outlined 
+                             : (isSidecar ? Icons.analytics_outlined : (a.kind == 'file' ? Icons.description : Icons.image)),
+                          color: isBroken ? Colors.white24 : (isSidecar ? Colors.greenAccent : AppDesign.petPink), 
+                          size: 20
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: InkWell(
+                            onTap: isSidecar 
+                               ? () {
+                                   try {
+                                      final content = File(a.path).readAsStringSync();
+                                      AttachmentAnalysisDialog.show(context, content);
+                                   } catch (e) {
+                                      debugPrint("Error reading sidecar: $e");
+                                   }
+                                 }
+                               : null,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isSidecar ? "LAUDO CLÍNICO IA" : _parseAttachmentName(a.path),
+                                  style: TextStyle(
+                                     color: isSidecar ? Colors.greenAccent : Colors.white, 
+                                     fontSize: 13, 
+                                     fontWeight: FontWeight.w500
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  isSidecar ? "Documento Técnico Gerado" : '${(a.size / 1024 / 1024).toStringAsFixed(1)}MB',
+                                  style: const TextStyle(color: Colors.white30, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                          onPressed: () => setState(() => _attachments.removeAt(index)),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               );
             },
@@ -641,7 +754,6 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
       ),
     );
   }
-
   Widget _buildDynamicFields() {
     // Implement standard dynamic fields per group
     switch (widget.groupId) {
@@ -695,7 +807,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
       case 'schedule':
         return Column(
           children: [
-             _buildTextField('local', 'Local / Profissional', icon: Icons.place),
+             _buildPartnerDropdown('partnerId', 'Parceiro / Local'),
              const SizedBox(height: 12),
              _buildSwitchField('lembrete', 'Ativar Lembrete?'),
           ],
@@ -1083,6 +1195,68 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     );
   }
 
+  Widget _buildPartnerDropdown(String key, String label) {
+    // 1. Fetch Providers
+    final partners = PartnerService().getAllPartners();
+    
+    final selectedId = _dynamicData[key];
+
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            value: partners.any((p) => p.id == selectedId) ? selectedId : null,
+            dropdownColor: AppDesign.surfaceDark,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              labelText: label,
+              labelStyle: const TextStyle(color: Colors.white30, fontSize: 12),
+              prefixIcon: const Icon(Icons.place, color: Colors.white30, size: 18),
+              filled: true,
+              fillColor: AppDesign.backgroundDark,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+            items: partners
+                .map((p) => DropdownMenuItem(value: p.id, child: Text(p.name, overflow: TextOverflow.ellipsis)))
+                .toList(),
+            onChanged: (val) {
+                if (val != null) {
+                    final partner = partners.firstWhere((p) => p.id == val);
+                    setState(() {
+                        _dynamicData[key] = val;
+                        _dynamicData['local'] = partner.name; // For backward compatibility with UI that shows 'local'
+                    });
+                }
+            },
+            hint: Text(
+              partners.isEmpty ? 'Nenhum parceiro cadastrado' : 'Selecione um parceiro',
+              style: const TextStyle(color: Colors.white30, fontSize: 12),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: () async {
+            // Navigate to Add Partner
+            final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const PartnerRegistrationScreen()));
+            // Refresh state to show new partner
+            if (result == true || (result is Map && result['updated'] == true)) {
+                 setState(() {});
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppDesign.petPink,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.add, color: Colors.black),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTextField(String key, String label, {TextInputType? keyboardType, IconData? icon}) {
     return TextFormField(
       style: const TextStyle(color: Colors.white, fontSize: 14),
@@ -1271,30 +1445,63 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
   Future<void> _analyzeAttachment(AttachmentModel attachment, ScannutMode mode) async {
     final l10n = AppLocalizations.of(context)!;
     
-    // Show loading snackbar
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(children: [
-        const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-        const SizedBox(width: 10),
-        Text(l10n.petAttachmentAnalysing)
-      ]),
-      backgroundColor: Colors.black87,
-      duration: const Duration(days: 1), // Indeterminate
-    ));
+    // UI: Trigger Loading Overlay
+    setState(() => _isAnalyzing = true);
 
     try {
       final gemini = GeminiService();
       final file = File(attachment.path);
       
+      // Get Pet Data for context if available
+      final profile = await PetProfileService().getProfile(widget.petId);
+      final petData = profile?['data'] as Map?;
+
       final result = await gemini.analyzeImage(
         imageFile: file, 
         mode: mode,
         locale: Localizations.localeOf(context).toString(),
+        contextData: {
+            'groupId': widget.groupId,
+            'species': petData?['species'] ?? 'Unknown',
+            'breed': petData?['breed'] ?? 'Unknown',
+        },
       );
       
       final resultString = jsonEncode(result);
+      String? sidecarFilePath;
+
+      // 💾 SIDEAR RECORDING: Save analysis result alongside the original file
+      try {
+        final imageFile = File(attachment.path);
+        sidecarFilePath = path.join(
+          imageFile.parent.path, 
+          "${path.basenameWithoutExtension(imageFile.path)}_ResuAnalise.json"
+        );
+        await File(sidecarFilePath).writeAsString(resultString);
+        debugPrint('🔐 VAULT: Analysis sidecar recorded at $sidecarFilePath');
+        
+        // ATOMIC MIRRORING: Also replicate to public backup
+        final vault = MediaVaultService();
+        // Determine category for backup mirroring
+        String category = MediaVaultService.PETS_DIR;
+        if (widget.groupId.contains('food')) category = MediaVaultService.FOOD_DIR;
+        else if (widget.groupId.contains('health')) category = MediaVaultService.WOUNDS_DIR;
+        
+        final safePetName = widget.petId.replaceAll(RegExp(r'\s+'), '_').toLowerCase();
+        
+        // We manually place it in the backup mirror to ensure "Absolute Retention"
+        final appDir = await getApplicationSupportDirectory();
+        final backupRoot = Directory('${appDir.path}/ScanNut_Safe_Backup/$category/$safePetName');
+        if (await backupRoot.exists()) {
+           final backupResultPath = path.join(backupRoot.path, "${path.basenameWithoutExtension(imageFile.path)}_ResuAnalise.json");
+           await File(backupResultPath).writeAsString(resultString);
+           debugPrint('🛡️ MIRROR: Analysis sidecar replicated to backup.');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Sidecar Error: $e');
+      }
       
-      final newAttached = AttachmentModel(
+      final newAttachedImage = AttachmentModel(
         id: attachment.id,
         kind: attachment.kind,
         path: attachment.path,
@@ -1304,33 +1511,63 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
         createdAt: attachment.createdAt,
         analysisResult: resultString,
       );
+
+      // Create Attachment for the Sidecar JSON
+      AttachmentModel? sidecarAttachment;
+      if (sidecarFilePath != null) {
+        final sidecarFile = File(sidecarFilePath);
+        if (await sidecarFile.exists()) {
+          sidecarAttachment = AttachmentModel(
+            id: const Uuid().v4(),
+            kind: 'file',
+            path: sidecarFilePath,
+            mimeType: 'application/json',
+            size: await sidecarFile.length(),
+            hash: sha256.convert(await sidecarFile.readAsBytes()).toString(),
+            createdAt: DateTime.now(),
+            analysisResult: 'SIDEAR_FILE', // Marker
+          );
+        }
+      }
       
       setState(() {
         final index = _attachments.indexWhere((a) => a.id == attachment.id);
         if (index != -1) {
-          _attachments[index] = newAttached;
+          _attachments[index] = newAttachedImage;
+          if (sidecarAttachment != null) {
+            _attachments.insert(index + 1, sidecarAttachment);
+          }
         }
+        _isAnalyzing = false; // Stop loading
       });
       
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        // Show success briefly
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(l10n.petAttachmentAnalysisSuccess),
           backgroundColor: AppDesign.success,
+          duration: const Duration(seconds: 1),
         ));
         
+        // Show result dialog
         AttachmentAnalysisDialog.show(context, resultString);
       }
 
     } catch (e) {
       debugPrint('AI Analysis Error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        setState(() => _isAnalyzing = false); // Stop loading on error
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(l10n.petAttachmentAnalysisError),
           backgroundColor: AppDesign.error,
         ));
       }
     }
+  }
+
+  String _parseAttachmentName(String filePath) {
+    final filename = path.basenameWithoutExtension(filePath);
+    return filename.replaceFirst(RegExp(r'^\d{8}_\d{6}_[A-Z]_'), '')
+                   .replaceFirst(RegExp(r'^\d{8}_\d{6}_'), '');
   }
 }

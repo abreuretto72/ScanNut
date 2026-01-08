@@ -12,6 +12,7 @@ import '../models/botany_history_item.dart';
 import '../models/plant_analysis_model.dart';
 import '../../../core/services/file_upload_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
+import '../../../core/services/media_vault_service.dart';
 
 class BotanyService {
   static final BotanyService _instance = BotanyService._internal();
@@ -39,6 +40,46 @@ class BotanyService {
 
   Future<void> init({HiveCipher? cipher}) async {
     await _ensureBox(cipher: cipher);
+    // 🧹 GLOBAL RESET: Limpeza de Paths Órfãos (Cache/Temp)
+    await _sanitizeOrphanedCachePaths();
+  }
+
+  /// 🧹 ONE-TIME DISINFECTION: Removes paths pointing to volatile cache
+  Future<void> _sanitizeOrphanedCachePaths() async {
+    try {
+      final box = await _ensureBox();
+      final keys = box.keys.toList();
+      
+      for (var key in keys) {
+        final item = box.get(key);
+        if (item != null) {
+          String? path = item.imagePath;
+          if (path != null && (path.contains('cache') || path.contains('temp'))) {
+             debugPrint('🧹 [BOTANY SANITIZER] Clearing phantom path for Plant "${item.plantName}"');
+             
+             final newItem = BotanyHistoryItem(
+                 id: item.id,
+                 timestamp: item.timestamp,
+                 plantName: item.plantName,
+                 healthStatus: item.healthStatus,
+                 diseaseDiagnosis: item.diseaseDiagnosis,
+                 recoveryPlan: item.recoveryPlan,
+                 survivalSemaphore: item.survivalSemaphore,
+                 lightWaterSoilNeeds: item.lightWaterSoilNeeds,
+                 fengShuiTips: item.fengShuiTips,
+                 imagePath: null, // CLEAR PATH
+                 toxicityStatus: item.toxicityStatus,
+                 locale: item.locale,
+                 rawMetadata: item.rawMetadata
+             );
+             
+             await box.put(key, newItem);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Sanitizer error in BotanyService: $e');
+    }
   }
 
   ValueListenable<Box<BotanyHistoryItem>>? get listenable => _box?.listenable();
@@ -48,11 +89,20 @@ class BotanyService {
 
     String? savedPath;
     if (image != null) {
-      savedPath = await FileUploadService().saveAnalysisImage(
-        file: image,
-        type: 'plant',
-        name: analysis.identificacao.nomeCientifico,
-      );
+      try {
+        savedPath = await MediaVaultService().secureClone(
+          image, 
+          MediaVaultService.BOTANY_DIR
+        );
+        debugPrint('✅ Plant saved to Vault: $savedPath');
+      } catch (e) {
+        debugPrint('⚠️ Vault save failed for plant, trying legacy: $e');
+        savedPath = await FileUploadService().saveAnalysisImage(
+          file: image,
+          type: 'plant',
+          name: analysis.identificacao.nomeCientifico,
+        );
+      }
     }
 
     // Determine toxicity status from analysis keywords

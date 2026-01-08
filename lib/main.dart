@@ -15,6 +15,7 @@ import 'core/services/history_service.dart';
 import 'core/services/file_upload_service.dart';
 import 'core/services/simple_auth_service.dart';
 import 'core/services/permanent_backup_service.dart';
+import 'core/services/media_vault_service.dart';
 
 import 'core/services/meal_history_service.dart';
 import 'features/pet/models/pet_event.dart';
@@ -68,6 +69,14 @@ void main() async {
     // Initialize Hive
     await Hive.initFlutter();
     
+    // 🔐 MEDIA VAULT: Secure Storage & Migration (Priority 1)
+    try {
+       await MediaVaultService().init();
+       debugPrint('✅ Media Vault Initialized & Optimized.');
+    } catch (e) {
+       debugPrint('❌ Media Vault Init Failed: $e');
+    }
+
     // 🔄 AUTO-RECOVERY: Restaurar dados de backup permanente (se existir)
     try {
       final permanentBackup = PermanentBackupService();

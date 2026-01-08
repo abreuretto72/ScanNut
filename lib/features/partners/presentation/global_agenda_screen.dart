@@ -101,6 +101,17 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
       case EventType.grooming: return AppDesign.primary;
       case EventType.veterinary: return AppDesign.error;
       case EventType.medication: return AppDesign.warning;
+      case EventType.food: return AppDesign.petPink;
+      case EventType.elimination: return Colors.brown;
+      case EventType.activity: return Colors.orange;
+      case EventType.behavior: return Colors.purple;
+      case EventType.media: return Colors.blueAccent;
+      case EventType.metrics: return Colors.teal;
+      case EventType.documents: return Colors.grey;
+      case EventType.exams: return Colors.indigo;
+      case EventType.dentistry: return Colors.white70;
+      case EventType.parasite: return Colors.lightGreen;
+      case EventType.surgery: return Colors.red;
       case EventType.other: return AppDesign.textSecondaryDark;
     }
   }
