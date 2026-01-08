@@ -27,7 +27,7 @@ import '../../../core/theme/app_design.dart';
 import 'widgets/pet_menu_filter_dialog.dart';
 import '../services/pet_menu_generator_service.dart';
 import 'widgets/pet_event_grid.dart';
-
+import 'widgets/pet_action_bar.dart';
 import '../models/meal_plan_request.dart';
 
 
@@ -315,7 +315,16 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       ],
                     ),
                     
-
+                    const SizedBox(height: 12),
+                    
+                    // BLOCO 2 — AÇÕES (3 BOTÕES)
+                    PetActionBar(
+                      petId: petName,
+                      petName: petName,
+                      onAgendaTap: () => _showEventSelector(context, petName),
+                      onMenuTap: () => _handleMenuTap(context, petName),
+                      onEditTap: () => _handleEditTap(item, petName, data),
+                    ),
                   ],
                 ),
               ),
