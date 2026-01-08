@@ -4304,8 +4304,7 @@ class _EditPetFormState extends State<EditPetForm>
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _buildQuickActions(),
-                const SizedBox(height: 28),
+
                 _buildOrganizedCards(),
                 const SizedBox(height: 120),
               ]),
@@ -4405,74 +4404,7 @@ class _EditPetFormState extends State<EditPetForm>
     );
   }
 
-  Widget _buildQuickActions() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: AppDesign.surfaceDark,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildActionShortcut(
-            icon: Icons.edit_rounded,
-            label: l10n.petEdit,
-            onTap: () {
-              _scrollController.animateTo(0, duration: const Duration(milliseconds: 600), curve: Curves.easeOutCubic);
-            },
-          ),
-          _buildActionShortcut(
-            icon: Icons.restaurant_menu_rounded,
-            label: l10n.petActionMenu,
-            onTap: _openMealPlan,
-          ),
-          _buildActionShortcut(
-            icon: Icons.calendar_today_rounded,
-            label: l10n.petActionAgenda,
-            onTap: () {
-              // TODO: Implement agenda selector
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Funcionalidade em desenvolvimento'), backgroundColor: AppDesign.petPink),
-              );
-            },
-          ),
-          _buildActionShortcut(
-            icon: Icons.history_rounded,
-            label: l10n.showEvents,
-            onTap: _openEventHistory,
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildActionShortcut({required IconData icon, required String label, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: AppDesign.petPink.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: AppDesign.petPink, size: 24),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: GoogleFonts.poppins(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildOrganizedCards() {
     return Column(
