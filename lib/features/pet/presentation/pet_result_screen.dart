@@ -7,7 +7,7 @@ import '../../../core/enums/scannut_mode.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/pet_profile_extended.dart';
 import 'widgets/edit_pet_form.dart';
-import 'widgets/pet_analysis_details_view.dart';
+import 'widgets/pet_dossier_view.dart';
 import '../services/pet_profile_service.dart';
 import '../../../core/services/history_service.dart';
 import '../../../core/services/file_upload_service.dart';
@@ -121,30 +121,18 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
     return Scaffold(
       backgroundColor: AppDesign.backgroundDark,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: AppDesign.textPrimaryDark),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(l10n.petResultTitle, style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 18)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: AppDesign.petPink),
-            tooltip: l10n.petResultGeneratePDF,
-            onPressed: () => _generatePDF(context, result),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomActionBar(context, result),
+      // AppBar and BottomNavBar are now handled inside PetDossierView for better layout control
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
           : result == null
               ? Center(child: Text(l10n.errorGeneric, style: const TextStyle(color: AppDesign.textPrimaryDark)))
-              : PetAnalysisDetailsView(
-                  result: result,
-                  imageFile: _permanentImage ?? widget.imageFile,
+              : PetDossierView(
+                  analysis: result,
+                  imagePath: _permanentImage?.path ?? widget.imageFile.path,
+                  petName: result.petName,
+                  onSave: () => _performAutoSave(result),
+                  onGeneratePDF: () => _generatePDF(context, result),
+                  onViewProfile: () => _handleAutoSaveAndNav(context, result),
                 ),
     );
   }
@@ -152,59 +140,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   // --- WIDGET COMPONENTS ---
 
   Widget _buildBottomActionBar(BuildContext context, PetAnalysisResult? result) {
-     if (result == null || _isLoading) return const SizedBox.shrink();
-     final l10n = AppLocalizations.of(context)!;
 
-     return Container(
-       padding: const EdgeInsets.all(16) + const EdgeInsets.only(bottom: 12),
-       decoration: const BoxDecoration(
-         color: AppDesign.surfaceDark,
-         border: Border(top: BorderSide(color: Colors.white10)),
-       ),
-       child: SafeArea(
-         child: Row(
-           children: [
-             Expanded(
-               child: widget.isHistoryView 
-               ? ElevatedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back, size: 20),
-                  label: Text(l10n.commonBack ?? 'Voltar', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white10,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                 )
-               : ElevatedButton(
-                 onPressed: () => _handleAutoSaveAndNav(context, result),
-                 style: ElevatedButton.styleFrom(
-                   backgroundColor: AppDesign.petPink,
-                   foregroundColor: Colors.white,
-                   padding: const EdgeInsets.symmetric(vertical: 16),
-                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                   elevation: 4,
-                 ),
-                 child: Text(l10n.petResultViewProfile, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-               ),
-             ),
-             const SizedBox(width: 12),
-             IconButton(
-               onPressed: () => _generatePDF(context, result),
-               icon: const Icon(Icons.picture_as_pdf, color: AppDesign.petPink),
-               style: IconButton.styleFrom(
-                 backgroundColor: Colors.white10,
-                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                 padding: const EdgeInsets.all(12)
-               ),
-             ),
-           ],
-         ),
-       ),
-     );
-  }
 
 
 
