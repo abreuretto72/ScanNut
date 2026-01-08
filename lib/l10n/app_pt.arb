@@ -2076,7 +2076,23 @@
   "agendaTime": "Hora",
   "petFoodRestrictions": "Restrições",
   "petFoodRestrictionsDesc": "Ingredientes proibidos ou a evitar (ex: sem frango, sem glúten).",
-  "petAddRestriction": "Adicionar restrição"
+  "petAddRestriction": "Adicionar restrição",
+  "petDossierTitle": "Análise Veterinária 360°",
+  "petDossierDisclaimer": "Conteúdo gerado por IA. Use como referência. Não substitui avaliação veterinária.",
+  "petDossierAnalyzedImage": "Imagem Analisada",
+  "petDossierViewFull": "Expandir",
+  "petDossierSignals": "Sinais",
+  "petDossierRisk": "Risco",
+  "petDossierPrecision": "Precisão",
+  "petDossierStatus": "Status",
+  "petSectionIdentity": "Identificação Visual",
+  "petSectionNutrition": "Nutrição & Dieta",
+  "petSectionGrooming": "Grooming & Higiene",
+  "petSectionPreventive": "Saúde Preventiva",
+  "petSectionLifestyle": "Lifestyle & Educação",
+  "petSectionGrowth": "Curva de Crescimento",
+  "petActionViewProfile": "Ver Perfil do Pet",
+  "petActionSharePDF": "Compartilhar PDF"
 }
 
 
