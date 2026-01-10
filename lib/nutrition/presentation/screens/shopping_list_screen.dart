@@ -60,7 +60,7 @@ class ShoppingListScreen extends ConsumerWidget {
                 label: Text(AppLocalizations.of(context)!.shopSyncPlan, style: GoogleFonts.poppins(color: AppDesign.success)),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_sweep, color: AppDesign.error),
+                icon: const Icon(Icons.delete_sweep, color: Colors.red),
                 tooltip: AppLocalizations.of(context)!.shopClearDone,
                 onPressed: () => ref.read(shoppingListProvider.notifier).clearCompleted(),
               ),
@@ -107,7 +107,7 @@ class ShoppingListScreen extends ConsumerWidget {
   Widget _buildItemRow(BuildContext context, WidgetRef ref, ShoppingListItem item, int index) {
     return Dismissible(
       key: Key(item.nome + index.toString()),
-      background: Container(color: AppDesign.error, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 16), child: const Icon(Icons.delete, color: AppDesign.textPrimaryDark)),
+      background: Container(color: Colors.red, alignment: Alignment.centerRight, padding: const EdgeInsets.only(right: 16), child: const Icon(Icons.delete, color: Colors.white)),
       direction: DismissDirection.endToStart,
       onDismissed: (_) {
         ref.read(shoppingListProvider.notifier).deleteItem(index);

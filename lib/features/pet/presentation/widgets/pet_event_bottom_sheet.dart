@@ -527,7 +527,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isListening ? Icons.mic : Icons.mic_none,
-                            color: _isListening ? Colors.red : AppDesign.petPink,
+                            color: _isListening ? Colors.red : Colors.white,
                           ),
                           onPressed: _listen,
                           tooltip: 'Gravar por voz',
@@ -719,7 +719,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                          icon: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
                           onPressed: () => setState(() => _attachments.removeAt(index)),
                         ),
                       ],

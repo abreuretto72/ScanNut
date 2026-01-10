@@ -11,6 +11,7 @@ import '../../services/pet_shopping_list_service.dart';
 import '../../services/pet_menu_generator_service.dart';
 import '../../services/pet_profile_service.dart'; // Added
 import '../../../../core/services/export_service.dart';
+import '../../../../core/widgets/pdf_action_button.dart';
 import 'pet_menu_filter_dialog.dart';
 import '../../models/meal_plan_request.dart';
 import 'meal_plan_loading_widget.dart';
@@ -426,8 +427,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                          label: Text(l10n.petMenuSelectionClear, style: const TextStyle(color: Colors.black87, fontSize: 12)),
                        ),
                        const SizedBox(width: 8),
-                       IconButton(
-                         icon: const Icon(Icons.picture_as_pdf, color: Colors.black),
+                       PdfActionButton(
                          onPressed: _generatePdfMulti,
                        )
                     ],
@@ -488,7 +488,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                     value: 'delete',
                     child: Row(
                        children: [
-                          const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                          const Icon(Icons.delete, color: Colors.red, size: 18),
                           const SizedBox(width: 8),
                           Text(l10n.commonDelete, style: const TextStyle(color: Colors.white)),
                        ],
@@ -530,7 +530,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                              tooltip: l10n.commonSave, 
                           ),
                           IconButton(
-                             icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                             icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
                              onPressed: () => _deleteDay(plan, day),
                              tooltip: l10n.commonDelete,
                           )

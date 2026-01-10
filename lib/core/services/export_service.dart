@@ -20,6 +20,9 @@ import '../../features/plant/models/plant_analysis_model.dart';
 import '../services/partner_service.dart';
 import '../../nutrition/data/datasources/shopping_list_service.dart';
 import '../../nutrition/data/models/shopping_list_model.dart';
+import '../../features/food/models/nutrition_history_item.dart';
+import '../../features/food/models/recipe_history_item.dart';
+import '../../features/plant/models/botany_history_item.dart';
 
 // Helper class to replace record syntax for Dart compatibility
 class _CleanedValue {
@@ -32,6 +35,11 @@ class ExportService {
   static final ExportService _instance = ExportService._internal();
   factory ExportService() => _instance;
   ExportService._internal();
+
+  // --- DOMAIN COLORS ---
+  static const PdfColor colorPet = PdfColor.fromInt(0xFFFADADD);
+  static const PdfColor colorFood = PdfColor.fromInt(0xFFFF9800);
+  static const PdfColor colorPlant = PdfColor.fromInt(0xFF10AC84);
 
   // --- SAFETY HELPERS ---
   Future<pw.ImageProvider?> safeLoadImage(String? path) async {
@@ -50,20 +58,23 @@ class ExportService {
     return null;
   }
 
-  pw.Widget buildSectionHeader(String title) {
-
+  pw.Widget buildSectionHeader(String title, {PdfColor? color, PdfColor? textColor}) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 10, top: 15),
-      padding: const pw.EdgeInsets.symmetric(vertical: 4),
-      decoration: const pw.BoxDecoration(
-        border: pw.Border.symmetric(
-          horizontal: pw.BorderSide(color: PdfColors.black, width: 0.5),
-        ),
+      padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      decoration: pw.BoxDecoration(
+        color: color,
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+        border: pw.Border.all(color: color ?? PdfColors.black, width: 0.5),
       ),
       child: pw.Center(
         child: pw.Text(
           title.toUpperCase(),
-          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black),
+          style: pw.TextStyle(
+            fontWeight: pw.FontWeight.bold, 
+            fontSize: 13, 
+            color: textColor ?? (color != null ? PdfColors.white : PdfColors.black)
+          ),
         ),
       ),
     );
@@ -84,26 +95,29 @@ class ExportService {
   }
 
   /// RIGOROUS HEADER: Consistent across all reports (Eco-Friendly)
-  pw.Widget buildHeader(String title, String timestamp, {String dateLabel = 'Data'}) {
-
+  pw.Widget buildHeader(String title, String timestamp, {String dateLabel = 'Data', PdfColor? color}) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 20),
       child: pw.Column(
         children: [
           pw.Container(
             padding: const pw.EdgeInsets.all(12),
-            decoration: const pw.BoxDecoration(
-               border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 1)),
+            decoration: pw.BoxDecoration(
+               color: color,
+               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+               border: pw.Border.all(color: color ?? PdfColors.black, width: 1),
             ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                pw.Text(
-                  title.toUpperCase(),
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 16,
-                    color: PdfColors.black,
+                pw.Expanded(
+                  child: pw.Text(
+                    title.toUpperCase(),
+                    style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 16,
+                      color: (color == colorPet) ? PdfColors.black : (color != null ? PdfColors.white : PdfColors.black),
+                    ),
                   ),
                 ),
                 pw.Column(
@@ -114,14 +128,14 @@ class ExportService {
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 12,
-                        color: PdfColors.black, // Changed to black for monochrome
+                        color: (color == colorPet) ? PdfColors.black : (color != null ? PdfColors.white : PdfColors.black),
                       ),
                     ),
                     pw.Text(
                       '$dateLabel: $timestamp',
-                      style: const pw.TextStyle(
+                      style: pw.TextStyle(
                         fontSize: 8,
-                        color: PdfColors.grey700, // Changed to grey for monochrome
+                        color: color != null ? PdfColors.white : PdfColors.grey700,
                       ),
                     ),
                   ],
@@ -130,7 +144,7 @@ class ExportService {
             ),
           ),
           pw.SizedBox(height: 5),
-          pw.Container(height: 1.5, color: PdfColors.black),
+          pw.Container(height: 1.5, color: color ?? PdfColors.black),
           pw.SizedBox(height: 10),
         ],
       ),
@@ -168,7 +182,7 @@ class ExportService {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey400),
+        border: pw.Border.all(color: color),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
         color: PdfColors.white, // No background color
       ),
@@ -264,7 +278,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfAgendaReport, timestampStr),
+        header: (context) => buildHeader(strings.pdfAgendaReport, timestampStr, color: colorPet),
         footer: (context) => buildFooter(context),
         build: (context) => [
           pw.Row(
@@ -316,7 +330,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfPartnersGuide, timestampStr),
+        header: (context) => buildHeader(strings.pdfPartnersGuide, timestampStr, color: colorPet),
         footer: (context) => buildFooter(context),
         build: (context) => [
           pw.Row(
@@ -346,6 +360,60 @@ class ExportService {
     return pdf;
   }
 
+  /// 4. RADAR REPORT (GEO DISCOVERY)
+  Future<pw.Document> generateRadarReport({
+    required List<PartnerModel> partners,
+    required double userLat,
+    required double userLng,
+    required AppLocalizations strings,
+  }) async {
+    final pdf = pw.Document();
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
+    
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(35),
+        header: (context) => buildHeader('RADAR GEO - SCANNUT', timestampStr, color: colorPet, dateLabel: strings.pdfDate),
+        footer: (context) => buildFooter(context, strings: strings),
+        build: (context) => [
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              buildIndicator('${strings.pdfStatus}:', 'RESULTADOS PRÓXIMOS', colorPet),
+              buildIndicator('${strings.pdfTotalFound}:', partners.length.toString(), colorPet),
+            ],
+          ),
+          pw.SizedBox(height: 25),
+          pw.Table.fromTextArray(
+            border: pw.TableBorder.all(color: colorPet, width: 0.5),
+            headerDecoration: pw.BoxDecoration(color: colorPet),
+            headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9),
+            cellStyle: const pw.TextStyle(fontSize: 7.5),
+            headers: [
+                strings.pdfEstablishment.toUpperCase(), 
+                strings.distanceLabel?.toUpperCase() ?? 'DISTÂNCIA', 
+                strings.ratingLabel?.toUpperCase() ?? 'AVALIAÇÃO', 
+                strings.pdfFieldAddress?.toUpperCase() ?? 'ENDEREÇO', 
+                strings.pdfPhone.toUpperCase()
+            ],
+            data: partners.map((p) {
+              final dist = PartnerService().calculateDistance(userLat, userLng, p.latitude, p.longitude);
+              return [
+                p.name,
+                '${dist.toStringAsFixed(1)} km',
+                '${p.rating} ${strings.pdfStars}',
+                p.address,
+                p.phone.isNotEmpty ? p.phone : (p.whatsapp ?? ' - '),
+              ];
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+    return pdf;
+  }
+
   /// 3. WEEKLY MENU REPORT (SCANNUT STANDARD)
   Future<pw.Document> generateWeeklyMenuReport({
     required String petName, 
@@ -365,7 +433,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfNutritionSection, timestampStr),
+        header: (context) => buildHeader(strings.pdfNutritionSection, timestampStr, color: colorPet),
         footer: (context) => buildFooter(context),
         build: (context) {
           final List<pw.Widget> content = [];
@@ -577,7 +645,11 @@ class ExportService {
       try {
         final decoded = jsonDecode(shoppingListJson);
         if (decoded is List) {
-          weeklyShoppingLists.addAll(decoded.map((e) => WeeklyShoppingList.fromJson(e)));
+          for (var item in decoded) {
+            if (item is Map) {
+              weeklyShoppingLists.add(WeeklyShoppingList.fromJson(Map<String, dynamic>.from(item)));
+            }
+          }
         }
       } catch (e) {
         debugPrint('⚠️ Error decoding shopping list JSON for PDF: $e');
@@ -598,7 +670,7 @@ class ExportService {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(35),
-          header: (context) => buildHeader('${strings.pdfMenuPlanTitle}${weekLabel.toUpperCase()}', timestampStr),
+          header: (context) => buildHeader('${strings.pdfMenuPlanTitle}${weekLabel.toUpperCase()}', timestampStr, color: colorFood),
           footer: (context) => buildFooter(context, strings: strings),
           build: (context) => [
             // Header Info Card 
@@ -731,7 +803,7 @@ class ExportService {
            pw.MultiPage(
              pageFormat: PdfPageFormat.a4,
              margin: const pw.EdgeInsets.all(35),
-             header: (context) => buildHeader('LISTA DE COMPRAS${weekLabel.toUpperCase()}', timestampStr),
+             header: (context) => buildHeader('LISTA DE COMPRAS${weekLabel.toUpperCase()}', timestampStr, color: colorFood),
              footer: (context) => buildFooter(context, strings: strings),
              build: (context) => [
                pw.Text(
@@ -814,8 +886,9 @@ class ExportService {
     return pdf;
   }
 
-  String _getMealLabel(String tipo, AppLocalizations strings) {
-    switch (tipo) {
+  String _getMealLabel(String? tipo, AppLocalizations strings) {
+    if (tipo == null) return '';
+    switch (tipo.toLowerCase()) {
       case 'cafe': return strings.mealBreakfast;
       case 'almoco': return strings.mealLunch;
       case 'lanche': return strings.mealSnack;
@@ -839,7 +912,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfFoodTitle, timestampStr, dateLabel: strings.pdfDate),
+        header: (context) => buildHeader(strings.pdfFoodTitle, timestampStr, dateLabel: strings.pdfDate, color: colorFood),
         footer: (context) => buildFooter(context, strings: strings),
         build: (context) => [
           // --- HEADER COM IMAGEM E DADOS BÁSICOS ---
@@ -888,7 +961,7 @@ class ExportService {
           pw.SizedBox(height: 20),
 
           // --- 1. RESUMO EXECUTIVO ---
-          buildSectionHeader(strings.pdfExSummary),
+          buildSectionHeader(strings.pdfExSummary, color: colorFood),
           pw.Container(
             padding: const pw.EdgeInsets.all(10),
             decoration: pw.BoxDecoration(color: PdfColors.grey100, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5))),
@@ -927,7 +1000,7 @@ class ExportService {
           ),
 
           // --- 2. NUTRIÇÃO DETALHADA ---
-          buildSectionHeader(strings.pdfDetailedNutrition),
+          buildSectionHeader(strings.pdfDetailedNutrition, color: colorFood),
           pw.Text('${strings.pdfMacros}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
           pw.SizedBox(height: 5),
           pw.Table.fromTextArray(
@@ -959,7 +1032,7 @@ class ExportService {
           pw.Text('${strings.pdfSynergy}: ${analysis.micronutrientes.sinergiaNutricional}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.blue700)), // Removed italic
 
           // --- 3. BIOHACKING & SAÚDE ---
-          buildSectionHeader(strings.pdfBiohacking),
+          buildSectionHeader(strings.pdfBiohacking, color: colorFood),
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -989,7 +1062,7 @@ class ExportService {
           ),
 
           // --- 4. GASTRONOMIA ---
-          buildSectionHeader(strings.pdfGastronomy),
+          buildSectionHeader(strings.pdfGastronomy, color: colorFood),
           if (analysis.receitas.isNotEmpty) ...[
               pw.Text('${strings.pdfQuickRecipes}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
               ...analysis.receitas.map((r) => pw.Container(
@@ -1058,7 +1131,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.botanyDossierTitle(analysis.plantName), timestampStr),
+        header: (context) => buildHeader(strings.botanyDossierTitle(analysis.plantName), timestampStr, color: colorPlant),
         footer: (context) => buildFooter(context, strings: strings),
         build: (context) => [
           // Header with image and basic info
@@ -1132,7 +1205,7 @@ class ExportService {
           pw.SizedBox(height: 20),
 
           // 1. IDENTIFICAÇÃO E TAXONOMIA
-          buildSectionHeader('1. ${strings.plantIdentificationTaxonomy}'),
+          buildSectionHeader('1. ${strings.plantIdentificationTaxonomy}', color: colorPlant),
           pw.Text('${strings.plantPopularNames}: ${analysis.identificacao.nomesPopulares.join(', ')}'),
           pw.Text('${strings.plantScientificName}: ${analysis.identificacao.nomeCientifico}'),
           pw.Text('${strings.plantFamily}: ${analysis.identificacao.familia}'),
@@ -1140,7 +1213,7 @@ class ExportService {
           pw.SizedBox(height: 10),
 
           // 2. DIAGNÓSTICO DE SAÚDE
-          buildSectionHeader('2. ${strings.plantClinicalDiagnosis}'),
+          buildSectionHeader('2. ${strings.plantClinicalDiagnosis}', color: colorPlant),
           pw.Text('${strings.plantClinicalDiagnosis}: ${analysis.saude.condicao}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
           pw.Text('${strings.plantDetails}: ${analysis.saude.detalhes}'),
           pw.Text('${strings.plantRecoveryPlan}: ${analysis.saude.planoRecuperacao}'),
@@ -1149,7 +1222,7 @@ class ExportService {
           pw.SizedBox(height: 10),
 
           // 3. GUIA DE SOBREVIVÊNCIA (HARDWARE)
-          buildSectionHeader('3. ${strings.tabHardware} (${strings.labelTrafficLight})'),
+          buildSectionHeader('3. ${strings.tabHardware} (${strings.labelTrafficLight})', color: colorPlant),
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -1174,7 +1247,7 @@ class ExportService {
              pw.Text('${strings.plantIdealPh}: ${analysis.sobrevivencia.soloENutricao['ideal_ph']}'),
 
           // 4. SEGURANÇA E BIOFILIA (BIOS)
-          buildSectionHeader('4. ${strings.tabBios} (${strings.plantHomeSafety})'),
+          buildSectionHeader('4. ${strings.tabBios} (${strings.plantHomeSafety})', color: colorPlant),
           pw.Row(children: [
             pw.Expanded(child: pw.Text('${strings.plantDangerPets}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true) ? "${strings.commonYes} ⚠️" : "${strings.commonNo} ✅"}')),
             pw.Expanded(child: pw.Text('${strings.plantDangerKids}: ${(analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_children'] == true || analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true) ? "${strings.commonYes} ⚠️" : "${strings.commonNo} ✅"}')),
@@ -1186,19 +1259,19 @@ class ExportService {
           pw.Text('${strings.plantWellness}: ${analysis.segurancaBiofilia.poderesBiofilicos['wellness_impact'] ?? analysis.segurancaBiofilia.poderesBiofilicos['impacto_bem_estar'] ?? strings.noInformation}'),
 
           // 5. ENGENHARIA DE PROPAGAÇÃO
-          buildSectionHeader('5. ${strings.plantPropagationEngine}'),
+          buildSectionHeader('5. ${strings.plantPropagationEngine}', color: colorPlant),
           pw.Text('${strings.plantMethod}: ${analysis.propagacao.metodo}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
           pw.Text('${strings.plantDifficulty}: ${analysis.propagacao.dificuldade}'),
           pw.Text('${strings.plantStepByStep}: ${analysis.propagacao.passoAPasso}'),
 
           // 6. INTELIGÊNCIA DE ECOSSISTEMA
-          buildSectionHeader('6. ${strings.plantEcoIntel}'),
+          buildSectionHeader('6. ${strings.plantEcoIntel}', color: colorPlant),
           pw.Text('${strings.plantCompanions}: ${analysis.ecossistema.plantasParceiras.join(", ")}'),
           pw.Text('${strings.plantAvoid}: ${analysis.ecossistema.plantasConflitantes.join(", ")}'),
           pw.Text('${strings.plantRepellent}: ${analysis.ecossistema.repelenteNatural}'),
 
           // 7. ESTÉTICA E LIFESTYLE (FENG SHUI)
-          buildSectionHeader('7. ${strings.tabLifestyle}'),
+          buildSectionHeader('7. ${strings.tabLifestyle}', color: colorPlant),
           pw.Text('${strings.plantPlacement}: ${analysis.lifestyle.posicionamentoIdeal}'),
           pw.Text('${strings.plantSymbolism}: ${analysis.lifestyle.simbolismo}'),
           pw.SizedBox(height: 10),
@@ -1271,7 +1344,7 @@ class ExportService {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-         buildSectionHeader(strings.petAnalysisResults.toUpperCase()),
+         buildSectionHeader(strings.petAnalysisResults.toUpperCase(), color: colorPet),
          pw.SizedBox(height: 10),
          _buildRecursivePDFMap(filteredData),
          pw.SizedBox(height: 20),
@@ -1554,12 +1627,12 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader('${strings.pdfReportTitle}: ${profile.petName}', timestampStr, dateLabel: strings.pdfGeneratedOn),
+        header: (context) => buildHeader('${strings.pdfReportTitle}: ${profile.petName}', timestampStr, dateLabel: strings.pdfGeneratedOn, color: colorPet),
         footer: (context) => buildFooter(context),
         build: (context) => [
           // ========== IDENTITY SECTION ==========
           if (sections['identity'] == true) ...[
-            buildSectionHeader(strings.pdfIdentitySection),
+            buildSectionHeader(strings.pdfIdentitySection, color: colorPet),
             
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.grey700, width: 0.5),
@@ -1615,7 +1688,7 @@ class ExportService {
           
           // ========== HEALTH SECTION ==========
           if (sections['health'] == true) ...[
-            buildSectionHeader(strings.pdfHealthSection),
+            buildSectionHeader(strings.pdfHealthSection, color: colorPet),
             
             // Controle de Peso
             pw.Text('${strings.pdfWeightControl}:', 
@@ -1904,7 +1977,7 @@ class ExportService {
           
           // ========== NUTRITION SECTION ==========
           if (sections['nutrition'] == true) ...[
-             buildSectionHeader(strings.pdfNutritionSection),
+             buildSectionHeader(strings.pdfNutritionSection, color: colorPet),
             
             // Meta Nutricional
             if (profile.rawAnalysis != null) ...[
@@ -2071,7 +2144,7 @@ class ExportService {
           
           // ========== GALLERY SECTION ==========
           if (sections['gallery'] == true) ...[
-             buildSectionHeader(strings.pdfGallerySection),
+             buildSectionHeader(strings.pdfGallerySection, color: colorPet),
 
              if (galleryImages.isNotEmpty) ...[
                 pw.GridView(
@@ -2137,7 +2210,7 @@ class ExportService {
           
           // ========== PARC (PARTNERS/BEHAVIOR) SECTION ==========
           if (sections['parc'] == true) ...[
-             buildSectionHeader(strings.pdfParcSection),
+             buildSectionHeader(strings.pdfParcSection, color: colorPet),
             
             // Parceiros Vinculados
             if (profile.linkedPartnerIds.isNotEmpty) ...[
@@ -2294,7 +2367,7 @@ class ExportService {
           
           // ========== AGENDA & EVENTS SECTION ==========
           if (allAgendaEvents.isNotEmpty) ...[
-            buildSectionHeader(strings.pdfAgendaEvents),
+            buildSectionHeader(strings.pdfAgendaEvents, color: colorPet),
             
             pw.Text(
               strings.pdfHistoryUpcoming,
@@ -2417,7 +2490,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader('${strings.pdfReportTitle}: ${strings.pdfParcSection}', timestampStr, dateLabel: strings.pdfGeneratedOn),
+        header: (context) => buildHeader('${strings.pdfReportTitle}: ${strings.pdfParcSection}', timestampStr, dateLabel: strings.pdfGeneratedOn, color: colorPet),
         footer: (context) => buildFooter(context),
         build: (context) => [
           // INDICADORES
@@ -2493,7 +2566,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader('${strings.pdfReportTitle}: ${partner.name}', timestampStr, dateLabel: strings.pdfGeneratedOn),
+        header: (context) => buildHeader('${strings.pdfReportTitle}: ${partner.name}', timestampStr, dateLabel: strings.pdfGeneratedOn, color: colorPet),
         footer: (context) => buildFooter(context),
         build: (context) => [
           // HEADER INFO
@@ -2507,7 +2580,7 @@ class ExportService {
           pw.SizedBox(height: 20),
 
           // DETAILS SECTION
-          buildSectionHeader(strings.petBasicInfo),
+          buildSectionHeader(strings.petBasicInfo, color: colorPet),
           pw.SizedBox(height: 10),
           pw.Table(
             columnWidths: {
@@ -2539,7 +2612,7 @@ class ExportService {
 
           // TEAM SECTION
           if (partner.teamMembers.isNotEmpty) ...[
-              buildSectionHeader(strings.partnerTeamMembers),
+              buildSectionHeader(strings.partnerTeamMembers, color: colorPet),
               pw.SizedBox(height: 10),
               pw.Bullet(text: partner.teamMembers.join(', '), style: const pw.TextStyle(fontSize: 10)),
               pw.SizedBox(height: 20),
@@ -2547,7 +2620,7 @@ class ExportService {
 
           // NOTES SECTION
           if (notes.isNotEmpty) ...[
-              buildSectionHeader(strings.partnerNotesTitle),
+              buildSectionHeader(strings.partnerNotesTitle, color: colorPet),
               pw.SizedBox(height: 10),
               ...notes.map((n) {
                   final date = DateTime.parse(n['date']);
@@ -2570,7 +2643,7 @@ class ExportService {
           // SPECIALTIES
           if (partner.specialties.isNotEmpty) ...[
                pw.SizedBox(height: 10),
-               buildSectionHeader(strings.pdfFieldDetails),
+               buildSectionHeader(strings.pdfFieldDetails, color: colorPet),
                pw.SizedBox(height: 10),
                pw.Text(partner.specialties.join(', '), style: const pw.TextStyle(fontSize: 10)),
           ]
@@ -2717,4 +2790,386 @@ class ExportService {
     if (c.contains('lab') || c.contains('laboratório') || c.contains('laboratory')) return strings.partnersFilterLab;
     return category;
   }
+
+  // --- FOOD HISTORY EXPORT ---
+  dynamic _deepFixMaps(dynamic value) {
+    if (value is Map) {
+      return value.map<String, dynamic>((k, v) => MapEntry(k.toString(), _deepFixMaps(v)));
+    }
+    if (value is List) {
+      return value.map((e) => _deepFixMaps(e)).toList();
+    }
+    return value;
+  }
+
+  PdfColor _getTrafficLightColor(String semaforo) {
+    final s = semaforo.toLowerCase();
+    if (s.contains('verde') || s.contains('green')) return PdfColors.green;
+    if (s.contains('amarelo') || s.contains('yellow')) return PdfColors.orange;
+    return PdfColors.red;
+  }
+
+  Future<pw.Document> generateFoodHistoryReport({
+    required List<NutritionHistoryItem> items,
+    required AppLocalizations strings,
+  }) async {
+    final pdf = pw.Document();
+
+    for (var item in items) {
+       FoodAnalysisModel? rawAnalysis;
+       pw.ImageProvider? foodImage;
+       
+       foodImage = await safeLoadImage(item.imagePath);
+
+       if (item.rawMetadata != null) {
+          try {
+             final fixedMap = _deepFixMaps(item.rawMetadata);
+             if (fixedMap is Map<String, dynamic>) {
+                 rawAnalysis = FoodAnalysisModel.fromJson(fixedMap);
+             }
+          } catch (e) {
+             debugPrint('⚠️ Error parsing history item ${item.foodName} for PDF: $e');
+          }
+       }
+
+       if (rawAnalysis == null) continue;
+       final analysis = rawAnalysis;
+
+       final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(item.timestamp);
+       
+       pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(35),
+          header: (context) => buildHeader(strings.pdfFoodTitle + " - ${item.foodName}", timestampStr, dateLabel: strings.pdfDate, color: colorFood),
+          footer: (context) => buildFooter(context, strings: strings),
+          build: (context) => [
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                if (foodImage != null)
+                  pw.Container(
+                    width: 80,
+                    height: 80,
+                    margin: const pw.EdgeInsets.only(right: 15),
+                    decoration: pw.BoxDecoration(
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                      border: pw.Border.all(color: PdfColors.grey400),
+                    ),
+                    child: pw.ClipRRect(
+                      horizontalRadius: 8,
+                      verticalRadius: 8,
+                      child: pw.Image(foodImage, fit: pw.BoxFit.cover),
+                    ),
+                  ),
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(analysis.identidade.nome, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.black)),
+                      pw.SizedBox(height: 5),
+                      pw.Row(
+                        children: [
+                          buildIndicator('${strings.pdfCalories}:', '${analysis.macros.calorias100g} kcal/100g', PdfColors.red700),
+                          pw.SizedBox(width: 10),
+                           buildIndicator(
+                            '${strings.pdfTrafficLight}:', 
+                            analysis.identidade.semaforoSaude, 
+                            _getTrafficLightColor(analysis.identidade.semaforoSaude),
+                          ),
+                          pw.SizedBox(width: 10),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            pw.SizedBox(height: 20),
+
+            buildSectionHeader(strings.pdfExSummary, color: colorFood),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(10),
+              decoration: pw.BoxDecoration(color: PdfColors.grey100, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5))),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('${strings.pdfAiVerdict}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                  pw.Text(analysis.analise.vereditoIa, style: const pw.TextStyle(fontSize: 9)),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 10),
+            
+            buildSectionHeader(strings.pdfDetailedNutrition, color: colorFood),
+            pw.Table.fromTextArray(
+              border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+              headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey50),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
+              cellStyle: const pw.TextStyle(fontSize: 8),
+              headers: [strings.pdfNutrient, strings.pdfQuantity, strings.pdfDetails],
+              data: [
+                [strings.nutrientsProteins, analysis.macros.proteinas, strings.labelAminoProfile],
+                [strings.nutrientsCarbs, analysis.macros.carboidratosLiquidos, '${strings.labelGlycemicImpact}: ${analysis.macros.indiceGlicemico}'],
+                [strings.nutrientsFats, analysis.macros.gordurasPerfil, strings.labelFattyAcids],
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+    return pdf;
+  }
+
+  Future<pw.Document> generateRecipeBookReport({
+    required List<RecipeHistoryItem> items,
+    required AppLocalizations strings,
+  }) async {
+    final pdf = pw.Document();
+    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
+
+    for (var item in items) {
+       pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(35),
+          header: (context) => buildHeader("RECEITA - ${item.recipeName.toUpperCase()}", timestampStr, dateLabel: strings.pdfDate, color: colorFood),
+          footer: (context) => buildFooter(context, strings: strings),
+          build: (context) => [
+             pw.Center(
+               child: pw.Text(item.recipeName.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.black), textAlign: pw.TextAlign.center),
+             ),
+             pw.SizedBox(height: 5),
+             pw.Center(
+                child: pw.Text("${item.foodName}  |  ${item.prepTime}", 
+                   style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+             ),
+             pw.SizedBox(height: 20),
+             
+             // DECORATIVE SEPARATOR
+             pw.Center(
+               child: pw.Container(
+                 width: 50,
+                 height: 4,
+                 decoration: const pw.BoxDecoration(
+                   color: colorFood,
+                   borderRadius: pw.BorderRadius.all(pw.Radius.circular(2)),
+                 ),
+               ),
+             ),
+             pw.SizedBox(height: 20),
+
+             buildSectionHeader("MODO DE PREPARO", color: colorFood),
+             pw.Container(
+               padding: const pw.EdgeInsets.all(12),
+               decoration: pw.BoxDecoration(
+                 color: PdfColors.grey100,
+                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                 border: pw.Border.all(color: PdfColors.grey300),
+               ),
+               child: pw.Text(
+                 item.instructions,
+                 style: const pw.TextStyle(fontSize: 10, height: 1.5, color: PdfColors.black),
+               ),
+             ),
+             pw.SizedBox(height: 20),
+          ],
+        ),
+      );
+    }
+    return pdf;
+  }
+
+  Future<pw.Document> generatePlantHistoryReport({
+    required List<BotanyHistoryItem> items,
+    required AppLocalizations strings,
+  }) async {
+    final pdf = pw.Document();
+    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
+
+    for (var item in items) {
+       pw.ImageProvider? plantImage;
+       plantImage = await safeLoadImage(item.imagePath);
+
+       // Determine toxicity info
+       final isToxic = item.toxicityStatus != 'safe';
+       final toxicityLabel = isToxic ? 'TÓXICA' : 'SEGURA';
+       final toxicityColor = isToxic ? PdfColors.red : PdfColors.green;
+
+       pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(35),
+          header: (context) => buildHeader("PLANTA - ${item.plantName.toUpperCase()}", timestampStr, dateLabel: strings.pdfDate, color: colorPlant),
+          footer: (context) => buildFooter(context, strings: strings),
+          build: (context) => [
+             // Plant Name
+             pw.Center(
+               child: pw.Text(item.plantName.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.black), textAlign: pw.TextAlign.center),
+             ),
+             pw.SizedBox(height: 5),
+             
+             // Date
+             pw.Center(
+                child: pw.Text(DateFormat('dd/MM/yyyy HH:mm').format(item.timestamp), 
+                   style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+             ),
+             pw.SizedBox(height: 20),
+             
+             // Plant Image
+             if (plantImage != null)
+                pw.Container(
+                   height: 250,
+                   width: double.infinity,
+                   margin: const pw.EdgeInsets.only(bottom: 20),
+                   decoration: pw.BoxDecoration(
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                      border: pw.Border.all(color: PdfColors.grey400),
+                   ),
+                   child: pw.ClipRRect(
+                      horizontalRadius: 8,
+                      verticalRadius: 8,
+                      child: pw.Image(plantImage, fit: pw.BoxFit.cover),
+                   ),
+                ),
+
+             // Toxicity Status
+             buildSectionHeader("NÍVEL DE TOXICIDADE", color: colorPlant),
+             pw.Container(
+               padding: const pw.EdgeInsets.all(12),
+               decoration: pw.BoxDecoration(
+                 color: toxicityColor.shade(0.9),
+                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                 border: pw.Border.all(color: toxicityColor),
+               ),
+               child: pw.Row(
+                 mainAxisAlignment: pw.MainAxisAlignment.center,
+                 children: [
+                   pw.Text(
+                     toxicityLabel,
+                     style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: toxicityColor),
+                   ),
+                 ],
+               ),
+             ),
+             pw.SizedBox(height: 20),
+
+             // Health Status
+             buildSectionHeader("STATUS DE SAÚDE", color: colorPlant),
+             pw.Container(
+               padding: const pw.EdgeInsets.all(12),
+               decoration: pw.BoxDecoration(
+                 color: PdfColors.grey100,
+                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                 border: pw.Border.all(color: PdfColors.grey300),
+               ),
+               child: pw.Column(
+                 crossAxisAlignment: pw.CrossAxisAlignment.start,
+                 children: [
+                   pw.Text(
+                     'Estado: ${item.healthStatus}',
+                     style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black),
+                   ),
+                   pw.SizedBox(height: 4),
+                   pw.Text(
+                     'Semáforo: ${item.survivalSemaphore.toUpperCase()}',
+                     style: const pw.TextStyle(fontSize: 10, color: PdfColors.black),
+                   ),
+                   if (item.diseaseDiagnosis != null) ...[
+                     pw.SizedBox(height: 4),
+                     pw.Text(
+                       'Diagnóstico: ${item.diseaseDiagnosis}',
+                       style: const pw.TextStyle(fontSize: 10, color: PdfColors.black),
+                     ),
+                   ],
+                 ],
+               ),
+             ),
+             pw.SizedBox(height: 20),
+
+             // Prevention Tips (if toxic)
+             if (isToxic) ...[
+               buildSectionHeader("DICAS DE PREVENÇÃO", color: colorPlant),
+               pw.Container(
+                 padding: const pw.EdgeInsets.all(12),
+                 decoration: pw.BoxDecoration(
+                   color: PdfColors.red50,
+                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                   border: pw.Border.all(color: PdfColors.red300),
+                 ),
+                 child: pw.Text(
+                   'ATENÇÃO: Esta planta apresenta toxicidade. Mantenha fora do alcance de crianças e animais de estimação. Em caso de ingestão, procure atendimento médico imediatamente.',
+                   style: const pw.TextStyle(fontSize: 10, height: 1.5, color: PdfColors.black),
+                 ),
+               ),
+               pw.SizedBox(height: 20),
+             ],
+
+             // Recovery Plan
+             buildSectionHeader("PLANO DE RECUPERAÇÃO", color: colorPlant),
+             pw.Container(
+               padding: const pw.EdgeInsets.all(12),
+               decoration: pw.BoxDecoration(
+                 color: PdfColors.grey100,
+                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                 border: pw.Border.all(color: PdfColors.grey300),
+               ),
+               child: pw.Text(
+                 item.recoveryPlan,
+                 style: const pw.TextStyle(fontSize: 10, height: 1.5, color: PdfColors.black),
+               ),
+             ),
+             pw.SizedBox(height: 20),
+
+             // Care Needs
+             buildSectionHeader("NECESSIDADES DE CUIDADO", color: colorPlant),
+             pw.Container(
+               padding: const pw.EdgeInsets.all(12),
+               decoration: pw.BoxDecoration(
+                 color: PdfColors.grey100,
+                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                 border: pw.Border.all(color: PdfColors.grey300),
+               ),
+               child: pw.Column(
+                 crossAxisAlignment: pw.CrossAxisAlignment.start,
+                 children: [
+                   if (item.lightWaterSoilNeeds['luz'] != null)
+                     pw.Padding(
+                       padding: const pw.EdgeInsets.only(bottom: 6),
+                       child: pw.Row(
+                         children: [
+                           pw.Text('☀️ Luz: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                           pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['luz']!, style: const pw.TextStyle(fontSize: 10))),
+                         ],
+                       ),
+                     ),
+                   if (item.lightWaterSoilNeeds['agua'] != null)
+                     pw.Padding(
+                       padding: const pw.EdgeInsets.only(bottom: 6),
+                       child: pw.Row(
+                         children: [
+                           pw.Text('💧 Água: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                           pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['agua']!, style: const pw.TextStyle(fontSize: 10))),
+                         ],
+                       ),
+                     ),
+                   if (item.lightWaterSoilNeeds['solo'] != null)
+                     pw.Row(
+                       children: [
+                         pw.Text('🌱 Solo: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                         pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['solo']!, style: const pw.TextStyle(fontSize: 10))),
+                       ],
+                     ),
+                 ],
+               ),
+             ),
+             pw.SizedBox(height: 20),
+          ],
+        ),
+      );
+    }
+    return pdf;
+  }
 }
+

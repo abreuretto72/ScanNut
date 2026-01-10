@@ -1489,5 +1489,18 @@
   "petMenuDateRangeError": "El período no puede exceder los 60 días.",
   "petMenuSuccess": "¡Menú generado con éxito!",
   "petMenuShoppingList": "Lista de Compras",
-  "petMenuShoppingListEmpty": "Ningún artículo en la lista."
+  "petMenuShoppingListEmpty": "Ningún artículo en la lista.",
+  "petIndexing_aiTitle": "Análisis de IA: {type}",
+  "petIndexing_aiNotes": "Análisis clínico generado por Inteligencia Artificial.",
+  "petIndexing_occurrenceTitle": "Ocurrencia: {title}",
+  "petIndexing_agendaTitle": "{attendant} + {pet}",
+  "petIndexing_partnerFavorited": "Socio Favorito: {name}",
+  "petIndexing_partnerScheduled": "Interacción programada con {name}",
+  "petIndexing_partnerContacted": "Contactado vía WhatsApp/GPS: {name}",
+  "petIndexing_partnerLinked": "Socio vinculado al perfil: {name}",
+  "petIndexing_partnerInteractionNotes": "Interacción registrada vía Radar Geo.",
+  "petIndexing_vaultTitle": "Archivo: {name}",
+  "petIndexing_vaultNotes": "Documento indexado en Media Vault.",
+  "petEvent_tapToViewDetails": "Toque para ver detalles",
+  "petIndexing_taskCompleted": "Tarea completada: {task}"
 }

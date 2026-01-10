@@ -127,6 +127,24 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       ? FontAwesomeIcons.leaf
       : FontAwesomeIcons.circleExclamation;
 
+  /// Translates luminosity values from English to Portuguese
+  String _translateLuminosity(String value) {
+    final normalized = value.trim().toLowerCase();
+    
+    if (normalized.contains('full sun') || normalized.contains('sol pleno')) {
+      return 'Sol Pleno';
+    } else if (normalized.contains('partial shade') || normalized.contains('meia sombra')) {
+      return 'Meia Sombra';
+    } else if (normalized.contains('full shade') || normalized.contains('sombra total')) {
+      return 'Sombra Total';
+    } else if (normalized.contains('indirect light') || normalized.contains('luz indireta')) {
+      return 'Luz Indireta';
+    }
+    
+    // Return original if no match
+    return value;
+  }
+
   Future<void> _generatePDF() async {
     try {
       Navigator.push(
@@ -155,16 +173,16 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     }
   }
 
-  Widget _buildActionButton(IconData icon, String? label, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(IconData icon, String? label, Color color, VoidCallback onTap, {Color? backgroundColor}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-            color: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
+            color: backgroundColor ?? AppDesign.textPrimaryDark.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+            border: Border.all(color: backgroundColor ?? AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -246,7 +264,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                       _buildActionButton(Icons.warning_amber_rounded, "ALERT", AppDesign.error, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
                       const SizedBox(width: 12),
                     ],
-                    _buildActionButton(Icons.picture_as_pdf_rounded, null, AppDesign.error, _generatePDF),
+                    _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.white, _generatePDF, backgroundColor: Colors.transparent),
                     const SizedBox(width: 12),
                     _buildActionButton(
                       _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
@@ -402,7 +420,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         const SizedBox(height: 16),
         _buildSurvivorRow(
           "☀️ " + AppLocalizations.of(context)!.plantNeedSun.toUpperCase(), 
-          surv.luminosidade['type']?.toString() ?? surv.luminosidade['tipo']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
+          _translateLuminosity(surv.luminosidade['type']?.toString() ?? surv.luminosidade['tipo']?.toString() ?? AppLocalizations.of(context)!.noInformation), 
           surv.luminosidade['explanation']?.toString() ?? surv.luminosidade['explicacao']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
           Colors.amber
         ),
@@ -470,15 +488,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
             ),
           ),
         ),
-        if (!widget.analysis.isHealthy) ...[
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: widget.onShop,
-            icon: const Icon(Icons.shopping_cart, color: AppDesign.backgroundDark),
-            label: Text(AppLocalizations.of(context)!.plantBuyTreatment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: AppDesign.backgroundDark)),
-            style: ElevatedButton.styleFrom(backgroundColor: _themeColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-          ),
-        ],
+
       ],
     );
   }
@@ -540,7 +550,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                _buildInfoLabel(AppLocalizations.of(context)!.plantMethod + ":", prop.metodo),
                _buildInfoLabel(AppLocalizations.of(context)!.plantDifficulty + ":", prop.dificuldade),
                const Divider(color: Colors.white12),
-               Text(AppLocalizations.of(context)!.plantStepByStep + ":", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: AppDesign.primary, fontSize: 12)),
+               Text(AppLocalizations.of(context)!.plantStepByStep + ":", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 12)),
                const SizedBox(height: 8),
                Text(prop.passoAPasso, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 13, height: 1.5)),
              ],
@@ -615,7 +625,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         children: [
           Row(
             children: [
-              Text(title, style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(title, style: GoogleFonts.poppins(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 14)),
               const Spacer(),
               _buildHardwareBadge(type, color),
             ],
@@ -648,7 +658,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
             children: [
               Icon(icon, color: color, size: 18),
               const SizedBox(width: 8),
-              Expanded(child: Text(title, style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 15), overflow: TextOverflow.ellipsis)),
+              Expanded(child: Text(title, style: GoogleFonts.poppins(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15), overflow: TextOverflow.ellipsis)),
             ],
           ),
           const SizedBox(height: 12),

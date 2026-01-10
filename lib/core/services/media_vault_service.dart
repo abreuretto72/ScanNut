@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../services/history_service.dart';
 import '../../features/plant/models/botany_history_item.dart';
 import '../../features/food/models/nutrition_history_item.dart';
+import '../../features/pet/services/pet_indexing_service.dart';
 
 /// 🔐 MEDIA VAULT SERVICE
 /// Responsible for secure, long-term storage of media assets.
@@ -190,6 +191,22 @@ class MediaVaultService {
       
       debugPrint('✅ Vault Secure Clone Success: ${destFile.path} ($length bytes)');
       
+      // 🧠 AUTOMATIC INDEXING (MARE Logic)
+      if (category == MediaVaultService.PETS_DIR && subFolder != null) {
+          try {
+              final indexer = PetIndexingService();
+              await indexer.indexVaultUpload(
+                  petId: subFolder,
+                  petName: subFolder,
+                  fileName: safeFilename,
+                  vaultPath: destFile.path,
+                  fileType: 'image/jpeg',
+              );
+          } catch (e) {
+              debugPrint('⚠️ Vault indexing failed: $e');
+          }
+      }
+
       // 🛡️ ATOMIC MIRRORING (PUBLIC BACKUP)
       try {
           ignoreErrors(() async {

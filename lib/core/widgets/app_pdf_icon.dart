@@ -14,7 +14,7 @@ class AppPdfIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Icon(
       Icons.picture_as_pdf_rounded,
-      color: color ?? Colors.red[700],
+      color: color ?? Colors.white,
       size: size,
     );
   }

@@ -137,4 +137,48 @@ class PartnerModel {
       'website': website,
     };
   }
+
+  PartnerModel copyWith({
+    String? id,
+    String? name,
+    String? cnpj,
+    String? category,
+    double? latitude,
+    double? longitude,
+    String? phone,
+    String? whatsapp,
+    String? instagram,
+    String? email,
+    String? address,
+    Map<String, dynamic>? openingHours,
+    double? rating,
+    List<String>? photos,
+    List<String>? specialties,
+    Map<String, dynamic>? metadata,
+    bool? isFavorite,
+    List<String>? teamMembers,
+    String? website,
+  }) {
+    return PartnerModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      cnpj: cnpj ?? this.cnpj,
+      category: category ?? this.category,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      phone: phone ?? this.phone,
+      whatsapp: whatsapp ?? this.whatsapp,
+      instagram: instagram ?? this.instagram,
+      email: email ?? this.email,
+      address: address ?? this.address,
+      openingHours: openingHours ?? this.openingHours,
+      rating: rating ?? this.rating,
+      photos: photos ?? this.photos,
+      specialties: specialties ?? this.specialties,
+      metadata: metadata ?? this.metadata,
+      isFavorite: isFavorite ?? this.isFavorite,
+      teamMembers: teamMembers ?? this.teamMembers,
+      website: website ?? this.website,
+    );
+  }
 }

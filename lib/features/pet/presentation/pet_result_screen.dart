@@ -18,6 +18,7 @@ import 'package:path/path.dart' as path;
 import '../../../core/theme/app_design.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/services/media_vault_service.dart';
+import '../services/pet_indexing_service.dart';
 
 final petResultProvider = StateProvider<PetAnalysisResult?>((ref) => null);
 
@@ -193,6 +194,21 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       final box = await HistoryService.getBox();
       if (box.isOpen) await box.flush();
       
+      // 🧠 AUTOMATIC INDEXING (MARE Logic)
+      try {
+        final indexer = PetIndexingService();
+        await indexer.indexAiAnalysis(
+          petId: profile.petName, // Using name as ID if no profile ID yet
+          petName: profile.petName,
+          analysisType: result.analysisType ?? 'Identificação',
+          resultId: DateTime.now().millisecondsSinceEpoch.toString(),
+          localizedTitle: AppLocalizations.of(context)!.petIndexing_aiTitle(result.analysisType ?? 'Identificação'),
+          localizedNotes: AppLocalizations.of(context)!.petIndexing_aiNotes,
+        );
+      } catch (e) {
+        debugPrint("⚠️ Indexing failed: $e");
+      }
+
       debugPrint("✅ Auto-Save completed for ${profile.petName}");
     } catch (e) {
       debugPrint("❌ Auto-Save failed: $e");

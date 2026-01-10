@@ -28,6 +28,11 @@ import '../../../nutrition/data/models/plan_day.dart';
 import '../../../nutrition/data/models/plan_day.dart';
 import '../../../core/theme/app_design.dart';
 import 'nutrition_history_screen.dart';
+import '../../../core/services/gemini_service.dart';
+import '../services/recipe_service.dart';
+import '../models/recipe_history_item.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'recipe_history_screen.dart';
 
 class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -53,6 +58,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   final Color _themeColor = AppDesign.foodOrange; // Orange Food Theme
 
   bool _isSaved = false;
+  late FoodAnalysisModel _analysis;
+  bool _isGeneratingRecipes = false;
 
   @override
   void initState() {
@@ -61,6 +68,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     _scrollController = ScrollController();
     if (widget.isReadOnly) {
       _isSaved = true;
+    }
+    _analysis = widget.analysis;
+    if (!widget.isReadOnly) {
+       _autoSaveRecipes();
     }
   }
 
@@ -80,7 +91,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               title: 'Análise Nutricional: ${widget.analysis.identidade.nome}',
               buildPdf: (format) async {
                 final pdf = await ExportService().generateFoodAnalysisReport(
-                  analysis: widget.analysis,
+                  analysis: _analysis,
                   imageFile: widget.imageFile,
                   strings: AppLocalizations.of(context)!,
                 );
@@ -117,7 +128,11 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               actions: [
                 PdfActionButton(
                   onPressed: _generatePDF,
-                  color: Colors.white,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.menu_book, color: Colors.orange),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecipeHistoryScreen())),
+                  tooltip: 'Receitas Salvas',
                 ),
                 IconButton(
                   icon: const Icon(Icons.check_circle, color: AppDesign.foodOrange), // Synced with Food Domain
@@ -171,9 +186,9 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                           _buildCalorieBadge(dailyGoal),
                           const SizedBox(height: 8),
                           Text(
-                            (widget.analysis.identidade.nome == 'UNKNOWN_FOOD')
+                            (_analysis.identidade.nome == 'UNKNOWN_FOOD')
                                 ? AppLocalizations.of(context)!.unknownFood
-                                : widget.analysis.identidade.nome
+                                : _analysis.identidade.nome
                                     .replaceAll('aproximadamente', '±')
                                     .replaceAll('Aproximadamente', '±'),
                             style: GoogleFonts.poppins(
@@ -285,7 +300,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           Icon(Icons.local_fire_department_rounded, color: _themeColor, size: 16),
           const SizedBox(width: 6),
           Text(
-            "${widget.analysis.macros.calorias100g} kcal / 100g",
+            "${_analysis.macros.calorias100g} kcal / 100g",
             style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ],
@@ -308,11 +323,11 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           const SizedBox(height: 24),
           Text(l10n.foodPros, style: _sectionTitleStyle),
           const SizedBox(height: 12),
-          ...widget.analysis.analise.pontosPositivos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.check_circle, AppDesign.foodOrange)),
+          ..._analysis.analise.pontosPositivos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.check_circle, AppDesign.foodOrange)),
           const SizedBox(height: 16),
           Text(l10n.foodCons, style: _sectionTitleStyle),
           const SizedBox(height: 12),
-          ...widget.analysis.analise.pontosNegativos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.warning_rounded, Colors.orangeAccent)),
+          ..._analysis.analise.pontosNegativos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.warning_rounded, Colors.orangeAccent)),
           const SizedBox(height: 20),
           Center(
             child: Padding(
@@ -329,7 +344,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   // --- TAB 2: SAÚDE ---
   Widget _buildSaudeTab() {
     final l10n = AppLocalizations.of(context)!;
-    final performance = widget.analysis.performance;
+    final performance = _analysis.performance;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -365,9 +380,9 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow("${l10n.foodCriticalAlerts}:", widget.analysis.identidade.alertaCritico),
+                _buildInfoRow("${l10n.foodCriticalAlerts}:", _analysis.identidade.alertaCritico),
                 const SizedBox(height: 10),
-                _buildInfoRow("${l10n.foodBioChem}:", widget.analysis.identidade.bioquimicaAlert),
+                _buildInfoRow("${l10n.foodBioChem}:", _analysis.identidade.bioquimicaAlert),
               ],
             ),
           ),
@@ -387,7 +402,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   // --- TAB 3: NUTRIENTES ---
   Widget _buildNutrientesTab() {
     final l10n = AppLocalizations.of(context)!;
-    final macros = widget.analysis.macros;
+    final macros = _analysis.macros;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -409,7 +424,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               children: [
                 Text(l10n.nutrientsMinerals, style: _sectionTitleStyle),
                 const SizedBox(height: 16),
-                ...widget.analysis.micronutrientes.lista.map((n) => _buildNutrientLinear(n)),
+                ..._analysis.micronutrientes.lista.map((n) => _buildNutrientLinear(n)),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -420,7 +435,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          "${l10n.nutrientsSynergy}: ${widget.analysis.micronutrientes.sinergiaNutricional}",
+                          "${l10n.nutrientsSynergy}: ${_analysis.micronutrientes.sinergiaNutricional}",
                           style: GoogleFonts.poppins(fontSize: 12, color: Colors.cyanAccent),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
@@ -458,9 +473,33 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.recipesQuick, style: _sectionTitleStyle),
+          Row(
+             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+             children: [
+                Text(l10n.recipesQuick, style: _sectionTitleStyle),
+                if (_isGeneratingRecipes)
+                  const SizedBox(
+                     width: 20, height: 20, 
+                     child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.orangeAccent))
+                  )
+                else
+                  IconButton(
+                     icon: const Icon(Icons.refresh_rounded, color: Colors.orangeAccent),
+                     onPressed: _generateMoreRecipes,
+                     tooltip: 'Gerar novas receitas',
+                     padding: EdgeInsets.zero,
+                     constraints: const BoxConstraints(),
+                  )
+             ],
+          ),
           const SizedBox(height: 16),
-          ...widget.analysis.receitas.map((r) => _buildRecipeCard(r)),
+          if (_isGeneratingRecipes)
+             Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Text('Consultando chef IA...', style: GoogleFonts.poppins(color: Colors.orangeAccent, fontSize: 12, fontStyle: FontStyle.italic)),
+             ),
+
+          ..._analysis.receitas.map((r) => _buildRecipeCard(r)),
           const SizedBox(height: 24),
           _buildGlassCard(
             title: l10n.recipesCulinaryIntel,
@@ -469,9 +508,9 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow("${l10n.foodPreservation}:", widget.analysis.gastronomia.preservacaoNutrientes),
+                _buildInfoRow("${l10n.foodPreservation}:", _analysis.gastronomia.preservacaoNutrientes),
                 const SizedBox(height: 16),
-                _buildInfoRow("${l10n.foodSmartSwap}:", widget.analysis.gastronomia.smartSwap),
+                _buildInfoRow("${l10n.foodSmartSwap}:", _analysis.gastronomia.smartSwap),
               ],
             ),
           ),
@@ -480,7 +519,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             title: l10n.recipesExpertTip,
             icon: Icons.lightbulb,
             color: Colors.amberAccent,
-            child: Text(widget.analysis.gastronomia.dicaEspecialista.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+            child: Text(_analysis.gastronomia.dicaEspecialista.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
           ),
           const SizedBox(height: 20),
           // Disclaimer
@@ -591,7 +630,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             children: [
               Icon(icon, color: color, size: 20),
               const SizedBox(width: 8),
-              Expanded(child: Text(title, style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)),
+              Expanded(child: Text(title, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)),
             ],
           ),
           const SizedBox(height: 16),
@@ -651,34 +690,28 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start, 
         children: [
-          Container(width: 4, height: 40, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+          Container(width: 4, height: 50, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: GoogleFonts.poppins(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
-                Row(
-                  children: [
-                    Flexible(
-                      flex: 2,
-                      child: Text(
-                        value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'),
-                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        detail,
-                        style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'),
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  detail,
+                  style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -735,7 +768,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   Future<void> _saveToHistory() async {
     try {
       await NutritionService().saveFoodAnalysis(
-        widget.analysis, 
+        _analysis, 
         widget.imageFile
       );
 
@@ -785,7 +818,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       if (todayPlan == null) return;
 
       final meal = ScanToNutritionMapper.createMealFromScan(
-        analysis: widget.analysis,
+        analysis: _analysis,
         tipo: tipo,
       );
 
@@ -847,6 +880,135 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   }
 
 
+
+  Future<void> _generateMoreRecipes() async {
+      setState(() {
+        _isGeneratingRecipes = true;
+      });
+
+      try {
+        final gemini = ref.read(geminiServiceProvider);
+        final fName = _analysis.identidade.nome;
+        
+        final prompt = """
+        Atue como um chef de cozinha criativo e saudável.
+        Gere 3 NOVAS e diferentes receitas rápidas (max 15 min) utilizando o ingrediente principal: ${fName}.
+        Responda na língua do utilizador (Português, Inglês ou Espanhol).
+        Seja criativo, fuja do óbvio.
+        Retorne APENAS um JSON válido com a seguinte estrutura estrita:
+        {
+          "receitas": [
+            {
+              "nome": "Nome do Prato",
+              "tempo_preparo": "15 min",
+              "instrucoes": "Passo 1, Passo 2..."
+            }
+          ]
+        }
+        """;
+
+        final responseMap = await gemini.generateTextContent(prompt);
+        
+        if (responseMap.containsKey('receitas') && responseMap['receitas'] is List) {
+           final List<dynamic> rawList = responseMap['receitas'];
+           final newRecipes = rawList.map((e) => ReceitaRapida.fromJson(e)).toList();
+
+           if (newRecipes.isNotEmpty) {
+             setState(() {
+               _analysis = FoodAnalysisModel(
+                  identidade: _analysis.identidade,
+                  macros: _analysis.macros,
+                  micronutrientes: _analysis.micronutrientes,
+                  analise: _analysis.analise,
+                  performance: _analysis.performance,
+                  gastronomia: _analysis.gastronomia,
+                  receitas: newRecipes,
+                  dicaEspecialista: _analysis.dicaEspecialista,
+               );
+             });
+             
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text('Receitas atualizadas! 🍳'), backgroundColor: AppDesign.foodOrange),
+             );
+
+             // ANTI-GRAVITY FORCE SAVE
+             try {
+               if (!Hive.isBoxOpen('recipe_history_box')) {
+                  await Hive.openBox<RecipeHistoryItem>('recipe_history_box');
+               }
+               final box = Hive.box<RecipeHistoryItem>('recipe_history_box');
+               for (var r in newRecipes) {
+                 final item = RecipeHistoryItem(
+                   id: "${DateTime.now().microsecondsSinceEpoch}_${r.nome.hashCode}",
+                   foodName: _analysis.identidade.nome,
+                   recipeName: r.nome,
+                   instructions: r.instrucoes,
+                   prepTime: r.tempoPreparo,
+                   timestamp: DateTime.now(),
+                 );
+                 await box.add(item);
+               }
+             } catch (e) {
+               debugPrint('❌ Force Save Failed: $e');
+             }
+
+             _autoSaveRecipes();
+           }
+        }
+
+      } catch (e) {
+        debugPrint('Erro ao gerar receitas: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text('Erro ao gerar receitas. Tente novamente.'), backgroundColor: Colors.red),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isGeneratingRecipes = false;
+          });
+        }
+      }
+  }
+
+  Future<void> _autoSaveRecipes() async {
+    // ANTI-GRAVITY FORCE SAVE (INITIAL LOAD)
+    try {
+      if (_analysis.receitas.isNotEmpty) {
+         if (!Hive.isBoxOpen('recipe_history_box')) {
+            await Hive.openBox<RecipeHistoryItem>('recipe_history_box');
+         }
+         final box = Hive.box<RecipeHistoryItem>('recipe_history_box');
+         
+         for (var r in _analysis.receitas) {
+           // Check duplication based on composite ID or content
+           final alreadyExists = box.values.any((i) => i.foodName == _analysis.identidade.nome && i.recipeName == r.nome);
+           
+           if (!alreadyExists) {
+               final item = RecipeHistoryItem(
+                 id: "${DateTime.now().microsecondsSinceEpoch}_${r.nome.hashCode}",
+                 foodName: _analysis.identidade.nome,
+                 recipeName: r.nome,
+                 instructions: r.instrucoes,
+                 prepTime: r.tempoPreparo,
+                 timestamp: DateTime.now(),
+               );
+               await box.add(item);
+               debugPrint('✅ Anti-Gravity: Recipe forced saved: ${r.nome}');
+           }
+         }
+      }
+    } catch (e) {
+      debugPrint('❌ Anti-Gravity Force Save Failed: $e');
+    }
+
+    try {
+      if (_analysis.receitas.isNotEmpty) {
+        await RecipeService().saveAuto(_analysis.receitas, _analysis.identidade.nome);
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error auto-saving recipes: $e');
+    }
+  }
 
   TextStyle get _sectionTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
 }

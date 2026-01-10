@@ -20,6 +20,8 @@ import '../../../../features/subscription/presentation/paywall_screen.dart';
 import '../../../../core/services/simple_auth_service.dart';
 import '../../../auth/presentation/login_screen.dart';
 import '../../../settings/privacy_policy_screen.dart';
+import '../../../settings/screens/data_archiving_screen.dart';
+
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({Key? key}) : super(key: key);
@@ -152,6 +154,18 @@ class AppDrawer extends ConsumerWidget {
 
                   _buildMenuItem(
                     context,
+                    icon: Icons.storage,
+                    title: 'Gerenciador de Dados',
+                    subtitle: 'Backup, Limpeza e Arquivos',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const DataManagerScreen()));
+                    },
+                  ),
+
+
+                  _buildMenuItem(
+                    context,
                     icon: Icons.help_outline,
                     title: l10n.menuHelp,
                     subtitle: l10n.menuHelpSubtitle,
@@ -245,8 +259,9 @@ class AppDrawer extends ConsumerWidget {
     required String subtitle,
     required VoidCallback onTap,
     bool isDestructive = false,
+    Color? customColor,
   }) {
-    final color = isDestructive ? AppDesign.error : AppDesign.accent;
+    final color = customColor ?? (isDestructive ? AppDesign.error : AppDesign.accent);
     
     return ListTile(
       leading: Container(
@@ -465,6 +480,40 @@ class AppDrawer extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Introductory Message
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: AppDesign.backgroundDark,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.format_quote_rounded, color: AppDesign.accent, size: 28),
+                    const SizedBox(height: 12),
+                    Text(
+                      "O nome deste app é uma homenagem ao meu pet, o Nut. Minha ideia era criar uma ferramenta que fizesse a gestão completa da vida dele, desde a organização da rotina até a elaboração de cardápios saudáveis.\n\n"
+                      "No dia a dia, o ScanNut me ajuda a registrar cada ocorrência. Para os exames de fezes, urina e sangue, utilizo a IA para obter as primeiras impressões através da análise de imagens — um suporte tecnológico que sempre compartilho com o veterinário. Além disso, incluí um guia de plantas para identificar espécies tóxicas e garantir a segurança dele.\n\n"
+                      "Pensando na minha própria saúde, adicionei o Scan de Comidas para monitorar calorias, vitaminas e gerar cardápios com listas de compras. Sinto que, agora, o app ficou completo para nós dois.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: AppDesign.textSecondaryDark,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.justify,
+                    ),
+                    const SizedBox(height: 12),
+                    const Align(
+                      alignment: Alignment.centerRight,
+                      child: Text("- Abreu", style: TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold, fontSize: 12)),
+                    )
+                  ],
+                ),
+              ),
+
               // Welcome
               Container(
                 padding: const EdgeInsets.all(16),

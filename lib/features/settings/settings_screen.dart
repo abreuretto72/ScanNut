@@ -25,6 +25,9 @@ import 'screens/diagnostics_screen.dart';
 import 'screens/auth_certificates_screen.dart';
 import 'screens/change_password_screen.dart';
 import '../../core/services/media_vault_service.dart';
+import '../../features/pet/models/pet_event.dart';
+import '../../features/pet/services/pet_event_service.dart';
+import 'screens/data_archiving_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -235,8 +238,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                 // Section C: Backup
                 _buildSectionHeader('Backup e Dados', Icons.cloud_sync),
-                // Local Backup Widget is custom, let's wrap it in a card style if possible or leave as is
-                // For valid visual consistency, we wrap:
                 Container(
                    decoration: BoxDecoration(
                       color: AppDesign.surfaceDark,
@@ -246,93 +247,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
 
 
+
                 const SizedBox(height: 24),
-
-
-                // Section D: Danger Zone
-                _buildSectionHeader(l10n.settingsDangerZone, Icons.warning_amber, color: AppDesign.error),
-
-                Container(
-                   decoration: BoxDecoration(
-                      color: AppDesign.error.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppDesign.error.withOpacity(0.2)),
-                   ),
-                   child: Column(
-                      children: [
-                         _buildDangerTile(
-                            title: l10n.settingsDeletePets,
-                            subtitle: l10n.settingsDeletePetsSubtitle,
-                            onTap: () => _confirmDeleteAction('Pets', () async {
-                                final historyService = ref.read(historyServiceProvider);
-                                await historyService.clearAllPets();
-                                
-                                // 💣 ATOMIC CLEANUP: Physically delete all pet media
-                                await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
-                                await MediaVaultService().clearDomain(MediaVaultService.WOUNDS_DIR);
-                                
-                                // Reset specific pet boxes not covered by clearAllPets (if any)
-                                final petSpecificBoxes = ['box_pets_master', 'pet_health_records', 'weekly_meal_plans', 'pet_events', 'vaccine_status'];
-                                for(var b in petSpecificBoxes) {
-                                  if (Hive.isBoxOpen(b)) await Hive.box(b).clear();
-                                  else await Hive.deleteBoxFromDisk(b);
-                                }
-                                
-                                // Invalidate relevant providers
-                                ref.invalidate(vaccineStatusServiceProvider);
-                                ref.invalidate(petEventServiceProvider);
-                                ref.invalidate(partnerServiceProvider);
-                            }),
-                         ),
-                         const Divider(height: 1, color: Colors.white10),
-                         _buildDangerTile(
-                            title: l10n.settingsDeletePlants,
-                            subtitle: l10n.settingsDeletePlantsSubtitle,
-                            onTap: () => _confirmDeleteAction('Plantas', () async {
-                               final historyService = ref.read(historyServiceProvider);
-                               await historyService.clearAllPlants(); // Clears legacy
-                               await BotanyService().clearAll(); // Clears Box
-                               await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR); // Clears Vault Images
-                               debugPrint('🧹 Zona de Perigo: Histórico de Plantas APAGADO (Hive + Arquivos)');
-                            }),
-                         ),
-                         const Divider(height: 1, color: Colors.white10),
-                         _buildDangerTile(
-                            title: l10n.settingsDeleteFood,
-                            subtitle: l10n.settingsDeleteFoodSubtitle,
-                             onTap: () => _confirmDeleteAction('Alimentos', () async {
-                                final historyService = ref.read(historyServiceProvider);
-                                await historyService.clearAllFood(); // Clears Box
-                                await NutritionService().clearAllFood(); // Clears Nutrition Box
-                                await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR); // Clears Vault Images
-                                
-                                // Invalidate nutrition/food providers to clear RAM cache
-                                ref.invalidate(nutritionProfileProvider);
-                                ref.invalidate(weeklyPlanHistoryProvider);
-                                ref.invalidate(currentWeekPlanProvider);
-                                ref.invalidate(mealLogsProvider);
-                                ref.invalidate(shoppingListProvider);
-                                debugPrint('🧹 Zona de Perigo: Histórico de Comida APAGADO (Hive + Arquivos)');
-                            }),
-                         ),
-                         const Divider(height: 1, color: Colors.white10),
-                         _buildDangerTile(
-                            title: l10n.settingsClearPartners,
-                            subtitle: l10n.settingsClearPartnersSubtitle,
-                            onTap: () => _confirmDeleteAction('Parceiros', () async {
-                                ref.read(partnerServiceProvider).clearAllPartners();
-                            }),
-                         ),
-                         const Divider(height: 1, color: Colors.white10),
-                         _buildDangerTile(
-                            title: l10n.deleteAccount,
-                            subtitle: l10n.menuDeleteAccountSubtitle,
-                            isLast: true,
-                            onTap: () => _confirmDeleteAction('CONTA COMPLETA', () => _performFactoryReset()),
-                         ),
-                      ],
-                   ),
-                ),
                 
                 const SizedBox(height: 16),
                 
@@ -399,7 +315,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                             const Divider(height: 1, color: Colors.white10),
                             ListTile(
-                               leading: const Icon(Icons.delete_sweep, color: Colors.purple),
+                               leading: const Icon(Icons.delete_sweep, color: Colors.red),
                                title: Text('Resetar Sessão + Onboarding', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
                                onTap: () async {
                                   final prefs = await SharedPreferences.getInstance();
@@ -560,7 +476,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.delete_forever, color: AppDesign.error),
+            const Icon(Icons.delete_forever, color: Colors.red),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -687,5 +603,131 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       },
     );
     await UserProfileService().saveProfile(profile);
+  }
+
+  // --- Segmented Delete UI Helpers ---
+
+  Widget _buildDomainDeleteCard({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required List<Widget> actions,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppDesign.surfaceDark,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          ...actions,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteAction({required String label, required VoidCallback onTap, bool isDestructive = false}) {
+    return ListTile(
+      title: Text(label, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 14)),
+      trailing: Icon(Icons.delete_outline, color: isDestructive ? Colors.red : AppDesign.textSecondaryDark, size: 20),
+      onTap: onTap,
+    );
+  }
+
+  // --- Logic Helpers ---
+
+  Future<void> _clearBox(String boxName) async {
+    try {
+      if (Hive.isBoxOpen(boxName)) {
+        await Hive.box(boxName).clear();
+      } else {
+        await Hive.deleteBoxFromDisk(boxName);
+      }
+      debugPrint('🧹 Box wiped: $boxName');
+    } catch (e) {
+      debugPrint('⚠️ Error clearing box $boxName: $e');
+    }
+  }
+
+  Future<void> _clearHistoryByMode(String mode) async {
+    try {
+      final boxName = 'scannut_history';
+      Box box;
+      if (Hive.isBoxOpen(boxName)) {
+        box = Hive.box(boxName);
+      } else {
+        box = await Hive.openBox(boxName, encryptionCipher: SimpleAuthService().encryptionCipher);
+      }
+
+      final keysToDelete = <dynamic>[];
+      for (var key in box.keys) {
+        final val = box.get(key);
+        if (val is Map && val['mode'] == mode) {
+          keysToDelete.add(key);
+        }
+      }
+      await box.deleteAll(keysToDelete);
+      debugPrint('🧹 Cleared ${keysToDelete.length} history items for mode: $mode');
+    } catch (e) {
+      debugPrint('⚠️ Error clearing history by mode: $e');
+    }
+  }
+
+  Future<void> _clearJournalByGroup(List<String> groups) async {
+    try {
+      final boxName = 'pet_events_journal';
+      Box box;
+      // We might need to register adapters if opening raw, but usually main.dart handles it.
+      // If box is closed, opening it generic might fail if adapters are missing.
+      // Assuming modules initialized it or we can try catch.
+      if (Hive.isBoxOpen(boxName)) {
+        box = Hive.box(boxName);
+      } else {
+        box = await Hive.openBox(boxName); // No cipher? Pet repo used cipher usually? 
+        // PetEventRepo uses cipher if provided. Let's assume standard auth cipher if needed.
+        // Actually PetEventRepo init passes cipher. Let's try simple open first.
+      }
+
+      final keysToDelete = <dynamic>[];
+      for (var key in box.keys) {
+        final val = box.get(key);
+        // val is PetEventModel usually.
+        // If we can't access model properties easily without casting to generic, we check via dynamic
+        try {
+           final g = (val as dynamic).group; 
+           if (groups.contains(g)) {
+             keysToDelete.add(key);
+           }
+        } catch (_) {
+           // Fallback for Map
+           if (val is Map && groups.contains(val['group'])) {
+             keysToDelete.add(key);
+           }
+        }
+      }
+      await box.deleteAll(keysToDelete);
+      debugPrint('🧹 Cleared ${keysToDelete.length} journal items for groups: $groups');
+    } catch (e) {
+      debugPrint('⚠️ Error clearing journal by group: $e');
+    }
   }
 }

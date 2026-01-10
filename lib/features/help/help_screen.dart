@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/theme/app_design.dart';
 
 /// Help screen with comprehensive app documentation
 class HelpScreen extends StatelessWidget {
@@ -30,6 +31,40 @@ class HelpScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Introductory Message from Creator
+          Container(
+            padding: const EdgeInsets.all(20),
+            margin: const EdgeInsets.only(bottom: 24),
+            decoration: BoxDecoration(
+              color: AppDesign.surfaceDark,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.format_quote_rounded, color: AppDesign.accent, size: 32),
+                const SizedBox(height: 12),
+                Text(
+                  "O nome deste app é uma homenagem ao meu pet, o Nut. Minha ideia era criar uma ferramenta que fizesse a gestão completa da vida dele, desde a organização da rotina até a elaboração de cardápios saudáveis.\n\n"
+                  "No dia a dia, o ScanNut me ajuda a registrar cada ocorrência. Para os exames de fezes, urina e sangue, utilizo a IA para obter as primeiras impressões através da análise de imagens — um suporte tecnológico que sempre compartilho com o veterinário. Além disso, incluí um guia de plantas para identificar espécies tóxicas e garantir a segurança dele.\n\n"
+                  "Pensando na minha própria saúde, adicionei o Scan de Comidas para monitorar calorias, vitaminas e gerar cardápios com listas de compras. Sinto que, agora, o app ficou completo para nós dois.",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.white70,
+                    height: 1.6,
+                  ),
+                  textAlign: TextAlign.justify,
+                ),
+                const SizedBox(height: 12),
+                const Align(
+                  alignment: Alignment.centerRight,
+                  child: Text("- Abreu", style: TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold)),
+                )
+              ],
+            ),
+          ),
+          
           _buildWelcomeCard(l10n),
           const SizedBox(height: 24),
           
@@ -121,7 +156,7 @@ class HelpScreen extends StatelessWidget {
             title: l10n.helpMenuPdfTitle,
             description: l10n.helpMenuPdfDesc,
             icon: Icons.picture_as_pdf,
-            color: Colors.purpleAccent,
+            color: AppDesign.primary,
           ),
           const SizedBox(height: 12),
           _buildHelpCard(
@@ -311,10 +346,14 @@ class HelpScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
+              color: (icon == Icons.picture_as_pdf || icon == Icons.picture_as_pdf_rounded) ? Colors.transparent : color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(
+              icon, 
+              color: (icon == Icons.picture_as_pdf || icon == Icons.picture_as_pdf_rounded) ? Colors.white : color, 
+              size: 24
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(

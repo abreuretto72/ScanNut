@@ -182,12 +182,12 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: Colors.grey[800],
+                  color: isPdf ? AppDesign.primary : Colors.grey[800],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   isPdf ? Icons.picture_as_pdf_rounded : Icons.image,
-                  color: isPdf ? Colors.red : Colors.blueAccent,
+                  color: isPdf ? Colors.white : Colors.blueAccent,
                   size: 28,
                 ),
               ),
@@ -243,9 +243,9 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                        Icon(Icons.delete, color: Colors.red, size: 18),
                         SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.redAccent)),
+                        Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),

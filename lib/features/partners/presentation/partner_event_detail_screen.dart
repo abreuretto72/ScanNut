@@ -200,13 +200,13 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
         actions: [
           if (_partner != null)
             IconButton(
-              icon: const Icon(Icons.edit, color: AppDesign.accent),
+              icon: const Icon(Icons.edit, color: AppDesign.petPink),
               onPressed: () => _openEditModal(),
             ),
         ],
       ),
       body: _isLoading 
-          ? const Center(child: CircularProgressIndicator(color: AppDesign.accent))
+          ? const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -216,7 +216,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                   Text(
                     AppLocalizations.of(context)!.agendaAppointmentDetails,
                     style: GoogleFonts.poppins(
-                      color: AppDesign.accent,
+                      color: AppDesign.petPink,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -230,7 +230,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                   Text(
                       AppLocalizations.of(context)!.agendaResponsiblePartner,
                     style: GoogleFonts.poppins(
-                      color: AppDesign.accent,
+                      color: AppDesign.petPink,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -257,9 +257,9 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                               label: Text(AppLocalizations.of(context)!.agendaMarkCompleted),
                               style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.white10,
-                                  foregroundColor: AppDesign.accent,
+                                  foregroundColor: AppDesign.petPink,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppDesign.accent)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppDesign.petPink)),
                               ),
                       ),
                     ),
@@ -357,13 +357,13 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
              },
              child: Row(
                children: [
-                  const Icon(Icons.pets, color: AppDesign.accent, size: 18),
+                  const Icon(Icons.pets, color: AppDesign.petPink, size: 18),
                   const SizedBox(width: 8),
                   const Text('Pet: ', style: TextStyle(color: AppDesign.textSecondaryDark)),
                  Expanded(
                    child: Text(
                         '${_event.petName} ${AppLocalizations.of(context)!.agendaViewProfile}', 
-                       style: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)
+                       style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, decoration: TextDecoration.underline)
                    ),
                  ),
                ],
@@ -390,7 +390,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white10,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0x4D5E4B6B)),
+        border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -406,7 +406,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
            const SizedBox(height: 4),
            Text(
              _partner!.specialties.isNotEmpty ? _partner!.specialties.join(', ') : _partner!.category,
-              style: const TextStyle(color: AppDesign.accent),
+              style: const TextStyle(color: AppDesign.petPink),
            ),
            const SizedBox(height: 8),
 
@@ -423,12 +423,12 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                child: Row(
                  mainAxisSize: MainAxisSize.min,
                  children: [
-                    const Icon(Icons.info_outline, color: AppDesign.accent, size: 14),
+                    const Icon(Icons.info_outline, color: AppDesign.petPink, size: 14),
                     const SizedBox(width: 6),
                       Text(
                         AppLocalizations.of(context)!.agendaViewRegistration,
                       style: GoogleFonts.poppins(
-                          color: AppDesign.accent,
+                          color: AppDesign.petPink,
                           fontSize: 12, 
                           decoration: TextDecoration.underline
                       ),

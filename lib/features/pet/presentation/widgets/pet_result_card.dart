@@ -1119,13 +1119,14 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: _generatePDF,
-                icon: const Icon(Icons.picture_as_pdf_rounded),
-                label: Text(l10n.commonShare),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppDesign.petPink,
-                  side: const BorderSide(color: AppDesign.petPink),
+                icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white),
+                label: Text(l10n.commonShare, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppDesign.primary,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),

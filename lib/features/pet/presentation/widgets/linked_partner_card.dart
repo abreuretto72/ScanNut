@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/models/partner_model.dart';
+import '../../services/pet_indexing_service.dart';
 
 // Private widget extracted to be public/reusable if needed, 
 // but currently just moved to reduce file size.
@@ -12,6 +13,8 @@ class LinkedPartnerCard extends StatefulWidget {
   final VoidCallback onUnlink;
   final Function(PartnerModel) onUpdate;
   final VoidCallback onOpenAgenda;
+  final String? petId;
+  final String? petName;
 
   const LinkedPartnerCard({
     Key? key,
@@ -19,6 +22,8 @@ class LinkedPartnerCard extends StatefulWidget {
     required this.onUnlink,
     required this.onUpdate,
     required this.onOpenAgenda,
+    this.petId,
+    this.petName,
   }) : super(key: key);
 
   @override
@@ -107,6 +112,28 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
                              ],
                          ),
                      ),
+                     IconButton(
+                        icon: Icon(
+                          widget.partner.isFavorite ? Icons.star : Icons.star_border,
+                          color: widget.partner.isFavorite ? Colors.amber : Colors.white24,
+                        ),
+                        onPressed: () {
+                          final updated = widget.partner.copyWith(isFavorite: !widget.partner.isFavorite);
+                          widget.onUpdate(updated);
+                          
+                          if (updated.isFavorite && widget.petId != null) {
+                            PetIndexingService().indexPartnerInteraction(
+                              petId: widget.petId!,
+                              petName: widget.petName ?? 'Pet',
+                              partnerName: widget.partner.name,
+                              partnerId: widget.partner.id,
+                              interactionType: 'favorited',
+                              localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerFavorited(widget.partner.name),
+                              localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                            );
+                          }
+                        },
+                     ),
                      Column(
                        children: [
                          Switch(
@@ -129,6 +156,18 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
                      // Launch Maps
                      // Geouri
                      _launch('geo', '${widget.partner.latitude},${widget.partner.longitude}?q=${Uri.encodeComponent(widget.partner.address)}');
+                     
+                     if (widget.petId != null) {
+                        PetIndexingService().indexPartnerInteraction(
+                          petId: widget.petId!,
+                          petName: widget.petName ?? 'Pet',
+                          partnerName: widget.partner.name,
+                          partnerId: widget.partner.id,
+                          interactionType: 'contacted',
+                          localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerContacted(widget.partner.name),
+                          localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                        );
+                     }
                  },
                  child: Row(
                      crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,13 +220,39 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
                          icon: Icons.phone, 
                          color: AppDesign.petPink, 
                          label: AppLocalizations.of(context)!.petPartnersCall, 
-                         onTap: () => _launch('tel', widget.partner.phone)
+                         onTap: () {
+                            _launch('tel', widget.partner.phone);
+                            if (widget.petId != null) {
+                              PetIndexingService().indexPartnerInteraction(
+                                petId: widget.petId!,
+                                petName: widget.petName ?? 'Pet',
+                                partnerName: widget.partner.name,
+                                partnerId: widget.partner.id,
+                                interactionType: 'contacted',
+                                localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerContacted(widget.partner.name),
+                                localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                              );
+                            }
+                         }
                      ),
                      _ActionIcon(
                          icon: Icons.event_note, 
                          color: Colors.amberAccent, 
                          label: AppLocalizations.of(context)!.petPartnersSchedule, 
-                         onTap: widget.onOpenAgenda,
+                         onTap: () {
+                            widget.onOpenAgenda();
+                            if (widget.petId != null) {
+                              PetIndexingService().indexPartnerInteraction(
+                                petId: widget.petId!,
+                                petName: widget.petName ?? 'Pet',
+                                partnerName: widget.partner.name,
+                                partnerId: widget.partner.id,
+                                interactionType: 'scheduled',
+                                localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerScheduled(widget.partner.name),
+                                localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                              );
+                            }
+                         },
                          isHighlighted: true,
                      ),
                  ],

@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.5.2  
+**Versão:** 1.5.3  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -40,10 +40,23 @@ Lista de compras
 - ☁️ **NOVO:** Backup automático no Google Drive
 - 🖨️ **NOVO:** PDFs otimizados para impressão econômica (preto e branco)
 - 🤖 **NOVO:** Análise Inteligente de Anexos (Visual e OCR)
+- 🔗 **NOVO:** Pet Indexing Engine (Deep Links & Timeline Automática)
 
 ---
 
-## ✨ **NOVIDADES DA VERSÃO 1.5.2**
+## ✨ **NOVIDADES DA VERSÃO 1.5.3**
+
+### **🛠️ Gestão de Dados e QA (Novo)**
+- **Danger Zone ("Deep Clean"):**
+  - 🗑️ **Limpeza Atômica:** Remoção total e segura de dados por domínio (Food, Plants, Pets).
+  - 📂 **Wipe Físico:** Exclusão recursiva de arquivos e pastas legadas do dispositivo.
+  - 📊 **Feedback Real:** Atualização imediata do espaço liberado (MB).
+- **Data Seeder V52 (Modo Desenvolvedor):**
+  - 🧪 **Injeção de Teste:** Geração automática de massa de dados (Pets, Eventos, Histórico).
+  - 🆔 **IDs Determinísticos:** Garantia de integridade para testes de regressão (Thor/Luna).
+  - 📅 **Cenários Temporais:** Eventos retroativos (2025) e atuais (2026) para validação de filtros.
+
+### **✨ Novidades Anteriores (1.5.2)**
 
 ### **🤖 Inteligência Híbrida (Novo)**
 - **Análise de Anexos (Dual Mode):**

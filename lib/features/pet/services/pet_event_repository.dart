@@ -5,6 +5,7 @@ import '../models/pet_event_model.dart';
 import '../models/attachment_model.dart';
 import '../models/pet_event.dart';
 import 'pet_event_service.dart';
+import 'pet_indexing_service.dart';
 
 class PetEventRepository {
   static final PetEventRepository _instance = PetEventRepository._internal();
@@ -67,6 +68,8 @@ class PetEventRepository {
     }
   }
 
+  Box<PetEventModel> get box => _openBox;
+
   Box<PetEventModel> get _openBox {
     if (_box == null || !_box!.isOpen) {
       throw Exception('PetEventRepository not initialized. Call init() first.');
@@ -84,6 +87,29 @@ class PetEventRepository {
 
       // 🔄 MIRROR TO GLOBAL AGENDA
       await _mirrorToAgenda(event);
+
+      // 🧠 AUTOMATIC INDEXING (MUO Logic)
+      // If the event is NOT an automatic index (differentiated by idx_ prefix), we index it
+      if (!event.id.startsWith('idx_')) {
+          try {
+              final indexer = PetIndexingService();
+              // Don't await to avoid recursive loop if indexing engine uses repository (which it does)
+              // But we have the 'idx_' check to prevent loop.
+              await indexer.indexOccurrence(
+                  petId: event.petId,
+                  petName: event.petId, // Defaulting to ID as Name
+                  group: event.group,
+                  title: event.title,
+                  notes: event.notes,
+                  extraData: {
+                    'original_event_id': event.id,
+                    'type': event.type,
+                  },
+              );
+          } catch (e) {
+              debugPrint('⚠️ Occurrence indexing failed: $e');
+          }
+      }
     } catch (e) {
       debugPrint('❌ PET_EVENTS: Save error: $e');
       rethrow;

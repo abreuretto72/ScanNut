@@ -1393,6 +1393,39 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get pdfEstablishment => 'Estabelecimento';
+
+  @override
+  String get pdfFieldCategory => 'Categoria';
+
+  @override
+  String get pdfPhone => 'Telefone';
+
+  @override
+  String get pdfRating => 'Avaliação';
+
+  @override
+  String get pdfStars => 'Estrelas';
+
+  @override
+  String get pdfStatus => 'Status';
+
+  @override
+  String get pdfTotalFound => 'Total Encontrado';
+
+  @override
+  String get pdfRegion => 'Região';
+
+  @override
+  String get pdfPartnersGuide => 'Guia de Parceiros';
+
+  @override
+  String get distanceLabel => 'Distância';
+
+  @override
+  String get ratingLabel => 'Avaliação';
+
+  @override
   String get nutritionMgmtTitle => 'Gestão de Nutrição';
 
   @override
@@ -2830,9 +2863,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfMetric => 'Métrica';
 
   @override
-  String get pdfStatus => 'Status';
-
-  @override
   String get pdfWeightControl => 'Controle de Peso';
 
   @override
@@ -2876,30 +2906,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pdfFieldPet => 'Pet';
-
-  @override
-  String get pdfFieldCategory => 'Categoria';
-
-  @override
-  String get pdfPartnersGuide => 'Guia de Parceiros';
-
-  @override
-  String get pdfRegion => 'Região';
-
-  @override
-  String get pdfTotalFound => 'Total Encontrado';
-
-  @override
-  String get pdfEstablishment => 'Estabelecimento';
-
-  @override
-  String get pdfPhone => 'Telefone';
-
-  @override
-  String get pdfRating => 'Avaliação';
-
-  @override
-  String get pdfStars => 'Estrelas';
 
   @override
   String get pdfAgendaToday => 'Hoje';
@@ -5493,6 +5499,65 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get petActionSharePDF => 'Compartilhar PDF';
+
+  @override
+  String petIndexing_aiTitle(Object type) {
+    return 'Análise de IA: $type';
+  }
+
+  @override
+  String get petIndexing_aiNotes =>
+      'Análise clínica gerada por Inteligência Artificial.';
+
+  @override
+  String petIndexing_occurrenceTitle(Object title) {
+    return 'Ocorrência: $title';
+  }
+
+  @override
+  String petIndexing_agendaTitle(Object attendant, Object pet) {
+    return '$attendant + $pet';
+  }
+
+  @override
+  String petIndexing_partnerFavorited(Object name) {
+    return 'Parceiro Favoritado: $name';
+  }
+
+  @override
+  String petIndexing_partnerScheduled(Object name) {
+    return 'Interação agendada com $name';
+  }
+
+  @override
+  String petIndexing_partnerContacted(Object name) {
+    return 'Contato via WhatsApp/GPS: $name';
+  }
+
+  @override
+  String petIndexing_partnerLinked(Object name) {
+    return 'Parceiro vinculado ao perfil: $name';
+  }
+
+  @override
+  String get petIndexing_partnerInteractionNotes =>
+      'Interação registrada via Radar Geo.';
+
+  @override
+  String petIndexing_vaultTitle(Object name) {
+    return 'Arquivo: $name';
+  }
+
+  @override
+  String get petIndexing_vaultNotes => 'Documento indexado no Media Vault.';
+
+  @override
+  String get petEvent_tapToViewDetails => 'Toque para ver detalhes';
+
+  @override
+  String petIndexing_taskCompleted(Object task) {
+    return 'Tarefa concluída: $task';
+  }
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).

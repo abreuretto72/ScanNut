@@ -17,6 +17,7 @@ import '../../pet/services/pet_event_service.dart';
 import '../../pet/models/pet_event.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
+import '../../../core/widgets/pdf_action_button.dart';
 import './widgets/add_event_modal.dart';
 
 class PartnerAgendaScreen extends StatefulWidget {
@@ -273,14 +274,14 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                   value: 'Resumo',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
-                  activeColor: AppDesign.accent,
+                  activeColor: AppDesign.petPink,
                 ),
                 RadioListTile<String>(
                   title: Text(AppLocalizations.of(context)!.agendaReportDetail, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                   value: 'Detalhamento',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
-                  activeColor: AppDesign.accent,
+                  activeColor: AppDesign.petPink,
                 ),
               ],
             ),
@@ -330,7 +331,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                   );
                 }
               },
-              child: Text(AppLocalizations.of(context)!.agendaGeneratePDF, style: const TextStyle(color: AppDesign.accent)),
+              child: Text(AppLocalizations.of(context)!.agendaGeneratePDF, style: const TextStyle(color: AppDesign.petPink)),
             ),
           ],
         ),
@@ -359,10 +360,9 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: AppDesign.textPrimaryDark),
-            tooltip: AppLocalizations.of(context)!.menuExportReport,
+          PdfActionButton(
             onPressed: _showExportDialog,
+            tooltip: AppLocalizations.of(context)!.menuExportReport,
           ),
         ],
       ),
@@ -398,8 +398,8 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                   titleCentered: true,
                   formatButtonVisible: false,
                   titleTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 16, fontWeight: FontWeight.bold),
-                  leftChevronIcon: const Icon(Icons.chevron_left, color: AppDesign.accent),
-                  rightChevronIcon: const Icon(Icons.chevron_right, color: AppDesign.accent),
+                  leftChevronIcon: const Icon(Icons.chevron_left, color: AppDesign.petPink),
+                  rightChevronIcon: const Icon(Icons.chevron_right, color: AppDesign.petPink),
                 ),
                 daysOfWeekStyle: const DaysOfWeekStyle(
                   weekendStyle: TextStyle(color: AppDesign.textSecondaryDark),
@@ -410,7 +410,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                   weekendTextStyle: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
                   todayTextStyle: GoogleFonts.poppins(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold),
                   todayDecoration: const BoxDecoration(
-                    color: AppDesign.accent,
+                    color: AppDesign.petPink,
                     shape: BoxShape.circle,
                   ),
                   selectedTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
@@ -467,8 +467,8 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddEventModal,
-        backgroundColor: AppDesign.accent,
-        child: const Icon(Icons.add, color: AppDesign.backgroundDark),
+        backgroundColor: AppDesign.petPink,
+        child: const Icon(Icons.add, color: Colors.black),
       ),
     );
   }
@@ -499,7 +499,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                  width: 12, height: 12,
                  decoration: BoxDecoration(
                    color: AppDesign.backgroundDark,
-                   border: Border.all(color: AppDesign.accent, width: 2),
+                   border: Border.all(color: AppDesign.petPink, width: 2),
                    shape: BoxShape.circle,
                  ),
                ),
@@ -533,7 +533,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                           children: [
                             Text(
                               DateFormat('HH:mm').format(date),
-                              style: GoogleFonts.poppins(color: AppDesign.accent, fontWeight: FontWeight.bold, fontSize: 16),
+                              style: GoogleFonts.poppins(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                           ],
                         ),

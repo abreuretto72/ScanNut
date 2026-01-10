@@ -16,11 +16,20 @@ import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/auth_trace_logger.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_design.dart';
+import './widgets/radar_export_filter_modal.dart';
+import '../../pet/services/pet_indexing_service.dart';
 
 class PartnersHubScreen extends ConsumerStatefulWidget {
   final bool isSelectionMode;
+  final String? petId;
+  final String? petName;
 
-  const PartnersHubScreen({Key? key, this.isSelectionMode = false}) : super(key: key);
+  const PartnersHubScreen({
+    Key? key, 
+    this.isSelectionMode = false,
+    this.petId,
+    this.petName,
+  }) : super(key: key);
 
   @override
   ConsumerState<PartnersHubScreen> createState() => _PartnersHubScreenState();
@@ -90,7 +99,11 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PartnerRegistrationScreen(initialData: partner),
+              builder: (context) => PartnerRegistrationScreen(
+                initialData: partner,
+                petId: widget.petId,
+                petName: widget.petName,
+              ),
             ),
           );
           if (result == true) _loadPartners(); // Updated call
@@ -318,7 +331,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             child: _buildFilterBar(),
           ),
           if (_loading)
-            const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppDesign.accent)))
+            const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppDesign.petPink)))
           else if (_filteredPartners.isEmpty)
             _buildEmptyState()
           else
@@ -337,9 +350,9 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
           ? null
           : FloatingActionButton.extended(
         onPressed: _openManualRegistration,
-        backgroundColor: AppDesign.accent,
-        icon: const Icon(Icons.add, color: AppDesign.backgroundDark),
-        label: Text(AppLocalizations.of(context)!.partnersRegister, style: GoogleFonts.poppins(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold)),
+        backgroundColor: AppDesign.petPink,
+        icon: const Icon(Icons.add, color: Colors.black),
+        label: Text(AppLocalizations.of(context)!.partnersRegister, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -359,13 +372,13 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
             child: FilterChip(
               selected: isSelected,
               label: Text(category, style: GoogleFonts.poppins(
-                color: isSelected ? AppDesign.backgroundDark : AppDesign.textPrimaryDark,
+                color: isSelected ? Colors.black : AppDesign.textPrimaryDark,
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               )),
               backgroundColor: Colors.white10,
-              selectedColor: AppDesign.accent,
-              checkmarkColor: AppDesign.backgroundDark,
+              selectedColor: AppDesign.petPink,
+              checkmarkColor: Colors.black,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               onSelected: (selected) {
                 setState(() => _selectedCategory = category);
@@ -415,7 +428,11 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PartnerRegistrationScreen(initialData: partner),
+                  builder: (context) => PartnerRegistrationScreen(
+                    initialData: partner,
+                    petId: widget.petId,
+                    petName: widget.petName,
+                  ),
                 ),
               );
               if (result == true) _loadPartners(); // Updated call
@@ -426,16 +443,57 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
         title: Text(partner.name, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.w600)),
         subtitle: Text(partner.category, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
         trailing: widget.isSelectionMode
-            ? const Icon(Icons.check_circle_outline, color: AppDesign.accent)
-            : IconButton(
-                icon: const Icon(Icons.chat_bubble_outline, color: AppDesign.accent),
-                onPressed: () {
-                    WhatsAppService.abrirChat(
-                    telefone: partner.phone,
-                    mensagem: AppLocalizations.of(context)!.whatsappInitialMessage,
-                    );
-                },
-            ),
+            ? const Icon(Icons.check_circle_outline, color: AppDesign.petPink)
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   IconButton(
+                      icon: Icon(
+                        partner.isFavorite ? Icons.star : Icons.star_border,
+                        color: partner.isFavorite ? Colors.amber : Colors.white24,
+                      ),
+                      onPressed: () async {
+                        final updated = partner.copyWith(isFavorite: !partner.isFavorite);
+                        await _service.init();
+                        await _service.savePartner(updated);
+                        _loadPartners();
+                        
+                        if (updated.isFavorite && widget.petId != null) {
+                           PetIndexingService().indexPartnerInteraction(
+                              petId: widget.petId!,
+                              petName: widget.petName ?? 'Pet',
+                              partnerName: partner.name,
+                              partnerId: partner.id,
+                              interactionType: 'favorited',
+                              localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerFavorited(partner.name),
+                              localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                           );
+                        }
+                      },
+                   ),
+                   IconButton(
+                      icon: const Icon(Icons.chat_bubble_outline, color: AppDesign.petPink),
+                      onPressed: () {
+                          WhatsAppService.abrirChat(
+                            telefone: partner.phone,
+                            mensagem: AppLocalizations.of(context)!.whatsappInitialMessage,
+                          );
+
+                          if (widget.petId != null) {
+                             PetIndexingService().indexPartnerInteraction(
+                                petId: widget.petId!,
+                                petName: widget.petName ?? 'Pet',
+                                partnerName: partner.name,
+                                partnerId: partner.id,
+                                interactionType: 'contacted',
+                                localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerContacted(partner.name),
+                                localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                             );
+                          }
+                      },
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -448,8 +506,8 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
     if (c.contains('vet')) { icon = Icons.local_hospital; color = AppDesign.error; }
     else if (c.contains('farm') || c.contains('pharm')) { icon = Icons.medication; color = AppDesign.info; }
     else if (c.contains('shop') || c.contains('tienda')) { icon = Icons.shopping_basket; color = AppDesign.warning; }
-    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; color = AppDesign.primary; }
-    else if (c.contains('hotel')) { icon = Icons.hotel; color = AppDesign.accent; }
+    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; color = AppDesign.petPink; }
+    else if (c.contains('hotel')) { icon = Icons.hotel; color = AppDesign.petPink; }
     else if (c.contains('lab')) { icon = Icons.biotech; color = AppDesign.info; }
     else { icon = Icons.pets; color = AppDesign.success; }
 
@@ -475,6 +533,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
   List<PartnerModel> _discoveredResults = [];
   bool _isLoading = true;
   String _errorMessage = '';
+  Position? _currentPosition;
 
   List<String> get _categories => [
     AppLocalizations.of(context)!.partnersFilterAll,
@@ -585,6 +644,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
         setState(() {
           _discoveredResults = results;
           _isLoading = false;
+          _currentPosition = position;
         });
       }
       authTrace.endStep('RadarDiscovery.start', details: 'Flow Completed Successfully');
@@ -652,39 +712,50 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
           children: [
             Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 24),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingsScreen()),
-                ).then((_) => _startDiscovery()); // Re-search if settings changed
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.explore, color: AppDesign.info, size: 28),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SettingsScreen()),
+                      ).then((_) => _startDiscovery()); // Re-search if settings changed
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
                         children: [
-                          Text(
-                            'Radar Explorer (${ref.watch(settingsProvider).partnerSearchRadius.toInt()}km)', 
-                            style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 20, fontWeight: FontWeight.bold)
+                          const Icon(Icons.explore, color: AppDesign.petPink, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Radar Explorer (${ref.watch(settingsProvider).partnerSearchRadius.toInt()}km)', 
+                                  style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 18, fontWeight: FontWeight.bold)
+                                ),
+                                const Text(
+                                  'Toque para alterar o raio de busca', 
+                                  style: TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w500)
+                                ),
+                              ],
+                            ),
                           ),
-                          const Text(
-                            'Toque para alterar o raio de busca', 
-                            style: TextStyle(color: AppDesign.info, fontSize: 11, fontWeight: FontWeight.w500)
-                          ),
+                          const Icon(Icons.settings_outlined, color: AppDesign.textSecondaryDark, size: 20),
                         ],
                       ),
                     ),
-                    const Icon(Icons.settings_outlined, color: AppDesign.textSecondaryDark, size: 20),
-                  ],
+                  ),
                 ),
-              ),
+                if (_discoveredResults.isNotEmpty)
+                  PdfActionButton(
+                    onPressed: _showExportModal,
+                    color: Colors.transparent,
+                  ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(AppLocalizations.of(context)!.partnersRadarDetecting, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 13)),
@@ -697,7 +768,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const CircularProgressIndicator(color: AppDesign.info),
+                        const CircularProgressIndicator(color: AppDesign.petPink),
                         const SizedBox(height: 16),
                         Text(AppLocalizations.of(context)!.partnersRadarTracking, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
                       ],
@@ -746,8 +817,8 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                  ),
                                );
                              },
-                             icon: const Icon(Icons.bug_report_outlined, size: 18, color: AppDesign.info),
-                             label: const Text('Ver Detalhes Técnicos', style: TextStyle(color: AppDesign.info)),
+                             icon: const Icon(Icons.bug_report_outlined, size: 18, color: AppDesign.petPink),
+                             label: const Text('Ver Detalhes Técnicos', style: TextStyle(color: AppDesign.petPink)),
                            ),
                          ],
                        ),
@@ -769,7 +840,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                   maxLines: 1, 
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 11)),
-                              trailing: const Icon(Icons.chevron_right, color: AppDesign.info),
+                              trailing: const Icon(Icons.chevron_right, color: AppDesign.petPink),
                               onTap: () => widget.onImport(p),
                             ),
                           );
@@ -778,6 +849,33 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showExportModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => RadarExportFilterModal(
+        currentResults: _discoveredResults,
+        onGenerate: (partners) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PdfPreviewScreen(
+                title: 'Exportação Radar Geo',
+                buildPdf: (format) => ExportService().generateRadarReport(
+                  partners: partners,
+                  userLat: _currentPosition?.latitude ?? 0.0,
+                  userLng: _currentPosition?.longitude ?? 0.0,
+                  strings: AppLocalizations.of(context)!,
+                ).then((pdf) => pdf.save()),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -796,11 +894,11 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
             child: ChoiceChip(
               label: Text(category, style: GoogleFonts.poppins(
                 fontSize: 11,
-                color: isSelected ? AppDesign.backgroundDark : AppDesign.textSecondaryDark,
+                color: isSelected ? Colors.black : AppDesign.textSecondaryDark,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               )),
               selected: isSelected,
-              selectedColor: Colors.blueAccent,
+              selectedColor: AppDesign.petPink,
               backgroundColor: Colors.white.withOpacity(0.05),
               onSelected: (selected) {
                 setState(() => _selectedCategory = category);
@@ -817,13 +915,14 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
     Color color;
     final c = category.toLowerCase();
     
-    if (c.contains('vet')) { icon = Icons.local_hospital; color = Colors.redAccent; }
-    else if (c.contains('farm') || c.contains('pharm')) { icon = Icons.medication; color = Colors.blueAccent; }
-    else if (c.contains('shop') || c.contains('tienda')) { icon = Icons.shopping_basket; color = Colors.orangeAccent; }
-    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; color = Colors.purpleAccent; }
-    else if (c.contains('hotel')) { icon = Icons.hotel; color = Colors.amberAccent; }
-    else if (c.contains('lab')) { icon = Icons.biotech; color = Colors.cyanAccent; }
-    else { icon = Icons.pets; color = Colors.greenAccent; }
+    color = AppDesign.petPink;
+    if (c.contains('vet')) { icon = Icons.local_hospital; }
+    else if (c.contains('farm') || c.contains('pharm')) { icon = Icons.medication; }
+    else if (c.contains('shop') || c.contains('tienda')) { icon = Icons.shopping_basket; }
+    else if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) { icon = Icons.content_cut; }
+    else if (c.contains('hotel')) { icon = Icons.hotel; }
+    else if (c.contains('lab')) { icon = Icons.biotech; }
+    else { icon = Icons.pets; }
 
     return Container(
       padding: const EdgeInsets.all(8),

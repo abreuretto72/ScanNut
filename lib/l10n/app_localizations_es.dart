@@ -1390,6 +1390,39 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get pdfEstablishment => 'Establecimiento';
+
+  @override
+  String get pdfFieldCategory => 'Categoría';
+
+  @override
+  String get pdfPhone => 'Teléfono';
+
+  @override
+  String get pdfRating => 'Calificación';
+
+  @override
+  String get pdfStars => 'Estrellas';
+
+  @override
+  String get pdfStatus => 'Estado';
+
+  @override
+  String get pdfTotalFound => 'Total Encontrados';
+
+  @override
+  String get pdfRegion => 'Región';
+
+  @override
+  String get pdfPartnersGuide => 'Guía de Socios';
+
+  @override
+  String get distanceLabel => 'Distância';
+
+  @override
+  String get ratingLabel => 'Avaliação';
+
+  @override
   String get nutritionMgmtTitle => 'Gestión de Nutrición';
 
   @override
@@ -2828,9 +2861,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pdfMetric => 'Métrica';
 
   @override
-  String get pdfStatus => 'Estado';
-
-  @override
   String get pdfWeightControl => 'Control de Peso';
 
   @override
@@ -2874,30 +2904,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pdfFieldPet => 'Mascota';
-
-  @override
-  String get pdfFieldCategory => 'Categoría';
-
-  @override
-  String get pdfPartnersGuide => 'Guía de Socios';
-
-  @override
-  String get pdfRegion => 'Región';
-
-  @override
-  String get pdfTotalFound => 'Total Encontrados';
-
-  @override
-  String get pdfEstablishment => 'Establecimiento';
-
-  @override
-  String get pdfPhone => 'Teléfono';
-
-  @override
-  String get pdfRating => 'Calificación';
-
-  @override
-  String get pdfStars => 'Estrellas';
 
   @override
   String get pdfAgendaToday => 'Hoy';
@@ -5494,4 +5500,63 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get petActionSharePDF => 'Compartilhar PDF';
+
+  @override
+  String petIndexing_aiTitle(Object type) {
+    return 'Análisis de IA: $type';
+  }
+
+  @override
+  String get petIndexing_aiNotes =>
+      'Análisis clínico generado por Inteligencia Artificial.';
+
+  @override
+  String petIndexing_occurrenceTitle(Object title) {
+    return 'Ocurrencia: $title';
+  }
+
+  @override
+  String petIndexing_agendaTitle(Object attendant, Object pet) {
+    return '$attendant + $pet';
+  }
+
+  @override
+  String petIndexing_partnerFavorited(Object name) {
+    return 'Socio Favorito: $name';
+  }
+
+  @override
+  String petIndexing_partnerScheduled(Object name) {
+    return 'Interacción programada con $name';
+  }
+
+  @override
+  String petIndexing_partnerContacted(Object name) {
+    return 'Contactado vía WhatsApp/GPS: $name';
+  }
+
+  @override
+  String petIndexing_partnerLinked(Object name) {
+    return 'Socio vinculado al perfil: $name';
+  }
+
+  @override
+  String get petIndexing_partnerInteractionNotes =>
+      'Interacción registrada vía Radar Geo.';
+
+  @override
+  String petIndexing_vaultTitle(Object name) {
+    return 'Archivo: $name';
+  }
+
+  @override
+  String get petIndexing_vaultNotes => 'Documento indexado en Media Vault.';
+
+  @override
+  String get petEvent_tapToViewDetails => 'Toque para ver detalles';
+
+  @override
+  String petIndexing_taskCompleted(Object task) {
+    return 'Tarea completada: $task';
+  }
 }

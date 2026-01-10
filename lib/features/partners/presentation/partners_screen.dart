@@ -13,6 +13,7 @@ import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import '../../../core/theme/app_design.dart';
 import 'partner_registration_screen.dart';
+import 'widgets/partner_export_configuration_modal.dart';
 
 class PartnersScreen extends ConsumerStatefulWidget {
   final PetAnalysisResult? suggestionContext;
@@ -96,7 +97,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: AppDesign.accent)),
+            child: const Text('OK', style: TextStyle(color: AppDesign.petPink)),
           )
         ],
       ),
@@ -129,8 +130,11 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                 SnackBar(content: Text(AppLocalizations.of(context)!.partnersLinkSuccess(partner.name)))
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppDesign.accent),
-            child: Text(AppLocalizations.of(context)!.partnersBtnLink, style: const TextStyle(color: AppDesign.backgroundDark)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppDesign.petPink,
+              foregroundColor: Colors.black,
+            ),
+            child: Text(AppLocalizations.of(context)!.partnersBtnLink, style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -156,7 +160,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
             onPressed: _generatePartnersPDF,
           ),
           IconButton(
-            icon: const Icon(Icons.add_business, color: AppDesign.accent),
+            icon: const Icon(Icons.add_business, color: AppDesign.petPink),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PartnerRegistrationScreen())),
             tooltip: AppLocalizations.of(context)!.partnerRegisterTitle,
           ),
@@ -164,7 +168,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
         ],
       ),
       body: _loading 
-        ? const Center(child: CircularProgressIndicator(color: AppDesign.accent))
+        ? const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
         : Column(
             children: [
               _buildLocationBanner(radius),
@@ -182,8 +186,8 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PartnerRegistrationScreen())),
-        backgroundColor: AppDesign.accent,
-        child: const Icon(Icons.add, color: AppDesign.backgroundDark),
+        backgroundColor: AppDesign.petPink,
+        child: const Icon(Icons.add, color: Colors.black),
       ),
     );
   }
@@ -226,7 +230,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
               onPressed: () {
                 // Future navigation to settings
               },
-              child: Text(AppLocalizations.of(context)!.partnersIncreaseRadius, style: const TextStyle(color: AppDesign.accent)),
+              child: Text(AppLocalizations.of(context)!.partnersIncreaseRadius, style: const TextStyle(color: AppDesign.petPink)),
             )
           ],
         ),
@@ -239,13 +243,13 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0x265E4B6B),
+        color: AppDesign.petPink.withOpacity(0.15),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0x665E4B6B))
+        border: Border.all(color: AppDesign.petPink.withOpacity(0.4))
       ),
       child: Row(
         children: [
-          const Icon(Icons.auto_awesome, color: AppDesign.accent),
+          const Icon(Icons.auto_awesome, color: AppDesign.petPink),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -289,9 +293,9 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.directions_walk, size: 12, color: AppDesign.accent),
+                      const Icon(Icons.directions_walk, size: 12, color: AppDesign.petPink),
                       const SizedBox(width: 4),
-                      Text(AppLocalizations.of(context)!.partnersKmFromYou(dist.toStringAsFixed(1)), style: const TextStyle(color: AppDesign.accent, fontSize: 11, fontWeight: FontWeight.w600)),
+                      Text(AppLocalizations.of(context)!.partnersKmFromYou(dist.toStringAsFixed(1)), style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w600)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -401,30 +405,72 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
   }
 
   Future<void> _generatePartnersPDF() async {
-    try {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PdfPreviewScreen(
-              title: 'Guia de Parceiros ScanNut',
-              buildPdf: (format) async {
-                final pdf = await ExportService().generatePartnersReport(
-                  partners: _partners,
-                  region: 'SP (Mock Location)',
-                  strings: AppLocalizations.of(context)!,
-                );
-                return pdf.save();
-              },
-            ),
-          ),
-        );
-    } catch (e) {
-        debugPrint('Erro ao gerar PDF: $e');
-        if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: AppDesign.error),
-            );
-        }
+    if (_partners.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nenhum parceiro para exportar!'))
+      );
+      return;
     }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => PartnerExportConfigurationModal(
+        allPartners: _partners,
+        onGenerate: (selectedPartners) async {
+          // Close the modal first
+          Navigator.pop(modalContext);
+          
+          // Show loading dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => const Center(
+              child: CircularProgressIndicator(color: AppDesign.petPink)
+            ),
+          );
+
+          try {
+            final pdf = await ExportService().generatePartnersReport(
+              partners: selectedPartners,
+              region: 'SP (Mock Location)',
+              strings: AppLocalizations.of(context)!,
+            );
+
+            // Close loading dialog
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+
+            if (!mounted) return;
+            
+            // Navigate to PDF preview
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PdfPreviewScreen(
+                  title: 'Guia de Parceiros ScanNut',
+                  buildPdf: (format) async => pdf.save(),
+                ),
+              ),
+            );
+          } catch (e) {
+            // Close loading dialog on error
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+            
+            debugPrint('Erro ao gerar PDF: $e');
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: AppDesign.error),
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 }

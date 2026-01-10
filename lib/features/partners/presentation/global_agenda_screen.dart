@@ -137,7 +137,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
         ),
         actions: [
             IconButton(
-                icon: Icon(_showAllEvents ? Icons.calendar_today : Icons.list, color: AppDesign.accent),
+                icon: Icon(_showAllEvents ? Icons.calendar_today : Icons.list, color: AppDesign.petPink),
                 onPressed: () {
                     setState(() {
                         _showAllEvents = !_showAllEvents;
@@ -184,8 +184,9 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                     outsideDaysVisible: false,
                     defaultTextStyle: TextStyle(color: AppDesign.textPrimaryDark),
                     weekendTextStyle: TextStyle(color: AppDesign.textSecondaryDark),
+                    selectedTextStyle: TextStyle(color: Colors.black),
                     selectedDecoration: BoxDecoration(
-                      color: AppDesign.accent,
+                      color: AppDesign.petPink,
                       shape: BoxShape.circle,
                     ),
                     todayDecoration: BoxDecoration(
@@ -199,9 +200,9 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   ),
                   headerStyle: HeaderStyle(
                     titleTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 16),
-                    formatButtonTextStyle: const TextStyle(color: AppDesign.accent),
+                    formatButtonTextStyle: const TextStyle(color: AppDesign.petPink),
                     formatButtonDecoration: BoxDecoration(
-                        border: Border.all(color: AppDesign.accent),
+                        border: Border.all(color: AppDesign.petPink),
                         borderRadius: BorderRadius.circular(12),
                     ),
                     leftChevronIcon: const Icon(Icons.chevron_left, color: AppDesign.textPrimaryDark),
@@ -213,6 +214,30 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                       _focusedDay = focusedDay;
                     });
                   },
+                  calendarBuilders: CalendarBuilders(
+                    markerBuilder: (context, day, events) {
+                      if (events.isEmpty) return const SizedBox();
+                      
+                      final count = events.length;
+                      final showCount = count > 3 ? 3 : count;
+                      
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(showCount, (index) {
+                           final isOverflow = index == 2 && count > 3;
+                           return Container(
+                             width: 6,
+                             height: 6,
+                             margin: const EdgeInsets.symmetric(horizontal: 1.0),
+                             decoration: BoxDecoration(
+                               shape: BoxShape.circle,
+                               color: isOverflow ? Colors.red : AppDesign.petPink,
+                             ),
+                           );
+                        }),
+                      );
+                    },
+                  ),
                 ),
                 
               _buildPetFilter(),
@@ -277,7 +302,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                                           _selectedPetName = selected ? petName : null;
                                       });
                                   },
-                                  selectedColor: AppDesign.accent,
+                                  selectedColor: AppDesign.petPink,
                                   backgroundColor: Colors.white10,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                   showCheckmark: false,
@@ -441,9 +466,13 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
       } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content: Text(AppLocalizations.of(context)!.agendaNoPartnerLinked), 
-                  backgroundColor: AppDesign.warning,
+                  content: Text(
+                    AppLocalizations.of(context)!.agendaNoPartnerLinked,
+                    style: TextStyle(color: Color(0xFF880E4F), fontWeight: FontWeight.bold),
+                  ), 
+                  backgroundColor: Color(0xFFFFD1DC),
                   behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
           );
       }
@@ -510,12 +539,12 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                       children: [
                         Text(
                           '${DateFormat('dd/MM/yyyy').format(start)} - ${DateFormat('dd/MM/yyyy').format(end)}',
-                          style: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.w500),
+                          style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.w500),
                         ),
                         IconButton(
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.edit, color: AppDesign.accent, size: 18),
+                          icon: const Icon(Icons.edit, color: AppDesign.petPink, size: 18),
                           onPressed: () async {
                             final range = await showDateRangePicker(
                               context: context,
@@ -525,8 +554,8 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                               builder: (context, child) => Theme(
                                 data: ThemeData.dark().copyWith(
                                   colorScheme: const ColorScheme.dark(
-                                    primary: AppDesign.accent,
-                                    onPrimary: AppDesign.backgroundDark,
+                                    primary: AppDesign.petPink,
+                                    onPrimary: Colors.black,
                                     surface: AppDesign.surfaceDark,
                                     onSurface: AppDesign.textPrimaryDark,
                                   ),
@@ -628,8 +657,8 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                 const SizedBox(height: 32),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppDesign.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      backgroundColor: AppDesign.petPink,
+                      foregroundColor: Colors.black,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),

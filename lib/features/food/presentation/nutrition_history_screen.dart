@@ -12,6 +12,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/translation_mapper.dart';
 import '../../../core/theme/app_design.dart';
+import '../../../core/services/export_service.dart';
+import '../../../core/widgets/pdf_preview_screen.dart';
+import 'widgets/food_export_configuration_modal.dart';
 
 class NutritionHistoryScreen extends StatefulWidget {
   const NutritionHistoryScreen({Key? key}) : super(key: key);
@@ -50,6 +53,13 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            onPressed: _generateHistoryPdf,
+            tooltip: 'Gerar Relatório do Histórico',
+          ),
+        ],
       ),
       body: FutureBuilder(
         future: NutritionService().init(), // Ensure init
@@ -203,11 +213,11 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                                 DateFormat('dd/MM', Localizations.localeOf(context).toString()).format(item.timestamp),
                                 style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10),
                               ),
-                              GestureDetector(
+                             GestureDetector(
                                 onTap: () => _confirmDelete(item),
                                 child: const Padding(
                                   padding: EdgeInsets.all(4.0),
-                                  child: Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                  child: Icon(Icons.delete_outline, color: Colors.red, size: 20),
                                 ),
                               ),
                             ],
@@ -296,7 +306,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.commonDelete, style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text(l10n.commonDelete, style: GoogleFonts.poppins(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -364,5 +374,44 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
       return value.map((e) => _deepFixMaps(e)).toList();
     }
     return value;
+  }
+  Future<void> _generateHistoryPdf() async {
+    if (_items.isEmpty) {
+       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sem histórico para gerar relatório.')));
+       return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FoodExportConfigurationModal(
+        allItems: _items,
+        onGenerate: (selectedItems) {
+           // Small delay to allow modal to close smoothly before pushing screen?
+           // Not strictly necessary but good UX.
+           // However, modal closes inside onGenerate (Navigator.pop).
+           // So here we are back in HistoryScreen context.
+           
+           if (selectedItems.isEmpty) return;
+
+           Navigator.push(
+             context,
+             MaterialPageRoute(
+               builder: (context) => PdfPreviewScreen(
+                 title: 'Relatório Alimentar - ${DateFormat('dd/MM').format(DateTime.now())}',
+                 buildPdf: (format) async {
+                   final doc = await ExportService().generateFoodHistoryReport(
+                     items: selectedItems,
+                     strings: AppLocalizations.of(context)!,
+                   );
+                   return doc.save();
+                 },
+               ),
+             ),
+           );
+        },
+      ),
+    );
   }
 }

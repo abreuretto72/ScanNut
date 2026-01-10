@@ -18,7 +18,14 @@ class PdfActionButton extends StatelessWidget {
     return IconButton(
       onPressed: onPressed,
       tooltip: tooltip,
-      icon: AppPdfIcon(color: color),
+      icon: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: color ?? Colors.transparent, // Default to transparent as requested
+          shape: BoxShape.circle,
+        ),
+        child: const AppPdfIcon(color: Colors.white, size: 20),
+      ),
     );
   }
 }

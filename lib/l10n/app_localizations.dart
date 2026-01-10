@@ -2663,6 +2663,72 @@ abstract class AppLocalizations {
   /// **'Página {current} de {total}'**
   String pdfPage(Object current, Object total);
 
+  /// No description provided for @pdfEstablishment.
+  ///
+  /// In pt, this message translates to:
+  /// **'Estabelecimento'**
+  String get pdfEstablishment;
+
+  /// No description provided for @pdfFieldCategory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Categoria'**
+  String get pdfFieldCategory;
+
+  /// No description provided for @pdfPhone.
+  ///
+  /// In pt, this message translates to:
+  /// **'Telefone'**
+  String get pdfPhone;
+
+  /// No description provided for @pdfRating.
+  ///
+  /// In pt, this message translates to:
+  /// **'Avaliação'**
+  String get pdfRating;
+
+  /// No description provided for @pdfStars.
+  ///
+  /// In pt, this message translates to:
+  /// **'Estrelas'**
+  String get pdfStars;
+
+  /// No description provided for @pdfStatus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Status'**
+  String get pdfStatus;
+
+  /// No description provided for @pdfTotalFound.
+  ///
+  /// In pt, this message translates to:
+  /// **'Total Encontrado'**
+  String get pdfTotalFound;
+
+  /// No description provided for @pdfRegion.
+  ///
+  /// In pt, this message translates to:
+  /// **'Região'**
+  String get pdfRegion;
+
+  /// No description provided for @pdfPartnersGuide.
+  ///
+  /// In pt, this message translates to:
+  /// **'Guia de Parceiros'**
+  String get pdfPartnersGuide;
+
+  /// No description provided for @distanceLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Distância'**
+  String get distanceLabel;
+
+  /// No description provided for @ratingLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Avaliação'**
+  String get ratingLabel;
+
   /// No description provided for @nutritionMgmtTitle.
   ///
   /// In pt, this message translates to:
@@ -5417,12 +5483,6 @@ abstract class AppLocalizations {
   /// **'Métrica'**
   String get pdfMetric;
 
-  /// No description provided for @pdfStatus.
-  ///
-  /// In pt, this message translates to:
-  /// **'Status'**
-  String get pdfStatus;
-
   /// No description provided for @pdfWeightControl.
   ///
   /// In pt, this message translates to:
@@ -5512,54 +5572,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Pet'**
   String get pdfFieldPet;
-
-  /// No description provided for @pdfFieldCategory.
-  ///
-  /// In pt, this message translates to:
-  /// **'Categoria'**
-  String get pdfFieldCategory;
-
-  /// No description provided for @pdfPartnersGuide.
-  ///
-  /// In pt, this message translates to:
-  /// **'Guia de Parceiros'**
-  String get pdfPartnersGuide;
-
-  /// No description provided for @pdfRegion.
-  ///
-  /// In pt, this message translates to:
-  /// **'Região'**
-  String get pdfRegion;
-
-  /// No description provided for @pdfTotalFound.
-  ///
-  /// In pt, this message translates to:
-  /// **'Total Encontrado'**
-  String get pdfTotalFound;
-
-  /// No description provided for @pdfEstablishment.
-  ///
-  /// In pt, this message translates to:
-  /// **'Estabelecimento'**
-  String get pdfEstablishment;
-
-  /// No description provided for @pdfPhone.
-  ///
-  /// In pt, this message translates to:
-  /// **'Telefone'**
-  String get pdfPhone;
-
-  /// No description provided for @pdfRating.
-  ///
-  /// In pt, this message translates to:
-  /// **'Avaliação'**
-  String get pdfRating;
-
-  /// No description provided for @pdfStars.
-  ///
-  /// In pt, this message translates to:
-  /// **'Estrelas'**
-  String get pdfStars;
 
   /// No description provided for @pdfAgendaToday.
   ///
@@ -10492,6 +10504,84 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Compartilhar PDF'**
   String get petActionSharePDF;
+
+  /// No description provided for @petIndexing_aiTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise de IA: {type}'**
+  String petIndexing_aiTitle(Object type);
+
+  /// No description provided for @petIndexing_aiNotes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise clínica gerada por Inteligência Artificial.'**
+  String get petIndexing_aiNotes;
+
+  /// No description provided for @petIndexing_occurrenceTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ocorrência: {title}'**
+  String petIndexing_occurrenceTitle(Object title);
+
+  /// No description provided for @petIndexing_agendaTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'{attendant} + {pet}'**
+  String petIndexing_agendaTitle(Object attendant, Object pet);
+
+  /// No description provided for @petIndexing_partnerFavorited.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parceiro Favoritado: {name}'**
+  String petIndexing_partnerFavorited(Object name);
+
+  /// No description provided for @petIndexing_partnerScheduled.
+  ///
+  /// In pt, this message translates to:
+  /// **'Interação agendada com {name}'**
+  String petIndexing_partnerScheduled(Object name);
+
+  /// No description provided for @petIndexing_partnerContacted.
+  ///
+  /// In pt, this message translates to:
+  /// **'Contato via WhatsApp/GPS: {name}'**
+  String petIndexing_partnerContacted(Object name);
+
+  /// No description provided for @petIndexing_partnerLinked.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parceiro vinculado ao perfil: {name}'**
+  String petIndexing_partnerLinked(Object name);
+
+  /// No description provided for @petIndexing_partnerInteractionNotes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Interação registrada via Radar Geo.'**
+  String get petIndexing_partnerInteractionNotes;
+
+  /// No description provided for @petIndexing_vaultTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Arquivo: {name}'**
+  String petIndexing_vaultTitle(Object name);
+
+  /// No description provided for @petIndexing_vaultNotes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Documento indexado no Media Vault.'**
+  String get petIndexing_vaultNotes;
+
+  /// No description provided for @petEvent_tapToViewDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Toque para ver detalhes'**
+  String get petEvent_tapToViewDetails;
+
+  /// No description provided for @petIndexing_taskCompleted.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tarefa concluída: {task}'**
+  String petIndexing_taskCompleted(Object task);
 }
 
 class _AppLocalizationsDelegate

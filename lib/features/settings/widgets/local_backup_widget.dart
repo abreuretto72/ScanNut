@@ -15,7 +15,7 @@ class LocalBackupWidget extends StatefulWidget {
 
 class _LocalBackupWidgetState extends State<LocalBackupWidget> {
   bool _isExporting = false;
-  bool _isSharing = false;
+  // bool _isSharing = false; // Removed
   bool _isImporting = false;
   final _backupService = LocalBackupService();
 
@@ -25,17 +25,6 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     l10n = AppLocalizations.of(context)!;
-  }
-
-  Future<void> _handleShare() async {
-    setState(() => _isSharing = true);
-    final success = await _backupService.shareBackup();
-    setState(() => _isSharing = false);
-
-    if (mounted && !success) {
-      // Se o usuário cancelar não mostramos erro, apenas se falhar tecnicamente
-      // mas o share_plus geralmente não retorna erro se o usuário cancelar
-    }
   }
 
   Future<void> _handleExport() async {
@@ -225,41 +214,28 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
             ),
           ),
           const SizedBox(height: 20),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _isSharing ? null : _handleShare,
-                  icon: _isSharing
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.share, size: 18),
-                  label: Text(l10n.backupShare),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppDesign.primary.withOpacity(0.3), // Darker purple background
-                    foregroundColor: AppDesign.primaryLight, // Light purple text
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
+          
+          // 1. Export Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isExporting ? null : _handleExport,
+              icon: _isExporting 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.upload_file, size: 18),
+              label: Text('Fazer Backup', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppDesign.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _isExporting ? null : _handleExport,
-                  icon: _isExporting 
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Icon(Icons.upload_file, size: 18),
-                  label: Text(l10n.backupSave),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppDesign.primaryLight.withOpacity(0.2), // Lighter purple background
-                    foregroundColor: AppDesign.primaryLight, // Light purple text
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
+          
           const SizedBox(height: 12),
+
+          // 2. Import Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -267,11 +243,12 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
               icon: _isImporting
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.file_download, size: 18),
-              label: Text(l10n.backupImport),
+              label: Text(l10n.backupImport, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppDesign.accent.withOpacity(0.25), // Accent purple background
-                foregroundColor: AppDesign.primaryLight, // Light purple text
+                backgroundColor: AppDesign.primary,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),

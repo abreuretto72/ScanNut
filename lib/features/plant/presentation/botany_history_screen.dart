@@ -13,6 +13,7 @@ import '../../../core/widgets/pdf_preview_screen.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
+import 'widgets/plant_export_configuration_modal.dart';
 
 class BotanyHistoryScreen extends StatefulWidget {
   const BotanyHistoryScreen({Key? key}) : super(key: key);
@@ -50,6 +51,13 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: AppDesign.backgroundDark,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            onPressed: () => _showExportModal(context),
+            tooltip: 'Exportar PDF',
+          ),
+        ],
       ),
       body: ValueListenableBuilder<Box<BotanyHistoryItem>>(
         valueListenable: BotanyService().listenable!,
@@ -338,7 +346,8 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
         const SizedBox(width: 10),
         _buildCircularIconAction(
           icon: Icons.picture_as_pdf_rounded,
-          color: AppDesign.error,
+          color: Colors.white,
+          backgroundColor: AppDesign.primary,
           tooltip: 'Gerar Dossiê PDF',
           onPressed: () => _generateHistoryPDF(item),
         ),
@@ -349,14 +358,15 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   Widget _buildCircularIconAction({
     required IconData icon,
     required Color color,
+    Color? backgroundColor,
     required String tooltip,
     required VoidCallback onPressed,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: backgroundColor ?? color.withOpacity(0.1),
         shape: BoxShape.circle,
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: backgroundColor ?? color.withOpacity(0.3)),
       ),
       child: IconButton(
         icon: Icon(icon, color: color, size: 20),
@@ -455,6 +465,77 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
     
     // Default fallback (Portuguese or others)
     return status.toUpperCase();
+  }
+
+  void _showExportModal(BuildContext context) {
+    final allItems = BotanyService().listenable?.value.values.whereType<BotanyHistoryItem>().toList() ?? [];
+    
+    if (allItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nenhuma planta para exportar!'))
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => PlantExportConfigurationModal(
+        allItems: allItems,
+        onGenerate: (selectedItems) async {
+          // Close the modal first
+          Navigator.pop(modalContext);
+          
+          // Show loading dialog
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) => const Center(
+              child: CircularProgressIndicator(color: AppDesign.plantGreen)
+            ),
+          );
+
+          try {
+            final doc = await ExportService().generatePlantHistoryReport(
+              items: selectedItems,
+              strings: AppLocalizations.of(context)!
+            );
+
+            // Close loading dialog
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+
+            if (!mounted) return;
+            
+            // Navigate to PDF preview
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PdfPreviewScreen(
+                  title: 'Inteligência Botânica',
+                  buildPdf: (format) async => doc.save(),
+                ),
+              ),
+            );
+          } catch (e) {
+            // Close loading dialog on error
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+            
+            debugPrint('❌ Error generating plant PDF: $e');
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Erro ao gerar PDF. Tente novamente.'))
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 
   Future<void> _confirmDeletePlant(BotanyHistoryItem item) async {

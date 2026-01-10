@@ -16,12 +16,22 @@ import 'package:intl/intl.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
+import './widgets/radar_export_filter_modal.dart';
+import '../../pet/services/pet_indexing_service.dart';
 
 class PartnerRegistrationScreen extends StatefulWidget {
   final PartnerModel? initialData;
   final List<Map<String, dynamic>>? linkedNotes; // If provided, shows notes section
+  final String? petId;
+  final String? petName;
 
-  const PartnerRegistrationScreen({Key? key, this.initialData, this.linkedNotes}) : super(key: key);
+  const PartnerRegistrationScreen({
+    Key? key, 
+    this.initialData, 
+    this.linkedNotes,
+    this.petId,
+    this.petName,
+  }) : super(key: key);
 
   @override
   State<PartnerRegistrationScreen> createState() => _PartnerRegistrationScreenState();
@@ -51,6 +61,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
 
   String _category = 'Veterinário';
   bool _is24h = false;
+  bool _isFavorite = false;
   double? _lat;
   double? _lng;
 
@@ -73,6 +84,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       _cnpjController.text = widget.initialData!.cnpj ?? '';
       _whatsappController.text = widget.initialData!.whatsapp ?? '';
       _teamMembers = List.from(widget.initialData!.teamMembers);
+      _isFavorite = widget.initialData!.isFavorite;
     }
     if (widget.linkedNotes != null) {
         _notes = List.from(widget.linkedNotes!);
@@ -185,6 +197,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
           'plantao24h': _is24h,
           'raw': _openingHoursController.text,
         },
+        isFavorite: _isFavorite,
       );
 
       try {
@@ -195,8 +208,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.partnerSaved(partner.name)),
-              backgroundColor: AppDesign.accent,
+              content: Text(AppLocalizations.of(context)!.partnerSaved(partner.name), style: const TextStyle(color: Colors.black)),
+              backgroundColor: AppDesign.petPink,
             ),
           );
           
@@ -254,7 +267,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         teamMembers: _teamMembers,
         specialties: specialties,
         rating: widget.initialData?.rating ?? 0.0,
-        isFavorite: widget.initialData?.isFavorite ?? false,
+        isFavorite: _isFavorite,
     );
 
     Navigator.push(
@@ -284,6 +297,26 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         elevation: 0,
         actions: [
           if (widget.initialData != null) ...[
+            IconButton(
+              icon: Icon(
+                _isFavorite ? Icons.star : Icons.star_border,
+                color: _isFavorite ? Colors.amber : Colors.white24,
+              ),
+              onPressed: () {
+                setState(() => _isFavorite = !_isFavorite);
+                if (_isFavorite && widget.petId != null) {
+                   PetIndexingService().indexPartnerInteraction(
+                      petId: widget.petId!,
+                      petName: widget.petName ?? 'Pet',
+                      partnerName: _nameController.text,
+                      partnerId: widget.initialData?.id,
+                      interactionType: 'favorited',
+                      localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerFavorited(_nameController.text),
+                      localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                   );
+                }
+              },
+            ),
             PdfActionButton(onPressed: _generatePdf),
           ],
         ],
@@ -328,8 +361,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               ElevatedButton(
                 onPressed: _savePartner,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppDesign.accent,
-                  foregroundColor: AppDesign.textPrimaryLight,
+                  backgroundColor: AppDesign.petPink,
+                  foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   elevation: 8,
@@ -398,20 +431,20 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [AppDesign.primary, AppDesign.accent]),
+          gradient: const LinearGradient(colors: [AppDesign.petPink, Color(0xFFFFB7C5)]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: const Color(0x4D57315D), blurRadius: 10, spreadRadius: 2)],
+          boxShadow: [BoxShadow(color: AppDesign.petPink.withOpacity(0.3), blurRadius: 10, spreadRadius: 2)],
         ),
         child: Row(
           children: [
-            const Icon(Icons.radar, color: AppDesign.textPrimaryDark, size: 40),
+            const Icon(Icons.radar, color: Colors.black, size: 40),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.partnerRadarButtonTitle, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(AppLocalizations.of(context)!.partnerRadarButtonDesc, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonTitle, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonDesc, style: GoogleFonts.poppins(color: Colors.black54, fontSize: 12)),
                 ],
               ),
             ),
@@ -431,7 +464,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         title: Text(AppLocalizations.of(context)!.partnerField24h, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 14)),
         subtitle: Text(AppLocalizations.of(context)!.partnerField24hSub, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 11)),
         value: _is24h,
-        activeColor: AppDesign.accent,
+        activeColor: AppDesign.petPink,
         onChanged: (v) => setState(() => _is24h = v),
         secondary: const Icon(Icons.emergency_share, color: AppDesign.error),
       ),
@@ -446,7 +479,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: AppDesign.textSecondaryDark),
-        prefixIcon: Icon(icon, color: AppDesign.accent),
+        prefixIcon: Icon(icon, color: AppDesign.petPink),
         filled: true,
         fillColor: Colors.black45,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
@@ -507,7 +540,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                               alignment: Alignment.centerRight,
                               padding: const EdgeInsets.only(right: 16),
                               color: const Color(0x4DD32F2F),
-                              child: const Icon(Icons.delete, color: AppDesign.textPrimaryDark),
+                              child: const Icon(Icons.delete, color: Colors.red),
                           ),
                           onDismissed: (_) => _deleteNote(index),
                           child: Column(
@@ -542,9 +575,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                 ),
                 const SizedBox(width: 8),
                 CircleAvatar(
-                  backgroundColor: AppDesign.accent,
+                  backgroundColor: AppDesign.petPink,
                   child: IconButton(
-                    icon: const Icon(Icons.send, color: AppDesign.textPrimaryDark, size: 20),
+                    icon: const Icon(Icons.send, color: Colors.black, size: 20),
                     onPressed: _addNote,
                   ),
                 ),
@@ -558,7 +591,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                          ScaffoldMessenger.of(context).showSnackBar(
                            const SnackBar(
                              content: Text('Gravação de voz: Em breve'),
-                              backgroundColor: AppDesign.primary,
+                              backgroundColor: AppDesign.petPink,
                            ),
                          );
                      },
@@ -603,7 +636,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               children: [
                    Row(
                        children: [
-                           const Icon(Icons.people, color: AppDesign.accent),
+                           const Icon(Icons.people, color: AppDesign.petPink),
                            const SizedBox(width: 8),
                            Text(AppLocalizations.of(context)!.partnerTeamTitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
                        ],
@@ -614,7 +647,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                        runSpacing: 4,
                        children: _teamMembers.map((member) => Chip(
                            label: Text(member, style: const TextStyle(fontSize: 12)),
-                           backgroundColor: const Color(0x335E4B6B),
+                           backgroundColor: AppDesign.petPink.withOpacity(0.2),
                            deleteIcon: const Icon(Icons.close, size: 14),
                            onDeleted: () {
                                setState(() {
@@ -642,7 +675,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                                ),
                            ),
                            IconButton(
-                               icon: const Icon(Icons.add_circle, color: AppDesign.accent),
+                               icon: const Icon(Icons.add_circle, color: AppDesign.petPink),
                                onPressed: _addTeamMember,
                            )
                        ],
@@ -693,7 +726,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context)!.partnerCategory,
         labelStyle: TextStyle(color: AppDesign.textSecondaryDark),
-        prefixIcon: const Icon(Icons.category, color: AppDesign.accent),
+        prefixIcon: const Icon(Icons.category, color: AppDesign.petPink),
         filled: true,
         fillColor: Colors.black45,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
@@ -742,6 +775,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
   List<PartnerModel> _discovered = [];
   bool _isLoading = true;
   String _error = '';
+  Position? _currentPosition;
 
   @override
   void initState() {
@@ -780,6 +814,8 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
       if (pos == null || (pos.latitude == 0.0 && pos.longitude == 0.0)) {
         throw 'GPS não retornou coordenadas válidas. Verifique as permissões.';
       }
+
+      setState(() => _currentPosition = pos);
 
       // Log removed for privacy
 
@@ -854,12 +890,20 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                       ),
                       Text(
                           AppLocalizations.of(context)!.partnerRadarHint, 
-                        style: TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.w500)
+                        style: TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w500)
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.radar, color: Color(0xFF00E676)),
+                const Icon(Icons.radar, color: AppDesign.petPink),
+                if (_discovered.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: PdfActionButton(
+                      onPressed: _showExportModal,
+                      color: Colors.transparent,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -872,7 +916,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const CircularProgressIndicator(color: Color(0xFF00E676)),
+                      const CircularProgressIndicator(color: AppDesign.petPink),
                       const SizedBox(height: 16),
                       Text(AppLocalizations.of(context)!.partnerRadarScanning, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
                     ],
@@ -889,8 +933,8 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(vertical: 4),
                           leading: CircleAvatar(
-                            backgroundColor: const Color(0x1A2196F3),
-                            child: Icon(_getIcon(p.category), color: Colors.blue, size: 20),
+                            backgroundColor: AppDesign.petPink.withOpacity(0.15),
+                            child: Icon(_getIcon(p.category), color: AppDesign.petPink, size: 20),
                           ),
                           title: Text(p.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
                           subtitle: Text('${p.category} • ${p.address}', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11)),
@@ -900,6 +944,33 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                     ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showExportModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => RadarExportFilterModal(
+        currentResults: _discovered,
+        onGenerate: (partners) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PdfPreviewScreen(
+                title: 'Relatório Radar Geo',
+                buildPdf: (format) => ExportService().generateRadarReport(
+                  partners: partners,
+                  userLat: _currentPosition?.latitude ?? 0.0,
+                  userLng: _currentPosition?.longitude ?? 0.0,
+                  strings: AppLocalizations.of(context)!,
+                ).then((pdf) => pdf.save()),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

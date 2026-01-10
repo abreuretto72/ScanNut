@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../../../core/models/partner_model.dart';
 import '../../models/agenda_event.dart';
 import '../../../pet/services/pet_event_service.dart';
+import '../../../pet/services/pet_indexing_service.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../pet/models/pet_event.dart';
 
@@ -94,7 +95,7 @@ class _AddEventModalState extends State<AddEventModal> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.camera_alt, color: AppDesign.accent),
+              leading: const Icon(Icons.camera_alt, color: AppDesign.petPink),
               title: Text(AppLocalizations.of(context)!.commonCamera, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
@@ -105,7 +106,7 @@ class _AddEventModalState extends State<AddEventModal> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: AppDesign.accent),
+              leading: const Icon(Icons.photo_library, color: AppDesign.petPink),
               title: Text(AppLocalizations.of(context)!.commonGallery, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
@@ -116,7 +117,7 @@ class _AddEventModalState extends State<AddEventModal> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.attach_file, color: AppDesign.accent),
+              leading: const Icon(Icons.attach_file, color: AppDesign.petPink),
               title: Text(AppLocalizations.of(context)!.commonPDFFile, style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
@@ -213,10 +214,10 @@ class _AddEventModalState extends State<AddEventModal> {
                           backgroundColor: AppDesign.surfaceDark,
                           hourMinuteTextColor: AppDesign.textPrimaryDark,
                           dialBackgroundColor: AppDesign.backgroundDark,
-                          dialHandColor: AppDesign.accent,
+                          dialHandColor: AppDesign.petPink,
                         ),
                         colorScheme: const ColorScheme.dark(
-                          primary: AppDesign.accent,
+                          primary: AppDesign.petPink,
                           onSurface: AppDesign.textPrimaryDark,
                         ),
                       ),
@@ -234,7 +235,7 @@ class _AddEventModalState extends State<AddEventModal> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, color: AppDesign.accent),
+                      const Icon(Icons.access_time, color: AppDesign.petPink),
                       const SizedBox(width: 12),
                       Text(
                         _time.format(context),
@@ -267,7 +268,7 @@ class _AddEventModalState extends State<AddEventModal> {
                     value: _selectedCategory,
                     isExpanded: true,
                     dropdownColor: AppDesign.surfaceDark,
-                    icon: const Icon(Icons.arrow_drop_down, color: AppDesign.accent),
+                    icon: const Icon(Icons.arrow_drop_down, color: AppDesign.petPink),
                     style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 14),
                     items: EventCategory.values.map((category) {
                       return DropdownMenuItem(
@@ -324,7 +325,7 @@ class _AddEventModalState extends State<AddEventModal> {
                               value: safeValue,
                               isExpanded: true,
                               dropdownColor: AppDesign.surfaceDark,
-                              icon: const Icon(Icons.arrow_drop_down, color: AppDesign.accent),
+                              icon: const Icon(Icons.arrow_drop_down, color: AppDesign.petPink),
                               hint: Row(
                                 children: [
                                   const Icon(Icons.person, color: AppDesign.textSecondaryDark, size: 18),
@@ -354,13 +355,13 @@ class _AddEventModalState extends State<AddEventModal> {
                 style: const TextStyle(color: AppDesign.textPrimaryDark),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.agendaEventTitle,
-                  labelStyle: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold),
+                  labelStyle: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold),
                   hintText: AppLocalizations.of(context)!.agendaTitleExample,
                   hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                   filled: true,
                   fillColor: Colors.white10,
                   enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white10)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.accent)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.petPink)),
                   contentPadding: const EdgeInsets.all(16),
                 ),
               ),
@@ -375,13 +376,13 @@ class _AddEventModalState extends State<AddEventModal> {
                     style: const TextStyle(color: AppDesign.textPrimaryDark),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.pdfObservations,
-                      labelStyle: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold),
+                      labelStyle: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold),
                       hintText: AppLocalizations.of(context)!.agendaObservationsHint,
                       hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                       filled: true,
                       fillColor: Colors.white10,
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white10)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.accent)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.petPink)),
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
@@ -391,8 +392,8 @@ class _AddEventModalState extends State<AddEventModal> {
                       right: 8,
                       child: FloatingActionButton.small(
                         onPressed: _listen,
-                        backgroundColor: _isListening ? AppDesign.error : AppDesign.accent,
-                        child: Icon(_isListening ? Icons.stop : Icons.mic, color: AppDesign.backgroundDark),
+                        backgroundColor: _isListening ? AppDesign.error : AppDesign.petPink,
+                        child: Icon(_isListening ? Icons.stop : Icons.mic, color: Colors.black),
                       ),
                     ),
                 ],
@@ -414,13 +415,13 @@ class _AddEventModalState extends State<AddEventModal> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.attach_file, color: AppDesign.accent, size: 18),
+                            Icon(Icons.attach_file, color: AppDesign.petPink, size: 18),
                             const SizedBox(width: 8),
                             Text(AppLocalizations.of(context)!.agendaAttachmentsFull, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13, fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (!widget.isReadOnly)
-                          IconButton(icon: const Icon(Icons.add_photo_alternate, color: AppDesign.accent, size: 20), onPressed: _pickAttachment, padding: EdgeInsets.zero, constraints: const BoxConstraints()),
+                          IconButton(icon: const Icon(Icons.add_photo_alternate, color: AppDesign.petPink, size: 20), onPressed: _pickAttachment, padding: EdgeInsets.zero, constraints: const BoxConstraints()),
                       ],
                     ),
                     if (_attachments.isNotEmpty) ...[
@@ -433,11 +434,11 @@ class _AddEventModalState extends State<AddEventModal> {
                           final fileName = path.split('/').last;
                           return Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(color: AppDesign.accent.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                            decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.attach_file, size: 14, color: AppDesign.accent),
+                                const Icon(Icons.attach_file, size: 14, color: AppDesign.petPink),
                                 const SizedBox(width: 6),
                                 ConstrainedBox(constraints: const BoxConstraints(maxWidth: 120), child: Text(fileName, style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 11), overflow: TextOverflow.ellipsis)),
                                 const SizedBox(width: 4),
@@ -495,12 +496,32 @@ class _AddEventModalState extends State<AddEventModal> {
                           notes: '$attendantInfo${event.description}',
                         );
                         PetEventService().addEvent(pEvent);
+
+                        // 🧠 AUTOMATIC INDEXING (MARE Logic)
+                        try {
+                           final indexer = PetIndexingService();
+                           indexer.indexAgendaEvent(
+                              petId: widget.petId!,
+                              petName: widget.petId!, // Using ID as name if name not available here
+                              attendantName: event.attendant ?? widget.partner.name,
+                              eventTitle: event.title,
+                              dateTime: event.dateTime,
+                              partnerId: widget.partner.id,
+                              partnerName: widget.partner.name,
+                              localizedTitle: AppLocalizations.of(context)!.petIndexing_agendaTitle(
+                                event.attendant ?? widget.partner.name,
+                                widget.petId!,
+                              ),
+                           );
+                        } catch (e) {
+                           debugPrint('⚠️ Indexing failed in AddEventModal: $e');
+                        }
                       }
                       widget.onSave(event);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppDesign.accent, 
-                      foregroundColor: AppDesign.backgroundDark, 
+                      backgroundColor: AppDesign.petPink, 
+                      foregroundColor: Colors.black, 
                       padding: const EdgeInsets.symmetric(vertical: 16), 
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 4,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:scannut/l10n/app_localizations.dart';
+import '../theme/app_design.dart';
 
 /// Dialog for selecting which sections to include in the PDF export
 class PdfSectionFilterDialog extends StatefulWidget {
@@ -49,12 +50,12 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF00E676).withOpacity(0.2),
+              color: AppDesign.primary,
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(
               Icons.picture_as_pdf,
-              color: Color(0xFF00E676),
+              color: Colors.white,
               size: 24,
             ),
           ),
@@ -140,13 +141,13 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
           },
           child: Text(
             l10n.pdfSelectAll,
-            style: GoogleFonts.poppins(color: const Color(0xFF00E676)),
+            style: GoogleFonts.poppins(color: Colors.white),
           ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF00E676),
-            foregroundColor: Colors.black,
+            backgroundColor: AppDesign.primary,
+            foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),

@@ -460,7 +460,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: AppDesign.error),
+                                icon: const Icon(Icons.delete_outline, color: Colors.red),
                                 onPressed: () async {
                                   final confirm = await showDialog<bool>(
                                     context: context,
@@ -630,7 +630,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                   tooltip: l10n.historyTitle,
                   onPressed: _showHistory,
                 ),
-                PdfActionButton(onPressed: () => _generatePDF(plan), color: AppDesign.foodOrange),
+                PdfActionButton(onPressed: () => _generatePDF(plan)),
                 IconButton(
                   icon: const Icon(Icons.refresh, color: AppDesign.foodOrange),
                   tooltip: l10n.redoPlanAction,

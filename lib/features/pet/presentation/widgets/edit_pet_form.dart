@@ -15,6 +15,9 @@ import '../../../../core/theme/app_design.dart';
 import '../../../../core/enums/scannut_mode.dart';
 import '../../models/pet_profile_extended.dart';
 import '../../services/pet_vision_service.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
+import '../../../../core/utils/permission_helper.dart';
 
 import '../../../partners/presentation/partners_hub_screen.dart'; // Add this line
 import '../../../partners/presentation/partner_registration_screen.dart'; // Add this line
@@ -53,6 +56,7 @@ import 'partner_agenda_sheet.dart';
 import 'linked_partner_card.dart';
 import '../pet_event_history_screen.dart'; // Added
 import 'pet_event_grid.dart'; // Added
+import '../../services/pet_indexing_service.dart';
 
 enum SaveStatus { saved, saving, error }
 
@@ -318,10 +322,19 @@ class _EditPetFormState extends State<EditPetForm>
     }
   }
 
+  // Speech to Text
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  bool _speechAvailable = false;
+  TextEditingController? _activeVoiceController;
+  String _lastWords = '';
+
   @override
   void initState() {
     super.initState();
-    
+    _speech = stt.SpeechToText();
+    _initSpeech(); // Initialize speech engine
+
     // CRITICAL: Monitor app lifecycle to save on minimize/close
     WidgetsBinding.instance.addObserver(this);
     
@@ -1665,9 +1678,11 @@ class _EditPetFormState extends State<EditPetForm>
                       final partner = filtered[index];
                       final isLinked = _linkedPartnerIds.contains(partner.id);
                       
-                      if (isLinked) {
+                       if (isLinked) {
                         return LinkedPartnerCard(
                           partner: partner,
+                          petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
+                          petName: _nameController.text.trim(),
                           onUnlink: () async {
                             setState(() {
                               _linkedPartnerIds.remove(partner.id);
@@ -1719,6 +1734,21 @@ class _EditPetFormState extends State<EditPetForm>
                                       _linkedPartnerModels.add(partner);
                                     });
                                     _markDirty(); // Trigger auto-save
+                                    
+                                    // Indexing
+                                    try {
+                                      PetIndexingService().indexPartnerInteraction(
+                                        petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
+                                        petName: _nameController.text.trim(),
+                                        partnerName: partner.name,
+                                        partnerId: partner.id,
+                                        interactionType: 'linked_partner',
+                                        localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerLinked(partner.name),
+                                        localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                                      );
+                                    } catch (e) {
+                                      debugPrint('Error indexing partner link: $e');
+                                    }
                                   }
                                 },
                               )
@@ -2856,6 +2886,8 @@ class _EditPetFormState extends State<EditPetForm>
     void Function(String)? onChanged,
     bool isRequired = false,
   }) {
+    final bool isActive = _isListening && _activeVoiceController == controller;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
@@ -2874,12 +2906,125 @@ class _EditPetFormState extends State<EditPetForm>
              )
           ),
           prefixIcon: Icon(icon, color: AppDesign.petPink, size: 20),
+          suffixIcon: IconButton(
+            icon: Icon(
+              isActive ? Icons.mic : Icons.mic_none,
+              color: isActive ? Colors.redAccent : Colors.white,
+            ),
+            onPressed: () => _toggleListening(controller),
+            tooltip: 'Ditado por voz',
+          ),
           enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white10)),
           focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.petPink)),
         ),
         validator: validator,
         onChanged: onChanged,
       ),
+    );
+  }
+
+  // --- VOICE INPUT LOGIC ---
+
+  Future<void> _initSpeech() async {
+    try {
+      _speechAvailable = await _speech.initialize(
+        onError: (e) => debugPrint('Erro de voz: $e'),
+        onStatus: (status) {
+          if (mounted) {
+             if (status == 'done' || status == 'notListening') {
+                setState(() => _isListening = false);
+             }
+          }
+        },
+      );
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint('Falha ao inicializar speech: $e');
+    }
+  }
+
+  Future<void> _toggleListening(TextEditingController controller) async {
+    if (!_speechAvailable) {
+       await _initSpeech();
+       if (!_speechAvailable) {
+         if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reconhecimento de voz não disponível')));
+         }
+         return;
+       }
+    }
+
+    // Se já estiver ouvindo neste controle, para.
+    if (_isListening && _activeVoiceController == controller) {
+      _speech.stop();
+      if (mounted) setState(() => _isListening = false);
+      return;
+    }
+
+    // Se estiver ouvindo em outro, para antes de começar o novo
+    if (_isListening) {
+      await _speech.stop();
+    }
+
+    final granted = await PermissionHelper.requestMicrophonePermission(context);
+    if (!granted) return;
+
+    if (mounted) {
+      setState(() {
+        _isListening = true;
+        _activeVoiceController = controller;
+        _lastWords = '';
+      });
+    }
+
+    // Detectar idioma atual
+    String localeId = 'pt_BR';
+    try {
+      final loc = Localizations.localeOf(context);
+      if (loc.languageCode == 'pt') {
+         localeId = (loc.countryCode == 'PT') ? 'pt_PT' : 'pt_BR';
+      } else if (loc.languageCode == 'es') {
+         localeId = 'es_ES';
+      } else {
+         localeId = 'en_US'; 
+      }
+    } catch (e) {
+       localeId = 'pt_BR';
+    }
+
+    final savedCursor = controller.selection.baseOffset < 0 ? controller.text.length : controller.selection.baseOffset;
+
+    await _speech.listen(
+      onResult: (result) {
+         if (!mounted) return;
+         
+         final recognized = result.recognizedWords;
+         
+         String textBefore = controller.text.substring(0, savedCursor);
+         String textAfter = controller.text.substring(savedCursor + _lastWords.length); 
+         
+         if (textAfter.length + savedCursor + _lastWords.length > controller.text.length) {
+             textBefore = controller.text;
+             textAfter = '';
+         }
+
+         final newText = textBefore + recognized + textAfter;
+         
+         controller.value = TextEditingValue(
+            text: newText,
+            selection: TextSelection.collapsed(offset: savedCursor + recognized.length),
+         );
+         
+         _lastWords = recognized;
+         
+         if (result.finalResult) {
+             _lastWords = ''; 
+             _onUserTyping(); 
+         }
+      },
+      localeId: localeId,
+      listenMode: stt.ListenMode.dictation,
+      cancelOnError: true,
     );
   }
 
@@ -3389,7 +3534,7 @@ class _EditPetFormState extends State<EditPetForm>
      }
   }
 
-  Widget _buildRaceDetailsSection() {
+   Widget _buildRaceDetailsSection() {
      final raw = _currentRawAnalysis;
      if (raw == null) return const SizedBox.shrink();
 
@@ -3405,34 +3550,9 @@ class _EditPetFormState extends State<EditPetForm>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
            const SizedBox(height: 24),
-           InkWell(
-             onTap: _openFullAnalysis,
-             borderRadius: BorderRadius.circular(8),
-             child: Padding(
-               padding: const EdgeInsets.symmetric(vertical: 8),
-               child: Row(
-                 children: [
-                   _buildSectionTitle(AppLocalizations.of(context)!.petRaceAnalysis),
-                   const Spacer(),
-                   Container(
-                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                     decoration: BoxDecoration(
-                         color: AppDesign.petPink.withOpacity(0.1),
-                         borderRadius: BorderRadius.circular(20),
-                         border: Border.all(color: AppDesign.petPink.withOpacity(0.3))
-                     ),
-                     child: Row(
-                       mainAxisSize: MainAxisSize.min,
-                       children: [
-                         Text(AppLocalizations.of(context)!.petSeeFull, style: const TextStyle(color: AppDesign.petPink, fontSize: 12, fontWeight: FontWeight.bold)),
-                         const SizedBox(width: 4),
-                         const Icon(Icons.arrow_forward, color: AppDesign.petPink, size: 14),
-                       ],
-                     ),
-                   )
-                 ],
-               ),
-             ),
+           Padding(
+             padding: const EdgeInsets.symmetric(vertical: 8),
+             child: _buildSectionTitle(AppLocalizations.of(context)!.petRaceAnalysis),
            ),
            const SizedBox(height: 8),
            
@@ -3488,15 +3608,7 @@ class _EditPetFormState extends State<EditPetForm>
      );
   }
 
-   void _openFullAnalysis() {
-      // Switch to Analysis Tab (Index 5)
-      if (_tabController.length > 5) {
-          _tabController.animateTo(5); 
-      } else {
-          // Fallback if tabs change structure
-          debugPrint('TabController index 5 out of bounds');
-      }
-   }
+
 
   Widget _buildInfoRow(String label, String value) {
       if (value.isEmpty) return const SizedBox.shrink();
@@ -4183,7 +4295,11 @@ class _EditPetFormState extends State<EditPetForm>
      // Note: We are ignoring 'suggestionContext' for now as Hub displays user's registered partners.
      
      final result = await Navigator.push(context, MaterialPageRoute(
-       builder: (_) => const PartnersHubScreen(isSelectionMode: true)
+       builder: (_) => PartnersHubScreen(
+         isSelectionMode: true,
+         petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
+         petName: _nameController.text.trim(),
+       )
      ));
      
      if (result != null && result is PartnerModel) {
@@ -4366,13 +4482,13 @@ class _EditPetFormState extends State<EditPetForm>
       backgroundColor: AppDesign.backgroundDark,
       elevation: 0,
       leading: widget.onCancel != null 
-          ? IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: widget.onCancel)
-          : IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.pop(context)),
+          ? IconButton(icon: const Icon(Icons.close, color: AppDesign.petPink), onPressed: widget.onCancel)
+          : IconButton(icon: const Icon(Icons.arrow_back, color: AppDesign.petPink), onPressed: () => Navigator.pop(context)),
       actions: [
          PdfActionButton(onPressed: _generatePetReport),
          if (widget.onDelete != null)
            IconButton(
-             icon: const Icon(Icons.delete_outline, color: AppDesign.error),
+             icon: const Icon(Icons.delete_outline, color: Colors.red),
              onPressed: _confirmDelete,
            ),
       ],
