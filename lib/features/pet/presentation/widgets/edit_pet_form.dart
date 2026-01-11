@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:hive/hive.dart';
 import '../../../../core/services/file_upload_service.dart';
 import '../../../../core/services/gemini_service.dart';
 import '../../../../core/utils/prompt_factory.dart';
@@ -28,7 +29,7 @@ import '../../../../core/widgets/pdf_action_button.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
-import '../../../../core/widgets/pdf_section_filter_dialog.dart';
+import 'filter_3d_modal.dart';
 import '../../../../core/widgets/cumulative_observations_field.dart';
 import '../../models/lab_exam.dart';
 import 'meal_plan_loading_widget.dart';
@@ -52,6 +53,7 @@ import 'pet_menu_filter_dialog.dart';
 import 'pet_menu_filter_dialog.dart';
 import 'weekly_menu_screen.dart';
 import '../../models/meal_plan_request.dart';
+import '../../models/weekly_meal_plan.dart';
 import 'partner_agenda_sheet.dart';
 import 'linked_partner_card.dart';
 import '../pet_event_history_screen.dart'; // Added
@@ -4315,45 +4317,163 @@ class _EditPetFormState extends State<EditPetForm>
 
   Future<void> _generatePetReport() async {
     try {
-        // Show section filter dialog
-        final selectedSections = await showDialog<Map<String, bool>>(
-          context: context,
-          builder: (context) => const PdfSectionFilterDialog(),
-        );
+        // 🚀 V68: DIRECT PDF GENERATION - NO FILTER MODAL
+        // User wants the complete medical record immediately
+        debugPrint('[PDF_FULL] Generating complete report for ${_nameController.text.trim()}');
         
-        // User cancelled the dialog
-        if (selectedSections == null) return;
+        // 🛡️ V72: HIVE FLUSH - Ensure all data is persisted before PDF generation
+        try {
+          final petsBox = Hive.box('box_pets_master');
+          await petsBox.flush();
+          debugPrint('✅ [V72] Hive box flushed - data synchronized');
+        } catch (e) {
+          debugPrint('⚠️ [V72] Hive flush warning: $e');
+        }
+        
+        
+        // 🛡️ V73: EXPLICIT MEAL PLAN EXTRACTION (Pre-Isolate)
+        // Force load meal plan data before PDF generation to prevent null reference in isolate
+        Map<String, dynamic>? mealPlanData;
+        try {
+          final petsBox = Hive.box('box_pets_master');
+          final petData = petsBox.get(_nameController.text.trim());
+          
+          if (petData != null && petData is Map) {
+            final rawData = Map<String, dynamic>.from(petData);
+            if (rawData.containsKey('rawAnalysis') && rawData['rawAnalysis'] != null) {
+              final analysis = rawData['rawAnalysis'] as Map;
+              if (analysis.containsKey('plano_semanal')) {
+                mealPlanData = Map<String, dynamic>.from(analysis);
+                debugPrint('✅ [V73] Meal plan extracted from rawAnalysis: ${analysis['plano_semanal']?.length ?? 0} days');
+              } else {
+                debugPrint('⚠️ [V73] No meal plan found in rawAnalysis');
+              }
+            } else {
+              debugPrint('⚠️ [V73] No rawAnalysis found for pet');
+            }
+          }
+        } catch (e) {
+          debugPrint('❌ [V73] Error extracting meal plan from rawAnalysis: $e');
+        }
+        
+        // 🛡️ V74: INDEPENDENT MEAL PLAN SEARCH (Secondary Source)
+        // Search in weekly_meal_plans box as fallback/primary source
+        try {
+          final mealPlanBox = Hive.box<WeeklyMealPlan>('weekly_meal_plans');
+          final petPlans = mealPlanBox.values.where((plan) => plan.petId == _nameController.text.trim()).toList();
+          
+          if (petPlans.isNotEmpty) {
+            // Get most recent plan
+            petPlans.sort((a, b) => b.startDate.compareTo(a.startDate));
+            final latestPlan = petPlans.first;
+            
+            debugPrint('✅ [V74] Found ${petPlans.length} meal plan(s) in weekly_meal_plans box');
+            debugPrint('✅ [V74] Using latest plan: ${latestPlan.id} (${latestPlan.startDate} to ${latestPlan.endDate})');
+            
+            // Convert WeeklyMealPlan to rawAnalysis format if not already present
+            if (mealPlanData == null || !mealPlanData.containsKey('plano_semanal')) {
+              // Group meals by day of week
+              final dayGroups = <int, List<Map<String, dynamic>>>{};
+              for (var meal in latestPlan.meals) {
+                final dayKey = meal.dayOfWeek;
+                if (!dayGroups.containsKey(dayKey)) {
+                  dayGroups[dayKey] = [];
+                }
+                dayGroups[dayKey]!.add({
+                  'hora': meal.time,
+                  'titulo': meal.title,
+                  'descricao': meal.description,
+                  'quantidade': meal.quantity,
+                });
+              }
+              
+              // Convert to plano_semanal format (sorted by day)
+              final planoDias = dayGroups.entries.toList()
+                ..sort((a, b) => a.key.compareTo(b.key));
+              
+              final planoSemanal = planoDias.map((entry) => {
+                'dia': entry.key,
+                'refeicoes': entry.value,
+              }).toList();
+              
+              mealPlanData = {
+                'plano_semanal': planoSemanal,
+                'tipo_dieta': latestPlan.dietType,
+                'data_inicio_semana': latestPlan.startDate.toIso8601String(),
+              };
+              debugPrint('✅ [V74] Converted WeeklyMealPlan to rawAnalysis format: ${planoSemanal.length} days');
+            }
+          } else {
+            debugPrint('⚠️ [V74] No meal plans found in weekly_meal_plans box for pet: ${_nameController.text.trim()}');
+          }
+        } catch (e) {
+          debugPrint('❌ [V74] Error searching weekly_meal_plans box: $e');
+        }
+        
+        // Use extracted meal plan data or current raw analysis
+        final finalRawAnalysis = mealPlanData ?? _currentRawAnalysis;
+        
+        if (finalRawAnalysis != null && finalRawAnalysis.containsKey('plano_semanal')) {
+          debugPrint('🟢 [V74] MEAL PLAN READY FOR PDF: ${finalRawAnalysis['plano_semanal']?.length ?? 0} days');
+        } else {
+          debugPrint('🔴 [V74] NO MEAL PLAN DATA - PDF will show "not defined" message');
+        }
         
         final exportService = ExportService();
         
-        // Construct current profile from screen data
+        // Construct current profile from screen data (freshest state)
         final profile = PetProfileExtended(
             petName: _nameController.text.trim(),
-            raca: _racaController.text.trim(),
-            idadeExata: _idadeController.text.trim(),
+            especie: _especie,
+            raca: PetProfileExtended.normalizeBreed(_racaController.text, _especie),
+            idadeExata: _idadeController.text.trim().isEmpty ? null : _idadeController.text.trim(),
             pesoAtual: double.tryParse(_pesoController.text.trim()),
             pesoIdeal: double.tryParse(_pesoIdealController.text.trim()),
             nivelAtividade: _nivelAtividade,
             statusReprodutivo: _statusReprodutivo,
+            sex: _sexo,
             alergiasConhecidas: _alergiasConhecidas,
             preferencias: _preferencias,
+            restricoes: _restricoes,
             dataUltimaV10: _dataUltimaV10,
             dataUltimaAntirrabica: _dataUltimaAntirrabica,
             frequenciaBanho: _frequenciaBanho,
             linkedPartnerIds: _linkedPartnerIds,
             partnerNotes: _partnerNotes,
             weightHistory: _weightHistory,
-            woundAnalysisHistory: _woundHistory, // HISTÓRICO DE FERIDAS ADICIONADO
             labExams: _labExams.map((e) => e.toJson()).toList(),
+            woundAnalysisHistory: _woundHistory,
+            analysisHistory: _analysisHistory,
             observacoesIdentidade: _observacoesIdentidade,
             observacoesSaude: _observacoesSaude,
             observacoesNutricao: _observacoesNutricao,
             observacoesGaleria: _observacoesGaleria,
             observacoesPrac: _observacoesPrac,
             lastUpdated: DateTime.now(),
-            imagePath: _profileImage?.path,
-            rawAnalysis: _currentRawAnalysis,
+            imagePath: _profileImage?.path ?? _initialImagePath,
+            rawAnalysis: finalRawAnalysis, // V74: Use meal plan from both sources
+            reliability: _reliability,
+            porte: _porte,
         );
+
+        // V68: ALL SECTIONS ENABLED BY DEFAULT (Complete Medical Record)
+        final allSectionsEnabled = {
+          'identity': true,
+          'health': true,
+          'nutrition': true,
+          'vaccines': true,
+          'exams': true,
+          'wounds': true,
+          'weight': true,
+          'partners': true,
+          'gallery': true,
+          'prac': true,
+          'analysis': true,
+          'meal_plan': true,
+          'observations': true,
+        };
+
+        debugPrint('[PDF_FULL] Total data domains: ${allSectionsEnabled.length}');
 
         Navigator.push(
           context,
@@ -4364,7 +4484,7 @@ class _EditPetFormState extends State<EditPetForm>
                 final pdf = await ExportService().generatePetProfileReport(
                   profile: profile,
                   strings: AppLocalizations.of(context)!,
-                  selectedSections: selectedSections,
+                  selectedSections: allSectionsEnabled,
                 );
                 return pdf.save();
               },
@@ -4372,10 +4492,13 @@ class _EditPetFormState extends State<EditPetForm>
           ),
         );
     } catch (e) {
-        debugPrint('Erro ao gerar PDF: $e');
+        debugPrint('❌ [PDF_FULL] Error generating complete report: $e');
         if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${AppLocalizations.of(context)!.pdfError} $e'), backgroundColor: Colors.red),
+                SnackBar(
+                  content: Text('${AppLocalizations.of(context)!.pdfError} $e'), 
+                  backgroundColor: Colors.red
+                ),
             );
         }
     }

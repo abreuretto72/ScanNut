@@ -42,7 +42,7 @@ class AppDesign {
   // CORES DOS DOMÍNIOS
   static const Color foodOrange = Color(0xFFFF9800); // Laranja Comida (Corrected)
   static const Color plantGreen = Color(0xFF4CAF50); // Verde Plantas
-  static const Color petPink    = Color(0xFFFADADD); // Rosa Pets
+  static const Color petPink    = Color(0xFFFFD1DC); // Rosa Pastel (Protocol V63 Standard)
 
   static Color getModeColor(int modeIndex) {
     switch (modeIndex) {

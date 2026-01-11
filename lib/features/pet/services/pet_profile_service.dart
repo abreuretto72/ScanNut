@@ -27,23 +27,25 @@ class PetProfileService {
   Future<void> init({HiveCipher? cipher}) async {
     // 🛡️ PROTEÇÃO: Se não passar cipher, tenta pegar o global do SimpleAuthService
     final effectiveCipher = cipher ?? SimpleAuthService().encryptionCipher;
-
-    // Prevent multiple opens if already ready
-    if (_profileBox != null && _profileBox!.isOpen) return;
     
-    try {
-        if (!Hive.isBoxOpen(_profileBoxName)) {
-            _profileBox = await Hive.openBox(_profileBoxName, encryptionCipher: effectiveCipher);
-        } else {
-            _profileBox = Hive.box(_profileBoxName);
-        }
+    final isOpen = Hive.isBoxOpen(_profileBoxName);
+    debugPrint('🔍 [V61-TRACE] PetProfileService checking box "$_profileBoxName": open=$isOpen');
+
+    if (isOpen) {
+      _profileBox = Hive.box(_profileBoxName);
+      debugPrint('✅ [V61-TRACE] PetProfile box already open.');
+    } else {
+      try {
+        debugPrint('📂 [V61-TRACE] Opening PetProfile box...');
+        _profileBox = await Hive.openBox(_profileBoxName, encryptionCipher: effectiveCipher);
         
         // 🧹 RESET TÉCNICO: Limpeza de Paths Órfãos (Cache)
         await _sanitizeOrphanedCachePaths();
         
-        debugPrint('✅ PetProfileService initialized (Secure). Box Open: ${_profileBox?.isOpen}');
-    } catch (e, stack) {
-        debugPrint('❌ CRITICAL: Failed to open Secure Pet Profile Box: $e\n$stack');
+        debugPrint('✅ [V61-TRACE] PetProfileService initialized (Secure). Box Open: ${_profileBox?.isOpen}');
+      } catch (e, stack) {
+        debugPrint('❌ [V61-TRACE] FATAL: Failed to open Secure Pet Profile Box: $e\n$stack');
+      }
     }
   }
 

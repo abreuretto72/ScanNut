@@ -14,9 +14,20 @@ class PetHealthService {
   Box? _healthBox;
 
   Future<void> init({HiveCipher? cipher}) async {
-    if (!Hive.isBoxOpen(_healthBoxName)) {
-      _healthBox = await Hive.openBox(_healthBoxName, encryptionCipher: cipher);
-      debugPrint('✅ PetHealthService initialized (Secure)');
+    final isOpen = Hive.isBoxOpen(_healthBoxName);
+    debugPrint('🔍 [V61-TRACE] PetHealthService checking box "$_healthBoxName": open=$isOpen');
+
+    if (isOpen) {
+      _healthBox = Hive.box(_healthBoxName);
+      debugPrint('✅ [V61-TRACE] PetHealth box already open.');
+    } else {
+      try {
+        debugPrint('📂 [V61-TRACE] Opening PetHealth box...');
+        _healthBox = await Hive.openBox(_healthBoxName, encryptionCipher: cipher);
+        debugPrint('✅ [V61-TRACE] PetHealthService initialized (Secure)');
+      } catch (e, stack) {
+        debugPrint('❌ [V61-TRACE] FATAL: Failed to open Secure Pet Health Box: $e\n$stack');
+      }
     }
   }
 

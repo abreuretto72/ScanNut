@@ -16,6 +16,7 @@ import 'core/services/file_upload_service.dart';
 import 'core/services/simple_auth_service.dart';
 import 'core/services/permanent_backup_service.dart';
 import 'core/services/media_vault_service.dart';
+import 'core/services/hive_init_service.dart';
 
 import 'core/services/meal_history_service.dart';
 import 'features/pet/models/pet_event.dart';
@@ -25,6 +26,7 @@ import 'features/pet/services/vaccine_status_service.dart';
 import 'features/pet/services/pet_profile_service.dart';
 import 'features/pet/services/pet_health_service.dart';
 import 'features/pet/services/meal_plan_service.dart';
+import 'features/pet/models/weekly_meal_plan.dart';
 import 'features/food/services/nutrition_service.dart';
 import 'features/plant/services/botany_service.dart';
 import 'features/food/services/workout_service.dart';
@@ -68,6 +70,20 @@ void main() async {
     
     // Initialize Hive
     await Hive.initFlutter();
+
+    // 🛡️ REPARAÇÃO HIVE (V64): Registro de Adaptadores no Topo (Ordem de Carga)
+    debugPrint('🔧 [HIVE-BOOT] Registrando adaptadores críticos de Pets...');
+    if (!Hive.isAdapterRegistered(8)) Hive.registerAdapter(WeeklyMealPlanAdapter());
+    if (!Hive.isAdapterRegistered(9)) Hive.registerAdapter(DailyMealItemAdapter());
+    if (!Hive.isAdapterRegistered(10)) Hive.registerAdapter(NutrientMetadataAdapter());
+    
+    if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(EventTypeAdapter());
+    if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(RecurrenceTypeAdapter());
+    if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(PetEventAdapter());
+    if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(VaccineStatusAdapter());
+    
+    // Register Nutrition module adapters (TypeIds 24-30)
+    NutritionHiveAdapters.registerAdapters();
     
     // 🔐 MEDIA VAULT: Secure Storage & Migration (Priority 1)
     try {
@@ -87,38 +103,24 @@ void main() async {
     } catch (e) {
       debugPrint('⚠️ Auto-recovery falhou (primeira instalação ou erro): $e');
     }
-    
-    // Register Hive adapters for PetEvent
-    if (!Hive.isAdapterRegistered(4)) {
-      Hive.registerAdapter(EventTypeAdapter());
-    }
-    if (!Hive.isAdapterRegistered(5)) {
-      Hive.registerAdapter(RecurrenceTypeAdapter());
-    }
-    if (!Hive.isAdapterRegistered(6)) {
-      Hive.registerAdapter(PetEventAdapter());
-    }
-    if (!Hive.isAdapterRegistered(7)) {
-      Hive.registerAdapter(VaccineStatusAdapter());
-    }
-    
-    // Register Nutrition module adapters (TypeIds 24-30)
-    NutritionHiveAdapters.registerAdapters();
-    
+
+
     // STARTUP SEQUENTIAL: 
     // 1. Initialize Auth only (the ONLY box open at start)
     await simpleAuthService.init();
 
-    // 🛡️ PROACTIVE BOX OPENING (As requested by user to prevent "Box not found" errors)
+    // 🛡️ V70: CENTRALIZED HIVE INITIALIZATION (Atomic Sequence)
+    // Opens all boxes once with proper typing to prevent "Box<dynamic>" errors
+    debugPrint('🚀 [V70] Step 2: Initializing all Hive boxes centrally...');
     try {
-        await Hive.openBox('box_pets_master'); // Correct master box for pet profiles
-        await Hive.openBox('scannut_history');  // Correct box for analysis history
-        // Optional/Requested by prompt:
-        await Hive.openBox('pets'); 
-        await Hive.openBox('settings');
-        debugPrint('📦 Pre-emptive Hive boxes opened.');
+        await hiveInitService.initializeAllBoxes(
+          cipher: simpleAuthService.encryptionCipher,
+        );
+        debugPrint('✅ [V70] Step 3: Hive boxes initialized successfully');
     } catch (e) {
-        debugPrint('⚠️ Pre-emptive boxes failed (likely already open or encrypted): $e');
+        debugPrint('❌ [V70] Critical: Hive initialization failed: $e');
+        // App cannot continue without Hive
+        rethrow;
     }
     
     // Cleanup temporary files

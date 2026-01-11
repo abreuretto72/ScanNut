@@ -555,11 +555,38 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   }
   
   Future<void> _performFactoryReset() async {
-      // Minimal Reset Logic for redundancy
-      await ref.read(settingsProvider.notifier).resetToDefaults();
-      await ref.read(historyServiceProvider).hardResetAllDatabases();
-      await simpleAuthService.logout();
-      if(mounted) Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    debugPrint('TRACE: Iniciando limpeza profunda...');
+    
+    // 1. Fecha todas as conexões para limpar a memória RAM e evitar conflitos
+    await Hive.close(); 
+    debugPrint('TRACE: Todas as boxes fechadas na RAM.');
+
+    // 2. Deleta os arquivos do disco (Nuclear Option)
+    await Hive.deleteBoxFromDisk('pet_events');
+    await Hive.deleteBoxFromDisk('scannut_meal_history'); // Sincronizado com MealHistoryService
+    debugPrint('TRACE: Arquivos físicos deletados do disco.');
+
+    // 3. Reset de outros módulos e Auth (Mantendo a integridade do sistema)
+    await ref.read(settingsProvider.notifier).resetToDefaults();
+    await ref.read(historyServiceProvider).hardResetAllDatabases();
+    await simpleAuthService.logout();
+
+    // 4. RECRIAÇÃO IMEDIATA (Sua lógica 'Destruiu, Criou')
+    // Reabre as boxes fundamentais que os serviços podem tentar acessar imediatamente
+    await Hive.openBox('pet_events');
+    await Hive.openBox('scannut_meal_history');
+    debugPrint('✅ TRACE: Boxes recriadas e prontas.');
+
+    // Verificação de Segurança
+    if (Hive.isBoxOpen('pet_events')) {
+      debugPrint('✅ SUCESSO: O sistema já pode receber novas fotos.');
+    } else {
+      debugPrint('❌ ERRO: A box não foi reaberta corretamente.');
+    }
+
+    if (mounted) {
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    }
   }
 
   // --- ATOMIC WIPE ACTIONS (Deep Clean) ---

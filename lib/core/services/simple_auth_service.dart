@@ -143,7 +143,7 @@ class SimpleAuthService {
 
       
       logger.info('🚀 Tentativa de abertura de todos os dados concluída.');
-      debugPrint('🏁 [SimpleAuthService] initializeSecureData FINISHED.');
+      debugPrint('🏁 [SimpleAuthService] initializeSecureData FINISHED at ${DateTime.now().toIso8601String()}.');
     } catch (e, stack) {
       logger.error('❌ Erro geral ao inicializar serviços seguros', error: e);
       debugPrint('Stacktrace: $stack');

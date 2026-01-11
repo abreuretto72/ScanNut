@@ -67,16 +67,30 @@ class NutritionService {
   }
 
   Future<Box<NutritionHistoryItem>> _ensureBox({HiveCipher? cipher}) async {
-    if (_box != null && _box!.isOpen) return _box!;
+    final isOpen = Hive.isBoxOpen(boxName);
+    debugPrint('🔍 [V61-TRACE] NutritionService checking box "$boxName": open=$isOpen');
+
+    if (isOpen) {
+      try {
+        _box = Hive.box<NutritionHistoryItem>(boxName);
+        debugPrint('✅ [V61-TRACE] Nutrition box already open with correct type.');
+        return _box!;
+      } catch (e) {
+        debugPrint('⚠️ [V61-TRACE] Type mismatch in Nutrition box. Closing dynamic instance...');
+        await Hive.box(boxName).close();
+      }
+    }
+
     try {
       if (!Hive.isAdapterRegistered(20)) {
         Hive.registerAdapter(NutritionHistoryItemAdapter());
       }
+      debugPrint('📂 [V61-TRACE] Opening Nutrition box tipada...');
       _box = await Hive.openBox<NutritionHistoryItem>(boxName, encryptionCipher: cipher);
-      debugPrint('✅ NutritionService initialized/re-opened (Secure).');
+      debugPrint('✅ [V61-TRACE] NutritionService initialized/re-opened (Secure).');
       return _box!;
     } catch (e) {
-      debugPrint('❌ Error initializing Secure NutritionService: $e');
+      debugPrint('❌ [V61-TRACE] FATAL: Error initializing Secure NutritionService: $e');
       rethrow;
     }
   }

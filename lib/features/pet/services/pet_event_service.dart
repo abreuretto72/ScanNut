@@ -40,9 +40,18 @@ class PetEventService {
 
   // Create
   Future<void> addEvent(PetEvent event) async {
-    await box.put(event.id, event);
-    await box.flush(); // FORCE DISK WRITE
-    debugPrint('✅ Event persistido no disco: ${event.title} (Pet: ${event.petName})');
+    debugPrint('TRACE [A]: Preparando para salvar análise');
+    if (_box == null || !_box!.isOpen) {
+      debugPrint('TRACE [B]: Alerta! Box fechada. Reabrindo de emergência...');
+      await init(); // Chamada do init() que gerencia a abertura segura
+    }
+    
+    final boxToUse = box;
+    debugPrint('TRACE [C]: Box pronta. Gravando dados...');
+    
+    await boxToUse.put(event.id, event);
+    await boxToUse.flush(); // FORCE DISK WRITE
+    debugPrint('TRACE [D]: Dados gravados com sucesso.');
   }
 
   // Read

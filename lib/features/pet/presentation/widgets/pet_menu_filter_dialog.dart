@@ -5,7 +5,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../models/meal_plan_request.dart';
 
-
+/// ANTI-GRAVITY — REPARAÇÃO ESTÉTICA: FILTRO MENU PET (V63)
+/// Modal de Filtro de Cardápio com estética Rosa Pastel e Preto.
 class PetMenuFilterDialog extends StatefulWidget {
   final Map<String, dynamic>? initialConfig;
   
@@ -28,6 +29,11 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
   final TextEditingController _otherNoteController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+
+  // Paleta de Cores V63
+  static const Color colorPastelPink = Color(0xFFFFD1DC);
+  static const Color colorIntensePink = Color(0xFFFF4081);
+  static const Color colorDeepPink = Color(0xFFF06292);
 
   @override
   void initState() {
@@ -58,7 +64,6 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
     } else if (_selectedMode == 'monthly') {
       _endDate = _startDate.add(const Duration(days: 27)); // 28 days total
     } else {
-       // Custom - keep existing or default to +1 week
        if (_endDate == null || _endDate!.isBefore(_startDate)) {
          _endDate = _startDate.add(const Duration(days: 6));
        }
@@ -77,14 +82,14 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       lastDate: lastDate,
       builder: (context, child) {
         return Theme(
-          data: ThemeData.dark().copyWith(
-             colorScheme: ColorScheme.dark(
-               primary: AppDesign.petPink,
+          data: ThemeData.light().copyWith(
+             colorScheme: const ColorScheme.light(
+               primary: colorDeepPink,
                onPrimary: Colors.black,
-               surface: AppDesign.surfaceDark,
-               onSurface: Colors.white,
+               surface: colorPastelPink,
+               onSurface: Colors.black,
              ),
-             dialogBackgroundColor: AppDesign.surfaceDark,
+             dialogBackgroundColor: colorPastelPink,
           ),
           child: child!,
         );
@@ -108,22 +113,15 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
     
     if (!_formKey.currentState!.validate()) return;
     
-    // Validate Diet
     if (_selectedDietType == null) {
        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.dietRequiredError), backgroundColor: AppDesign.error));
        return;
     }
 
-
-    // Validate Custom Date
     if (_selectedMode == 'custom') {
        if (_endDate == null) return;
        final diff = _endDate!.difference(_startDate).inDays;
        if (diff < 0) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Data final inválida'), backgroundColor: AppDesign.error));
-         return;
-       }
-       if (diff > 60) {
          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuDateRangeError), backgroundColor: AppDesign.error));
          return;
        }
@@ -136,141 +134,210 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       'dietType': _selectedDietType,
       'otherNote': _otherNoteController.text.trim(),
     });
-
   }
-
-  // Removed _getDietOptions map as we use Enum now
-
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return AlertDialog(
-      backgroundColor: AppDesign.surfaceDark,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(
-        l10n.petMenuFilterTitle,
-        style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
-      ),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
+    // 🛡️ V71: MATERIAL ANCESTOR FIX
+    // Wrap content in Material to prevent "No Material widget found" error
+    return Material(
+      type: MaterialType.transparency,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: colorPastelPink,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // DIET SECTION
-              Text(l10n.dietTypeLabel.toUpperCase(), style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              
-              DropdownButtonFormField<PetDietType>(
-                value: _selectedDietType,
-                dropdownColor: AppDesign.surfaceDark,
-                decoration: InputDecoration(
-                   filled: true,
-                   fillColor: Colors.white.withOpacity(0.05),
-                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                style: GoogleFonts.poppins(color: Colors.white),
-                hint: Text(l10n.dietRequiredError, style: const TextStyle(color: Colors.white54)),
-                icon: const Icon(Icons.keyboard_arrow_down, color: AppDesign.petPink),
-                items: PetDietType.values.map((diet) {
-                  return DropdownMenuItem(
-                    value: diet,
-                    child: Text(diet.localizedLabel(l10n)),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _selectedDietType = val;
-                    if (val != PetDietType.other) _otherNoteController.clear();
-                  });
-                },
-                validator: (val) => val == null ? l10n.dietRequiredError : null,
               ),
 
-              if (_selectedDietType == PetDietType.other) ...[
-
-                 const SizedBox(height: 12),
-                 TextFormField(
-                    controller: _otherNoteController,
-                    maxLength: 60,
-                    style: GoogleFonts.poppins(color: Colors.white),
-                    decoration: InputDecoration(
-                       hintText: l10n.dietOtherHint,
-                       hintStyle: const TextStyle(color: Colors.white30),
-                       filled: true,
-                       fillColor: Colors.white.withOpacity(0.05),
-                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              // Header
+              Row(
+                children: [
+                  const Icon(Icons.restaurant_menu, color: Colors.black, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.petMenuFilterTitle,
+                      style: GoogleFonts.poppins(
+                        color: Colors.black,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    validator: (val) {
-                       if (val == null || val.trim().isEmpty) return l10n.dietOtherRequiredError;
-                       return null;
-                    },
-                 ),
-              ],
-              
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.black54),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
-              const Divider(color: Colors.white10),
-              const SizedBox(height: 16),
 
-              // MODE SECTION
-              Text(l10n.petMenuModeWeekly.toUpperCase(), style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 12, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              _buildRadioOption(l10n.petMenuModeWeekly, 'weekly'),
-              _buildRadioOption(l10n.petMenuModeMonthly, 'monthly'),
-              _buildRadioOption(l10n.petMenuModeCustom, 'custom'),
-              
-              const SizedBox(height: 24),
-              
-              // Date Selection
-              Text(l10n.petMenuStartDate, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
-              const SizedBox(height: 8),
-              _buildDateTrigger(_startDate, true),
-              
-              const SizedBox(height: 16),
-              
-              Text(l10n.petMenuEndDate, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
-               const SizedBox(height: 8),
-              _buildDateTrigger(_endDate!, false, enabled: _selectedMode == 'custom'),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                      // DIET SECTION
+                      _buildSectionTitle(l10n.dietTypeLabel.toUpperCase()),
+                      const SizedBox(height: 12),
+                      _buildDietDropdown(l10n),
 
-              const SizedBox(height: 8),
-              if (_endDate != null)
-                 Text(
-                   '${(_endDate!.difference(_startDate).inDays + 1)} dias selecionados',
-                   style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 12, fontWeight: FontWeight.bold),
-                 ),
-            ],
-          ),
+                      if (_selectedDietType == PetDietType.other) ...[
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _otherNoteController,
+                          maxLength: 60,
+                          style: GoogleFonts.poppins(color: Colors.black),
+                          decoration: InputDecoration(
+                            hintText: l10n.dietOtherHint,
+                            hintStyle: const TextStyle(color: Colors.black38),
+                            filled: true,
+                            fillColor: Colors.black.withOpacity(0.05),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                          validator: (val) => (val == null || val.trim().isEmpty) ? l10n.dietOtherRequiredError : null,
+                        ),
+                      ],
+
+                      const SizedBox(height: 24),
+                      const Divider(color: Colors.black12),
+                      const SizedBox(height: 16),
+
+                      // MODE SECTION
+                      _buildSectionTitle(l10n.petMenuModeWeekly.toUpperCase()),
+                      const SizedBox(height: 8),
+                      _buildRadioOption(l10n.petMenuModeWeekly, 'weekly'),
+                      _buildRadioOption(l10n.petMenuModeMonthly, 'monthly'),
+                      _buildRadioOption(l10n.petMenuModeCustom, 'custom'),
+
+                      const SizedBox(height: 24),
+
+                      // Date Selection
+                      _buildSectionTitle(l10n.petMenuStartDate),
+                      const SizedBox(height: 8),
+                      _buildDateTrigger(_startDate, true),
+
+                      const SizedBox(height: 16),
+
+                      _buildSectionTitle(l10n.petMenuEndDate),
+                      const SizedBox(height: 8),
+                      _buildDateTrigger(_endDate!, false, enabled: _selectedMode == 'custom'),
+
+                      const SizedBox(height: 16),
+                      if (_endDate != null)
+                        Text(
+                          '${(_endDate!.difference(_startDate).inDays + 1)} dias selecionados',
+                          style: GoogleFonts.poppins(color: colorDeepPink, fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ACTION BUTTONS
+            ElevatedButton(
+              onPressed: _generate,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorDeepPink,
+                foregroundColor: Colors.black,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                l10n.petMenuGenerateBtn.toUpperCase(),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel ?? 'Cancelar', style: const TextStyle(color: Colors.white60)),
+    ),
+    ); // V71: Close Material widget
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        color: Colors.black87,
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildDietDropdown(AppLocalizations l10n) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButtonFormField<PetDietType>(
+          value: _selectedDietType,
+          dropdownColor: colorPastelPink,
+          isExpanded: true,
+          decoration: const InputDecoration(border: InputBorder.none),
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black),
+          items: PetDietType.values.map((diet) {
+            return DropdownMenuItem(
+              value: diet,
+              child: Text(
+                diet.localizedLabel(l10n),
+                style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.w600),
+              ),
+            );
+          }).toList(),
+          onChanged: (val) {
+            setState(() {
+              _selectedDietType = val;
+              if (val != PetDietType.other) _otherNoteController.clear();
+            });
+          },
+          validator: (val) => val == null ? l10n.dietRequiredError : null,
         ),
-        ElevatedButton(
-          onPressed: _generate,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppDesign.petPink,
-            foregroundColor: Colors.black,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          child: Text(l10n.petMenuGenerateBtn),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildRadioOption(String label, String value) {
     return RadioListTile<String>(
-      title: Text(label, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+      title: Text(label, style: GoogleFonts.poppins(color: Colors.black, fontSize: 14, fontWeight: _selectedMode == value ? FontWeight.bold : FontWeight.normal)),
       value: value,
       groupValue: _selectedMode,
-      activeColor: AppDesign.petPink,
+      activeColor: colorIntensePink,
       contentPadding: EdgeInsets.zero,
       onChanged: (val) {
         if (val != null) {
@@ -287,23 +354,23 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
     final dateFormat = DateFormat('dd/MM/yyyy');
     return InkWell(
       onTap: enabled ? () => _pickDate(isStart) : null,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: enabled ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.02),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: enabled ? Colors.white24 : Colors.transparent),
+          color: enabled ? Colors.black.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: enabled ? Colors.black.withOpacity(0.1) : Colors.transparent),
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today, color: enabled ? AppDesign.petPink : Colors.white24, size: 18),
+            Icon(Icons.calendar_today, color: enabled ? colorDeepPink : Colors.black26, size: 20),
             const SizedBox(width: 12),
             Text(
               dateFormat.format(date),
               style: GoogleFonts.poppins(
-                color: enabled ? Colors.white : Colors.white24,
-                fontWeight: FontWeight.w500,
+                color: enabled ? Colors.black : Colors.black26,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],

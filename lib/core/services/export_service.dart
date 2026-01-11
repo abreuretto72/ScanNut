@@ -23,6 +23,7 @@ import '../../nutrition/data/models/shopping_list_model.dart';
 import '../../features/food/models/nutrition_history_item.dart';
 import '../../features/food/models/recipe_history_item.dart';
 import '../../features/plant/models/botany_history_item.dart';
+import 'image_optimization_service.dart';
 
 // Helper class to replace record syntax for Dart compatibility
 class _CleanedValue {
@@ -37,7 +38,9 @@ class ExportService {
   ExportService._internal();
 
   // --- DOMAIN COLORS ---
-  static const PdfColor colorPet = PdfColor.fromInt(0xFFFADADD);
+  static final PdfColor colorPet = PdfColor.fromHex('#FFD1DC'); // Rosa Pastel (Protocol V62)
+  static final PdfColor colorPetLight = PdfColor.fromHex('#FFE4E9'); // Lighter pink
+  static final PdfColor colorPetUltraLight = PdfColor.fromHex('#FFF5F7'); // Very light pink
   static const PdfColor colorFood = PdfColor.fromInt(0xFFFF9800);
   static const PdfColor colorPlant = PdfColor.fromInt(0xFF10AC84);
 
@@ -45,17 +48,41 @@ class ExportService {
   Future<pw.ImageProvider?> safeLoadImage(String? path) async {
 
     if (path == null || path.isEmpty) return null;
+    
     try {
       final file = File(path);
-      if (await file.exists()) {
-         final bytes = await file.readAsBytes();
-         // Validação básica de header se necessário, mas o try-catch captura erros de decodificação do pdf package
-         return pw.MemoryImage(bytes);
+      if (!await file.exists()) {
+        debugPrint('⚠️ [V70.1-PDF] Image file not found: $path');
+        return null;
       }
+
+      // 🛡️ V70.1: OPTIMIZE IMAGE BEFORE PDF RENDERING
+      // Prevents memory crashes by downsampling to 800px max @ 70% quality
+      debugPrint('🔄 [V70.1-PDF] Loading optimized image: ${path.split('/').last}');
+      
+      final optimizedBytes = await ImageOptimizationService().loadOptimizedBytes(
+        originalPath: path,
+        autoCleanup: true, // Force garbage collection after load
+      );
+
+      if (optimizedBytes != null) {
+        debugPrint('✅ [V70.1-PDF] Image optimized: ${(optimizedBytes.length / 1024).toStringAsFixed(2)} KB');
+        return pw.MemoryImage(optimizedBytes);
+      }
+
+      // Fallback: try original if optimization fails
+      debugPrint('⚠️ [V70.1-PDF] Optimization failed, using original');
+      final bytes = await file.readAsBytes();
+      return pw.MemoryImage(bytes);
+      
     } catch (e) {
-      debugPrint('⚠️ [ExportService] Skipped corrupted/missing image: $path | Error: $e');
+      debugPrint('❌ [V70.1-PDF] Error loading image: $path | Error: $e');
+      
+      // V70.1: SELF-HEALING - Return placeholder instead of crashing
+      debugPrint('🛡️ [V70.1-PDF] Using placeholder for corrupted image');
+      final placeholder = ImageOptimizationService().getPlaceholderBytes();
+      return pw.MemoryImage(placeholder);
     }
-    return null;
   }
 
   pw.Widget buildSectionHeader(String title, {PdfColor? color, PdfColor? textColor}) {
@@ -73,7 +100,7 @@ class ExportService {
           style: pw.TextStyle(
             fontWeight: pw.FontWeight.bold, 
             fontSize: 13, 
-            color: textColor ?? (color != null ? PdfColors.white : PdfColors.black)
+            color: textColor ?? ((color == colorPet) ? PdfColors.black : (color != null ? PdfColors.white : PdfColors.black))
           ),
         ),
       ),
@@ -223,15 +250,19 @@ class ExportService {
     return _CleanedValue(cleaned, isEstimated);
   }
 
-  pw.Widget _buildObservationsBlock(String observations, AppLocalizations strings) {
-    if (observations.isEmpty) return pw.SizedBox.shrink();
+  Iterable<pw.Widget> _buildObservationsBlock(String observations, AppLocalizations strings) sync* {
+    if (observations.isEmpty) return;
 
-    return pw.Container(
+    // V64: Strict Truncation
+    String safeObs = observations;
+    if (safeObs.length > 1000) safeObs = safeObs.substring(0, 1000) + '...';
+
+    yield pw.Container(
       margin: const pw.EdgeInsets.only(top: 10),
       padding: const pw.EdgeInsets.all(10),
       decoration: pw.BoxDecoration(
-        color: PdfColors.white, // No background
-        border: pw.Border.all(color: PdfColors.grey400),
+        color: colorPetUltraLight, 
+        border: pw.Border.all(color: colorPet, width: 1),
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
       ),
       width: double.infinity,
@@ -243,13 +274,13 @@ class ExportService {
             style: pw.TextStyle(
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
-              color: PdfColors.grey800,
+              color: PdfColors.black,
             ),
           ),
           pw.SizedBox(height: 5),
           pw.Text(
-            observations,
-            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+            safeObs,
+            style: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
           ),
         ],
       ),
@@ -293,9 +324,9 @@ class ExportService {
           if (reportType == 'Detalhamento')
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
-              headerDecoration: const pw.BoxDecoration(color: PdfColors.blue800),
-              headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 9),
-              cellStyle: const pw.TextStyle(fontSize: 7.5),
+              headerDecoration: pw.BoxDecoration(color: colorPet),
+              headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9),
+              cellStyle: const pw.TextStyle(fontSize: 7.5, color: PdfColors.black),
               headers: [strings.pdfDate, strings.pdfFieldEvent, strings.pdfFieldPet, strings.pdfFieldCategory, strings.pdfObservations, strings.pdfStatus],
               data: events.map((e) => [
                 DateFormat.yMd(strings.localeName).add_Hm().format(e.dateTime),
@@ -342,10 +373,10 @@ class ExportService {
           ),
           pw.SizedBox(height: 25),
           pw.Table.fromTextArray(
-            border: pw.TableBorder.all(color: PdfColors.black, width: 1.0),
-            headerDecoration: const pw.BoxDecoration(color: PdfColors.blue),
-            headerStyle: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 10),
-            cellStyle: const pw.TextStyle(fontSize: 9),
+            border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+            headerDecoration: pw.BoxDecoration(color: colorPet),
+            headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
+            cellStyle: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
             headers: [strings.pdfEstablishment, strings.pdfFieldCategory, strings.pdfPhone, strings.pdfRating],
             data: partners.map((p) => [
               p.name,
@@ -389,7 +420,7 @@ class ExportService {
             border: pw.TableBorder.all(color: colorPet, width: 0.5),
             headerDecoration: pw.BoxDecoration(color: colorPet),
             headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9),
-            cellStyle: const pw.TextStyle(fontSize: 7.5),
+            cellStyle: const pw.TextStyle(fontSize: 7.5, color: PdfColors.black),
             headers: [
                 strings.pdfEstablishment.toUpperCase(), 
                 strings.distanceLabel?.toUpperCase() ?? 'DISTÂNCIA', 
@@ -426,6 +457,10 @@ class ExportService {
     String? period, // Added period
     Map<String, List<Map<String, dynamic>>>? shoppingLists,
   }) async {
+    debugPrint('🚀 [V62-TRACE] Iniciando build do PDF: Nome do Pet: $petName');
+    debugPrint('🎨 [V62-TRACE] Carregando cores do tema de Domínio Pet: Rosa Pastel (#FFD1DC)');
+    debugPrint('📊 [V62-TRACE] Verificando dados do cardápio: ${plan.length} itens encontrados');
+
     final pdf = pw.Document();
     final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
 
@@ -434,17 +469,31 @@ class ExportService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
         header: (context) => buildHeader(strings.pdfNutritionSection, timestampStr, color: colorPet),
-        footer: (context) => buildFooter(context),
+        footer: (context) => pw.Column(
+          children: [
+            pw.Divider(thickness: 0.5, color: PdfColors.black),
+            pw.SizedBox(height: 5),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('Gerado por ScanNut - Governança Pet & Inteligência Artificial', 
+                       style: pw.TextStyle(fontSize: 7, fontStyle: pw.FontStyle.italic, color: PdfColors.black)),
+                pw.Text('${strings.pdfPage(context.pageNumber, context.pagesCount)}', 
+                       style: const pw.TextStyle(fontSize: 7, color: PdfColors.black)),
+              ],
+            ),
+          ],
+        ),
         build: (context) {
           final List<pw.Widget> content = [];
           
-          // Header Info Card
+          // Header Info Card - Protocol V62: Background Rosa Pastel, Border Black
           content.add(
             pw.Container(
             padding: const pw.EdgeInsets.all(12),
             decoration: pw.BoxDecoration(
-              color: PdfColors.blue50,
-              border: pw.Border.all(color: PdfColors.blue800, width: 0.5),
+              color: colorPetLight, // Rosa Suave
+              border: pw.Border.all(color: PdfColors.black, width: 0.8),
               borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
             ),
             child: pw.Column(
@@ -452,40 +501,40 @@ class ExportService {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('${strings.pdfFieldPet.toUpperCase()}: $petName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-                    pw.Text('${strings.pdfFieldPeriod.toUpperCase()}: ${period ?? strings.pdfPeriodWeekly}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue700)),
+                    pw.Text('${strings.pdfFieldPet.toUpperCase()}: $petName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.black)),
+                    pw.Text('${strings.pdfFieldPeriod.toUpperCase()}: ${period ?? strings.pdfPeriodWeekly}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)),
                   ],
                 ),
-                pw.SizedBox(height: 5),
+                pw.SizedBox(height: 6),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('${strings.pdfFieldBreed.toUpperCase()}: $raceName', style: const pw.TextStyle(fontSize: 10)),
-                    pw.Text('${strings.pdfFieldRegime.toUpperCase()}: $dietType', style: pw.TextStyle(color: PdfColors.blue900, fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    pw.Text('${strings.pdfFieldBreed.toUpperCase()}: $raceName', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
+                    pw.Text('${strings.pdfFieldRegime.toUpperCase()}: $dietType', style: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ],
                 ),
                 if (dailyKcal != null) ...[
-                  pw.SizedBox(height: 5),
+                  pw.SizedBox(height: 6),
                   pw.Align(
                     alignment: pw.Alignment.centerRight,
-                    child: pw.Text('${strings.pdfFieldDailyKcalMeta.toUpperCase()}: $dailyKcal', style: pw.TextStyle(color: PdfColors.red800, fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    child: pw.Text('${strings.pdfFieldDailyKcalMeta.toUpperCase()}: $dailyKcal', style: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ),
                 ],
               ],
             ),
           ));
-          content.add(pw.SizedBox(height: 20));
+          content.add(pw.SizedBox(height: 25));
 
-          // HELPER for Days
+          // HELPER for Days - Protocol V62 Layout
           List<pw.Widget> renderDays(List<Map<String, dynamic>> chunk) {
              return chunk.map((day) {
                 final String dia = day['dia']?.toString() ?? 'Dia';
                 final List<dynamic> meals = day['refeicoes'] as List? ?? [];
                 
                 return pw.Container(
-                  margin: const pw.EdgeInsets.only(bottom: 15),
+                  margin: const pw.EdgeInsets.only(bottom: 20),
                   decoration: pw.BoxDecoration(
-                    border: pw.Border.all(color: PdfColors.blue800, width: 1.0),
+                    border: pw.Border.all(color: PdfColors.black, width: 1.0),
                   ),
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -493,14 +542,14 @@ class ExportService {
                        pw.Container(
                         width: double.infinity,
                         padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        color: PdfColors.blue800,
-                        child: pw.Text(dia.toUpperCase(), style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 11)),
+                        color: colorPet, // Background Rosa Pastel
+                        child: pw.Text(dia.toUpperCase(), style: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 11)),
                       ),
                       ...meals.map((m) {
                         final meal = m as Map<String, dynamic>;
                         return pw.Container(
                           decoration: const pw.BoxDecoration(
-                            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.blue800, width: 0.5)),
+                            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 0.5)),
                           ),
                           padding: const pw.EdgeInsets.all(10),
                           child: pw.Column(
@@ -513,30 +562,27 @@ class ExportService {
                                     children: [
                                       pw.Container(
                                         padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: const pw.BoxDecoration(color: PdfColors.blue100),
-                                        child: pw.Text(meal['hora'] ?? '--:--', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                                        decoration: pw.BoxDecoration(color: colorPetLight),
+                                        child: pw.Text(meal['hora'] ?? '--:--', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)),
                                       ),
                                       pw.SizedBox(width: 10),
-                                      pw.Text(meal['titulo'] ?? 'Refeição', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.blue900)),
+                                      pw.Text(meal['titulo'] ?? 'Refeição', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
                                     ],
                                   ),
                                   if (dailyKcal != null)
-                                    pw.RichText(text: pw.TextSpan(children: [
-                                       pw.TextSpan(text: '${strings.pdfFieldMainNutrients}: ', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-                                       pw.TextSpan(text: dailyKcal, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.red800)),
-                                    ])),
+                                    pw.Text(dailyKcal, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
                                 ],
                               ),
-                              pw.SizedBox(height: 8),
-                              pw.Text(strings.pdfFieldDetailsComposition, style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
+                              pw.SizedBox(height: 10),
+                              pw.Text(strings.pdfFieldDetailsComposition, style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
                               pw.SizedBox(height: 4),
-                              pw.Text(meal['descricao']?.toString() ?? '', style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.black)),
+                              pw.Text(meal['descricao']?.toString() ?? '', style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
                             ],
                           ),
                         );
                       }).toList(),
                       if (meals.isEmpty)
-                        pw.Padding(padding: const pw.EdgeInsets.all(10), child: pw.Text(strings.pdfNoMealsPlanned, style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 8))),
+                        pw.Padding(padding: const pw.EdgeInsets.all(10), child: pw.Text(strings.pdfNoMealsPlanned, style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 9, color: PdfColors.black))),
                     ],
                   ),
                 );
@@ -547,25 +593,22 @@ class ExportService {
           String? currentId;
           List<Map<String, dynamic>> buffer = [];
           
-          if (plan.isNotEmpty) currentId = plan.first['plan_id'] as String?;
+          if (plan.isNotEmpty) currentId = plan.first['planId'] as String? ?? plan.first['plan_id'] as String?;
 
           for (var item in plan) {
-               final id = item['plan_id'] as String?;
-               // Group Break logic
+               final id = item['planId'] as String? ?? item['plan_id'] as String?;
                if (id != currentId && buffer.isNotEmpty) {
-                    // Render Buffer
                     content.addAll(renderDays(buffer));
-                    // Render List?
                     if (currentId != null && shoppingLists != null && shoppingLists[currentId] != null) {
-                         content.add(pw.SizedBox(height: 15));
-                         content.add(pw.Text(strings.petMenuShoppingList.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.green700)));
-                         content.add(pw.SizedBox(height: 8));
+                         content.add(pw.SizedBox(height: 20));
+                         content.add(pw.Text(strings.petMenuShoppingList.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)));
+                         content.add(pw.SizedBox(height: 10));
                          final list = shoppingLists[currentId]!;
                          content.add(pw.Table.fromTextArray(
-                             border: pw.TableBorder.all(color: PdfColors.green200),
-                             headerDecoration: const pw.BoxDecoration(color: PdfColors.green50),
-                             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green900),
-                             cellStyle: const pw.TextStyle(fontSize: 9),
+                             border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+                             headerDecoration: pw.BoxDecoration(color: colorPet),
+                             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
+                             cellStyle: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
                              headers: [strings.commonItem ?? 'Item', strings.commonQuantity ?? 'Qtd', strings.commonCategory ?? 'Info'],
                              data: list.map((i) => [
                                 i['item']?.toString() ?? i['name']?.toString() ?? '',
@@ -581,19 +624,18 @@ class ExportService {
                currentId = id; 
                buffer.add(item);
           }
-          // Final Buffer
           if (buffer.isNotEmpty) {
                content.addAll(renderDays(buffer));
                if (currentId != null && shoppingLists != null && shoppingLists[currentId] != null) {
-                    content.add(pw.SizedBox(height: 15));
-                    content.add(pw.Text(strings.petMenuShoppingList.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: PdfColors.green700)));
-                    content.add(pw.SizedBox(height: 8));
+                    content.add(pw.SizedBox(height: 20));
+                    content.add(pw.Text(strings.petMenuShoppingList.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)));
+                    content.add(pw.SizedBox(height: 10));
                     final list = shoppingLists[currentId]!;
                     content.add(pw.Table.fromTextArray(
-                        border: pw.TableBorder.all(color: PdfColors.green200),
-                        headerDecoration: const pw.BoxDecoration(color: PdfColors.green50),
-                        headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green900),
-                        cellStyle: const pw.TextStyle(fontSize: 9),
+                        border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
+                        headerDecoration: pw.BoxDecoration(color: colorPet),
+                        headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
+                        cellStyle: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
                         headers: [strings.commonItem ?? 'Item', strings.commonQuantity ?? 'Qtd', strings.commonCategory ?? 'Info'],
                         data: list.map((i) => [
                            i['item']?.toString() ?? i['name']?.toString() ?? '',
@@ -604,23 +646,26 @@ class ExportService {
                }
           }
 
-          if (guidelines != null) {
-            content.add(pw.NewPage()); // Force new page for guidelines if not already fresh?
-            content.add(pw.SizedBox(height: 20));
+          if (guidelines != null && guidelines.isNotEmpty) {
+            content.add(pw.SizedBox(height: 25));
             content.add(pw.Container(
-              padding: const pw.EdgeInsets.all(10),
-              decoration: const pw.BoxDecoration(color: PdfColors.grey100),
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
+                 color: colorPetUltraLight,
+                 border: pw.Border.all(color: PdfColors.black, width: 0.5)
+              ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('${strings.pdfFieldGeneralGuidelines}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue900)),
-                  pw.SizedBox(height: 5),
-                  pw.Text(guidelines, style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('${strings.pdfFieldGeneralGuidelines}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
+                  pw.SizedBox(height: 6),
+                  pw.Text(guidelines, style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
                 ],
               ),
             ));
           }
 
+          debugPrint('✅ [DEBUG] Renderização do PDF concluída sem perdas');
           return content;
         }
       ),
@@ -659,6 +704,11 @@ class ExportService {
     // Determine how many weeks to print
     int numWeeks = (days.length / 7).ceil();
 
+    // 🛡️ V80: CHROMATIC PURIFICATION - REAL ORANGE
+    final orangeScanNut = PdfColor.fromHex('#FF9800');
+
+    // ... (logic for loop)
+
     for (int w = 0; w < numWeeks; w++) {
       final startIdx = w * 7;
       final endIdx = (startIdx + 7) > days.length ? days.length : (startIdx + 7);
@@ -670,15 +720,15 @@ class ExportService {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(35),
-          header: (context) => buildHeader('${strings.pdfMenuPlanTitle}${weekLabel.toUpperCase()}', timestampStr, color: colorFood),
+          header: (context) => buildHeader('${strings.pdfMenuPlanTitle}${weekLabel.toUpperCase()}', timestampStr, color: orangeScanNut),
           footer: (context) => buildFooter(context, strings: strings),
           build: (context) => [
-            // Header Info Card 
+            // Header Info Card - White Bg, Orange Border
             pw.Container(
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
-                color: PdfColors.green50,
-                border: pw.Border.all(color: PdfColors.green800, width: 0.5),
+                color: null, // Transparent/White
+                border: pw.Border.all(color: orangeScanNut, width: 0.5),
                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
               ),
               child: pw.Column(
@@ -688,7 +738,7 @@ class ExportService {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(strings.pdfPersonalizedPlanTitle, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
-                      pw.Text('${strings.pdfGoalLabel}: $goal', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
+                      pw.Text('${strings.pdfGoalLabel}: $goal', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: orangeScanNut)),
                     ],
                   ),
                   pw.SizedBox(height: 5),
@@ -705,67 +755,73 @@ class ExportService {
               return pw.Container(
                 margin: const pw.EdgeInsets.only(bottom: 20),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(color: PdfColors.green800, width: 1.0),
+                  border: pw.Border.all(color: orangeScanNut, width: 1.0),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
+                    // Day Header - Orange Solid Bg
                     pw.Container(
                       width: double.infinity,
                       padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      color: PdfColors.green800,
+                      color: orangeScanNut,
                       child: pw.Text(
                         diaStr,
                         style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 11),
                       ),
                     ),
                     
+                    // Meals with Partition Protection (V80)
                     ...day.meals.map((meal) {
-                      return pw.Container(
-                        decoration: const pw.BoxDecoration(
-                          border: pw.Border(bottom: pw.BorderSide(color: PdfColors.green800, width: 0.5)),
-                        ),
-                        padding: const pw.EdgeInsets.all(12),
-                        child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                            pw.Row(
-                              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      return pw.Wrap( // 🛡️ V80: Wrap to prevent infinite layout loop
+                        children: [
+                          pw.Container(
+                            decoration: pw.BoxDecoration(
+                              border: pw.Border(bottom: pw.BorderSide(color: orangeScanNut, width: 0.5)),
+                            ),
+                            padding: const pw.EdgeInsets.all(12),
+                            child: pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
                               children: [
-                                pw.Text(
-                                  _getMealLabel(meal.tipo, strings).toUpperCase(),
-                                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green900),
+                                pw.Row(
+                                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    pw.Text(
+                                      _getMealLabel(meal.tipo, strings).toUpperCase(),
+                                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: orangeScanNut),
+                                    ),
+                                    if (meal.nomePrato != null)
+                                      pw.Text(
+                                        meal.nomePrato!,
+                                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
+                                      ),
+                                  ],
                                 ),
-                                if (meal.nomePrato != null)
+                                if (meal.observacoes.isNotEmpty) ...[
+                                  pw.SizedBox(height: 8),
                                   pw.Text(
-                                    meal.nomePrato!,
-                                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
+                                    meal.observacoes,
+                                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
                                   ),
+                                ],
+                                pw.SizedBox(height: 10),
+                                pw.Text(strings.ingredientsTitle, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
+                                pw.SizedBox(height: 4),
+                                ...meal.itens.map((item) => pw.Padding(
+                                  padding: const pw.EdgeInsets.only(left: 10, bottom: 2),
+                                  child: pw.Row(
+                                    children: [
+                                      pw.Container(width: 3, height: 3, decoration: pw.BoxDecoration(color: orangeScanNut, shape: pw.BoxShape.circle)),
+                                      pw.SizedBox(width: 6),
+                                      pw.Expanded(child: pw.Text(item.nome, style: const pw.TextStyle(fontSize: 9))),
+                                      pw.Text(item.quantidadeTexto, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                                    ],
+                                  ),
+                                )).toList(),
                               ],
                             ),
-                            if (meal.observacoes.isNotEmpty) ...[
-                              pw.SizedBox(height: 8),
-                              pw.Text(
-                                meal.observacoes,
-                                style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
-                              ),
-                            ],
-                            pw.SizedBox(height: 10),
-                            pw.Text(strings.ingredientsTitle, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700)),
-                            pw.SizedBox(height: 4),
-                            ...meal.itens.map((item) => pw.Padding(
-                              padding: const pw.EdgeInsets.only(left: 10, bottom: 2),
-                              child: pw.Row(
-                                children: [
-                                  pw.Container(width: 3, height: 3, decoration: const pw.BoxDecoration(color: PdfColors.green700, shape: pw.BoxShape.circle)),
-                                  pw.SizedBox(width: 6),
-                                  pw.Expanded(child: pw.Text(item.nome, style: const pw.TextStyle(fontSize: 9))),
-                                  pw.Text(item.quantidadeTexto, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-                                ],
-                              ),
-                            )).toList(),
-                          ],
-                        ),
+                          )
+                        ]
                       );
                     }).toList(),
                   ],
@@ -778,14 +834,14 @@ class ExportService {
                pw.Container(
                 padding: const pw.EdgeInsets.all(15),
                 decoration: pw.BoxDecoration(
-                  color: PdfColors.orange50,
-                  border: pw.Border.all(color: PdfColors.orange800, width: 0.5),
+                  color: null, // White
+                  border: pw.Border.all(color: orangeScanNut, width: 0.5),
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text(strings.pdfBatchCookingTips, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.orange900)),
+                    pw.Text(strings.pdfBatchCookingTips, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: orangeScanNut)),
                     pw.SizedBox(height: 8),
                     pw.Text(batchCookingTips, style: const pw.TextStyle(fontSize: 10, height: 1.3)),
                   ],
@@ -1286,70 +1342,59 @@ class ExportService {
     return pdf;
   }
 
-  pw.Widget _buildRecursivePDFMap(Map<dynamic, dynamic> map, {double indent = 0}) {
-     return pw.Column(
-       crossAxisAlignment: pw.CrossAxisAlignment.start,
-       children: map.entries.where((e) => e.value != null).map((e) {
-          final key = e.key.toString();
-          // Filter technical/redundant keys inside sub-maps if needed
-          if (['tabela_benigna', 'tabela_maligna'].contains(key)) return pw.Container();
-          
-          if (e.value is Map) {
-             return pw.Column(
-               crossAxisAlignment: pw.CrossAxisAlignment.start,
-               children: [
-                 pw.SizedBox(height: 4),
-                 pw.Padding(
-                   padding: pw.EdgeInsets.only(left: indent),
-                   child: pw.Text(
-                     key.replaceAll('_', ' ').toUpperCase(),
-                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.blue800)
-                   )
-                 ),
-                 pw.Divider(color: PdfColors.grey300, thickness: 0.5, indent: indent, endIndent: 20),
-                 _buildRecursivePDFMap(e.value as Map, indent: indent + 10),
-                 pw.SizedBox(height: 6),
-               ]
-             );
-          }
-          // Simple Value
-          String val = e.value.toString();
-          // Truncate overly long values
-          if (val.length > 800) val = val.substring(0, 800) + '...';
-          
-          return pw.Padding(
-            padding: pw.EdgeInsets.only(left: indent, bottom: 3),
-            child: pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                 pw.SizedBox(
-                   width: 120, 
-                   child: pw.Text('${key.replaceAll('_', ' ').toUpperCase()}:', 
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black))
-                 ),
-                 pw.Expanded(child: pw.Text(val, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800))),
-              ]
-            )
-          );
-       }).toList()
-     );
+  Iterable<pw.Widget> _buildRecursivePDFMap(Map<dynamic, dynamic> map, {double indent = 0}) sync* {
+     for (var e in map.entries.where((e) => e.value != null)) {
+        final key = e.key.toString();
+        // Filter technical/redundant keys inside sub-maps if needed
+        if (['tabela_benigna', 'tabela_maligna'].contains(key)) continue;
+        
+        if (e.value is Map) {
+           yield pw.SizedBox(height: 4);
+           yield pw.Padding(
+             padding: pw.EdgeInsets.only(left: indent),
+             child: pw.Text(
+               key.replaceAll('_', ' ').toUpperCase(),
+               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: colorPet) // V64: Consistent Pink
+             )
+           );
+           yield pw.Divider(color: PdfColors.grey300, thickness: 0.5, indent: indent, endIndent: 20);
+           yield* _buildRecursivePDFMap(e.value as Map, indent: indent + 10);
+           yield pw.SizedBox(height: 6);
+           continue;
+        }
+
+        // Simple Value
+        String val = e.value.toString();
+        // V64: Strict Truncation (Safety First)
+        if (val.length > 500) val = val.substring(0, 500) + '...';
+        
+        yield pw.Padding(
+          padding: pw.EdgeInsets.only(left: indent, bottom: 3),
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+               pw.SizedBox(
+                 width: 120, 
+                 child: pw.Text('${key.replaceAll('_', ' ').toUpperCase()}:', 
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black))
+               ),
+               pw.Expanded(child: pw.Text(val, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800))),
+            ]
+          )
+        );
+     }
   }
 
-  pw.Widget _buildAnalysisResultSection(Map<String, dynamic> data, AppLocalizations strings) {
+  Iterable<pw.Widget> _buildAnalysisResultSection(Map<String, dynamic> data, AppLocalizations strings) sync* {
     // Filter top-level
     final filteredData = Map<String, dynamic>.from(data);
     filteredData.removeWhere((key, value) => 
         ['pet_name', 'analysis_type', 'last_updated', 'image_path', 'plano_semanal', 'tabela_benigna', 'tabela_maligna'].contains(key));
 
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-         buildSectionHeader(strings.petAnalysisResults.toUpperCase(), color: colorPet),
-         pw.SizedBox(height: 10),
-         _buildRecursivePDFMap(filteredData),
-         pw.SizedBox(height: 20),
-      ]
-    );
+    yield buildSectionHeader(strings.petAnalysisResults.toUpperCase(), color: colorPet);
+    yield pw.SizedBox(height: 10);
+    yield* _buildRecursivePDFMap(filteredData);
+    yield pw.SizedBox(height: 20);
   }
 
   /// 5. COMPREHENSIVE PET PROFILE REPORT - COMPLETE VETERINARY DOSSIER
@@ -1622,10 +1667,14 @@ class ExportService {
       ),
     );
 
+    // 🔍 [V64-TRACE] Calculando altura do conteúdo para o Pet: ${profile.petName}
+    debugPrint('[V64-TRACE] Calculando altura do conteúdo para o Pet: ${profile.petName}');
+
     // ========== CONTENT PAGES ==========
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        maxPages: 20, // 🛡️ V64: Limite de Segurança
         margin: const pw.EdgeInsets.all(35),
         header: (context) => buildHeader('${strings.pdfReportTitle}: ${profile.petName}', timestampStr, dateLabel: strings.pdfGeneratedOn, color: colorPet),
         footer: (context) => buildFooter(context),
@@ -1676,13 +1725,13 @@ class ExportService {
             
             // Análise da Raça e Perfil (Dados Estendidos)
             if (profile.analysisHistory.isNotEmpty || profile.rawAnalysis != null) ...[
-                 _buildAnalysisResultSection(
+                 ..._buildAnalysisResultSection(
                      profile.analysisHistory.isNotEmpty ? profile.analysisHistory.last : profile.rawAnalysis!, 
                      strings
                  ),
             ],
 
-            _buildObservationsBlock(profile.observacoesIdentidade, strings),
+            ..._buildObservationsBlock(profile.observacoesIdentidade, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -1725,7 +1774,7 @@ class ExportService {
               pw.SizedBox(height: 5),
               pw.Table.fromTextArray(
                 border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-                headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                headerDecoration: pw.BoxDecoration(color: colorPet),
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
                 cellStyle: const pw.TextStyle(fontSize: 8),
                 cellPadding: const pw.EdgeInsets.all(4),
@@ -1746,7 +1795,7 @@ class ExportService {
             pw.SizedBox(height: 5),
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
-              headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              headerDecoration: pw.BoxDecoration(color: colorPet),
               headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),
               cellPadding: const pw.EdgeInsets.all(6),
@@ -1810,7 +1859,7 @@ class ExportService {
                 pw.SizedBox(height: 5),
                 pw.Table.fromTextArray(
                     border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-                    headerDecoration: const pw.BoxDecoration(color: PdfColors.grey100),
+                    headerDecoration: pw.BoxDecoration(color: colorPet),
                     headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black),
                     cellStyle: const pw.TextStyle(fontSize: 9),
                     cellPadding: const pw.EdgeInsets.all(4),
@@ -1942,7 +1991,7 @@ class ExportService {
                                       pw.Container(
                                         padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: pw.BoxDecoration(
-                                          color: PdfColors.grey300,
+                                          color: colorPet,
                                           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                                         ),
                                         child: pw.Text(
@@ -1971,7 +2020,7 @@ class ExportService {
               }).toList(),
             ],
             
-            _buildObservationsBlock(profile.observacoesSaude, strings),
+            ..._buildObservationsBlock(profile.observacoesSaude, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -2010,124 +2059,89 @@ class ExportService {
                 style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
               pw.SizedBox(height: 8),
               
-              ...(profile.rawAnalysis!['plano_semanal'] as List).asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final dayData = entry.value as Map;
-                  
-                  final dateForDay = startData.add(Duration(days: index));
-                  final dateStr = DateFormat('dd/MM').format(dateForDay);
-                  final weekDayName = DateFormat('EEEE', strings.localeName).format(dateForDay);
-                  final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
-                  final diaLabel = "$weekDayCap - $dateStr";
-                  
-                  // Refeições
-                  List<dynamic> refeicoes = [];
-                  if (dayData.containsKey('refeicoes')) {
-                      refeicoes = dayData['refeicoes'] as List;
-                  } else {
-                      final keys = ['manha', 'manhã', 'tarde', 'noite', 'refeicao'];
-                      for(var k in keys) {
-                        if(dayData[k] != null) {
-                          refeicoes.add({
-                            'hora': k.toUpperCase(),
-                            'descricao': dayData[k],
-                            'titulo': dayData['${k}_titulo'],
-                            'kcal': dayData['${k}_kcal'],
-                          });
+              // V72: Atomic breakdown by day with error handling
+              ...(profile.rawAnalysis!['plano_semanal'] as List).asMap().entries.expand((entry) {
+                  try {
+                    final index = entry.key;
+                    final dayData = entry.value as Map;
+                    
+                    final dateForDay = startData.add(Duration(days: index));
+                    final dateStr = DateFormat('dd/MM').format(dateForDay);
+                    final weekDayName = DateFormat('EEEE', strings.localeName).format(dateForDay);
+                    final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
+                    final diaLabel = "$weekDayCap - $dateStr";
+                    
+                    // Refeições
+                    List<dynamic> refeicoes = [];
+                    if (dayData.containsKey('refeicoes')) {
+                        refeicoes = dayData['refeicoes'] as List;
+                    } else {
+                        final keys = ['manha', 'manhã', 'tarde', 'noite', 'refeicao'];
+                        for(var k in keys) {
+                          if(dayData[k] != null) {
+                            refeicoes.add({
+                              'hora': k.toUpperCase(),
+                              'descricao': dayData[k],
+                              'titulo': dayData['${k}_titulo'],
+                              'kcal': dayData['${k}_kcal'],
+                            });
+                          }
                         }
-                      }
-                  }
+                    }
 
-                  return pw.Container(
-                      margin: const pw.EdgeInsets.only(bottom: 12),
-                      decoration: pw.BoxDecoration(
-                        border: pw.Border.all(color: PdfColors.black, width: 1),
-                        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                      ),
-                      child: pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: [
-                              // Cabeçalho do Dia
-                              pw.Container(
-                                  padding: const pw.EdgeInsets.all(8),
-                                  decoration: const pw.BoxDecoration(
-                                      border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 0.5)),
-                                  ),
-                                  width: double.infinity,
-                                  child: pw.Text(
-                                    diaLabel.toUpperCase(),
-                                    style: pw.TextStyle(
-                                      fontWeight: pw.FontWeight.bold,
-                                      fontSize: 10,
-                                      color: PdfColors.black,
-                                    ),
-                                  ),
+                    return [
+                        pw.Container(
+                            margin: const pw.EdgeInsets.only(bottom: 2, top: 8),
+                            padding: const pw.EdgeInsets.all(6),
+                            decoration: pw.BoxDecoration(color: colorPet),
+                            width: double.infinity,
+                            child: pw.Text(
+                              diaLabel.toUpperCase(),
+                              style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
+                            ),
+                        ),
+                        ...refeicoes.map((meal) => pw.Container(
+                            padding: const pw.EdgeInsets.all(8),
+                            decoration: const pw.BoxDecoration(
+                              border: pw.Border(
+                                bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+                                left: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+                                right: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
                               ),
-                              // Refeições do Dia
-                              ...refeicoes.asMap().entries.map((mealEntry) {
-                                final meal = mealEntry.value;
-                                final isLast = mealEntry.key == refeicoes.length - 1;
-                                
-                                return pw.Container(
-                                  padding: const pw.EdgeInsets.all(8),
-                                  decoration: pw.BoxDecoration(
-                                    border: isLast ? null : const pw.Border(
-                                      bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
+                            ),
+                            child: pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Row(
+                                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    pw.Expanded(
+                                      child: pw.Text(
+                                        '${meal['hora'] ?? strings.pdfRefeicao}${meal['titulo'] != null ? ' - ${meal['titulo']}' : ''}',
+                                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black),
+                                      ),
                                     ),
-                                  ),
-                                  child: pw.Column(
-                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                    children: [
-                                      // Hora e Kcal
-                                      pw.Row(
-                                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          pw.Text(
-                                            '${meal['hora'] ?? strings.pdfRefeicao}${meal['titulo'] != null ? ' - ${meal['titulo']}' : ''}',
-                                            style: pw.TextStyle(
-                                              fontWeight: pw.FontWeight.bold,
-                                              fontSize: 9,
-                                              color: PdfColors.black,
-                                            ),
-                                          ),
-                                          if (meal['kcal'] != null)
-                                            pw.Container(
-                                              padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: pw.BoxDecoration(
-                                                border: pw.Border.all(color: PdfColors.black, width: 0.5),
-                                                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
-                                              ),
-                                              child: pw.Text(
-                                                '${meal['kcal']} ${strings.pdfKcal}',
-                                                style: pw.TextStyle(
-                                                  fontSize: 8,
-                                                  fontWeight: pw.FontWeight.bold,
-                                                  color: PdfColors.black,
-                                                ),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      pw.SizedBox(height: 4),
-                                      // Descrição Completa
-                                      pw.Text(
-                                        meal['descricao']?.toString() ?? strings.pdfSemDescricao,
-                                        style: const pw.TextStyle(fontSize: 8),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                          ]
-                      )
-                  );
+                                    if (meal['kcal'] != null)
+                                      pw.Text('${meal['kcal']} ${strings.pdfKcal}', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+                                  ],
+                                ),
+                                pw.SizedBox(height: 2),
+                                pw.Text(meal['descricao']?.toString() ?? strings.pdfSemDescricao, style: const pw.TextStyle(fontSize: 8)),
+                              ],
+                            ),
+                        )).toList(),
+                    ];
+                  } catch (e) {
+                    debugPrint('⚠️ [V72-PDF] Error rendering meal plan day ${entry.key}: $e');
+                    return <pw.Widget>[];
+                  }
               }).toList(),
             ]
  else ...[
               pw.Container(
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
-                  color: PdfColors.grey100,
+                  color: colorPetUltraLight,
                   border: pw.Border.all(color: PdfColors.grey300),
                   borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
                 ),
@@ -2138,7 +2152,7 @@ class ExportService {
               ),
             ],
             
-            _buildObservationsBlock(profile.observacoesNutricao, strings),
+            ..._buildObservationsBlock(profile.observacoesNutricao, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -2161,7 +2175,7 @@ class ExportService {
                                     pw.Expanded(child: pw.Image(item['image'], fit: pw.BoxFit.cover)),
                                     pw.Container(
                                         padding: const pw.EdgeInsets.all(2),
-                                        color: PdfColors.grey200,
+                                        color: colorPetLight,
                                         child: pw.Text(item['caption'], 
                                             style: const pw.TextStyle(fontSize: 8), 
                                             textAlign: pw.TextAlign.center,
@@ -2204,7 +2218,7 @@ class ExportService {
                 pw.SizedBox(height: 10),
             ],
 
-            _buildObservationsBlock(profile.observacoesGaleria, strings),
+            ..._buildObservationsBlock(profile.observacoesGaleria, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -2244,7 +2258,7 @@ class ExportService {
                             pw.Container(
                               padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: pw.BoxDecoration(
-                                color: PdfColors.grey300,
+                                color: colorPet,
                                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
                               ),
                               child: pw.Text(
@@ -2361,7 +2375,7 @@ class ExportService {
               ),
             ],
             
-            _buildObservationsBlock(profile.observacoesPrac, strings),
+            ..._buildObservationsBlock(profile.observacoesPrac, strings),
             pw.SizedBox(height: 20),
           ],
           
@@ -2497,8 +2511,8 @@ class ExportService {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              buildIndicator(strings.partnersTitle, partners.length.toString(), PdfColors.blue800),
-              ...counts.entries.take(2).map((e) => buildIndicator(e.key, e.value.toString(), PdfColors.black)).toList(),
+              buildIndicator(strings.partnersTitle, partners.length.toString(), colorPet),
+              ...counts.entries.take(2).map((e) => buildIndicator(e.key, e.value.toString(), colorPetLight)).toList(),
             ],
           ),
           if (counts.length > 2) ...[
@@ -2517,7 +2531,7 @@ class ExportService {
           // TABELA
           pw.Table.fromTextArray(
             border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
-            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300), // Grey header
+            headerDecoration: pw.BoxDecoration(color: colorPet), // Pink header
             headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9), // Black text
             cellStyle: const pw.TextStyle(fontSize: 8),
             headers: reportType == strings.partnersSummary 
@@ -2573,8 +2587,8 @@ class ExportService {
           pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
-                  buildIndicator(strings.partnersCategory, partner.category, PdfColors.blue800),
-                  if (partner.rating > 0) buildIndicator(strings.pdfRating, '${partner.rating} ${strings.pdfStars}', PdfColors.orange700),
+                  buildIndicator(strings.partnersCategory, partner.category, colorPet),
+                  if (partner.rating > 0) buildIndicator(strings.pdfRating, '${partner.rating} ${strings.pdfStars}', colorPetLight),
               ]
           ),
           pw.SizedBox(height: 20),

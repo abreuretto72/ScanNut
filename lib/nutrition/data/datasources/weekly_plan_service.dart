@@ -20,8 +20,22 @@ class WeeklyPlanService {
 
   /// Ensure box is open
   Future<Box<WeeklyPlan>> _ensureBox({HiveCipher? cipher}) async {
-    if (_box != null && _box!.isOpen) return _box!;
+    final isOpen = Hive.isBoxOpen(_boxName);
+    debugPrint('🔍 [V61-TRACE] WeeklyPlanService checking box "$_boxName": open=$isOpen');
+
+    if (isOpen) {
+      try {
+        _box = Hive.box<WeeklyPlan>(_boxName);
+        debugPrint('✅ [V61-TRACE] WeeklyPlan box already open with correct type.');
+        return _box!;
+      } catch (e) {
+        debugPrint('⚠️ [V61-TRACE] Type mismatch in WeeklyPlan box. Closing dynamic instance...');
+        await Hive.box(_boxName).close();
+      }
+    }
+
     try {
+      debugPrint('📂 [V61-TRACE] Opening WeeklyPlan box tipada...');
       _box = await Hive.openBox<WeeklyPlan>(_boxName, encryptionCipher: cipher);
       debugPrint('✅ WeeklyPlanService initialized/re-opened (Secure). Box Open: ${_box?.isOpen}');
       return _box!;

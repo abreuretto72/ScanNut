@@ -12,18 +12,34 @@ class NutritionProfileService {
 
   /// Inicializa o box
   Future<void> init({HiveCipher? cipher}) async {
-    try {
-      _box = await Hive.openBox<UserNutritionProfile>(_boxName, encryptionCipher: cipher);
-      debugPrint('✅ NutritionProfileService initialized (Secure). Box Open: ${_box?.isOpen}');
-      
-      // Criar perfil padrão se não existir
-      if (_box!.isEmpty) {
-        await saveProfile(UserNutritionProfile.padrao());
-        debugPrint('📝 Created default nutrition profile');
+    final isOpen = Hive.isBoxOpen(_boxName);
+    debugPrint('🔍 [V61-TRACE] NutritionProfileService checking box "$_boxName": open=$isOpen');
+
+    if (isOpen) {
+      try {
+        _box = Hive.box<UserNutritionProfile>(_boxName);
+        debugPrint('✅ [V61-TRACE] NutritionProfile box already open with correct type.');
+      } catch (e) {
+        debugPrint('⚠️ [V61-TRACE] Type mismatch in NutritionProfile box. Closing dynamic instance...');
+        await Hive.box(_boxName).close();
       }
-    } catch (e) {
-      debugPrint('❌ Error initializing Secure NutritionProfileService: $e');
-      rethrow;
+    }
+
+    if (_box == null || !_box!.isOpen) {
+      try {
+        debugPrint('📂 [V61-TRACE] Opening NutritionProfile box tipada...');
+        _box = await Hive.openBox<UserNutritionProfile>(_boxName, encryptionCipher: cipher);
+        debugPrint('✅ [V61-TRACE] NutritionProfileService initialized (Secure). Box Open: ${_box?.isOpen}');
+      } catch (e) {
+        debugPrint('❌ [V61-TRACE] FATAL: Error initializing Secure NutritionProfileService: $e');
+        rethrow;
+      }
+    }
+
+    // Criar perfil padrão se não existir
+    if (_box != null && _box!.isEmpty) {
+      await saveProfile(UserNutritionProfile.padrao());
+      debugPrint('📝 Created default nutrition profile');
     }
   }
 

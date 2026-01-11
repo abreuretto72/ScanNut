@@ -11,12 +11,28 @@ class MealLogService {
 
   /// Inicializa o box
   Future<void> init({HiveCipher? cipher}) async {
-    try {
-      _box = await Hive.openBox<MealLog>(_boxName, encryptionCipher: cipher);
-      debugPrint('✅ MealLogService initialized (Secure). Box Open: ${_box?.isOpen}');
-    } catch (e) {
-      debugPrint('❌ Error initializing Secure MealLogService: $e');
-      rethrow;
+    final isOpen = Hive.isBoxOpen(_boxName);
+    debugPrint('🔍 [V61-TRACE] MealLogService checking box "$_boxName": open=$isOpen');
+
+    if (isOpen) {
+      try {
+        _box = Hive.box<MealLog>(_boxName);
+        debugPrint('✅ [V61-TRACE] MealLog box already open with correct type.');
+      } catch (e) {
+        debugPrint('⚠️ [V61-TRACE] Type mismatch in MealLog box. Closing dynamic instance...');
+        await Hive.box(_boxName).close();
+      }
+    }
+
+    if (_box == null || !_box!.isOpen) {
+      try {
+        debugPrint('📂 [V61-TRACE] Opening MealLog box tipada...');
+        _box = await Hive.openBox<MealLog>(_boxName, encryptionCipher: cipher);
+        debugPrint('✅ [V61-TRACE] MealLogService initialized (Secure). Box Open: ${_box?.isOpen}');
+      } catch (e) {
+        debugPrint('❌ [V61-TRACE] FATAL: Error initializing Secure MealLogService: $e');
+        rethrow;
+      }
     }
   }
 

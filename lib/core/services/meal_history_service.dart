@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,9 +13,18 @@ class MealHistoryService {
     }
   }
 
+  // 🛡️ SELF-HEALING BOX ACCESS
+  Future<Box> _getOpenBox() async {
+    if (!Hive.isBoxOpen(boxName)) {
+      debugPrint('⚠️ MealHistoryService: Box was closed. Reopening...');
+      return await Hive.openBox(boxName);
+    }
+    return Hive.box(boxName);
+  }
+
   // Save the ingredients used in a weekly plan for a specific pet
   Future<void> saveWeeklyIngredients(String petName, List<String> ingredients) async {
-    final box = Hive.box(boxName);
+    final box = await _getOpenBox();
     final key = 'meal_history_${petName.toLowerCase().trim()}';
     
     // We store a list of past weeks. Each entry is a list of ingredients.
@@ -42,7 +52,7 @@ class MealHistoryService {
 
   // Get ALL ingredients used in the last X saved plans to use as exclusion/restriction
   Future<List<String>> getRecentIngredients(String petName) async {
-    final box = Hive.box(boxName);
+    final box = await _getOpenBox();
     final key = 'meal_history_${petName.toLowerCase().trim()}';
     
     if (!box.containsKey(key)) return [];

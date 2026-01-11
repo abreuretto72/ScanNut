@@ -148,6 +148,8 @@ class GroqService {
 
       case ScannutMode.petIdentification:
       case ScannutMode.petDiagnosis:
+      case ScannutMode.petVisualAnalysis:
+      case ScannutMode.petDocumentOCR:
         return {
           'especie': 'Animal Detectado',
           'descricao_visual': 'Sistema de visão em desenvolvimento.',

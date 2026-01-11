@@ -27,16 +27,19 @@ class PdfPreviewScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
-      body: PdfPreview(
-        build: buildPdf,
-        canChangeOrientation: false,
-        canChangePageFormat: false,
-        allowPrinting: false, // Hidden to use custom bottom buttons
-        allowSharing: false,  // Hidden to use custom bottom buttons
-        canDebug: false,
-        pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
-        maxPageWidth: 700,
-        actions: const [], // Hide default top actions
+      body: Theme(
+        data: ThemeData.light(), // Força fundo claro para o PDF para não conflitar com o rosa
+        child: PdfPreview(
+          build: buildPdf,
+          canChangeOrientation: false,
+          canChangePageFormat: false,
+          allowPrinting: false, 
+          allowSharing: false,  
+          canDebug: false,
+          pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
+          maxPageWidth: 700,
+          actions: const [], 
+        ),
       ),
       bottomNavigationBar: Container(
         color: Colors.black,

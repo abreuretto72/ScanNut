@@ -51,10 +51,10 @@ class LocalBackupService {
           Box box;
           if (Hive.isBoxOpen(boxName)) {
             box = Hive.box(boxName);
-            developer.log('  🔍 Compactando box: $boxName', name: 'BackupTrace');
+            developer.log('  🔍 Usando box já aberta: $boxName', name: 'BackupTrace');
             await box.compact();
           } else {
-            developer.log('  📂 Abrindo box fechado: $boxName', name: 'BackupTrace');
+            developer.log('  📂 Abrindo box fechada: $boxName', name: 'BackupTrace');
             box = await Hive.openBox(boxName);
           }
 

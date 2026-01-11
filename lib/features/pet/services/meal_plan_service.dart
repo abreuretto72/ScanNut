@@ -18,29 +18,34 @@ class MealPlanService {
   Box<WeeklyMealPlan>? _box;
 
   Future<void> init({HiveCipher? cipher}) async {
+    debugPrint('🚀 [V61-TRACE] MealPlanService.init starting...');
     await _ensureBox(cipher: cipher);
   }
 
   Future<Box<WeeklyMealPlan>> _ensureBox({HiveCipher? cipher}) async {
-    if (_box != null && _box!.isOpen) return _box!;
-    try {
-      // Register Adapters if not already registered
-      // We reserve IDs 8, 9, 10
-      if (!Hive.isAdapterRegistered(8)) {
-        Hive.registerAdapter(WeeklyMealPlanAdapter());
+    // 🔍 V64 REPAIR: Reset de Tipagem
+    final isOpen = Hive.isBoxOpen(_boxName);
+    
+    if (isOpen) {
+      try {
+        // Tenta pegar a box tipada
+        _box = Hive.box<WeeklyMealPlan>(_boxName);
+        debugPrint('✅ [V64-REPAIR] Box "$_boxName" já aberta corretamente.');
+        return _box!;
+      } catch (e) {
+        debugPrint('🚨 [V64-REPAIR] Conflito Box<dynamic> detectado. Resetando...');
+        // FECHAMENTO FORÇADO (Cirurgia V64)
+        await Hive.box(_boxName).close();
+        debugPrint('🔄 [V64-REPAIR] Box dinâmica encerrada para cura.');
       }
-      if (!Hive.isAdapterRegistered(9)) {
-        Hive.registerAdapter(DailyMealItemAdapter());
-      }
-      if (!Hive.isAdapterRegistered(10)) {
-        Hive.registerAdapter(NutrientMetadataAdapter());
-      }
+    }
 
+    try {
+      debugPrint('📂 [V64-REPAIR] Abrindo Box tipada: $_boxName');
       _box = await Hive.openBox<WeeklyMealPlan>(_boxName, encryptionCipher: cipher);
-      debugPrint('✅ MealPlanService initialized/re-opened (Secure Box: $_boxName)');
       return _box!;
     } catch (e, stack) {
-      debugPrint('❌ Secure MealPlanService init failed: $e\n$stack');
+      debugPrint('❌ [V64-REPAIR] Falha crítica ao abrir box de cardápio: $e');
       rethrow;
     }
   }

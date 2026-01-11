@@ -15,6 +15,7 @@ import '../../../../core/widgets/pdf_action_button.dart';
 import 'pet_menu_filter_dialog.dart';
 import '../../models/meal_plan_request.dart';
 import 'meal_plan_loading_widget.dart';
+import '../../../../core/widgets/pdf_preview_screen.dart';
 
 class WeeklyMenuScreen extends ConsumerStatefulWidget {
   final String petName;
@@ -41,6 +42,9 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
   bool _isLoading = false;
   List<WeeklyMealPlan> _history = [];
   final Set<String> _selectedPlanIds = {};
+
+  static const Color colorPastelPink = Color(0xFFFFD1DC);
+  static const Color colorDeepPink = Color(0xFFF06292);
 
   @override
   void initState() {
@@ -84,7 +88,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel, style: const TextStyle(color: Colors.white54))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true), 
-            child: Text(l10n.commonDelete, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold))
+            child: Text(l10n.commonDelete, style: const TextStyle(color: colorDeepPink, fontWeight: FontWeight.bold))
           ),
         ],
       ),
@@ -171,8 +175,29 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
 
       if (mounted) {
          Navigator.pop(context); // Close loading
-         await ExportService().saveAndShow(pdf: pdf, fileName: "Menu_${widget.petName}_Consolidated.pdf");
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuPdfGenerated), backgroundColor: AppDesign.success));
+         
+         // Protocol V62: Transição para PdfPreview
+         Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PdfPreviewScreen(
+                title: "Cardápio Nutricional: ${widget.petName}",
+                buildPdf: (format) async {
+                   final pdf = await ExportService().generateWeeklyMenuReport(
+                      petName: widget.petName,
+                      raceName: widget.raceName,
+                      dietType: selectedPlans.first.dietType,
+                      plan: consolidatedPlan,
+                      strings: l10n,
+                      shoppingLists: shoppingLists,
+                      period: _selectedPlanIds.length > 1 ? l10n.petMenuGeneratePdfMulti(selectedPlans.length) : null
+                   );
+                   return pdf.save();
+                },
+              ),
+            ),
+         );
+         
          setState(() => _selectedPlanIds.clear());
       }
 
@@ -202,8 +227,8 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
         centerTitle: true,
         bottom: TabBar(
            controller: _tabController,
-           indicatorColor: AppDesign.petPink,
-           labelColor: AppDesign.petPink,
+           indicatorColor: colorPastelPink,
+           labelColor: colorPastelPink,
            unselectedLabelColor: Colors.white60,
            indicatorSize: TabBarIndicatorSize.label,
            tabs: [
@@ -254,7 +279,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                height: 56,
                child: ElevatedButton(
                  style: ElevatedButton.styleFrom(
-                   backgroundColor: AppDesign.petPink,
+                   backgroundColor: colorDeepPink,
                    foregroundColor: Colors.black,
                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                    elevation: 4,
@@ -303,8 +328,10 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                           }
                          
                          // PROCEED
-                         final config = await showDialog<Map<String, dynamic>>(
+                         final config = await showModalBottomSheet<Map<String, dynamic>>(
                            context: context,
+                           isScrollControlled: true,
+                           backgroundColor: Colors.transparent,
                            builder: (context) => const PetMenuFilterDialog(),
                          );
                          
@@ -374,12 +401,53 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
          await ref.read(petMenuGeneratorProvider).generateAndSave(request);
 
 
-        if (mounted) {
-           Navigator.pop(context); // Stop Loading
-           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success));
-           await _loadHistory(); // Refresh history
-           _tabController.animateTo(1); // Switch to History
-        }
+         if (mounted) {
+            Navigator.pop(context); // Stop Loading
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.success));
+            await _loadHistory(); // Refresh history
+            
+            // ANTI-GRAVITY V63: Transitions directly to PDF Preview
+            if (_history.isNotEmpty) {
+                final newPlan = _history.first;
+                // Prepara data para PDF
+                final consolidatedPlan = <Map<String, dynamic>>[];
+                for (var day in newPlan.meals) {
+                  consolidatedPlan.add({
+                    'dia': _formatDateForPdf(newPlan.startDate, day.dayOfWeek),
+                    'hora': day.time,
+                    'titulo': day.title,
+                    'descricao': day.description,
+                    'benefit': day.benefit ?? '',
+                    'refeicoes': [
+                      {'hora': day.time, 'titulo': day.title, 'descricao': day.description, 'quantity': day.quantity}
+                    ],
+                    'planId': newPlan.id
+                  });
+                }
+                final sl = await PetShoppingListService().getList(newPlan.id);
+                final shoppingLists = {newPlan.id: sl ?? <Map<String, dynamic>>[]};
+
+                if (mounted) {
+                   Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PdfPreviewScreen(
+                          title: "${l10n.pdfReportTitle}: ${widget.petName}",
+                          buildPdf: (format) async => (await ExportService().generateWeeklyMenuReport(
+                            petName: widget.petName,
+                            raceName: widget.raceName,
+                            dietType: newPlan.dietType,
+                            plan: consolidatedPlan,
+                            strings: l10n,
+                            shoppingLists: shoppingLists,
+                          )).save(),
+                        ),
+                      ),
+                   );
+                }
+            }
+            _tabController.animateTo(1); // Switch to History
+         }
      } catch (e) {
         if (mounted) {
            Navigator.pop(context);
@@ -410,7 +478,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
       children: [
         if (_selectedPlanIds.isNotEmpty)
            Container(
-             color: AppDesign.petPink,
+             color: colorDeepPink,
              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
              child: Row(
                mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -459,7 +527,10 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
      return Card(
        color: Colors.white.withOpacity(0.05),
        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppDesign.petPink : Colors.transparent)),
+       shape: RoundedRectangleBorder(
+         borderRadius: BorderRadius.circular(12), 
+         side: BorderSide(color: isSelected ? colorPastelPink : Colors.transparent, width: 2)
+       ),
        child: Theme(
          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
          child: ExpansionTile(
@@ -520,7 +591,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                  children: [
                     Text(
                       "${weekDayName.toUpperCase()} $dateStr",
-                      style: GoogleFonts.poppins(color: AppDesign.petPink, fontWeight: FontWeight.w600, fontSize: 12),
+                      style: GoogleFonts.poppins(color: colorPastelPink, fontWeight: FontWeight.w600, fontSize: 12),
                     ),
                     Row(
                        children: [
@@ -566,7 +637,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
            content: Text(l10n.petMenuDeleteDayConfirm, style: const TextStyle(color: Colors.white)),
            actions: [
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel, style: const TextStyle(color: Colors.white54))),
-              TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.commonDelete, style: const TextStyle(color: Colors.redAccent))),
+              TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.commonDelete, style: const TextStyle(color: colorDeepPink, fontWeight: FontWeight.bold))),
            ],
         )
      );
