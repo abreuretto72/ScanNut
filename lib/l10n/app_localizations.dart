@@ -1283,6 +1283,240 @@ abstract class AppLocalizations {
   /// **'Laboratório'**
   String get partnersFilterLab;
 
+  /// No description provided for @partnersFilterDogWalker.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dog Walker'**
+  String get partnersFilterDogWalker;
+
+  /// No description provided for @catHeaderHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'🏥 SAÚDE & BEM-ESTAR'**
+  String get catHeaderHealth;
+
+  /// No description provided for @catVet.
+  ///
+  /// In pt, this message translates to:
+  /// **'Veterinário Geral'**
+  String get catVet;
+
+  /// No description provided for @catVetEmergency.
+  ///
+  /// In pt, this message translates to:
+  /// **'Veterinário de Emergência (24h)'**
+  String get catVetEmergency;
+
+  /// No description provided for @catVetSpecialist.
+  ///
+  /// In pt, this message translates to:
+  /// **'Especialista (Cardio/Dermato/Orto)'**
+  String get catVetSpecialist;
+
+  /// No description provided for @catPhysio.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fisioterapia/Reabilitação'**
+  String get catPhysio;
+
+  /// No description provided for @catHomeo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Homeopatia/Acupuntura'**
+  String get catHomeo;
+
+  /// No description provided for @catNutri.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutricionista Veterinário'**
+  String get catNutri;
+
+  /// No description provided for @catAnest.
+  ///
+  /// In pt, this message translates to:
+  /// **'Anestesista'**
+  String get catAnest;
+
+  /// No description provided for @catOnco.
+  ///
+  /// In pt, this message translates to:
+  /// **'Oncologista'**
+  String get catOnco;
+
+  /// No description provided for @catDentist.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dentista Veterinário'**
+  String get catDentist;
+
+  /// No description provided for @catHeaderDaily.
+  ///
+  /// In pt, this message translates to:
+  /// **'🛏️ CUIDADOS DIÁRIOS & HOTEL'**
+  String get catHeaderDaily;
+
+  /// No description provided for @catSitter.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pet Sitter (Em domicílio)'**
+  String get catSitter;
+
+  /// No description provided for @catWalker.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dog Walker (Passeador)'**
+  String get catWalker;
+
+  /// No description provided for @catNanny.
+  ///
+  /// In pt, this message translates to:
+  /// **'Babá de Pets'**
+  String get catNanny;
+
+  /// No description provided for @catHotel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Hotel/Hospedagem'**
+  String get catHotel;
+
+  /// No description provided for @catDaycare.
+  ///
+  /// In pt, this message translates to:
+  /// **'Creche (Day Care)'**
+  String get catDaycare;
+
+  /// No description provided for @catHeaderGrooming.
+  ///
+  /// In pt, this message translates to:
+  /// **'🧼 ESTÉTICA & HIGIENE'**
+  String get catHeaderGrooming;
+
+  /// No description provided for @catBath.
+  ///
+  /// In pt, this message translates to:
+  /// **'Banho e Tosa'**
+  String get catBath;
+
+  /// No description provided for @catStylist.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pet Stylist'**
+  String get catStylist;
+
+  /// No description provided for @catGroomerBreed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Groomer Especialista'**
+  String get catGroomerBreed;
+
+  /// No description provided for @catHeaderTraining.
+  ///
+  /// In pt, this message translates to:
+  /// **'🦮 COMPORTAMENTO & TREINO'**
+  String get catHeaderTraining;
+
+  /// No description provided for @catTrainer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Adestrador'**
+  String get catTrainer;
+
+  /// No description provided for @catBehaviorist.
+  ///
+  /// In pt, this message translates to:
+  /// **'Comportamentalista'**
+  String get catBehaviorist;
+
+  /// No description provided for @catCatSultant.
+  ///
+  /// In pt, this message translates to:
+  /// **'Consultor Felino'**
+  String get catCatSultant;
+
+  /// No description provided for @catHeaderRetail.
+  ///
+  /// In pt, this message translates to:
+  /// **'🛒 LOJAS & SERVIÇOS'**
+  String get catHeaderRetail;
+
+  /// No description provided for @catPetShop.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pet Shop'**
+  String get catPetShop;
+
+  /// No description provided for @catSupplies.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ração e Acessórios'**
+  String get catSupplies;
+
+  /// No description provided for @catTransport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Táxi Pet / Transporte'**
+  String get catTransport;
+
+  /// No description provided for @catPharm.
+  ///
+  /// In pt, this message translates to:
+  /// **'Farmácia Veterinária'**
+  String get catPharm;
+
+  /// No description provided for @catHeaderOther.
+  ///
+  /// In pt, this message translates to:
+  /// **'🧬 OUTROS'**
+  String get catHeaderOther;
+
+  /// No description provided for @catNgo.
+  ///
+  /// In pt, this message translates to:
+  /// **'ONG / Abrigo'**
+  String get catNgo;
+
+  /// No description provided for @catBreeder.
+  ///
+  /// In pt, this message translates to:
+  /// **'Criador / Canil'**
+  String get catBreeder;
+
+  /// No description provided for @catLab.
+  ///
+  /// In pt, this message translates to:
+  /// **'Laboratório de Análises'**
+  String get catLab;
+
+  /// No description provided for @catInsurance.
+  ///
+  /// In pt, this message translates to:
+  /// **'Plano de Saúde Pet'**
+  String get catInsurance;
+
+  /// No description provided for @catFuneralPlan.
+  ///
+  /// In pt, this message translates to:
+  /// **'Plano de Assist. Funeral'**
+  String get catFuneralPlan;
+
+  /// No description provided for @catCemeterie.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cemitério Pet'**
+  String get catCemeterie;
+
+  /// No description provided for @catCremation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Crematório'**
+  String get catCremation;
+
+  /// No description provided for @catFuneral.
+  ///
+  /// In pt, this message translates to:
+  /// **'Serviços Funerários & Velório'**
+  String get catFuneral;
+
   /// No description provided for @deletePetTitle.
   ///
   /// In pt, this message translates to:

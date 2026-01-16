@@ -393,8 +393,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             case 1: mode = ScannutMode.plant; break;
             case 2: 
               if (capturedPetMode == 0) mode = ScannutMode.petIdentification;
-              else if (capturedPetMode == 1) mode = ScannutMode.petDiagnosis;
-              else mode = ScannutMode.petStoolAnalysis; // 💩 V231
+              else mode = ScannutMode.petDiagnosis; // 🛡️ V144: Unified Health Mode (Includes Stool)
               break;
             default: mode = ScannutMode.petIdentification; break;
           }
@@ -996,28 +995,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Toggle 3: Stool (💩 V231)
-                      GestureDetector(
-                        onTap: () { setState(() { _petMode = 2; }); _clearCapturedImage(); },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _petMode == 2 ? AppDesign.getModeColor(2) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.biotech, size: 20, color: _petMode == 2 ? Colors.black : AppDesign.textPrimaryDark),
-                              if (_petMode == 2) ...[
-                                const SizedBox(width: 8),
-                                const Text("Fezes", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                              ]
-                            ],
-                          ),
-                        ),
-                      ),
+
                     ],
                   ),
                 ),

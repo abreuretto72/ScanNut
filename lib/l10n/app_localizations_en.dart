@@ -628,6 +628,123 @@ class AppLocalizationsEn extends AppLocalizations {
   String get partnersFilterLab => 'Laboratory';
 
   @override
+  String get partnersFilterDogWalker => 'Dog Walker';
+
+  @override
+  String get catHeaderHealth => '🏥 HEALTH & WELLNESS';
+
+  @override
+  String get catVet => 'General Veterinarian';
+
+  @override
+  String get catVetEmergency => 'Emergency Vet (24h)';
+
+  @override
+  String get catVetSpecialist => 'Specialist (Cardio/Derm/Ortho)';
+
+  @override
+  String get catPhysio => 'Physiotherapy/Rehab';
+
+  @override
+  String get catHomeo => 'Homeopathy/Acupuncture';
+
+  @override
+  String get catNutri => 'Veterinary Nutritionist';
+
+  @override
+  String get catAnest => 'Anesthesiologist';
+
+  @override
+  String get catOnco => 'Oncologist';
+
+  @override
+  String get catDentist => 'Veterinary Dentist';
+
+  @override
+  String get catHeaderDaily => '🛏️ DAILY CARE & BOARDING';
+
+  @override
+  String get catSitter => 'Pet Sitter';
+
+  @override
+  String get catWalker => 'Dog Walker';
+
+  @override
+  String get catNanny => 'Pet Nanny';
+
+  @override
+  String get catHotel => 'Hotel/Boarding';
+
+  @override
+  String get catDaycare => 'Day Care';
+
+  @override
+  String get catHeaderGrooming => '🧼 GROOMING & HYGIENE';
+
+  @override
+  String get catBath => 'Bath & Grooming';
+
+  @override
+  String get catStylist => 'Pet Stylist';
+
+  @override
+  String get catGroomerBreed => 'Breed Specialist';
+
+  @override
+  String get catHeaderTraining => '🦮 BEHAVIOR & TRAINING';
+
+  @override
+  String get catTrainer => 'Dog Trainer';
+
+  @override
+  String get catBehaviorist => 'Behaviorist';
+
+  @override
+  String get catCatSultant => 'Feline Consultant';
+
+  @override
+  String get catHeaderRetail => '🛒 SHOPS & SERVICES';
+
+  @override
+  String get catPetShop => 'Pet Shop';
+
+  @override
+  String get catSupplies => 'Food & Supplies';
+
+  @override
+  String get catTransport => 'Pet Taxi';
+
+  @override
+  String get catPharm => 'Pet Pharmacy';
+
+  @override
+  String get catHeaderOther => '🧬 OTHERS';
+
+  @override
+  String get catNgo => 'NGO / Shelter';
+
+  @override
+  String get catBreeder => 'Breeder';
+
+  @override
+  String get catLab => 'Laboratory';
+
+  @override
+  String get catInsurance => 'Pet Insurance';
+
+  @override
+  String get catFuneralPlan => 'Funeral Assistance Plan';
+
+  @override
+  String get catCemeterie => 'Pet Cemetery';
+
+  @override
+  String get catCremation => 'Crematorium';
+
+  @override
+  String get catFuneral => 'Funeral Services & Wake';
+
+  @override
   String get deletePetTitle => 'Delete Pet';
 
   @override

@@ -9,8 +9,8 @@ import '../models/pet_profile_extended.dart';
 import 'widgets/edit_pet_form.dart';
 import 'widgets/pet_dossier_view.dart';
 import '../models/analise_ferida_model.dart'; // 🛡️ V170 Import
-import '../models/analise_fezes_model.dart'; // 🛡️ V231 Import
 import '../services/pet_profile_service.dart';
+import '../../../core/services/file_upload_service.dart'; // Added
 import '../../../core/services/history_service.dart';
 import '../../../core/utils/json_cast.dart';
 import '../../../core/services/file_upload_service.dart';
@@ -23,6 +23,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/services/media_vault_service.dart';
 import '../services/pet_indexing_service.dart';
 
+import '../services/pet_pdf_generator.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 
@@ -161,7 +162,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
      final imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
      
      // 🛡️ V116: AUDIT LOG
-     debugPrint('📄 [V116-PDF] Preparando exportação PDF para ${result.petName ?? "Pet"}');
+     debugPrint('📄 [V116-PDF] Preparando exportação PDF (NOVO GERADOR) para ${result.petName ?? "Pet"}');
      
      Navigator.push(
        context,
@@ -169,7 +170,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
          builder: (context) => PdfPreviewScreen(
            title: 'Relatório Vet 360 - ${result.petName ?? "Pet"}',
            buildPdf: (format) async {
-             final exportService = ExportService();
+             final generator = PetPdfGenerator();
              
              // 🛡️ V180 POINTER TO HISTORY
              final profileService = PetProfileService();
@@ -184,11 +185,13 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                  debugPrint('⚠️ Helper Profile Load Error: $e');
              }
 
-             final pdf = await exportService.generateVeterinary360Report(
-               analysis: result, 
-               imagePath: imagePathToUse, 
+             // Fallback: Create profile from current result if not found in DB
+             fullProfile ??= PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
+
+             final pdf = await generator.generateReport(
+               profile: fullProfile,
                strings: l10n,
-               profile: fullProfile, // 🛡️ V180
+               currentAnalysis: result,
              );
              return pdf.save();
            },
@@ -205,6 +208,52 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
        // Just Navigate logic
        final imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
        final profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
+       
+       // 🛡️ V_FIX: Optimistic UI Update (Immediate History)
+       // Add current analysis to profile history so it shows up in Edit Form immediately
+       try {
+            Map<String, dynamic> visualFindings = {};
+            String cat = result.category?.toLowerCase() ?? '';
+            
+            if (cat == 'olhos') visualFindings = result.eyeDetails ?? {};
+            else if (cat == 'dentes') visualFindings = result.dentalDetails ?? {};
+            else if (cat == 'pele') visualFindings = result.skinDetails ?? {};
+            else if (cat == 'ferida') visualFindings = result.woundDetails ?? {};
+            else if (cat == 'fezes' || cat == 'stool' || result.analysisType == 'stool_analysis') {
+               visualFindings = result.stoolAnalysis ?? {};
+               if (cat.isEmpty) cat = 'fezes'; 
+            } else {
+               visualFindings = result.clinicalSignsDiag ?? {};
+            }
+
+            final healthAnalysis = AnaliseFeridaModel(
+               dataAnalise: DateTime.now(), 
+               imagemRef: imagePathToUse, 
+               achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
+               categoria: cat.isNotEmpty ? cat : 'geral',
+               nivelRisco: result.urgenciaNivel, 
+               recomendacao: result.orientacaoImediata,
+               diagnosticosProvaveis: result.possiveisCausas,
+               rawClinicalSigns: result.clinicalSignsDiag != null ? {'clinical_signs': result.clinicalSignsDiag} : null,
+               descricaoVisual: result.descricaoVisual,
+               caracteristicas: result.caracteristicas,
+            );
+            
+            // Inject into profile (in-memory)
+            profile.historicoAnaliseFeridas.add(healthAnalysis);
+            
+            // Legacy injection for robustness
+            profile.woundAnalysisHistory.add({
+                'date': DateTime.now().toIso8601String(),
+                'imagePath': imagePathToUse,
+                'visual_findings': healthAnalysis.achadosVisuais,
+                'risk_level': healthAnalysis.nivelRisco,
+                'recommendation': healthAnalysis.recomendacao
+            });
+            
+       } catch (e) {
+           debugPrint('⚠️ Optimistic update failed: $e');
+       }
        
        if (context.mounted) {
            Navigator.push(
@@ -225,31 +274,54 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
   Future<void> _performAutoSave(PetAnalysisResult result) async {
     try {
-      final imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
       final profileService = PetProfileService();
       await profileService.init();
+
+      // 🛡️ V_FIX: Persist Image Permanently
+      // If we rely on cache path, it gets deleted. saving explicitly.
+      String imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
+      if (_permanentImage == null) {
+          try {
+             final fs = FileUploadService();
+             final savedPath = await fs.saveMedicalDocument(
+                file: widget.imageFile,
+                petName: result.petName ?? 'Unknown',
+                attachmentType: 'health_${result.analysisType}_${DateTime.now().millisecondsSinceEpoch}'
+             );
+             if (savedPath != null) {
+                imagePathToUse = savedPath;
+                debugPrint('✅ [V_FIX] Image persisted to: $imagePathToUse');
+                if (mounted) setState(() => _permanentImage = File(savedPath));
+             }
+          } catch (e) {
+             debugPrint('❌ [V_FIX] Failed to persist image: $e');
+          }
+      }
 
       // 🛡️ V220: FIX - Ensure Valid Pet Name
       final String safePetName = (result.petName != null && result.petName!.trim().isNotEmpty) 
           ? result.petName! 
           : 'Pet';
 
-      // 🛡️ V220: SEPARATION OF DOMAINS (Identity vs Health vs Stool)
-      if (result.analysisType == 'stool_analysis') {
-           // STOOL DOMAIN: SPECIALIZED COPROLOGICAL ANALYSIS
-           debugPrint('💩 [V231] Persisting Stool Analysis (Fezes Category)');
+      // 🛡️ V144: UNIFIED ROUTING - ALL CLINICAL/STOOL GOES TO WOUND HISTORY ('historicoAnaliseFeridas')
+      if (result.analysisType == 'diagnosis' || result.analysisType == 'stool_analysis') {
+           // HEALTH/STOOL DOMAIN: DO NOT OVERWRITE PROFILE IMAGE
+           debugPrint('🏥 [V144] Persisting Unified Health Analysis (Includes Stool) to Wound History');
            
+           // 🛡️ CRITICAL FIX: Ensure Profile Exists skeleton
            if (!await profileService.hasProfile(safePetName)) {
-               debugPrint('   [V231] Profile "$safePetName" not found. Creating skeleton profile...');
+               debugPrint('   [V144] Profile "$safePetName" not found. Creating skeleton profile...');
                final newProfile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
                final jsonProfile = newProfile.toJson();
                jsonProfile['pet_name'] = safePetName;
                await profileService.saveOrUpdateProfile(safePetName, jsonProfile);
            }
-
-           // A. Save to Master History (Timeline)
+           
+           // A. Save to History Line (Timeline - Generic)
+           debugPrint('📜 [PetResult] Saving to Master History... (mode: Pet)');
            final historyPayload = result.toJson();
            historyPayload['pet_name'] = safePetName;
+           
            await HistoryService.addScan(
              'Pet', 
              historyPayload, 
@@ -258,64 +330,30 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
              petName: safePetName
            );
 
-           // B. Save to Structured Stool History
-           final stoolAnalysis = AnaliseFezesModel(
-              dataAnalise: DateTime.now(), 
-              imagemRef: imagePathToUse, 
-              caracteristicas: result.caracteristicas,
-              descricaoVisual: result.descricaoVisual,
-              stoolDetails: result.stoolAnalysis ?? {},
-              possiveisCausas: result.possiveisCausas,
-              nivelRisco: result.urgenciaNivel, 
-              recomendacao: result.orientacaoImediata,
-           );
+           // B. Save to Structured Unified History (historicoAnaliseFeridas)
+           // Logic to pick the correct specific details based on category
+           Map<String, dynamic> visualFindings = {};
            
-           await profileService.saveStoolAnalysis(safePetName, stoolAnalysis);
-
-      } else if (result.analysisType == 'diagnosis') {
-           // HEALTH DOMAIN: DO NOT OVERWRITE PROFILE IMAGE
-           debugPrint('🏥 [V220] Persisting Health Analysis (No Profile Image Overwrite)');
+           // Priority: Category Tag (from Unified Prompt)
+           String cat = result.category?.toLowerCase() ?? '';
            
-           // 🛡️ CRITICAL FIX: Ensure Profile Exists
-           // If we don't have a profile for this pet (e.g. new scan), create a basic one
-           // using the current image. It's better to have a profile with a wound image
-           // than no profile/history at all.
-           if (!await profileService.hasProfile(safePetName)) {
-               debugPrint('   [V220] Profile "$safePetName" not found. Creating skeleton profile...');
-               final newProfile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
-               
-               // Ensure correct name in ID
-               final jsonProfile = newProfile.toJson();
-               jsonProfile['pet_name'] = safePetName;
-               
-               await profileService.saveOrUpdateProfile(safePetName, jsonProfile);
+           if (cat == 'olhos') visualFindings = result.eyeDetails ?? {};
+           else if (cat == 'dentes') visualFindings = result.dentalDetails ?? {};
+           else if (cat == 'pele') visualFindings = result.skinDetails ?? {};
+           else if (cat == 'ferida') visualFindings = result.woundDetails ?? {};
+           else if (cat == 'fezes' || cat == 'stool' || result.analysisType == 'stool_analysis') {
+              visualFindings = result.stoolAnalysis ?? {};
+              if (cat.isEmpty) cat = 'fezes'; // Force category for legacy stool_analysis
+           } else {
+              visualFindings = result.clinicalSignsDiag ?? {};
            }
-           
-           // A. Save to History Line (Timeline)
-           debugPrint('📜 [PetResult] Saving to History (Detailed Diagnosis)... (mode: Pet)');
-           
-           // 🛡️ V221: Force Name Injection for History Consistency
-           final historyPayload = result.toJson();
-           historyPayload['pet_name'] = safePetName; // Ensure explicit link
-           
-           await HistoryService.addScan(
-             'Pet', 
-             historyPayload, 
-             imagePath: imagePathToUse,
-             thumbnailPath: imagePathToUse,
-             petName: safePetName // Explicit Argument
-           );
 
-           // B. Save to Structured Profile History (Wounds)
            final healthAnalysis = AnaliseFeridaModel(
               dataAnalise: DateTime.now(), 
-              imagemRef: imagePathToUse, // Use the wound image here
-              achadosVisuais: result.category == 'olhos' ? (result.eyeDetails ?? {}) :
-                           result.category == 'dentes' ? (result.dentalDetails ?? {}) :
-                           result.category == 'pele' ? (result.skinDetails ?? {}) :
-                           result.category == 'ferida' ? (result.woundDetails ?? {}) :
-                           (result.clinicalSignsDiag ?? {}), 
-            categoria: result.category,
+              imagemRef: imagePathToUse, 
+              // If findings are empty, try fallback to generic clinical signs
+              achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
+              categoria: cat.isNotEmpty ? cat : 'geral',
               nivelRisco: result.urgenciaNivel, 
               recomendacao: result.orientacaoImediata,
               diagnosticosProvaveis: result.possiveisCausas,
@@ -324,7 +362,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
               caracteristicas: result.caracteristicas,
            );
            
-           // This method appends to the history list inside the profile without touching the main image
+           // THIS METHOD NOW STORES EVERYTHING (EYES, TEETH, STOOL, WOUNDS)
            await profileService.saveDetailedAnalysis(safePetName, healthAnalysis);
 
       } else {

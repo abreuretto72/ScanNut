@@ -573,7 +573,15 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   // --- DELETE LOGIC ---
   
   Future<void> _clearBox(String name) async {
-     await HiveAtomicManager().recreateBox(name);
+     // 🛡️ V116: PRESERVE BOX STRUCTURE
+     // Use clear() instead of recreate() to maintain listeners and references
+     try {
+       final box = await HiveAtomicManager().ensureBoxOpen(name);
+       await box.clear();
+       debugPrint('🧹 [V116] Box "$name" cleared (${box.length} items removed).');
+     } catch (e) {
+       debugPrint('⚠️ [V116] Error clearing box "$name": $e');
+     }
   }
   
   Future<void> _clearHistoryByMode(String mode) async {
@@ -741,6 +749,9 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       // Physical
       await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR);
       await _deleteLegacyFolder('nutrition_images');
+      
+      // Invalidate history to refresh timeline
+      ref.invalidate(historyServiceProvider);
   }
 
   Future<void> _wipePlantData() async {
@@ -752,6 +763,9 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR);
       await _deleteLegacyFolder('botany_images');
       await _deleteLegacyFolder('PlantAnalyses');
+      
+      // Invalidate history to refresh timeline
+      ref.invalidate(historyServiceProvider);
   }
 
   Future<void> _wipePetData() async {
@@ -764,12 +778,10 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       // 🛡️ Deep Clean: Remove ANY item linked to a Pet (even if mode is wrong)
       await _clearHistoryDeep((v) => v['mode'] == 'Pet' || (v['pet_name'] != null) || (v['petId'] != null));
       
-      // Journal
-      await _clearJournalByGroup([
-         'health', 'occurrence', 'medication', 'grooming', 'hygiene', 
-         'elimination', 'activity', 'behavior', 'exams', 'allergies', 
-         'dentistry', 'metrics', 'media', 'documents', 'schedule', 'veterinary', 'other'
-      ]);
+      // 🛡️ V117: CLEAR ENTIRE JOURNAL
+      // Instead of filtering by groups (which can miss automatic events),
+      // clear the entire pet_events_journal box to ensure timeline is empty
+      await _clearBox('pet_events_journal');
       
       // Physical
       await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
@@ -778,18 +790,18 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await _deleteLegacyFolder('medical_docs');
       await _deleteLegacyFolder('ExamsVault');
       
-      // Invalidate Providers
-      ref.invalidate(petEventServiceProvider);
-      ref.invalidate(partnerServiceProvider);
-      
       // 🚀 V110: ATOMIC NUCLEAR PURGE (Physical)
       // Substitutes V107 soft reset. Forces physical deletion of the master file.
       await PetProfileService.to.wipeAllDataPhysically();
       
-      final pEvents = PetEventService();
-      await pEvents.init(); // Re-open box fresh
+      // 🛡️ V116: INVALIDATE PROVIDERS
+      // Since we use box.clear() instead of recreate(), listeners are preserved
+      // We just need to invalidate providers to trigger UI rebuild
+      ref.invalidate(petEventServiceProvider);
+      ref.invalidate(partnerServiceProvider);
+      ref.invalidate(historyServiceProvider);
       
-      debugPrint('🛡️ [V110] Services Re-Booted. Box Destroyed and Recreated.');
+      debugPrint('🛡️ [V116] Pet Data Wipe Complete. Box cleared, listeners preserved.');
   }
   
   Future<void> _deleteLegacyFolder(String folderName) async {

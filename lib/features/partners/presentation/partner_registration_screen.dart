@@ -99,6 +99,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
       builder: (context) => _RadarBottomSheet(
+        initialQuery: _category,
         onPartnerSelected: (partner) {
           setState(() {
             _nameController.text = partner.name;
@@ -697,31 +698,126 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
 
   Widget _buildCategoryDropdown() {
     final strings = AppLocalizations.of(context)!;
-    final List<String> categories = [
-        strings.partnersFilterVet, 
-        strings.partnersFilterPetShop, 
-        strings.partnersFilterPharmacy, 
-        strings.partnersFilterGrooming, 
-        strings.partnersFilterHotel, 
-        strings.partnersFilterLab
-    ];
     
-    // Check if current category is in the localized list, if not, try to match or default
-    if (!categories.contains(_category)) {
-        // Try to find a match in groups
-        String? match;
-        for (var cat in categories) {
-            if (_isSameCategory(cat, _category)) {
-                match = cat;
-                break;
-            }
+    // Detailed Category Groups
+    final groups = [
+      {
+        'title': strings.catHeaderHealth,
+        'items': [
+          strings.catVet,
+          strings.catVetEmergency,
+          strings.catVetSpecialist,
+          strings.catPhysio,
+          strings.catHomeo,
+          strings.catNutri,
+          strings.catAnest,
+          strings.catOnco,
+          strings.catDentist,
+          strings.partnersFilterLab, // Reuse existing
+          strings.partnersFilterPharmacy, // Reuse existing
+        ]
+      },
+      {
+        'title': strings.catHeaderDaily,
+        'items': [
+          strings.catSitter,
+          strings.partnersFilterDogWalker,
+          strings.catNanny,
+          strings.partnersFilterHotel,
+          strings.catDaycare,
+        ]
+      },
+      {
+        'title': strings.catHeaderGrooming,
+        'items': [
+          strings.partnersFilterGrooming, // Old key "Banho e Tosa" or similar
+          strings.catStylist,
+          strings.catGroomerBreed,
+        ]
+      },
+      {
+        'title': strings.catHeaderTraining,
+        'items': [
+          strings.catTrainer,
+          strings.catBehaviorist,
+          strings.catCatSultant,
+        ]
+      },
+      {
+        'title': strings.catHeaderRetail,
+        'items': [
+          strings.catPetShop,
+          strings.partnersFilterPetShop, // Keep legacy as fallback or alias? "Pet Shop" is common. Use specific keys if distinct.
+          strings.catSupplies,
+          strings.catTransport,
+        ]
+      },
+      {
+        'title': strings.catHeaderOther,
+        'items': [
+          strings.catNgo,
+          strings.catBreeder,
+          strings.catInsurance,
+          strings.catFuneralPlan,
+          strings.catCemeterie,
+          strings.catCremation,
+          strings.catFuneral,
+        ]
+      }
+    ];
+
+    // Flatten logic
+    final List<String> allSelectableItems = [];
+    final List<DropdownMenuItem<String>> menuItems = [];
+
+    for (var g in groups) {
+      final title = g['title'] as String;
+      final items = g['items'] as List<String>;
+
+      // Header (Non-selectable, but must have unique value if generic type used, but DropdownMenuItem value can be whatever)
+      // Actually DropdownButton value must match one of the items.
+      // Headers should NOT be values. But DropdownMenuItem requires a value?
+      // Yes. We give it a value that user never selects.
+      
+      menuItems.add(DropdownMenuItem<String>(
+        value: "HEADER_$title", 
+        enabled: false,
+        child: Text(
+          title, 
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: AppDesign.petPink, fontSize: 13),
+        ),
+      ));
+
+      for (var item in items) {
+        // Dedup
+        if (!allSelectableItems.contains(item)) {
+            allSelectableItems.add(item);
+            menuItems.add(DropdownMenuItem<String>(
+              value: item,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 12.0),
+                child: Text(item, style: GoogleFonts.poppins(fontSize: 14)),
+              ),
+            ));
         }
-        _category = match ?? categories.first;
+      }
+    }
+
+    // Ensure current _category is valid
+    if (!allSelectableItems.contains(_category)) {
+      // Try to match partial or default
+       if (allSelectableItems.isNotEmpty) {
+           // If it's a legacy value, maybe add it nicely?
+           // No, force default or add it temporarily?
+           // Better to add it to the list to avoid crash (DropdownButton value must be in items)
+           menuItems.add(DropdownMenuItem(value: _category, child: Text(_category)));
+       }
     }
 
     return DropdownButtonFormField<String>(
       value: _category,
       dropdownColor: AppDesign.surfaceDark,
+      isExpanded: true, // Important for long names
       style: const TextStyle(color: AppDesign.textPrimaryDark),
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context)!.partnerCategory,
@@ -731,10 +827,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         fillColor: Colors.black45,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
       ),
-      items: categories
-          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-          .toList(),
-      onChanged: (v) => setState(() => _category = v!),
+      items: menuItems,
+      onChanged: (v) {
+        if (v != null && !v.startsWith("HEADER_")) {
+             setState(() => _category = v);
+        }
+      },
     );
   }
 
@@ -750,6 +848,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       ['banho e tosa', 'grooming', 'peluquería', 'tosa'],
       ['hotéis', 'hotel', 'pet hotel', 'adestramento', 'training'],
       ['laboratórios', 'laboratory', 'lab', 'laboratorio', 'laboratorios'],
+      ['dog walker', 'passeador', 'passeador de cães', 'paseador'],
     ];
 
     for (var group in synonymGroups) {
@@ -763,8 +862,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
 
 class _RadarBottomSheet extends ConsumerStatefulWidget {
   final Function(PartnerModel) onPartnerSelected;
+  final String? initialQuery;
 
-  const _RadarBottomSheet({required this.onPartnerSelected});
+  const _RadarBottomSheet({required this.onPartnerSelected, this.initialQuery});
 
   @override
   ConsumerState<_RadarBottomSheet> createState() => _RadarBottomSheetState();
@@ -825,6 +925,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
         lat: pos.latitude,
         lng: pos.longitude,
         radiusKm: 10.0,
+        query: widget.initialQuery != null ? '${widget.initialQuery} Pet' : null,
       );
 
       // 4. Step 2: Auto-Expand to 20KM if empty
@@ -837,6 +938,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
           lat: pos.latitude,
           lng: pos.longitude,
           radiusKm: 20.0,
+          query: widget.initialQuery != null ? '${widget.initialQuery} Pet' : null,
         );
       }
 

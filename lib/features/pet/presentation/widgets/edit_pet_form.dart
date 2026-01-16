@@ -9,12 +9,14 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:hive/hive.dart';
+import 'package:open_filex/open_filex.dart';
 import '../../../../core/services/file_upload_service.dart';
 import '../../../../core/services/gemini_service.dart';
 import '../../../../core/utils/prompt_factory.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/enums/scannut_mode.dart';
 import '../../models/pet_profile_extended.dart';
+import '../../services/pet_pdf_generator.dart'; // 🛡️ NEW PDF GENERATOR
 import '../../models/analise_ferida_model.dart'; // 🛡️ Import for Health History
 import '../../services/pet_vision_service.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -336,7 +338,9 @@ class _EditPetFormState extends State<EditPetForm>
 
   @override
   void initState() {
+    final sw = Stopwatch()..start();
     super.initState();
+    debugPrint('⏱️ [PERF_FORM] initState Start');
     _speech = stt.SpeechToText();
     _initSpeech(); // Initialize speech engine
 
@@ -473,6 +477,7 @@ class _EditPetFormState extends State<EditPetForm>
     _alergiasController.addListener(_onUserTyping);
     _preferenciasController.addListener(_onUserTyping);
     _restricoesController.addListener(_onUserTyping);
+    debugPrint('⏱️ [PERF_FORM] initState End: ${sw.elapsedMilliseconds}ms');
   }
 
   void _updateProfileFromAI(Map<String, dynamic> result) {
@@ -699,36 +704,55 @@ class _EditPetFormState extends State<EditPetForm>
     bool isGallery(String n) => n.startsWith('gallery_') || 
                                 (!isIdentity(n) && !isExam(n) && !isPrescription(n) && !isVaccine(n) && !isNutrition(n));
 
-    // Helper to Deduplicate (Prefer OPT_)
+    // Helper to Deduplicate (Aggressive V143)
     List<File> optimizeList(List<File> rawList) {
-       final Map<String, File> unique = {};
-       final RegExp tsRegex = RegExp(r'(\d{13})');
+       final Map<String, File> uniqueMap = {};
        
-       // First pass: Add non-timestamped files directly + timestamp strategy
-       final List<File> result = [];
+       debugPrint('🔍 [V143] optimizeList: Processing ${rawList.length} files');
        
        for (var f in rawList) {
+          if (!f.existsSync()) continue;
+          
           final name = path.basename(f.path);
-          final match = tsRegex.firstMatch(name);
+          
+          // 1. Extract potential timestamp ID (10+ digits) to group variations
+          // e.g. "image_1234567890.jpg", "opt_1234567890.jpg" -> ID_1234567890
+          final match = RegExp(r'(\d{10,})').firstMatch(name);
+          String contentId;
           
           if (match != null) {
-              final ts = match.group(0)!;
-              if (unique.containsKey(ts)) {
-                  final existingName = path.basename(unique[ts]!.path);
-                  // Upgrade to OPT if new is OPT and old is not
-                  if (!existingName.startsWith('OPT_') && name.startsWith('OPT_')) {
-                      unique[ts] = f;
-                  }
-              } else {
-                  unique[ts] = f;
-              }
+              contentId = "ID_${match.group(0)}"; 
           } else {
-              result.add(f);
+              // Fallback: Group by Exact Size (Collision risk is low for photos)
+              // This removes identical duplicates with different names
+              contentId = "SIZE_${f.lengthSync()}";
+          }
+
+          // Decision: Who stays?
+          if (uniqueMap.containsKey(contentId)) {
+             final existing = uniqueMap[contentId]!;
+             final existingName = path.basename(existing.path);
+             
+             // Preference Logic:
+             // 1. Prefer 'OPT_' (Optimized)
+             // 2. Otherwise keep the first one found (usually fine)
+             
+             final isNewOpt = name.toUpperCase().startsWith('OPT_');
+             final isOldOpt = existingName.toUpperCase().startsWith('OPT_');
+             
+             if (isNewOpt && !isOldOpt) {
+                 uniqueMap[contentId] = f; // Upgrade to optimized version
+             }
+          } else {
+             uniqueMap[contentId] = f;
           }
        }
-       result.addAll(unique.values);
-       // Sort Newest First
+       
+       // Convert to list and sort by modification time desc (Newest First)
+       final result = uniqueMap.values.toList();
        result.sort((a,b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+       
+       debugPrint('✅ [V143] optimizeList: Reduced to ${result.length} unique files');
        return result;
     }
 
@@ -741,6 +765,23 @@ class _EditPetFormState extends State<EditPetForm>
       
       // Gallery gets the rest (Catch-all)
       _attachments['gallery'] = optimizeList(allDocs.where((f) => isGallery(path.basename(f.path))).toList());
+      
+      // 🛡️ V123: Debug logging
+      debugPrint('📎 [V123] Attachments loaded:');
+      debugPrint('  Identity: ${_attachments['identity']?.length ?? 0}');
+      debugPrint('  Prescriptions: ${_attachments['health_prescriptions']?.length ?? 0}');
+      debugPrint('  Vaccines: ${_attachments['health_vaccines']?.length ?? 0}');
+      debugPrint('  Nutrition: ${_attachments['nutrition']?.length ?? 0}');
+      debugPrint('  Gallery: ${_attachments['gallery']?.length ?? 0}');
+      
+      if (allDocs.isNotEmpty) {
+        debugPrint('📎 [V123] Sample filenames:');
+        for (var doc in allDocs.take(5)) {
+          final name = path.basename(doc.path);
+          debugPrint('  - $name');
+          debugPrint('    Identity: ${isIdentity(name)}, Prescription: ${isPrescription(name)}, Vaccine: ${isVaccine(name)}');
+        }
+      }
     });
   }
 
@@ -961,20 +1002,41 @@ class _EditPetFormState extends State<EditPetForm>
                     title: Text(AppLocalizations.of(context)!.petGalleryVideo, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                     onTap: () async {
                       Navigator.pop(ctx);
-                      final file = await _fileService.pickVideoFromGallery();
+      final file = await _fileService.pickVideoFromGallery();
                       if (file != null) _saveFile(file, petName, type);
                     },
                   ),
-                ] else 
-                  ListTile(
-                    leading: const AppPdfIcon(),
-                    title: const Text('PDF', style: TextStyle(color: AppDesign.textPrimaryDark)),
-                    onTap: () async {
-                      Navigator.pop(ctx);
+                ] else
+                ListTile(
+                  leading: const AppPdfIcon(),
+                  title: const Text('PDF', style: TextStyle(color: AppDesign.textPrimaryDark)),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    try {
+                      debugPrint('🔍 [PDF_ATTACH] Starting PDF picker for type: $type');
                       final file = await _fileService.pickPdfFile();
-                      if (file != null) _saveFile(file, petName, type);
-                    },
-                  ),
+
+                      if (file != null) {
+                        debugPrint('✅ [PDF_ATTACH] File picked: ${file.path}');
+                        await _saveFile(file, petName, type);
+                      } else {
+                        debugPrint('⚠️ [PDF_ATTACH] File picker returned null (user cancelled or error)');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Nenhum arquivo selecionado'))
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      debugPrint('❌ [PDF_ATTACH] Error picking PDF: $e');
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Erro ao selecionar PDF: $e'))
+                        );
+                      }
+                    }
+                  },
+                ),
                 SizedBox(height: 20), // Padding extra
               ],
             ),
@@ -1080,15 +1142,37 @@ class _EditPetFormState extends State<EditPetForm>
   }
 
   Future<void> _saveFile(File file, String petName, String type) async {
-    final savedPath = await _fileService.saveMedicalDocument(
-      file: file,
-      petName: petName,
-      attachmentType: type,
-    );
-    if (savedPath != null) {
-      _loadAttachments();
+    try {
+      debugPrint('💾 [PDF_SAVE] Saving file: ${file.path} for pet: $petName, type: $type');
+
+      final savedPath = await _fileService.saveMedicalDocument(
+        file: file,
+        petName: petName,
+        attachmentType: type,
+      );
+
+      if (savedPath != null) {
+        debugPrint('✅ [PDF_SAVE] File saved successfully: $savedPath');
+        _loadAttachments();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context)!.petDocAttached))
+          );
+        }
+      } else {
+        debugPrint('⚠️ [PDF_SAVE] saveMedicalDocument returned null');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erro ao salvar arquivo'))
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [PDF_SAVE] Error saving file: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.petDocAttached)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao salvar: $e'))
+        );
       }
     }
   }
@@ -1155,7 +1239,7 @@ class _EditPetFormState extends State<EditPetForm>
           if (docs.isNotEmpty) ...[
             const SizedBox(height: 12),
             SizedBox(
-              height: 60,
+              height: 90, // 🛡️ V121: Increased height to fit filename
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: docs.length,
@@ -1163,33 +1247,106 @@ class _EditPetFormState extends State<EditPetForm>
                 itemBuilder: (context, index) {
                   final file = docs[index];
                   final isPdf = file.path.toLowerCase().endsWith('.pdf');
+                  final filename = path.basenameWithoutExtension(file.path);
+                  
+                  // 🛡️ V121: Remove type prefix from display name
+                  final displayName = filename.replaceFirst(RegExp(r'^(identity|nutrition|health_\w+|gallery)_'), '');
+                  
                   return InkWell(
-                    onTap: () {
-                      // TODO: Implement open file
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commonFilePrefix + path.basename(file.path))));
-                    },
-                    onLongPress: () => _deleteAttachment(file),
-                    child: Container(
-                      width: 60,
-                      decoration: BoxDecoration(
-                        color: AppDesign.surfaceDark,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            isPdf ? Icons.picture_as_pdf_rounded : Icons.image,
-                            color: isPdf ? Colors.red : Colors.blueAccent,
-                            size: 24,
+                  onTap: () async {
+                    // 🛡️ V120: Open file with system default app
+                    try {
+                      debugPrint('📂 [V120] Opening file: ${file.path}');
+                      final result = await OpenFilex.open(file.path);
+
+                      if (result.type != ResultType.done) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Erro ao abrir arquivo: ${result.message}'),
+                              backgroundColor: AppDesign.error,
+                            )
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      debugPrint('❌ [V120] Error opening file: $e');
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Erro ao abrir arquivo: $e'),
+                            backgroundColor: AppDesign.error,
+                          )
+                        );
+                      }
+                    }
+                  },
+                  onLongPress: () => _deleteAttachment(file),
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: 85, // 🛡️ V122: Slightly increased for better spacing
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppDesign.surfaceDark,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isPdf ? Colors.red.withOpacity(0.3) : Colors.blueAccent.withOpacity(0.3),
+                            ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            isPdf ? 'PDF' : 'IMG',
-                            style: const TextStyle(color: Colors.white30, fontSize: 8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min, // 🛡️ V122: Prevent overflow
+                            children: [
+                              Icon(
+                                isPdf ? Icons.picture_as_pdf_rounded : Icons.image,
+                                color: isPdf ? Colors.red : Colors.blueAccent,
+                                size: 28,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                isPdf ? 'PDF' : 'IMG',
+                                style: TextStyle(
+                                  color: isPdf ? Colors.red.withOpacity(0.7) : Colors.blueAccent.withOpacity(0.7),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // 🛡️ V122: Constrained text to prevent overflow
+                              Flexible(
+                                child: Text(
+                                  displayName,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 9,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        // 🛡️ V122: Delete icon hint
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Icon(
+                              Icons.delete_outline,
+                              size: 12,
+                              color: Colors.white54,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -1584,9 +1741,16 @@ class _EditPetFormState extends State<EditPetForm>
                 // Structured Data View
                 ...data.entries.where((e) {
                     final k = e.key;
+                    final v = e.value;
+                    
                     // Filter out technical keys and null values
                     if (['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification'].contains(k)) return false;
-                    if (e.value == null) return false;
+                    
+                    // 🛡️ V127: More robust null filtering
+                    if (v == null) return false;
+                    if (v.toString().toLowerCase() == 'null') return false;
+                    if (v is String && v.trim().isEmpty) return false;
+                    
                     return true;
                 }).map((e) {
                    final val = e.value;
@@ -1642,9 +1806,10 @@ class _EditPetFormState extends State<EditPetForm>
 
                    if (val is Map) {
                        return ExpansionTile(
+                           initiallyExpanded: true, // 🛡️ V126: Open by default
                            title: Text(_tryLocalizeLabel(context, e.key), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                            childrenPadding: const EdgeInsets.only(left: 16, bottom: 8),
-                           children: (val as Map).entries.map((sub) => Padding(
+                           children: (val as Map).entries.where((sub) => sub.value != null).map((sub) => Padding(
                                padding: const EdgeInsets.only(bottom: 4),
                                child: Row(
                                    crossAxisAlignment: CrossAxisAlignment.start,
@@ -1862,11 +2027,11 @@ class _EditPetFormState extends State<EditPetForm>
     // 1. Determine Image Source
     ImageProvider? imageProvider;
 
-    if (_profileImage != null && _profileImage!.existsSync()) {
+    if (_profileImage != null && _profileImage!.existsSync() && _profileImage!.lengthSync() > 0) {
       imageProvider = FileImage(_profileImage!);
     } else if (_initialImagePath != null && _initialImagePath!.isNotEmpty) {
        final f = File(_initialImagePath!);
-       if (f.existsSync()) {
+       if (f.existsSync() && f.lengthSync() > 0) {
            imageProvider = FileImage(f);
        } else if (_initialImagePath!.startsWith('http')) {
            imageProvider = NetworkImage(_initialImagePath!);
@@ -1876,7 +2041,7 @@ class _EditPetFormState extends State<EditPetForm>
     // Debug Log
     debugPrint('PET_PROFILE_IMAGE: path=${_profileImage?.path}, initial=$_initialImagePath, provider=$imageProvider');
 
-    // 2. Build Widget
+    // 2. Build Widget with Robust Error Handling
     return Center(
       child: GestureDetector(
         onTap: _pickProfileImage,
@@ -1889,19 +2054,19 @@ class _EditPetFormState extends State<EditPetForm>
                 shape: BoxShape.circle,
                 border: Border.all(color: AppDesign.petPink, width: 3),
                 color: Colors.white.withOpacity(0.1),
-                image: imageProvider != null 
-                    ? DecorationImage(
+              ),
+              child: ClipOval(
+                child: imageProvider != null
+                    ? Image(
                         image: imageProvider,
                         fit: BoxFit.cover,
-                        onError: (obj, stack) {
-                            debugPrint('🔴 Erro ao carregar imagem do perfil: $obj');
-                        }
+                        errorBuilder: (context, error, stackTrace) {
+                            debugPrint('🔴 Erro visual recuperado na imagem: $error');
+                            return const Center(child: Icon(Icons.pets, size: 60, color: Colors.white24));
+                        },
                       )
-                    : null,
+                    : const Center(child: Icon(Icons.pets, size: 60, color: Colors.white24)),
               ),
-              child: imageProvider == null
-                  ? const Icon(Icons.pets, size: 60, color: Colors.white24)
-                  : null,
             ),
             Positioned(
               bottom: 0,
@@ -2796,6 +2961,38 @@ class _EditPetFormState extends State<EditPetForm>
                               .map((e) => Map<String, dynamic>.from(e as Map))
                               .toList();
                       });
+                   }
+               }
+
+
+               // 1. Refresh Wound History (Local + Structured)
+               if (data['wound_analysis_history'] != null) {
+                   if (mounted) {
+                      setState(() {
+                          _woundHistory = (data['wound_analysis_history'] as List)
+                              .map((e) => Map<String, dynamic>.from(e as Map))
+                              .toList();
+                      });
+                   }
+               }
+               
+               // 🛡️ V_FIX: Load Structured History (Gallery)
+               if (data['historicoAnaliseFeridas'] != null) {
+                   try {
+                       final list = (data['historicoAnaliseFeridas'] as List).map((e) => AnaliseFeridaModel.fromJson(Map<String, dynamic>.from(e))).toList();
+                       if (mounted) setState(() => _historicoAnaliseFeridas = list);
+                   } catch (e) {
+                       debugPrint('Error loading structured history: $e');
+                   }
+               }
+               
+               // 🛡️ V_FIX: Load Lab Exams
+               if (data['labExams'] != null) {
+                   try {
+                       final list = (data['labExams'] as List).map((e) => LabExam.fromJson(Map<String, dynamic>.from(e))).toList();
+                       if (mounted) setState(() => _labExams = list);
+                   } catch (e) {
+                       debugPrint('Error loading lab exams: $e');
                    }
                }
 
@@ -4520,6 +4717,7 @@ class _EditPetFormState extends State<EditPetForm>
             weightHistory: _weightHistory,
             labExams: _labExams.map((e) => e.toJson()).toList(),
             woundAnalysisHistory: _woundHistory,
+            historicoAnaliseFeridas: _historicoAnaliseFeridas, // 🛡️ V_FIX: Pass structured history
             analysisHistory: _analysisHistory,
             observacoesIdentidade: _observacoesIdentidade,
             observacoesSaude: _observacoesSaude,
@@ -4558,10 +4756,10 @@ class _EditPetFormState extends State<EditPetForm>
             builder: (context) => PdfPreviewScreen(
               title: '${AppLocalizations.of(context)!.pdfReportTitle} - ${profile.petName}',
               buildPdf: (format) async {
-                final pdf = await ExportService().generatePetProfileReport(
+                final pdf = await PetPdfGenerator().generateReport(
                   profile: profile,
                   strings: AppLocalizations.of(context)!,
-                  selectedSections: allSectionsEnabled,
+                  manualGallery: _attachments['gallery'], // Pass manual gallery
                 );
                 return pdf.save();
               },
@@ -4809,7 +5007,7 @@ class _EditPetFormState extends State<EditPetForm>
     required IconData icon,
     required List<Widget> children,
     List<Widget>? childrens, // Fallback for specific tab contents
-    bool initiallyExpanded = false,
+    bool initiallyExpanded = true, // 🛡️ V126: Open by default for better UX
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

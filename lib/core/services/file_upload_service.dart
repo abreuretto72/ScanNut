@@ -109,16 +109,45 @@ class FileUploadService {
   }) async {
     try {
       final vault = MediaVaultService();
+      
+      // 🛡️ V124: Fix category selection
+      // All pet-related attachments (including health) go to PETS_DIR
+      // Only standalone wound analysis goes to WOUNDS_DIR
       String category = MediaVaultService.PETS_DIR;
-      if (attachmentType.contains('food')) category = MediaVaultService.FOOD_DIR;
-      else if (attachmentType.contains('plant')) category = MediaVaultService.BOTANY_DIR;
-      else if (attachmentType.contains('health')) category = MediaVaultService.WOUNDS_DIR;
+      if (attachmentType.contains('food')) {
+        category = MediaVaultService.FOOD_DIR;
+      } else if (attachmentType.contains('plant')) {
+        category = MediaVaultService.BOTANY_DIR;
+      }
+      // Note: health_prescriptions, health_vaccines, etc. stay in PETS_DIR
 
-      return await vault.secureClone(
-        file, 
+      // 🛡️ V119: Add type prefix to filename for proper filtering
+      final originalName = path.basename(file.path);
+      final extension = path.extension(originalName);
+      final nameWithoutExt = path.basenameWithoutExtension(originalName);
+      final prefixedName = '${attachmentType}_$nameWithoutExt$extension';
+      
+      // Create temporary file with prefixed name
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/$prefixedName');
+      await file.copy(tempFile.path);
+      
+      debugPrint('📎 [V124] Prefixed filename: $prefixedName (type: $attachmentType, category: $category)');
+
+      final result = await vault.secureClone(
+        tempFile, 
         category, 
         petName.replaceAll(RegExp(r'\s+'), '_').toLowerCase()
       );
+      
+      // Clean up temp file
+      try {
+        await tempFile.delete();
+      } catch (e) {
+        debugPrint('⚠️ Failed to delete temp file: $e');
+      }
+      
+      return result;
     } catch (e) {
       debugPrint('❌ MediaVault Error: $e');
       return null;

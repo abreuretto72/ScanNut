@@ -74,6 +74,13 @@ Lista de compras
 - 🧹 Varredura customizada de histórico com predicados flexíveis
 - 🔍 Logs detalhados para debugging de geração de cardápios
 
+### **🔍 Rede de Parceiros (Radar 2.0)**
+- **Taxonomia Expandida:** Inclusão de **40+ categorias** (Dog Walkers, Oncologistas, Crematórios, Seguros, etc.).
+- **Radar Contextual:** Busca geo-localizada inteligente que respeita a categoria selecionada.
+- **Busca Refinada:** Sufixo "Pet" automático para desambiguação (ex: "Hotel" -> "Hotel Pet").
+- **Ordenação por Proximidade:** Resultados listados do mais próximo para o mais distante.
+- **Suporte Completo:** Novas opções para Cemitérios, Crematórios e Planos de Assistência Funeral.
+
 ---
 
 ## ✨ **NOVIDADES DA VERSÃO 1.5.3**

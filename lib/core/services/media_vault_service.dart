@@ -145,38 +145,52 @@ class MediaVaultService {
       if (!await dir.exists()) await dir.create(recursive: true);
 
       final filename = path.basename(sourceFile.path);
+      final extension = path.extension(sourceFile.path).toLowerCase();
+      
+      // 🛡️ V118: Detect file type
+      final isImage = ['.jpg', '.jpeg', '.png', '.webp', '.heic'].contains(extension);
+      final isPdf = extension == '.pdf';
+      
       // Ensure unique name if collision
       String safeFilename = filename;
       if (File('${dir.path}/$filename').existsSync()) {
          safeFilename = '${DateTime.now().millisecondsSinceEpoch}_$filename';
       }
       
-      // Enforce .jpg extension for uniformity if compressing
-      if (!safeFilename.toLowerCase().endsWith('.jpg') && !safeFilename.toLowerCase().endsWith('.jpeg')) {
+      // 🛡️ V118: Only enforce .jpg for images that will be compressed
+      // PDFs and other documents keep their original extension
+      if (isImage && !safeFilename.toLowerCase().endsWith('.jpg') && !safeFilename.toLowerCase().endsWith('.jpeg')) {
           safeFilename = '${path.basenameWithoutExtension(safeFilename)}.jpg';
       }
       
       final destFile = File('${dir.path}/$safeFilename');
       
-      try {
-        debugPrint('🗜️ Compressing & Cloning to Vault: $safeFilename');
-        // COMPRESS AND CLONE
-        final compressedFile = await FlutterImageCompress.compressAndGetFile(
-          sourceFile.absolute.path,
-          destFile.absolute.path,
-          quality: 80,
-          minWidth: 1920,
-          minHeight: 1080,
-        );
+      // 🛡️ V118: Only compress images, copy PDFs and other files directly
+      if (isImage) {
+        try {
+          debugPrint('🗜️ Compressing & Cloning to Vault: $safeFilename');
+          // COMPRESS AND CLONE
+          final compressedFile = await FlutterImageCompress.compressAndGetFile(
+            sourceFile.absolute.path,
+            destFile.absolute.path,
+            quality: 80,
+            minWidth: 1920,
+            minHeight: 1080,
+          );
 
-        if (compressedFile == null) {
-             debugPrint('⚠️ Compression returned null, falling back to raw copy.');
-             await sourceFile.copy(destFile.path);
+          if (compressedFile == null) {
+               debugPrint('⚠️ Compression returned null, falling back to raw copy.');
+               await sourceFile.copy(destFile.path);
+          }
+        } catch (e) {
+            debugPrint('⚠️ Compression failed ($e), falling back to raw copy.');
+            // Fallback to simple copy if compression fails
+            await sourceFile.copy(destFile.path);
         }
-      } catch (e) {
-          debugPrint('⚠️ Compression failed ($e), falling back to raw copy.');
-          // Fallback to simple copy if compression fails
-          await sourceFile.copy(destFile.path);
+      } else {
+        // Direct copy for PDFs and other non-image files
+        debugPrint('📄 Copying ${isPdf ? "PDF" : "document"} to Vault: $safeFilename');
+        await sourceFile.copy(destFile.path);
       }
       
       // VERIFICATION
@@ -200,7 +214,7 @@ class MediaVaultService {
                   petName: subFolder,
                   fileName: safeFilename,
                   vaultPath: destFile.path,
-                  fileType: 'image/jpeg',
+                  fileType: isPdf ? 'application/pdf' : 'image/jpeg',
               );
           } catch (e) {
               debugPrint('⚠️ Vault indexing failed: $e');

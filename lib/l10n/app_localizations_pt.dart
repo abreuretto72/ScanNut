@@ -638,6 +638,123 @@ class AppLocalizationsPt extends AppLocalizations {
   String get partnersFilterLab => 'Laboratório';
 
   @override
+  String get partnersFilterDogWalker => 'Dog Walker';
+
+  @override
+  String get catHeaderHealth => '🏥 SAÚDE & BEM-ESTAR';
+
+  @override
+  String get catVet => 'Veterinário Geral';
+
+  @override
+  String get catVetEmergency => 'Veterinário de Emergência (24h)';
+
+  @override
+  String get catVetSpecialist => 'Especialista (Cardio/Dermato/Orto)';
+
+  @override
+  String get catPhysio => 'Fisioterapia/Reabilitação';
+
+  @override
+  String get catHomeo => 'Homeopatia/Acupuntura';
+
+  @override
+  String get catNutri => 'Nutricionista Veterinário';
+
+  @override
+  String get catAnest => 'Anestesista';
+
+  @override
+  String get catOnco => 'Oncologista';
+
+  @override
+  String get catDentist => 'Dentista Veterinário';
+
+  @override
+  String get catHeaderDaily => '🛏️ CUIDADOS DIÁRIOS & HOTEL';
+
+  @override
+  String get catSitter => 'Pet Sitter (Em domicílio)';
+
+  @override
+  String get catWalker => 'Dog Walker (Passeador)';
+
+  @override
+  String get catNanny => 'Babá de Pets';
+
+  @override
+  String get catHotel => 'Hotel/Hospedagem';
+
+  @override
+  String get catDaycare => 'Creche (Day Care)';
+
+  @override
+  String get catHeaderGrooming => '🧼 ESTÉTICA & HIGIENE';
+
+  @override
+  String get catBath => 'Banho e Tosa';
+
+  @override
+  String get catStylist => 'Pet Stylist';
+
+  @override
+  String get catGroomerBreed => 'Groomer Especialista';
+
+  @override
+  String get catHeaderTraining => '🦮 COMPORTAMENTO & TREINO';
+
+  @override
+  String get catTrainer => 'Adestrador';
+
+  @override
+  String get catBehaviorist => 'Comportamentalista';
+
+  @override
+  String get catCatSultant => 'Consultor Felino';
+
+  @override
+  String get catHeaderRetail => '🛒 LOJAS & SERVIÇOS';
+
+  @override
+  String get catPetShop => 'Pet Shop';
+
+  @override
+  String get catSupplies => 'Ração e Acessórios';
+
+  @override
+  String get catTransport => 'Táxi Pet / Transporte';
+
+  @override
+  String get catPharm => 'Farmácia Veterinária';
+
+  @override
+  String get catHeaderOther => '🧬 OUTROS';
+
+  @override
+  String get catNgo => 'ONG / Abrigo';
+
+  @override
+  String get catBreeder => 'Criador / Canil';
+
+  @override
+  String get catLab => 'Laboratório de Análises';
+
+  @override
+  String get catInsurance => 'Plano de Saúde Pet';
+
+  @override
+  String get catFuneralPlan => 'Plano de Assist. Funeral';
+
+  @override
+  String get catCemeterie => 'Cemitério Pet';
+
+  @override
+  String get catCremation => 'Crematório';
+
+  @override
+  String get catFuneral => 'Serviços Funerários & Velório';
+
+  @override
   String get deletePetTitle => 'Excluir Pet';
 
   @override

@@ -653,21 +653,46 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
   }
 
   Future<void> _handleEditTap(Map<String, dynamic> item, String petName, dynamic data) async {
+    final sw = Stopwatch()..start();
+
+    // 🛡️ UX Fix: Show loading immediately
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      useRootNavigator: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: AppDesign.petPink)),
+    );
+
+    // 🛡️ UI FORCE RENDER: Aguarda o frame ser desenhado
+    await Future.delayed(const Duration(milliseconds: 100));
+    debugPrint('⏱️ [PERF] UI Render Wait: ${sw.elapsedMilliseconds}ms');
+
     PetProfileExtended? loaded;
     try {
       final profileService = PetProfileService();
       await profileService.init();
+      debugPrint('⏱️ [PERF] Service Init: ${sw.elapsedMilliseconds}ms');
+
       final existingMap = await profileService.getProfile(petName.trim());
+      debugPrint('⏱️ [PERF] Hive Fetch: ${sw.elapsedMilliseconds}ms');
+
       if (existingMap != null && existingMap['data'] != null) {
+        final startParse = sw.elapsedMilliseconds;
         final dataMap = deepCastMap(existingMap['data']);
+        debugPrint('⏱️ [PERF] deepCastMap (Cost): ${sw.elapsedMilliseconds - startParse}ms');
+
+        final startJson = sw.elapsedMilliseconds;
         loaded = PetProfileExtended.fromJson(dataMap);
+        debugPrint('⏱️ [PERF] fromJson (Cost): ${sw.elapsedMilliseconds - startJson}ms');
       }
     } catch (e) {
       debugPrint('Error loading full profile: $e');
     }
 
     if (!mounted) return;
+    Navigator.of(context).pop(); // Dismiss loader
 
+    debugPrint('⏱️ [PERF] Ready to Push: ${sw.elapsedMilliseconds}ms');
     await Navigator.push(
       context,
       MaterialPageRoute(

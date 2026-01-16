@@ -26,6 +26,7 @@ import '../../../../core/services/file_upload_service.dart';
 import 'edit_pet_form.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../models/pet_profile_extended.dart';
+import '../../models/analise_ferida_model.dart';
 import '../../services/pet_profile_service.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
@@ -155,12 +156,37 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Future<void> _generatePDF() async {
     final pdf = pw.Document();
     
+    // 1. Imagem Principal
     pw.MemoryImage? image;
     try {
-      final imageBytes = await File(widget.imagePath).readAsBytes();
-      image = pw.MemoryImage(imageBytes);
+      if (File(widget.imagePath).existsSync()) {
+        final imageBytes = await File(widget.imagePath).readAsBytes();
+        image = pw.MemoryImage(imageBytes);
+      }
     } catch (e) {
       debugPrint("Erro carregar imagem PDF: $e");
+    }
+
+    // 2. Imagens do Histórico Unificado (Fix: Step 4513)
+    // Carrega imagens de feridas/fezes para o relatório
+    final Map<int, pw.MemoryImage> historicalImages = {};
+    final history = widget.petProfile?.historicoAnaliseFeridas ?? [];
+    
+    for (int i = 0; i < history.length; i++) {
+        final item = history[i];
+        if (item.imagemRef != null && item.imagemRef!.isNotEmpty) {
+             final f = File(item.imagemRef!);
+             if (f.existsSync()) {
+                 try {
+                     final bytes = await f.readAsBytes();
+                     if (bytes.isNotEmpty) {
+                        historicalImages[i] = pw.MemoryImage(bytes);
+                     }
+                 } catch (e) {
+                     debugPrint('Erro carregar imagem histórico PDF $i: $e');
+                 }
+             }
+        }
     }
 
     final now = DateTime.now();
@@ -617,6 +643,77 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               ),
             ),
             
+            // === SEÇÃO 6: HISTÓRICO CLÍNICO & FERIDAS (Unified) ===
+            if (history.isNotEmpty) ...[
+                pw.SizedBox(height: 20),
+                pw.Text("Histórico Clínico e Feridas", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
+                pw.Divider(color: PdfColors.red900),
+                
+                ...history.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final h = entry.value;
+                    final img = historicalImages[index];
+                    final dateLabel = DateFormat.yMd(l10n.localeName).add_Hm().format(h.dataAnalise);
+                    
+                    return pw.Container(
+                        margin: const pw.EdgeInsets.only(bottom: 12),
+                        padding: const pw.EdgeInsets.all(10),
+                        decoration: pw.BoxDecoration(
+                            border: pw.Border.all(color: PdfColors.grey300),
+                            borderRadius: pw.BorderRadius.circular(8)
+                        ),
+                        child: pw.Row(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                                // Imagem
+                                if (img != null)
+                                   pw.Container(
+                                       width: 80,
+                                       height: 80,
+                                       margin: const pw.EdgeInsets.only(right: 12),
+                                       decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey200)),
+                                       child: pw.Image(img, fit: pw.BoxFit.cover)
+                                   ),
+                                
+                                // Dados
+                                pw.Expanded(
+                                    child: pw.Column(
+                                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                        children: [
+                                            pw.Row(
+                                              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                 pw.Text((h.categoria ?? 'Geral').toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.pink900)),
+                                                 pw.Text(dateLabel, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                                              ] 
+                                            ),
+                                            pw.SizedBox(height: 4),
+                                            
+                                            if (h.diagnosticosProvaveis.isNotEmpty)
+                                                pw.Padding(
+                                                  padding: const pw.EdgeInsets.only(bottom: 4),
+                                                  child: pw.Text("Diagnósticos: ${h.diagnosticosProvaveis.join(', ')}", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                                                ),
+                                            
+                                            // Detalhes (Achados)
+                                            ...h.achadosVisuais.entries.where((e) => e.value != null && e.value.toString().isNotEmpty && e.value.toString().toLowerCase() != 'null').take(6).map((e) => 
+                                                pw.Text("• ${e.key}: ${e.value}", style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800))
+                                            ),
+                                            
+                                            if (h.recomendacao.isNotEmpty)
+                                                pw.Padding(
+                                                    padding: const pw.EdgeInsets.only(top: 4),
+                                                    child: pw.Text("Recomendação: ${h.recomendacao}", maxLines: 3, style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic, color: PdfColors.grey700))
+                                                ),
+                                        ]
+                                    )
+                                )
+                            ]
+                        )
+                    );
+                }).toList(),
+            ],
+            
             pw.Footer(
               title: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -886,16 +983,32 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Widget _buildSignsCard() {
     final l10n = AppLocalizations.of(context)!;
     final isDiag = widget.analysis.analysisType == 'diagnosis';
-    final clinicalSigns = widget.analysis.clinicalSignsDiag;
+    
+    // 🛡️ V144: UNIFIED DATA AGGREGATION
+    // Combine all specialized finding maps into one display source to ensure nothing is hidden
+    final Map<String, dynamic> effectiveSigns = {};
+    
+    // 1. Base Generic Signs
+    if (widget.analysis.clinicalSignsDiag != null) {
+      effectiveSigns.addAll(widget.analysis.clinicalSignsDiag!);
+    }
+    
+    // 2. Specialized Maps (Merge if present)
+    if (widget.analysis.stoolAnalysis != null) effectiveSigns.addAll(widget.analysis.stoolAnalysis!);
+    if (widget.analysis.eyeDetails != null) effectiveSigns.addAll(widget.analysis.eyeDetails!);
+    if (widget.analysis.dentalDetails != null) effectiveSigns.addAll(widget.analysis.dentalDetails!);
+    if (widget.analysis.skinDetails != null) effectiveSigns.addAll(widget.analysis.skinDetails!);
+    if (widget.analysis.woundDetails != null) effectiveSigns.addAll(widget.analysis.woundDetails!);
+
     final racaPredict = widget.analysis.identificacao.racaPredict;
     final morfologia = widget.analysis.identificacao.morfologiaBase;
 
-    // 🛡️ V190: DEEP DIAGNOSIS MODE - NO HIDDEN DATA
+    // 🛡️ V190: DEEP DIAGNOSIS MODE - SHOW ALL DATA
     if (isDiag) {
        return Column(
           children: [
              // 1. Clinical Signs (Detailed Map)
-             if (clinicalSigns != null && clinicalSigns.isNotEmpty)
+             if (effectiveSigns.isNotEmpty)
                Container(
                  margin: const EdgeInsets.only(bottom: 12),
                  decoration: BoxDecoration(
@@ -914,23 +1027,37 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                         style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
                      ),
                      subtitle: Text(
-                        "${clinicalSigns.length} sinais identificados",
+                        "${effectiveSigns.length} sinais identificados",
                         style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
                      ),
-                     children: clinicalSigns.entries.map((e) {
+                     children: effectiveSigns.entries.map((e) {
                          IconData icon = Icons.help_outline;
                          Color color = Colors.white70;
-                         String label = e.key.toUpperCase();
+                         String label = e.key.toUpperCase().replaceAll('_', ' ');
+                         final k = e.key.toLowerCase();
 
                          // Icon Mapping
-                         if (e.key.toLowerCase().contains('eye') || e.key.toLowerCase().contains('olho')) { icon = Icons.visibility; }
-                         else if (e.key.toLowerCase().contains('skin') || e.key.toLowerCase().contains('pele')) { icon = Icons.spa; }
-                         else if (e.key.toLowerCase().contains('bone') || e.key.toLowerCase().contains('ortho') || e.key.toLowerCase().contains('ortop')) { icon = Icons.accessibility_new; }
-                         else if (e.key.toLowerCase().contains('diges')) { icon = Icons.local_dining; }
-                         else if (e.key.toLowerCase().contains('dent')) { icon = Icons.cleaning_services; }
+                         if (k.contains('eye') || k.contains('olho')) { icon = Icons.visibility; }
+                         else if (k.contains('skin') || k.contains('pele')) { icon = Icons.spa; }
+                         else if (k.contains('bone') || k.contains('ortho') || k.contains('ortop')) { icon = Icons.accessibility_new; }
+                         else if (k.contains('diges')) { icon = Icons.local_dining; }
+                         else if (k.contains('dent')) { icon = Icons.cleaning_services; }
+                         // Stool Specifics
+                         else if (k.contains('stool') || k.contains('fec') || k.contains('coco') || k.contains('bristol') || k.contains('parasit') || k.contains('worm')) { 
+                            icon = FontAwesomeIcons.poop; 
+                         }
+
+                         // Value safe conversion
+                         final valStr = e.value.toString();
 
                          // Highlight abnormal findings
-                         final isNormal = e.value.toLowerCase().contains('normal') || e.value.toLowerCase().contains('saudável') || e.value.toLowerCase().contains('ausente');
+                         final isNormal = valStr.toLowerCase().contains('normal') || 
+                                          valStr.toLowerCase().contains('saudável') || 
+                                          valStr.toLowerCase().contains('ausente') ||
+                                          valStr.toLowerCase() == 'false' ||
+                                          valStr.toLowerCase() == 'não' ||
+                                          valStr.toLowerCase() == 'no';
+                                          
                          if (!isNormal) color = AppDesign.warning;
 
                          return Container(
@@ -938,14 +1065,14 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                            child: Row(
                              crossAxisAlignment: CrossAxisAlignment.start,
                              children: [
-                               Icon(icon, color: color, size: 18),
+                               SizedBox(width: 20, child: Icon(icon, color: color, size: 16)),
                                const SizedBox(width: 12),
                                Expanded(
                                  child: Column(
                                    crossAxisAlignment: CrossAxisAlignment.start,
                                    children: [
                                      Text(label, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
-                                     Text(e.value, style: GoogleFonts.poppins(color: isNormal ? Colors.white70 : Colors.white, fontSize: 13)),
+                                     Text(valStr, style: GoogleFonts.poppins(color: isNormal ? Colors.white70 : Colors.white, fontSize: 13)),
                                    ],
                                  ),
                                ),

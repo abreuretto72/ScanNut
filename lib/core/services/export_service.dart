@@ -10,6 +10,7 @@ import '../../features/pet/models/pet_event.dart';
 import '../../features/pet/models/pet_profile_extended.dart';
 import '../../features/pet/models/pet_analysis_result.dart';
 import '../../features/pet/models/analise_fezes_model.dart';
+import '../../features/pet/models/analise_ferida_model.dart';
 import '../../features/food/models/food_analysis_model.dart';
 import '../../features/pet/models/lab_exam.dart';
 import '../../core/models/partner_model.dart';
@@ -1321,8 +1322,9 @@ class ExportService {
             final allDocs = await FileUploadService().getMedicalDocuments(profile.petName);
             debugPrint('📸 Found ${allDocs.length} raw documents');
 
-            // 🧠 DEDUPLICATION ENGINE
-            final Map<String, File> uniqueImages = {};
+            // 🧠 DEDUPLICATION ENGINE (V130: Aggressive Size-Based)
+            final Map<String, File> uniqueImages = {}; // Key can be timestamp OR file size hash
+            final Set<int> processedSizes = {};
             final List<File> sortedFiles = [];
 
             // 1. Group by "Event ID" (Timestamp)
@@ -1335,25 +1337,50 @@ class ExportService {
                      otherDocNames.add(path.basename(file.path));
                      continue;
                 }
+                
+                // 🛡️ V130: Check exact file size for content deduplication
+                // This prevents "copy.jpg" and "original.jpg" from both appearing
+                try {
+                    final size = file.lengthSync();
+                    if (processedSizes.contains(size)) {
+                         // Check if this is an "OPT_" version upgrade for an existing file?
+                         // For simplicity, we assume duplicate size = duplicate image and skip.
+                         // Optimization: If current name starts with OPT_ and previous didn't, we might want to swap. 
+                         // But since we can't easily find the *previous* file by size in a Set, let's look at the implementation below.
+                    }
+                } catch (e) {
+                   debugPrint('Error reading file size: $e');
+                }
 
                 final name = path.basename(file.path);
                 final match = timestampRegex.firstMatch(name);
                 
                 if (match != null) {
                     final timestamp = match.group(0)!;
-                    // Preference Logic: If we already have this timestamp, prefer the one with 'OPT_' prefix
+                    
                     if (uniqueImages.containsKey(timestamp)) {
                         final existing = uniqueImages[timestamp]!;
                         final existingName = path.basename(existing.path);
+                        // Upgrade to OPT_
                         if (!existingName.startsWith('OPT_') && name.startsWith('OPT_')) {
-                             uniqueImages[timestamp] = file; // Upgrade to OPT
+                             uniqueImages[timestamp] = file; 
+                             // Update size index? Complex. Let's rely on timestamp mostly.
                         }
                     } else {
-                        uniqueImages[timestamp] = file;
+                        // Check size collision BEFORE adding
+                        final size = file.lengthSync();
+                        if (!processedSizes.contains(size)) {
+                            uniqueImages[timestamp] = file;
+                            processedSizes.add(size);
+                        }
                     }
                 } else {
-                    // No timestamp, just add to sorted list directly (or handle by name)
-                    sortedFiles.add(file);
+                    // No timestamp: Rely pureley on size deduplication
+                    final size = file.lengthSync();
+                    if (!processedSizes.contains(size)) {
+                        sortedFiles.add(file);
+                        processedSizes.add(size);
+                    }
                 }
             }
             
@@ -1418,9 +1445,29 @@ class ExportService {
 
     // Pre-load wound images for Health Section if enabled
     final List<Map<String, dynamic>> woundsWithImages = [];
-    if (sections['health'] == true && profile.woundAnalysisHistory.isNotEmpty) {
-        final sortedWounds = List<Map<String, dynamic>>.from(profile.woundAnalysisHistory)
-             ..sort((a, b) {
+
+    // 🛡️ V_FIX_PDF: Use Unified History (historicoAnaliseFeridas)
+    if (sections['health'] == true) {
+        // Source 1: Unified History (Priority)
+        if (profile.historicoAnaliseFeridas.isNotEmpty) {
+             final sorted = List<AnaliseFeridaModel>.from(profile.historicoAnaliseFeridas)
+                ..sort((a,b) => b.dataAnalise.compareTo(a.dataAnalise));
+             
+             for (var item in sorted) {
+                 final img = await safeLoadImage(item.imagemRef);
+                 woundsWithImages.add({
+                     'date': item.dataAnalise.toIso8601String(),
+                     'severity': item.nivelRisco,
+                     'diagnosis': item.diagnosticosProvaveis.join(', '), 
+                     'recommendations': [item.recomendacao], 
+                     'pdfImage': img
+                 });
+             }
+        } 
+        // Source 2: Legacy History (Fallback)
+        else if (profile.woundAnalysisHistory.isNotEmpty) {
+             final sortedWounds = List<Map<String, dynamic>>.from(profile.woundAnalysisHistory)
+              ..sort((a, b) {
                 try {
                   final da = DateTime.tryParse(a['date']?.toString() ?? '') ?? DateTime(2000);
                   final db = DateTime.tryParse(b['date']?.toString() ?? '') ?? DateTime(2000);
@@ -1430,12 +1477,13 @@ class ExportService {
                 }
              });
         
-        for (var w in sortedWounds) {
-            final img = await safeLoadImage(w['imagePath']?.toString());
-            woundsWithImages.add({
-                ...w,
-                'pdfImage': img
-            });
+             for (var w in sortedWounds) {
+                final img = await safeLoadImage(w['imagePath']?.toString());
+                woundsWithImages.add({
+                    ...w,
+                    'pdfImage': img
+                });
+             }
         }
     }
 
@@ -1626,10 +1674,160 @@ class ExportService {
         : {};
 
     // ========== CONTENT PAGES ==========
+    // 🛡️ V140: Pre-build Lab Exam Widgets (Async) to handle File existence checks
+    List<pw.Widget> labExamsWidgets = [];
+    if (profile.labExams.isNotEmpty) {
+      labExamsWidgets.add(pw.SizedBox(height: 15));
+      labExamsWidgets.add(
+          pw.Text('${strings.pdfExamesLab}:', 
+            style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black))
+      );
+      labExamsWidgets.add(pw.SizedBox(height: 5));
+
+      for (var examJson in profile.labExams) {
+         final exam = LabExam.fromJson(examJson);
+         
+         String categoryLabel = exam.category;
+         switch(exam.category.toLowerCase()) {
+             case 'blood': categoryLabel = 'Exame de Sangue'; break;
+             case 'urine': categoryLabel = 'Exame de Urina'; break;
+             case 'feces': categoryLabel = 'Exame de Fezes'; break;
+             case 'other': categoryLabel = 'Outro Exame'; break;
+         }
+
+         // Header
+         labExamsWidgets.add(
+            pw.Container(
+                padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                decoration: const pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                  border: pw.Border(
+                      top: pw.BorderSide(color: PdfColors.grey400),
+                      bottom: pw.BorderSide(color: PdfColors.grey400),
+                  )
+                ),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(categoryLabel.toUpperCase(), style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                    pw.Text(DateFormat.yMd(strings.localeName).format(exam.uploadDate), style: const pw.TextStyle(fontSize: 9, color: PdfColors.black)),
+                  ],
+                ),
+            )
+         );
+
+         // Image (Async Check)
+         final file = File(exam.filePath);
+         if (await file.exists()) {
+             labExamsWidgets.add(
+                 pw.Container(
+                    alignment: pw.Alignment.center,
+                    height: 300, 
+                    margin: const pw.EdgeInsets.symmetric(vertical: 8),
+                    child: pw.Image(
+                        pw.MemoryImage(file.readAsBytesSync()),
+                        fit: pw.BoxFit.contain
+                    )
+                 )
+             );
+         }
+
+         // Extracted Text (Removed as per user request V141)
+         
+         // AI Analysis
+         if (exam.aiExplanation != null && exam.aiExplanation!.isNotEmpty) {
+             labExamsWidgets.add(pw.SizedBox(height: 4));
+             labExamsWidgets.add(pw.Text('ANÁLISE DA IA:', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.purple900)));
+             labExamsWidgets.add(pw.SizedBox(height: 2));
+
+             final lines = exam.aiExplanation!.split('\n');
+             for (var line in lines) {
+                 if (line.trim().isEmpty) {
+                     labExamsWidgets.add(pw.SizedBox(height: 2));
+                     continue;
+                 }
+                 labExamsWidgets.add(
+                     pw.Padding(
+                         padding: const pw.EdgeInsets.only(bottom: 2),
+                         child: pw.Text(line, style: const pw.TextStyle(fontSize: 8, color: PdfColors.black))
+                     )
+                 );
+             }
+        }
+
+        labExamsWidgets.add(pw.Divider(color: PdfColors.grey300));
+        labExamsWidgets.add(pw.SizedBox(height: 10));
+      }
+    }
+
+    // 🛡️ V142: Pre-build Feces Analysis Widgets (Async Image Loading)
+    List<pw.Widget> fecesWidgets = [];
+    if (profile.historicoFezes.isNotEmpty) {
+       fecesWidgets.add(pw.SizedBox(height: 15));
+       fecesWidgets.add(
+         pw.Text('ANÁLISE DE FEZES (BRISTOL & COR):', // TODO: Localize
+           style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.brown800))
+       );
+       fecesWidgets.add(pw.SizedBox(height: 5));
+
+       for (var feces in profile.historicoFezes) {
+           // 1. Image (Source of Truth)
+           if (feces.imagemRef.isNotEmpty) {
+               final file = File(feces.imagemRef);
+               if (await file.exists()) {
+                   fecesWidgets.add(
+                     pw.Container(
+                        alignment: pw.Alignment.center,
+                        height: 250, 
+                        margin: const pw.EdgeInsets.symmetric(vertical: 8),
+                        child: pw.Image(
+                            pw.MemoryImage(file.readAsBytesSync()),
+                            fit: pw.BoxFit.contain
+                        )
+                     )
+                   );
+               }
+           }
+
+           // 2. Data Container
+           fecesWidgets.add(
+             pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 8),
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                        color: PdfColors.white,
+                        border: pw.Border.all(color: PdfColors.brown300),
+                        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                    ),
+                    child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                            pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                                pw.Text('Data: ${DateFormat.yMd(strings.localeName).format(feces.dataAnalise)}', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+                                pw.Text('Escala Bristol: ${feces.bristolScale}', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.brown900)),
+                            ]),
+                            pw.SizedBox(height: 4),
+                            // 🛡️ V131: Fix property names (bristolScale, colorName, parasitesDetected)
+                            pw.Text('Cor: ${feces.colorName} | Presença de Sangue: ${(feces.stoolDetails['blood_detected'] == true) ? "SIM ⚠️" : "Não"} | Vermes: ${feces.parasitesDetected ? "SIM ⚠️" : "Não"}', style: const pw.TextStyle(fontSize: 8)),
+                            if (feces.descricaoVisual.isNotEmpty || feces.recomendacao.isNotEmpty) ...[
+                                pw.SizedBox(height: 4),
+                                pw.Container(
+                                    padding: const pw.EdgeInsets.all(4),
+                                    decoration: pw.BoxDecoration(color: PdfColors.brown50, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2))),
+                                    child: pw.Text('${feces.descricaoVisual}\n\nRecomendação: ${feces.recomendacao}', style: const pw.TextStyle(fontSize: 7, color: PdfColors.brown900))
+                                )
+                            ]
+                        ]
+                    )
+             )
+           );
+       }
+    }
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        maxPages: 20, // 🛡️ V64: Limite de Segurança
+        maxPages: 100, // 🛡️ V133: Increased limit for full medical records
         margin: const pw.EdgeInsets.all(35),
         header: (context) => buildHeader('${strings.pdfReportTitle}: ${profile.petName}', timestampStr, dateLabel: strings.pdfGeneratedOn, color: colorPet),
         footer: (context) => buildFooter(context),
@@ -1672,6 +1870,7 @@ class ExportService {
                     [strings.pdfFieldReproductiveStatus, profile.statusReprodutivo ?? strings.petNotOffice],
                     [strings.pdfFieldActivityLevel, profile.nivelAtividade ?? strings.petActivityModerate],
                     [strings.pdfFieldBathFrequency, profile.frequenciaBanho ?? strings.petNotOffice],
+                    ['Porte', profile.porte ?? strings.petNotIdentified], // 🛡️ V128: Add Porte
                 ]) 
                 pw.TableRow(
                   children: [
@@ -1727,6 +1926,26 @@ class ExportService {
                 child: pw.Text(
                   profile.preferencias.join(', '),
                   style: const pw.TextStyle(fontSize: 9),
+                ),
+              ),
+            ],
+
+            // 🛡️ V128: Restrições Alimentares (Missing Field)
+            if (profile.restricoes.isNotEmpty) ...[
+              pw.SizedBox(height: 15),
+              pw.Text('Restrições Alimentares:', // TODO: Localize
+                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
+              pw.SizedBox(height: 5),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.red50,
+                  border: pw.Border.all(color: PdfColors.red200),
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                ),
+                child: pw.Text(
+                  profile.restricoes.join(', '),
+                  style: const pw.TextStyle(fontSize: 9, color: PdfColors.red900),
                 ),
               ),
             ],
@@ -1962,64 +2181,11 @@ class ExportService {
                 }).toList(),
             ],
 
-            if (profile.labExams.isNotEmpty) ...[
-              pw.SizedBox(height: 15),
-              pw.Text('${strings.pdfExamesLab}:', 
-                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
-              pw.SizedBox(height: 5),
-              ...profile.labExams.map((examJson) {
-                final exam = LabExam.fromJson(examJson);
-                return pw.Container(
-                  margin: const pw.EdgeInsets.only(bottom: 8),
-                  padding: const pw.EdgeInsets.all(8),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.white,
-                    border: pw.Border.all(color: PdfColors.grey400),
-                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                  ),
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.Text(
-                            exam.category,
-                            style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
-                          ),
-                          pw.Text(
-                            DateFormat.yMd(strings.localeName).format(exam.uploadDate),
-                            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
-                          ),
-                        ],
-                      ),
-                      if (exam.extractedText != null && exam.extractedText!.isNotEmpty) ...[
-                        pw.SizedBox(height: 4),
-                        pw.Text(
-                          strings.pdfExtractedText(exam.extractedText!.substring(0, exam.extractedText!.length > 200 ? 200 : exam.extractedText!.length) + (exam.extractedText!.length > 200 ? '...' : '')),
-                          style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey800),
-                        ),
-                      ],
-                      if (exam.aiExplanation != null && exam.aiExplanation!.isNotEmpty) ...[
-                        pw.SizedBox(height: 4),
-                        pw.Container(
-                          padding: const pw.EdgeInsets.all(4),
-                          decoration: pw.BoxDecoration(
-                            color: PdfColors.white,
-                            border: pw.Border.all(color: PdfColors.grey400),
-                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
-                          ),
-                          child: pw.Text(
-                            strings.pdfAiAnalysis(exam.aiExplanation!),
-                            style: const pw.TextStyle(fontSize: 7),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                );
-              }).toList(),
-            ],
+              // 🛡️ V140: Inject Pre-built Lab Exam Widgets
+              ...labExamsWidgets,
+
+            // 🛡️ V142: Inject Pre-built Feces Analysis Widgets
+            ...fecesWidgets,
 
             // Histórico de Análises de Feridas
             if (woundsWithImages.isNotEmpty) ...[
@@ -3375,6 +3541,56 @@ class ExportService {
     
     // Load Pet Image
     pw.ImageProvider? petImage = await safeLoadImage(imagePath);
+
+    // 🛡️ V_FIX_PDF: Consolidated History (New + Legacy)
+    debugPrint('[PDF-DEBUG] Starting History Merge in Vet360. Profile: ${profile?.petName}');
+    List<AnaliseFeridaModel> fullHistory = [];
+    if (profile != null) {
+         debugPrint('[PDF-DEBUG] Raw Unified History Count: ${profile.historicoAnaliseFeridas.length}');
+         fullHistory.addAll(profile.historicoAnaliseFeridas);
+         
+         // Merge Legacy
+         debugPrint('[PDF-DEBUG] Raw Legacy History Count: ${profile.woundAnalysisHistory.length}');
+         if (profile.woundAnalysisHistory.isNotEmpty) {
+             for (var w in profile.woundAnalysisHistory) {
+                 try {
+                   fullHistory.add(AnaliseFeridaModel(
+                       dataAnalise: DateTime.tryParse(w['date']?.toString() ?? '') ?? DateTime.now(),
+                       imagemRef: w['imagePath']?.toString() ?? '',
+                       achadosVisuais: {},
+                       nivelRisco: w['severity']?.toString() ?? 'Geral',
+                       recomendacao: (w['recommendations'] as List?)?.join(', ') ?? '',
+                       diagnosticosProvaveis: w['diagnosis'] != null ? [w['diagnosis'].toString()] : [],
+                       categoria: 'Historico'
+                   ));
+                 } catch (e) {
+                    debugPrint('⚠️ Error merging legacy history item: $e');
+                 }
+             }
+         }
+         // Sort
+         fullHistory.sort((a, b) => b.dataAnalise.compareTo(a.dataAnalise));
+         debugPrint('[PDF-DEBUG] Total Merged History Items: ${fullHistory.length}');
+    }
+
+    // Pre-load history images (V_FIX_PDF)
+    final Map<int, pw.ImageProvider> historyImages = {};
+    if (fullHistory.isNotEmpty) {
+       for (int i = 0; i < fullHistory.length; i++) {
+           final item = fullHistory[i];
+           debugPrint('[PDF-DEBUG] Processing Item $i: Date=${item.dataAnalise}, Ref="${item.imagemRef}"');
+           
+           if (item.imagemRef.isNotEmpty) {
+               final img = await safeLoadImage(item.imagemRef);
+               debugPrint('[PDF-DEBUG] Image Load $i: ${img != null ? "SUCCESS" : "FAIL (null returned)"}');
+               if (img != null) {
+                   historyImages[i] = img;
+               }
+           } else {
+               debugPrint('[PDF-DEBUG] Image Load $i: SKIPPED (Empty Ref)');
+           }
+       }
+    }
     
     // Extract Metadata
     final petName = analysis.petName ?? strings.petUnknown;
@@ -3551,37 +3767,76 @@ class ExportService {
           ],
 
           // 🛡️ V180: WOUND EVOLUTION HISTORY
-          if (profile != null && profile.historicoAnaliseFeridas.isNotEmpty) ...[
+          // 🛡️ V180: WOUND EVOLUTION HISTORY (Unified)
+          if (fullHistory.isNotEmpty) ...[
              pw.Text('5. ${strings.pdfAnaliseFeridas.toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
              pw.SizedBox(height: 5),
-             ...profile.historicoAnaliseFeridas.take(5).map((entry) {
-                 final dateStr = DateFormat.yMd(strings.localeName).format(entry.dataAnalise);
+             
+             ...fullHistory.asMap().entries.map((entry) {
+                 final index = entry.key;
+                 final h = entry.value;
+                 final dateStr = DateFormat.yMd(strings.localeName).format(h.dataAnalise);
+                 final historyImg = historyImages[index];
+
                  return pw.Container(
-                    margin: const pw.EdgeInsets.only(bottom: 6),
+                    margin: const pw.EdgeInsets.only(bottom: 12),
                     padding: const pw.EdgeInsets.all(6),
                     decoration: pw.BoxDecoration(
                       color: PdfColors.grey100,
                       borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                      border: pw.Border.all(color: PdfColors.grey300),
                     ),
                     child: pw.Row(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text(dateStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
-                        pw.SizedBox(width: 8),
-                        pw.Container(
-                          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                          decoration: pw.BoxDecoration(
-                            color: entry.nivelRisco.toLowerCase().contains('alto') ? PdfColors.red : 
-                                   (entry.nivelRisco.toLowerCase().contains('médio') ? PdfColors.orange : PdfColors.green),
-                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
-                          ),
-                          child: pw.Text(
-                            entry.nivelRisco.toUpperCase(),
-                            style: pw.TextStyle(color: PdfColors.white, fontSize: 7, fontWeight: pw.FontWeight.bold)
-                          ),
-                        ),
-                        pw.SizedBox(width: 8),
+                         // IMAGE THUMBNAIL
+                         if (historyImg != null)
+                             pw.Container(
+                               width: 60,
+                               height: 60,
+                               margin: const pw.EdgeInsets.only(right: 8),
+                               decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey400)),
+                               child: pw.Image(historyImg, fit: pw.BoxFit.cover)
+                             ),
+
                          pw.Expanded(
-                           child: pw.Text(entry.recomendacao, maxLines: 1, overflow: pw.TextOverflow.clip, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800))
+                           child: pw.Column(
+                             crossAxisAlignment: pw.CrossAxisAlignment.start,
+                             children: [
+                                // HEADER ROW
+                                pw.Row(
+                                  children: [
+                                      pw.Text(dateStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                                      pw.SizedBox(width: 8),
+                                      pw.Container(
+                                        padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                        decoration: pw.BoxDecoration(
+                                          color: h.nivelRisco.toLowerCase().contains('alto') ? PdfColors.red : 
+                                                 (h.nivelRisco.toLowerCase().contains('médio') ? PdfColors.orange : PdfColors.green),
+                                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
+                                        ),
+                                        child: pw.Text(
+                                          (h.nivelRisco.isEmpty ? 'Geral' : h.nivelRisco).toUpperCase(),
+                                          style: pw.TextStyle(color: PdfColors.white, fontSize: 7, fontWeight: pw.FontWeight.bold)
+                                        ),
+                                      ),
+                                       pw.SizedBox(width: 8),
+                                      pw.Text((h.categoria ?? 'Geral').toUpperCase(), style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800)),
+                                  ]
+                                ),
+                                pw.SizedBox(height: 4),
+                                
+                                // DIAGNOSES
+                                if (h.diagnosticosProvaveis.isNotEmpty)
+                                   pw.Text('Diagnósticos: ${h.diagnosticosProvaveis.join(", ")}', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                                
+                                // RECOMMENDATION
+                                pw.Padding(
+                                   padding: const pw.EdgeInsets.only(top: 2),
+                                   child: pw.Text(h.recomendacao, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800))
+                                )
+                             ]
+                           )
                          )
                       ]
                     )

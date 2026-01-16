@@ -72,7 +72,7 @@ class PartnerService {
   // Powerful search using Google Places TextSearch + Pagination + Identity Headers
   // -------------------------------------------------
   Future<List<PartnerModel>> searchPlacesByText({
-    String query = 'veterinario petshop clinica veterinaria',
+    String query = 'veterinario petshop clinica veterinaria dog walker passeador cemiterio pet crematorio pet velorio pet plano saude pet assistencia funeral pet',
     required double lat,
     required double lng,
     double radiusMeters = 20000,
@@ -161,6 +161,14 @@ class PartnerService {
       } while (nextPageToken != null && currentPage < maxPages);
 
       logger.info('🏁 Busca Finalizada: Total de ${allFound.length} parceiros no Radar.');
+      
+      // Sort by Distance (Closest first)
+      allFound.sort((a, b) {
+          final distA = calculateDistance(lat, lng, a.latitude, a.longitude);
+          final distB = calculateDistance(lat, lng, b.latitude, b.longitude);
+          return distA.compareTo(distB);
+      });
+
       return allFound;
 
     } catch (e, stack) {
@@ -174,8 +182,10 @@ class PartnerService {
     required double lat,
     required double lng,
     double radiusKm = 10.0,
+    String? query,
   }) async {
     return await searchPlacesByText(
+      query: query ?? 'veterinario petshop clinica veterinaria dog walker passeador cemiterio pet crematorio pet velorio pet plano saude pet assistencia funeral pet',
       lat: lat, 
       lng: lng, 
       radiusMeters: radiusKm * 1000
