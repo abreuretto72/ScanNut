@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:flutter/material.dart';
 import '../models/workout_item.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 class WorkoutService {
   static final WorkoutService _instance = WorkoutService._internal();
@@ -23,7 +24,7 @@ class WorkoutService {
       if (!Hive.isAdapterRegistered(22)) {
         Hive.registerAdapter(WorkoutItemAdapter());
       }
-      _box = await Hive.openBox<WorkoutItem>(boxName, encryptionCipher: cipher);
+      _box = await HiveAtomicManager().ensureBoxOpen<WorkoutItem>(boxName, cipher: cipher);
       debugPrint('✅ WorkoutService initialized (Secure).');
     } catch (e) {
       debugPrint('❌ Error initializing Secure WorkoutService: $e');

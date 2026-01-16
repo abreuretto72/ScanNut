@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../presentation/register_screen.dart';
 import '../../home/presentation/home_view.dart';
-import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/theme/app_design.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,6 +26,97 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_clearError);
     _passwordController.addListener(_clearError);
+    _checkBiometrics(); // 🚀 V123: Auto-Trigger
+  }
+
+  Future<void> _checkBiometrics() async {
+    // Small delay to ensure UI builds
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    // Check if user has biometrics enabled
+    if (simpleAuthService.isBiometricEnabled) {
+       debugPrint('🧬 [V123-AUTH] Biometrics Enabled. Triggering prompt automatically...');
+       
+       setState(() => _isLoading = true);
+       final result = await simpleAuthService.authenticateWithBiometrics();
+       setState(() => _isLoading = false);
+
+       if (mounted) {
+          _handleAuthResult(result);
+       }
+    }
+  }
+
+  void _handleAuthResult(AuthResult result) {
+      // 🛡️ Race Condition Fix: If manual login is in progress (isLoading) 
+      // or user is already logged in, ignore stale biometric errors.
+      if (!mounted || _isLoading || simpleAuthService.isUserLoggedIn) return;
+      
+      switch (result) {
+        case AuthResult.success:
+           debugPrint('✅ [V128-AUTH] Auto-trigger Success. Navigating...');
+           // Ensure clean state before navigating
+           setState(() => _errorMessage = null);
+           Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const HomeView()),
+           );
+           break;
+        case AuthResult.missingKey:
+           setState(() {
+              _errorMessage = null; 
+           });
+           // 🛡️ User reported frozen SnackBar. Using Dialog for critical auth warning.
+           _showBiometricResetDialog();
+           break;
+        case AuthResult.failed:
+           // Do nothing, maybe user cancelled
+           break;
+        case AuthResult.unavailable:
+           break;
+      }
+  }
+
+  void _showBiometricResetDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppDesign.surfaceDark,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppDesign.warning, width: 1)),
+        title: Row(
+          children: [
+            const Icon(Icons.lock_reset, color: AppDesign.warning),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                "Autenticação", 
+                style: GoogleFonts.poppins(
+                  color: AppDesign.textPrimaryDark, 
+                  fontWeight: FontWeight.bold
+                )
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Por favor, faça login manual uma vez para reativar a chave de segurança da biometria.',
+          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppDesign.accent, 
+              foregroundColor: Colors.black
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: Text("OK, Entendi", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -287,17 +377,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _isLoading = true;
                                  });
                                  
-                                 final success = await simpleAuthService.authenticateWithBiometrics();
+                                 final result = await simpleAuthService.authenticateWithBiometrics();
                                  
                                  setState(() => _isLoading = false);
                                  
-                                 if (success && mounted) {
-                                    // Make sure error is gone before navigating
-                                    setState(() => _errorMessage = null);
-                                    Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(builder: (_) => const HomeView()),
-                                    );
-                                 }
+                                 _handleAuthResult(result);
                               },
                               icon: const Icon(Icons.fingerprint, color: AppDesign.accent),
                               label: Text('Entrar com Biometria', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),

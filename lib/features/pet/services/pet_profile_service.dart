@@ -9,10 +9,13 @@ import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'pet_event_service.dart';
+import '../models/analise_ferida_model.dart';
+import '../models/analise_fezes_model.dart';
 import '../../../core/utils/json_cast.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
 import '../../../core/services/media_vault_service.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 
 /// Service for managing pet profiles (Raça & ID data)
@@ -24,29 +27,118 @@ class PetProfileService {
   static const String _profileBoxName = 'box_pets_master';
   Box? _profileBox;
 
+  static PetProfileService get to => _instance;
+
   Future<void> init({HiveCipher? cipher}) async {
     // 🛡️ PROTEÇÃO: Se não passar cipher, tenta pegar o global do SimpleAuthService
     final effectiveCipher = cipher ?? SimpleAuthService().encryptionCipher;
     
-    final isOpen = Hive.isBoxOpen(_profileBoxName);
-    debugPrint('🔍 [V61-TRACE] PetProfileService checking box "$_profileBoxName": open=$isOpen');
-
-    if (isOpen) {
-      _profileBox = Hive.box(_profileBoxName);
-      debugPrint('✅ [V61-TRACE] PetProfile box already open.');
-    } else {
-      try {
-        debugPrint('📂 [V61-TRACE] Opening PetProfile box...');
-        _profileBox = await Hive.openBox(_profileBoxName, encryptionCipher: effectiveCipher);
+    // 🛡️ [V105] ATOMIC MANAGER DELEGATION
+    // We delegate the opening to the Atomic Manager which handles 
+    // "Closed unexpectedly", "File not found", and "Zombie" states.
+    try {
+        _profileBox = await HiveAtomicManager().ensureBoxOpen(_profileBoxName, cipher: effectiveCipher);
         
         // 🧹 RESET TÉCNICO: Limpeza de Paths Órfãos (Cache)
         await _sanitizeOrphanedCachePaths();
         
-        debugPrint('✅ [V61-TRACE] PetProfileService initialized (Secure). Box Open: ${_profileBox?.isOpen}');
-      } catch (e, stack) {
-        debugPrint('❌ [V61-TRACE] FATAL: Failed to open Secure Pet Profile Box: $e\n$stack');
-      }
+        debugPrint('✅ [V105] PetProfileService initialized via Atomic Manager.');
+    } catch (e) {
+        debugPrint('❌ [V105] Critical: Failed to open Pet Profile Box: $e. Attempting Atomic Reset...');
+        // ☢️ [V105] NUCLEAR OPTION
+        try {
+           await HiveAtomicManager().recreateBox(_profileBoxName, cipher: effectiveCipher);
+           _profileBox = await HiveAtomicManager().ensureBoxOpen(_profileBoxName, cipher: effectiveCipher);
+           debugPrint('✅ [V105] PetProfileService recovered via Atomic Reset.');
+        } catch (resetErr) {
+           debugPrint('☠️ [V105] FATAL: Could not recover Pet Profile Box: $resetErr');
+           rethrow;
+        }
     }
+  }
+
+  /// 🔄 [V107] ATOMIC RESET & RELOAD
+  /// Forces a complete re-initialization of the service, closing any open boxes
+  /// to purge in-memory ghosts and reloading data fresh from disk.
+  Future<void> resetAndReload() async {
+    debugPrint('🔄 [V107] PetProfileService: Initiating Atomic Reset & Reload...');
+    try {
+      if (_profileBox != null && _profileBox!.isOpen) {
+        await _profileBox!.close();
+        debugPrint('   [V107] Box closed to purge memory.');
+      }
+      _profileBox = null;
+      await init(); // Re-open fresh
+      debugPrint('✅ [V107] PetProfileService: Reload Complete. State is clean.');
+    } catch (e) {
+      debugPrint('❌ [V107] Error during resetAndReload: $e');
+    }
+  }
+
+  /// 🧹 [V108] ALIAS: Limpa referência de memória
+  void clearMemoryCache() {
+      // Just nullify the reference if we want to force re-open.
+      // Or close it if open.
+      if (_profileBox != null && _profileBox!.isOpen) {
+         // We won't await here because it's void, but we can fire and forget or just nullify.
+         // Better to be safe and just invalidate the variable so next call forces re-fetch.
+         // Note: closing async is better but let's stick to the requested signature.
+         _profileBox = null; // Forces ensureOpenBox to run again in syncWithDisk or init
+         debugPrint('🔍 [V108-CACHE] Memória RAM limpa (Reference Invalidated).');
+      }
+  }
+
+  /// ☢️ [V111] PROTOCOLO DE PURGA NUCLEAR E RECONSTRUÇÃO
+  /// Força o fechamento de TODAS as boxes (Global Stop), deleta arquivos físicos
+  /// e reinicia o motor do Hive. Solução definitiva para "Arquivos Zumbis" (Locks).
+  Future<void> wipeAllDataPhysically() async {
+      debugPrint('🔍 [V111-WIPE] Iniciando protocolo Nuclear V111...');
+      try {
+          // 1. GLOBAL STOP (Para soltar qualquer LOCK do arquivo)
+          await Hive.close(); 
+          debugPrint('   [V111] Todas as boxes fechadas. Motor Hive parado.');
+
+          // 2. PHYSICAL OBLITERATION
+          debugPrint('🔍 [V111-WIPE] Deletando arquivos físicos de $_profileBoxName...');
+          try {
+             // Tenta deletar via Hive API (agora que fechou tudo, deve funcionar)
+             await Hive.deleteBoxFromDisk(_profileBoxName);
+          } catch (e) {
+             debugPrint('⚠️ [V111] Erro na deleção via API: $e. Tentando manual...');
+             // Fallback manual (se a API falhar) - Requer path_provider, mas vamos confiar no close() primeiro.
+          }
+          
+          _profileBox = null;
+          
+          // 3. REBIRTH (Reiniciar o motor)
+          debugPrint('🔍 [V111-REBIRTH] Reconstruindo motor Hive...');
+          // Re-init requer abrir as coisas de novo. Init() deste serviço abre a dele.
+          // Mas como fechamos TUDO, outros serviços podem precisar de re-init se forem usados.
+          // O DataArchivingScreen chama pEvents.init() depois disso, então OK.
+          
+          await init();
+          
+          // 4. VERIFICATION
+          final count = _profileBox?.length ?? -1;
+          debugPrint('🔍 [V111-VERIFY] Conteúdo físico após wipe: $count itens.');
+          
+          if (count == 0) {
+             debugPrint('✅ [V111-STATUS] O banco de dados está 100% limpo. O \'TOI\' foi eliminado.');
+          } else {
+             debugPrint('❌ [V111-STATUS] CRÍTICO: O fantasma sobreviveu! Contagem: $count');
+          }
+          
+      } catch (e) {
+          debugPrint('❌ [V111-FAIL] Falha catastrófica: $e');
+      }
+  }
+
+  /// 💿 [V108] ALIAS: Sincronização Forçada
+  Future<void> syncWithDisk() async {
+      debugPrint('🔍 [V108-SYNC] Sincronizando com Hive...');
+      await init();
+      // Ensure strict ghost check is respected by init/ensureOpenBox
+      debugPrint('✅ [V108-SYNC] Sincronização concluída.');
   }
 
   /// 🧹 ONE-TIME DISINFECTION: Removes paths pointing to volatile cache
@@ -92,7 +184,9 @@ class PetProfileService {
   ValueListenable<Box>? get listenable => _profileBox?.listenable();
 
   String _normalizeKey(String petName) {
-    return petName.trim().toLowerCase();
+    final normalized = petName.trim().toLowerCase();
+    // debugPrint('🔑 [PetProfileService] Normalizing key: "$petName" -> "$normalized"');
+    return normalized;
   }
 
   /// Save or update pet profile
@@ -130,6 +224,9 @@ class PetProfileService {
       }
       
       final key = _normalizeKey(petName);
+      debugPrint('💾 [PetProfileService] Saving profile for key: "$key" (Display: $petName)...');
+      debugPrint('   [PetProfileService] Image Path: ${profileData['image_path']}');
+      
       await _profileBox!.put(key, {
         'pet_name': petName.trim(), // Keep original display name
         'last_updated': DateTime.now().toIso8601String(),
@@ -137,7 +234,7 @@ class PetProfileService {
         'data': profileData,
       });
       await _profileBox!.flush(); // Force write to disk
-    debugPrint('HIVE: Objeto ["$key"] persistido no disco com sucesso. (Display: $petName)');
+      debugPrint('✅ [PetProfileService] HIVE SUCCESS: Objeto ["$key"] persistido no disco.');
     
     // 🔄 Trigger automatic permanent backup
     PermanentBackupService().createAutoBackup().then((_) {
@@ -200,22 +297,35 @@ class PetProfileService {
     return _profileBox?.containsKey(key) ?? false;
   }
 
-  /// Get all pet names
+  /// Get all pet names with V105 STRICT GHOST CHECK
   Future<List<String>> getAllPetNames() async {
+    final profiles = await getAllProfiles();
+    return profiles.map((p) => p['pet_name'] as String).toList();
+  }
+
+  /// Get all profiles as raw maps
+  Future<List<Map<String, dynamic>>> getAllProfiles() async {
     try {
       if (_profileBox == null || !(_profileBox?.isOpen ?? false)) {
-          await init();
+        await init();
       }
       
-      final names = _profileBox?.values
-          .where((e) => e is Map && e.containsKey('pet_name'))
-          .map((e) => (e as Map)['pet_name'] as String)
-          .toList() ?? [];
-          
-      // Ensure unique display names
-      return names.toSet().toList();
+      final safeBox = _profileBox;
+      if (safeBox == null || !safeBox.isOpen) return [];
+
+      final profiles = <Map<String, dynamic>>[];
+      for (var key in safeBox.keys) {
+        final value = safeBox.get(key);
+        if (value != null && value is Map) {
+          final map = deepCastMap(value);
+          // Consistency: Add 'name' key for home_view audit
+          map['name'] = map['pet_name'];
+          profiles.add(map);
+        }
+      }
+      return profiles;
     } catch (e) {
-      debugPrint('❌ Error getting pet names from profiles: $e');
+      debugPrint('❌ Error getting all profiles: $e');
       return [];
     }
   }
@@ -407,6 +517,41 @@ class PetProfileService {
       }
   }
 
+  /// 🛡️ V170: Save Detailed Health Analysis (Atomic Append)
+  Future<void> saveDetailedAnalysis(String petName, AnaliseFeridaModel analysis) async {
+    try {
+      await init();
+      final key = _normalizeKey(petName);
+      final entry = _profileBox?.get(key);
+
+      if (entry != null) {
+        final map = deepCastMap(entry);
+        final data = deepCastMap(map['data']);
+        
+        // Load existing history
+        final List<dynamic> existingRaw = data['historico_analise_feridas'] ?? [];
+        final List<Map<String, dynamic>> history = [];
+        
+        for (var item in existingRaw) {
+             if (item is Map) history.add(deepCastMap(item));
+        }
+
+        // Add new analysis
+        history.insert(0, analysis.toJson()); // Most recent first
+        
+        data['historico_analise_feridas'] = history;
+        map['data'] = data;
+        map['last_updated'] = DateTime.now().toIso8601String();
+
+        await _profileBox!.put(key, map);
+        await _profileBox!.flush();
+        debugPrint('✅ [V170] Analysis persisted in historico_analise_feridas. Total: ${history.length}');
+      }
+    } catch (e, stack) {
+      debugPrint('❌ Error saving detailed analysis: $e\n$stack');
+    }
+  }
+
   /// Delete Wound Analysis from History
   Future<void> deleteWoundAnalysis({
     required String petName,
@@ -441,5 +586,40 @@ class PetProfileService {
       } catch (e, stack) {
           debugPrint('❌ Error deleting wound analysis: $e\n$stack');
       }
+  }
+
+  /// 🛡️ V231: Save Stool Analysis (Atomic Append)
+  Future<void> saveStoolAnalysis(String petName, AnaliseFezesModel analysis) async {
+    try {
+      await init();
+      final key = _normalizeKey(petName);
+      final entry = _profileBox?.get(key);
+
+      if (entry != null) {
+        final map = deepCastMap(entry);
+        final data = deepCastMap(map['data']);
+        
+        // Load existing history
+        final List<dynamic> existingRaw = data['historico_fezes'] ?? [];
+        final List<Map<String, dynamic>> history = [];
+        
+        for (var item in existingRaw) {
+             if (item is Map) history.add(deepCastMap(item));
+        }
+
+        // Add new analysis
+        history.insert(0, analysis.toJson()); // Most recent first
+        
+        data['historico_fezes'] = history;
+        map['data'] = data;
+        map['last_updated'] = DateTime.now().toIso8601String();
+
+        await _profileBox!.put(key, map);
+        await _profileBox!.flush();
+        debugPrint('✅ [V231] Analysis persisted in historico_fezes. Total: ${history.length}');
+      }
+    } catch (e, stack) {
+      debugPrint('❌ Error saving stool analysis: $e\n$stack');
+    }
   }
 }

@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// ============================================================================
 
 import 'package:flutter/material.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 /// Service for managing pet health records
 class PetHealthService {
@@ -14,20 +15,11 @@ class PetHealthService {
   Box? _healthBox;
 
   Future<void> init({HiveCipher? cipher}) async {
-    final isOpen = Hive.isBoxOpen(_healthBoxName);
-    debugPrint('🔍 [V61-TRACE] PetHealthService checking box "$_healthBoxName": open=$isOpen');
-
-    if (isOpen) {
-      _healthBox = Hive.box(_healthBoxName);
-      debugPrint('✅ [V61-TRACE] PetHealth box already open.');
-    } else {
-      try {
-        debugPrint('📂 [V61-TRACE] Opening PetHealth box...');
-        _healthBox = await Hive.openBox(_healthBoxName, encryptionCipher: cipher);
-        debugPrint('✅ [V61-TRACE] PetHealthService initialized (Secure)');
-      } catch (e, stack) {
-        debugPrint('❌ [V61-TRACE] FATAL: Failed to open Secure Pet Health Box: $e\n$stack');
-      }
+    try {
+      _healthBox = await HiveAtomicManager().ensureBoxOpen(_healthBoxName, cipher: cipher);
+      debugPrint('✅ [V61-TRACE] PetHealthService initialized (Secure)');
+    } catch (e, stack) {
+      debugPrint('❌ [V61-TRACE] FATAL: Failed to open Secure Pet Health Box: $e\n$stack');
     }
   }
 

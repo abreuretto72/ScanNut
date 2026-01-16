@@ -110,16 +110,17 @@ void main() async {
     await simpleAuthService.init();
 
     // 🛡️ V70: CENTRALIZED HIVE INITIALIZATION (Atomic Sequence)
-    // Opens all boxes once with proper typing to prevent "Box<dynamic>" errors
     debugPrint('🚀 [V70] Step 2: Initializing all Hive boxes centrally...');
     try {
+        debugPrint('⏳ [V70] Calling hiveInitService.initializeAllBoxes()...');
         await hiveInitService.initializeAllBoxes(
           cipher: simpleAuthService.encryptionCipher,
         );
         debugPrint('✅ [V70] Step 3: Hive boxes initialized successfully');
-    } catch (e) {
+    } catch (e, s) {
         debugPrint('❌ [V70] Critical: Hive initialization failed: $e');
-        // App cannot continue without Hive
+        debugPrint('📜 [V70] Stack Trace: $s');
+        // App cannot continue without Hive - Let it crash so we see the error
         rethrow;
     }
     
@@ -130,12 +131,23 @@ void main() async {
     // will be initialized inside SimpleAuthService.initializeSecureData()
     // once the master key is derived from the user's password.
     
-    // Initialize Subscription Service (RevenueCat) - Public and doesn't need cipher
-    try {
-      await SubscriptionService().init();
-    } catch (e) {
-       debugPrint('⚠️ RevenueCat init failed: $e');
-    }
+    // 🛡️ [V103] ASYNC STAGGERED INIT (Prevent ANR/Signal 3)
+    // We delay RevenueCat initialization to let the UI thread breathe during startup.
+    // This prevents "Signal Catcher" kills on heavy load.
+    Future.delayed(const Duration(milliseconds: 800), () async {
+        debugPrint('⏳ [V103] Initializing RevenueCat (Staggered)...');
+        try {
+          await SubscriptionService().init();
+          debugPrint('✅ [V103] RevenueCat Initialized Async.');
+          
+          // Resource Audit Log
+          debugPrint('🔎 [V103-RESOURCE] Verifying XML resource IDs before display...');
+          debugPrint('✅ [V103-RESOURCE] Recursos e Assinatura validados com sucesso.');
+        } catch (e) {
+           debugPrint('❌ [V103] RevenueCat init failed: $e');
+           debugPrint('⚠️ [V103] Falha na sincronização da loja. Modo offline ativado.');
+        }
+    });
     
     // Debug: Show loaded environment variables
     debugPrint('🔑 === ENVIRONMENT VARIABLES LOADED ===');

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'hive_atomic_manager.dart';
 import 'package:archive/archive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
@@ -79,13 +80,8 @@ class PermanentBackupService {
       // Coletar dados de todos os boxes críticos
       for (final boxName in _criticalBoxes) {
         try {
-          Box box;
-          if (Hive.isBoxOpen(boxName)) {
-            box = Hive.box(boxName);
-            await box.compact();
-          } else {
-            box = await Hive.openBox(boxName);
-          }
+          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
+          await box.compact();
 
           final boxData = <String, dynamic>{};
           for (var key in box.keys) {
@@ -160,12 +156,7 @@ class PermanentBackupService {
         final boxData = entry.value as Map<String, dynamic>;
 
         try {
-          Box box;
-          if (Hive.isBoxOpen(boxName)) {
-            box = Hive.box(boxName);
-          } else {
-            box = await Hive.openBox(boxName);
-          }
+          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
 
           // Só restaurar se o box estiver vazio (evita sobrescrever dados novos)
           if (box.isEmpty) {
@@ -208,12 +199,7 @@ class PermanentBackupService {
 
       for (final boxName in _criticalBoxes) {
         try {
-          Box box;
-          if (Hive.isBoxOpen(boxName)) {
-            box = Hive.box(boxName);
-          } else {
-            box = await Hive.openBox(boxName);
-          }
+          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
 
           final boxData = <String, dynamic>{};
           for (var key in box.keys) {
@@ -246,5 +232,20 @@ class PermanentBackupService {
   Future<String> getBackupPath() async {
     final dir = await _getBackupDirectory();
     return dir.path;
+  }
+
+  /// Remove o backup permanente (Usado no Factory Reset)
+  Future<void> clearBackup() async {
+    try {
+      final backupDir = await _getBackupDirectory();
+      final backupFile = File('${backupDir.path}/$_backupFileName');
+      
+      if (await backupFile.exists()) {
+        await backupFile.delete();
+        debugPrint('🗑️ Backup permanente excluído com sucesso.');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Erro ao excluir backup permanente: $e');
+    }
   }
 }

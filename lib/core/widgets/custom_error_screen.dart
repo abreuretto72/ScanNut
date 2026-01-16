@@ -52,7 +52,7 @@ class CustomErrorScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: Colors.green.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.pets, size: 64, color: Color(0xFF00E676)),
@@ -114,7 +114,7 @@ class CustomErrorScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -151,7 +151,7 @@ class _AppWatermarkSimple extends StatelessWidget {
               'ScanNut © 2026 Multiverso Digital',
               style: GoogleFonts.poppins(
                 fontSize: 10,
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 fontWeight: FontWeight.w400,
               ),
             ),

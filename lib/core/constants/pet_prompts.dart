@@ -7,17 +7,17 @@
 
 class PetPrompts {
   /// Prompt de Diagnóstico de Feridas (Triagem Veterinária)
+  /// Prompt de Triagem Clínica Automática (V460)
   static String getPetDiagnosisPrompt(String languageName, String languageInstruction, bool isPortuguese, {Map<String, String>? contextData}) {
-    // 🛡️ Context Injection
     String contextBlock = "";
     if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
         contextBlock = '''
         CONTEXT (SOURCE OF TRUTH): 
         Target Pet Species: ${contextData['species'] ?? 'Unknown'}
         Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
+        Target Pet Weight: ${contextData['weight'] ?? 'N/A'} kg
         
-        INSTRUCTION: You are analyzing THIS specific pet. Do not infer a different species or breed. 
-        Focus ONLY on the condition.
+        INSTRUCTION: You are analyzing THIS specific pet. Focus on the identified condition.
         ''';
     }
 
@@ -25,36 +25,67 @@ class PetPrompts {
 $languageInstruction
 $contextBlock
 
-Act as a specialized Veterinary Triage Assistant and Veterinary Dermatologist. 
-You are analyzing a close-up image of a pet's skin condition, wound, or abnormality.
+Act as a Senior Veterinary Diagnostic Expert. 
+You are performing an AUTOMATIC CLINICAL TRIAGE.
 
-CRITICAL LANGUAGE RULE:
-1. Every single text value in the JSON MUST be strictly in $languageName.
-2. DO NOT use English terminology for symptoms or descriptions if $languageName is selected.
-3. If the user locale is Portuguese, explain everything in PURE Portuguese.
-4. For 'urgency_level', use ONLY the translated terms for Green, Yellow, or Red as specified below.
+1. **LÓGICA DE DECISÃO (VISUAL MATCH)**:
+Identify the region in the image and process accordingly:
+- **Ocular Area**: Eye analysis (Hyperemia, Opacity, Secretion).
+- **Oral Area**: Dental analysis (Tartar, Gingivitis, Halitosis).
+- **Cutaneous Area**: Skin analysis (Alopecia, Ectoparasites, Scaling).
+- **Exposed Lesion**: Wound analysis (Depth, Secretion, Edges).
+- **Organic Waste (Stool)**: Coprological analysis (Bristol Score, Color, Inclusions).
+
+2. **PROTOCOL**:
+- Return ONLY the relevant specialist details object based on the detected category.
+- If 'Olhos' is detected, 'dental_details' should be null.
+- Set 'urgency_level' based on clinical findings (Red = Emergency).
 
 Mandatory JSON Structure:
 {
   "analysis_type": "diagnosis",
-  // "species": DO NOT RETURN SPECIES. Use context.
-  // "breed": DO NOT RETURN BREED. Use context.
-  "characteristics": "string (Brief description of the area affected in $languageName)",
-  "visual_description": "string (Detailed clinical description of the wound/condition in $languageName)", 
-  "possible_causes": ["list of strings (Potential causes in $languageName: parasites, trauma, allergy, etc.)"], 
+  "category": "olhos" | "dentes" | "pele" | "ferida" | "fezes",
+  "characteristics": "string (Summary of findings in $languageName)",
+  "visual_description": "string (Deep clinical report in $languageName)",
+  
+  "eye_details": {
+      "hiperemia": "string (Redness level)",
+      "opacidade": "string (Corneal status)",
+      "secrecao": "string (Discharge description)"
+  },
+  "dental_details": {
+      "tartaro_index": "string (% cover)",
+      "gengivite": "string (Inflammation level)",
+      "halitose": "string (Estimated odor)"
+  },
+  "skin_details": {
+      "alopecias": "string (Hair loss areas)",
+      "ectoparasitas": "string (Ticks/Fleas detected)",
+      "descamacao": "string (Scaling/Dandruff)"
+  },
+  "wound_details": {
+      "profundidade": "string (Superficial/Deep)",
+      "secrecao": "string (Exudate type)",
+      "bordas": "string (Healing status)"
+  },
+  "stool_details": {
+      "consistency_bristol_scale": "1-7",
+      "color_hex": "string (Hex code)",
+      "color_name": "string",
+      "clinical_color_meaning": "string",
+      "foreign_bodies": ["string"],
+      "parasites_detected": "boolean"
+  },
+
+  "possible_causes": ["list of strings in $languageName"], 
   "urgency_level": "${isPortuguese ? 'Verde' : 'Green'}" | "${isPortuguese ? 'Amarelo' : 'Yellow'}" | "${isPortuguese ? 'Vermelho' : 'Red'}", 
-  "immediate_care": "string (First aid advice and mandatory recommendation to see a vet, in $languageName)"
+  "immediate_care": "string (First aid + Vet recommendation in $languageName)"
 }
 
-Urgency Levels Definitions:
-- ${isPortuguese ? 'Verde' : 'Green'}: Healthy/Observation.
-- ${isPortuguese ? 'Amarelo' : 'Yellow'}: Attention/Monitor.
-- ${isPortuguese ? 'Vermelho' : 'Red'}: Emergency/Immediate Action.
-
 IMPORTANT:
-- Include a legal disclaimer in 'immediate_care' stating that this is not a substitute for professional veterinary advice.
-- IF THE IMAGE IS NOT A PET (ANIMAL), return: {"error": "not_pet"}.
-- If the image is a pet but no condition or wound is detected, return: {"error": "not_detected"}.
+- Use only the detected category's detail object. The others should be omitted or null.
+- Include a legal disclaimer in 'immediate_care'.
+- IF THE IMAGE IS NOT A PET, return: {"error": "not_pet"}.
 ''';
   }
 
@@ -92,7 +123,9 @@ You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze
   "identification": {
     "species": "string (Identify species in $languageName - e.g. Cão/Gato)",
     "breed": "string (Identify breed in $languageName)",
-    "lineage": "string",
+    "lineage": "string (Classification: Trabalho/Companhia/Show/Esporte - in $languageName)", 
+    "origin_region": "string (Country/Region of origin - e.g. Alemanha, Reino Unido - in $languageName)",
+    "morphology_type": "string (e.g. Mesocéfalo, Braquicefálico, Dolicocéfalo - in $languageName)",
     "size": "string (Small/Medium/Large/Giant - translated to $languageName)",
     "longevity": "string (e.g. 12-15 years - in $languageName)"
   },
@@ -122,12 +155,76 @@ You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze
     "training_intelligence": "string (in $languageName)"
   },
   "metadata": {
-    "reliability": "string (e.g. 95% - estimate AI confidence)"
+    "reliability": "string (e.g. '98%' or 'Alta' - estimate AI confidence)"
   }
 }
 
 CRITICAL: IF THE IMAGE IS NOT A PET (ANIMAL), return: {"error": "not_pet"}.
 If the image has no detectable features or information (e.g., a blank wall), return: {"error": "not_detected"}.
+''';
+  }
+
+  /// Prompt especializado para Deep Analysis Coprológica (Análise de Fezes)
+  static String getPetStoolAnalysisPrompt(String languageName, String languageInstruction, bool isPortuguese, {Map<String, String>? contextData}) {
+    String contextBlock = "";
+    if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
+        contextBlock = '''
+        CONTEXT (SOURCE OF TRUTH): 
+        Target Pet Species: ${contextData['species'] ?? 'Unknown'}
+        Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
+        Target Pet Weight: ${contextData['weight'] ?? '3.1'} kg
+        ''';
+    }
+
+    return '''
+$languageInstruction
+$contextBlock
+
+Act as a specialized Veterinary Coprologist and Diagnostic Expert. 
+You are performing a DEEP COPROLOGICAL ANALYSIS on a pet stool sample image.
+
+MISSION: Segment the sample into data layers:
+
+1. **BIOMETRICS & CONSISTENCY (Scale 1 to 7)**:
+   - Identify consistency based on the Bristol Stool Scale (1: Hard lumps, 4: Ideal, 7: Liquid).
+   - Rate 'firmness' and 'hydration' level (presence of mucus or shine).
+
+2. **CHROMATOLOGY (Color Analysis)**:
+   - Specific color identification (Brown, Black/Tar, Red, Yellow/Orange, White/Gray).
+   - Clinical meaning of the color for the pet's health.
+
+3. **FOREIGN BODIES & INCLUSIONS**:
+   - Parasitology: Visual segments of worms (like tapeworm proglottids).
+   - Inadequate Ingestion: Bone fragments, plastic, grass, hair.
+   - Steatorrhea/Mucus: Visible fat or excessive mucus coating.
+
+4. **VOLUME & FREQUENCY ESTIMATION**:
+   - Cross-reference sample size with the pet's weight (${contextData?['weight'] ?? '3.1'} kg) to calculate if volume is compatible with caloric intake.
+
+Mandatory JSON Structure:
+{
+  "analysis_type": "stool_analysis",
+  "characteristics": "Brief summary of stool status (e.g. 'Ideal', 'Diarrhea', 'Steatorrhea') in $languageName",
+  "visual_description": "Detailed clinical report addressing consistency, color, and inclusions in $languageName",
+  "stool_details": {
+      "consistency_bristol_scale": "1-7 (Int)",
+      "firmness": "string (Detailed assessment)",
+      "hydration_mucus": "string (Assessment of shine/mucus)",
+      "color_hex": "string (Hex code of dominant color)",
+      "color_name": "string (Name of color in $languageName)",
+      "clinical_color_meaning": "string (Explanation of color in $languageName)",
+      "foreign_bodies": ["list of findings"],
+      "parasites_detected": "boolean (Visible only)",
+      "volume_assessment": "string (Compatible | High | Low - with explanation relative to ${contextData?['weight'] ?? '3.1'}kg)"
+  },
+  "possible_causes": ["list of potential causes in $languageName"],
+  "urgency_level": "${isPortuguese ? 'Verde' : 'Green'}" | "${isPortuguese ? 'Amarelo' : 'Yellow'}" | "${isPortuguese ? 'Vermelho' : 'Red'}",
+  "immediate_care": "string (Home care advice + disclaimer in $languageName)"
+}
+
+IMPORTANT:
+- IF THE IMAGE IS NOT STOOL/FEZES, return: {"error": "not_stool"}.
+- Be precise. If blood (Red) or tar-like (Black) stool is detected, set urgency to RED immediately.
 ''';
   }
 }

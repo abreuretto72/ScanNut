@@ -94,7 +94,7 @@ class PlantAnalysisModel {
     };
 
     if (mapper.containsKey(text)) {
-      return mapper[text]!;
+      return mapper[text] ?? text;
     }
     return text;
   }

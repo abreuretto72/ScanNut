@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'hive_atomic_manager.dart';
 
 import '../../features/pet/services/pet_profile_service.dart';
 import '../../features/pet/services/pet_event_service.dart';
@@ -79,13 +80,7 @@ class DataSeedService {
     await service.init();
     
     // (1) PROTOCOLO DE ABERTURA FORÇADA
-    if (!Hive.isBoxOpen('box_pets_master')) {
-       try {
-          await Hive.openBox('box_pets_master', encryptionCipher: SimpleAuthService().encryptionCipher);
-       } catch (e) {
-          debugPrint('⚠️ Forced open failed, proceeding with service logic: $e');
-       }
-    }
+    await HiveAtomicManager().ensureBoxOpen('box_pets_master', cipher: SimpleAuthService().encryptionCipher);
 
     // Thor & Luna
     final pets = [
@@ -115,7 +110,7 @@ class DataSeedService {
   Future<void> _seedBotany() async {
     final service = BotanyService();
     await service.init(cipher: SimpleAuthService().encryptionCipher);
-    final box = await Hive.openBox<BotanyHistoryItem>(BotanyService.boxName, encryptionCipher: SimpleAuthService().encryptionCipher);
+    final box = await HiveAtomicManager().ensureBoxOpen<BotanyHistoryItem>(BotanyService.boxName, cipher: SimpleAuthService().encryptionCipher);
     
     for (var i = 0; i < 5; i++) {
        final isSafe = _random.nextBool();
@@ -141,7 +136,7 @@ class DataSeedService {
   Future<void> _seedNutrition() async {
     final service = NutritionService();
     await service.init(cipher: SimpleAuthService().encryptionCipher);
-    final box = await Hive.openBox<NutritionHistoryItem>(NutritionService.boxName, encryptionCipher: SimpleAuthService().encryptionCipher);
+    final box = await HiveAtomicManager().ensureBoxOpen<NutritionHistoryItem>(NutritionService.boxName, cipher: SimpleAuthService().encryptionCipher);
     
     for (var i = 0; i < 5; i++) {
        final item = NutritionHistoryItem(
@@ -167,11 +162,7 @@ class DataSeedService {
     await service.init(cipher: SimpleAuthService().encryptionCipher);
     
     // (1) PROTOCOLO DE ABERTURA FORÇADA
-    if (!Hive.isBoxOpen('pet_events')) {
-       try {
-           await Hive.openBox('pet_events', encryptionCipher: SimpleAuthService().encryptionCipher);
-       } catch(e) { /* ignore */ }
-    }
+    await HiveAtomicManager().ensureBoxOpen('pet_events', cipher: SimpleAuthService().encryptionCipher);
     
     final types = EventType.values;
     final petNames = ['Thor', 'Luna'];

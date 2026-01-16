@@ -1,4 +1,6 @@
 import 'pet_analysis_result.dart';
+import 'analise_ferida_model.dart';
+import 'analise_fezes_model.dart';
 import '../../../core/utils/json_cast.dart';
 
 
@@ -32,7 +34,9 @@ class PetProfileExtended {
   final Map<String, List<Map<String, dynamic>>> partnerNotes; // PartnerID -> List of notes {id, content, date}
   final List<Map<String, dynamic>> weightHistory; // [{date: iso, weight: 10.5, status: 'normal'}]
   final List<Map<String, dynamic>> labExams; // Lab exams with OCR and AI analysis
-  final List<Map<String, dynamic>> woundAnalysisHistory; // Wound/injury analysis history [{date, imagePath, diagnosis, severity, recommendations}]
+  final List<Map<String, dynamic>> woundAnalysisHistory; // Legacy: Wound/injury analysis history [{date, imagePath, diagnosis, severity, recommendations}]
+  final List<AnaliseFeridaModel> historicoAnaliseFeridas; // 🛡️ V170: Structured Wound History
+  final List<AnaliseFezesModel> historicoFezes; // 🛡️ V231: Stool Analysis History
   final List<Map<String, dynamic>> analysisHistory; // Completed AI Analysis Result History
   
   // Observações Cumulativas por Seção (com timestamps)
@@ -68,6 +72,8 @@ class PetProfileExtended {
     this.weightHistory = const [],
     this.labExams = const [],
     this.woundAnalysisHistory = const [],
+    this.historicoAnaliseFeridas = const [],
+    this.historicoFezes = const [],
     this.analysisHistory = const [],
     this.observacoesIdentidade = '',
     this.observacoesSaude = '',
@@ -113,6 +119,12 @@ class PetProfileExtended {
       weightHistory: deepCastMapList(json['weight_history']),
       labExams: deepCastMapList(json['lab_exams']),
       woundAnalysisHistory: deepCastMapList(json['wound_analysis_history']),
+      historicoAnaliseFeridas: (json['historico_analise_feridas'] as List?)
+          ?.map((e) => AnaliseFeridaModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList() ?? [],
+      historicoFezes: (json['historico_fezes'] as List?)
+          ?.map((e) => AnaliseFezesModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList() ?? [],
       analysisHistory: deepCastMapList(json['analysis_history']),
 
       observacoesIdentidade: (json['observacoes_identidade'] ?? '') as String,
@@ -220,6 +232,8 @@ class PetProfileExtended {
          weightHistory: [],
          labExams: [],
          woundAnalysisHistory: [],
+         historicoAnaliseFeridas: [],
+         historicoFezes: [],
           analysisHistory: [rawAnalysis],
           porte: result.identificacao.porteEstimado,
      );
@@ -249,6 +263,8 @@ class PetProfileExtended {
       'weight_history': weightHistory,
       'lab_exams': labExams,
       'wound_analysis_history': woundAnalysisHistory,
+      'historico_analise_feridas': historicoAnaliseFeridas.map((e) => e.toJson()).toList(),
+      'historico_fezes': historicoFezes.map((e) => e.toJson()).toList(),
       'analysis_history': analysisHistory,
       'observacoes_identidade': observacoesIdentidade,
       'observacoes_saude': observacoesSaude,
@@ -311,6 +327,8 @@ class PetProfileExtended {
     List<Map<String, dynamic>>? weightHistory,
     List<Map<String, dynamic>>? labExams,
     List<Map<String, dynamic>>? woundAnalysisHistory,
+    List<AnaliseFeridaModel>? historicoAnaliseFeridas,
+    List<AnaliseFezesModel>? historicoFezes,
     List<Map<String, dynamic>>? analysisHistory, // New
     String? observacoesIdentidade,
     String? observacoesSaude,
@@ -344,6 +362,8 @@ class PetProfileExtended {
       weightHistory: weightHistory ?? this.weightHistory,
       labExams: labExams ?? this.labExams,
       woundAnalysisHistory: woundAnalysisHistory ?? this.woundAnalysisHistory,
+      historicoAnaliseFeridas: historicoAnaliseFeridas ?? this.historicoAnaliseFeridas,
+      historicoFezes: historicoFezes ?? this.historicoFezes,
       analysisHistory: analysisHistory ?? this.analysisHistory, // New
       observacoesIdentidade: observacoesIdentidade ?? this.observacoesIdentidade,
       observacoesSaude: observacoesSaude ?? this.observacoesSaude,

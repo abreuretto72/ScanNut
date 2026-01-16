@@ -38,12 +38,28 @@ extension PetDietTypeX on PetDietType {
   }
 }
 
+enum PetFoodType {
+  kibble,
+  natural,
+  mixed
+}
+
+extension PetFoodTypeX on PetFoodType {
+  String get id => name;
+  String localizedLabel(AppLocalizations l10n) {
+     if (this == PetFoodType.kibble) return 'Ração Seca/Úmida';
+     if (this == PetFoodType.natural) return 'Alimentação Natural';
+     return 'Mista (Ração + Natural)';
+  }
+}
+
 class MealPlanRequest {
   final String petId;
   final String mode; // weekly, monthly, custom
   final DateTime startDate;
   final DateTime endDate;
   final PetDietType dietType;
+  final PetFoodType foodType; // New: Kibble vs Natural
   final String? otherNote;
   final String locale;
   final String source; // Safety restriction source
@@ -55,6 +71,7 @@ class MealPlanRequest {
     required this.startDate,
     required this.endDate,
     required this.dietType,
+    this.foodType = PetFoodType.mixed, // Default
     required this.locale,
     required this.profileData,
     this.source = 'Unknown',
@@ -67,6 +84,7 @@ class MealPlanRequest {
     'startDate': startDate.toIso8601String(),
     'endDate': endDate.toIso8601String(),
     'dietType': dietType.id,
+    'foodType': foodType.id,
     'otherNote': otherNote,
     'locale': locale,
     // Note: profileData is already a map

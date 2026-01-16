@@ -13,6 +13,7 @@ import '../models/plant_analysis_model.dart';
 import '../../../core/services/file_upload_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
 import '../../../core/services/media_vault_service.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 class BotanyService {
   static final BotanyService _instance = BotanyService._internal();
@@ -22,20 +23,15 @@ class BotanyService {
   static const String boxName = 'box_plants_history';
   Box<BotanyHistoryItem>? _box;
 
-  /// Guaranteed Opening Pattern
+  /// Guaranteed Opening Pattern with V101 Atomic Manager
   Future<Box<BotanyHistoryItem>> _ensureBox({HiveCipher? cipher}) async {
-    if (_box != null && _box!.isOpen) return _box!;
-    try {
-      if (!Hive.isAdapterRegistered(21)) {
-        Hive.registerAdapter(BotanyHistoryItemAdapter());
-      }
-      _box = await Hive.openBox<BotanyHistoryItem>(boxName, encryptionCipher: cipher);
-      debugPrint('✅ BotanyService: box_plants_history initialized (Secure).');
-      return _box!;
-    } catch (e) {
-      debugPrint('❌ Error initializing Secure BotanyService: $e');
-      rethrow;
+    if (!Hive.isAdapterRegistered(21)) {
+      Hive.registerAdapter(BotanyHistoryItemAdapter());
     }
+    
+    // 🛡️ V101: ATOMIC MANAGER DELEGATION
+    _box = await HiveAtomicManager().ensureBoxOpen<BotanyHistoryItem>(boxName, cipher: cipher);
+    return _box!;
   }
 
   Future<void> init({HiveCipher? cipher}) async {
@@ -85,86 +81,128 @@ class BotanyService {
   ValueListenable<Box<BotanyHistoryItem>>? get listenable => _box?.listenable();
 
   Future<void> savePlantAnalysis(PlantAnalysisModel analysis, File? image, {String? locale}) async {
-    final box = await _ensureBox();
-
-    String? savedPath;
-    if (image != null) {
-      try {
-        savedPath = await MediaVaultService().secureClone(
-          image, 
-          MediaVaultService.BOTANY_DIR
-        );
-        debugPrint('✅ Plant saved to Vault: $savedPath');
-      } catch (e) {
-        debugPrint('⚠️ Vault save failed for plant, trying legacy: $e');
-        savedPath = await FileUploadService().saveAnalysisImage(
-          file: image,
-          type: 'plant',
-          name: analysis.identificacao.nomeCientifico,
-        );
-      }
-    }
-
-    // Determine toxicity status from analysis keywords
-    String tox = 'safe';
-    final toxInfo = analysis.segurancaBiofilia.segurancaDomestica.toString().toLowerCase();
-    if (toxInfo.contains('toxic') || toxInfo.contains('tóxica') || toxInfo.contains('perigo') || toxInfo.contains('poisonous')) {
-      tox = 'toxic';
-    } 
+    debugPrint('🌿 [PLANT_SAVE] START: Iniciando processo de gravação...');
     
-    // Specific pet check
-    final isToxicToPets = analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true || 
-                          analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true;
-    
-    if (isToxicToPets) {
-      tox = 'harmful_pets';
-    }
-
-    // Determine survival semaphore
-    String semaphore = 'verde';
-    final cond = analysis.saude.condicao.toLowerCase();
-    final urg = analysis.saude.urgencia.toLowerCase();
-    
-    if (cond.contains('crítico') || cond.contains('critical') || urg == 'high') {
-      semaphore = 'vermelho';
-    } else if (cond.contains('atenção') || cond.contains('attention') || urg == 'medium' || cond.contains('sick') || cond.contains('doente')) {
-      semaphore = 'amarelo';
-    }
-
-    final item = BotanyHistoryItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      timestamp: DateTime.now(),
-      plantName: analysis.identificacao.nomesPopulares.isNotEmpty 
-          ? analysis.identificacao.nomesPopulares.first 
-          : analysis.identificacao.nomeCientifico,
-      healthStatus: analysis.saude.condicao,
-      diseaseDiagnosis: analysis.saude.detalhes != 'N/A' ? analysis.saude.detalhes : null,
-      recoveryPlan: analysis.saude.planoRecuperacao,
-      survivalSemaphore: semaphore,
-      lightWaterSoilNeeds: {
-        'luz': analysis.sobrevivencia.luminosidade['type']?.toString() ?? analysis.sobrevivencia.luminosidade['tipo']?.toString() ?? 'N/A',
-        'agua': analysis.sobrevivencia.regimeHidrico['frequency']?.toString() ?? analysis.sobrevivencia.regimeHidrico['frequencia']?.toString() ?? 'N/A',
-        'solo': analysis.sobrevivencia.soloENutricao['soil_composition']?.toString() ?? analysis.sobrevivencia.soloENutricao['tipo_solo']?.toString() ?? 'N/A',
-      },
-      fengShuiTips: analysis.lifestyle.simbolismo,
-      imagePath: savedPath,
-      toxicityStatus: tox,
-      locale: locale,
-      rawMetadata: _sanitizeMetadata(analysis.toJson(), locale),
-    );
-
     try {
-      await box.add(item);
-      debugPrint("✅ Gravado no histórico com sucesso! ID: ${item.id}");
+      final box = await _ensureBox();
+      debugPrint('🌿 [PLANT_SAVE] TRACE 1: Box "box_plants_history" aberta. Estado=${box.isOpen}');
+
+      String? savedPath;
+      if (image != null) {
+        debugPrint('🌿 [PLANT_SAVE] TRACE 2: Imagem detectada. Iniciando processamento/vault...');
+        try {
+          savedPath = await MediaVaultService().secureClone(
+            image, 
+            MediaVaultService.BOTANY_DIR
+          );
+          debugPrint('🌿 [PLANT_SAVE] TRACE 2.1: Imagem salva no Vault em: $savedPath');
+        } catch (e) {
+          debugPrint('⚠️ [PLANT_SAVE] Vault save failed for plant, trying legacy: $e');
+          savedPath = await FileUploadService().saveAnalysisImage(
+            file: image,
+            type: 'plant',
+            name: analysis.identificacao.nomeCientifico,
+          );
+          debugPrint('🌿 [PLANT_SAVE] TRACE 2.2: Imagem salva (Legado) em: $savedPath');
+        }
+      } else {
+        debugPrint('🌿 [PLANT_SAVE] TRACE 2: Nenhuma imagem para salvar (null check).');
+      }
+
+      // Determine toxicity status from analysis keywords
+      debugPrint('🌿 [PLANT_SAVE] TRACE 3: Calculando flags de toxicidade...');
+      // Diagnostic checks for V99
+      if (analysis.segurancaBiofilia == null) debugPrint('⚠️ [PLANT_SAVE] WARNING: segurancaBiofilia is NULL');
+      if (analysis.saude == null) debugPrint('⚠️ [PLANT_SAVE] WARNING: saude is NULL');
+      if (analysis.sobrevivencia == null) debugPrint('⚠️ [PLANT_SAVE] WARNING: sobrevivencia is NULL');
+
+      String tox = 'safe';
+      try {
+        final toxInfo = analysis.segurancaBiofilia.segurancaDomestica.toString().toLowerCase();
+        if (toxInfo.contains('toxic') || toxInfo.contains('tóxica') || toxInfo.contains('perigo') || toxInfo.contains('poisonous')) {
+          tox = 'toxic';
+        } 
+        
+        final isToxicToPets = analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true || 
+                              analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true;
+        
+        if (isToxicToPets) {
+          tox = 'harmful_pets';
+        }
+      } catch (e) {
+         debugPrint('⚠️ [PLANT_SAVE] Erro ao calcular toxicidade: $e. Usando padrão safe.');
+         tox = 'safe';
+      }
+
+      // Determine survival semaphore
+      String semaphore = 'verde';
+      try {
+        final cond = analysis.saude.condicao.toLowerCase();
+        final urg = analysis.saude.urgencia.toLowerCase();
+        
+        if (cond.contains('crítico') || cond.contains('critical') || urg == 'high') {
+          semaphore = 'vermelho';
+        } else if (cond.contains('atenção') || cond.contains('attention') || urg == 'medium' || cond.contains('sick') || cond.contains('doente')) {
+          semaphore = 'amarelo';
+        }
+      } catch (e) {
+          debugPrint('⚠️ [PLANT_SAVE] Erro ao calcular semáforo: $e. Usando verde.');
+          semaphore = 'verde';
+      }
+
+      debugPrint('🌿 [PLANT_SAVE] TRACE 4: Criando objeto BotanyHistoryItem...');
+      late BotanyHistoryItem item;
+      try {
+        item = BotanyHistoryItem(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          timestamp: DateTime.now(),
+          plantName: analysis.identificacao.nomesPopulares.isNotEmpty 
+              ? analysis.identificacao.nomesPopulares.first 
+              : analysis.identificacao.nomeCientifico,
+          healthStatus: analysis.saude.condicao,
+          diseaseDiagnosis: analysis.saude.detalhes != 'N/A' ? analysis.saude.detalhes : null,
+          recoveryPlan: analysis.saude.planoRecuperacao,
+          survivalSemaphore: semaphore,
+          lightWaterSoilNeeds: {
+            'luz': analysis.sobrevivencia.luminosidade['type']?.toString() ?? analysis.sobrevivencia.luminosidade['tipo']?.toString() ?? 'N/A',
+            'agua': analysis.sobrevivencia.regimeHidrico['frequency']?.toString() ?? analysis.sobrevivencia.regimeHidrico['frequencia']?.toString() ?? 'N/A',
+            'solo': analysis.sobrevivencia.soloENutricao['soil_composition']?.toString() ?? analysis.sobrevivencia.soloENutricao['tipo_solo']?.toString() ?? 'N/A',
+          },
+          fengShuiTips: analysis.lifestyle.simbolismo,
+          imagePath: savedPath,
+          toxicityStatus: tox,
+          locale: locale,
+          rawMetadata: _sanitizeMetadata(analysis.toJson(), locale),
+        );
+      } catch (e) {
+         debugPrint('❌ [PLANT_SAVE] CRASH NA CRIAÇÃO DO ITEM: $e');
+         throw Exception("Falha ao montar objeto da planta: $e");
+      }
+
+      debugPrint('🌿 [PLANT_SAVE] TRACE 5: Executando box.add()...');
+      try {
+        await box.add(item);
+      } catch (hiveError) {
+         debugPrint('❌ [PLANT_SAVE] ERRO DE TIPO NO HIVE: $hiveError');
+         // V99 AUTO-FIX: Close and Reopen Typed
+         debugPrint('🔧 [V99] Tentando resetar box Botânica...');
+         if (box.isOpen) await box.close();
+         final newBox = await Hive.openBox<BotanyHistoryItem>(boxName); // Force Typed
+         await newBox.add(item);
+         _box = newBox; // Update internal ref
+         debugPrint('✅ [V99] Reset bem sucedido. Item salvo.');
+      }
+      
+      debugPrint("✅ [PLANT_SAVE] SUCCESS! Gravado no histórico. ID: ${item.id}");
       
       // 🔄 Trigger automatic permanent backup
       PermanentBackupService().createAutoBackup().then((_) {
-        debugPrint('💾 Backup permanente atualizado após salvar planta');
+        debugPrint('💾 [PLANT_SAVE] Backup permanente atualizado.');
       }).catchError((e) {
-        debugPrint('⚠️ Backup automático falhou: $e');
+        debugPrint('⚠️ [PLANT_SAVE] Backup automático falhou: $e');
       });
     } catch (e, stack) {
-      debugPrint("❌ ERRO AO GRAVAR: $e");
+      debugPrint("❌ [PLANT_SAVE] ERRO CRÍTICO AO GRAVAR: $e");
       debugPrint("TRACE: $stack");
       rethrow;
     }
@@ -184,9 +222,12 @@ class BotanyService {
   }
 
   Future<void> clearAll() async {
-    final box = await _ensureBox();
-    await box.clear();
-    debugPrint('🧹 Botany history cleared');
+    // 🛡️ V101: ATOMIC RESET
+    // We physically destroy and reconstruct the box to ensure 100% clean state
+    // and prevent zombie records or corruption.
+    await HiveAtomicManager().recreateBox<BotanyHistoryItem>(boxName);
+    _box = await HiveAtomicManager().ensureBoxOpen<BotanyHistoryItem>(boxName);
+    debugPrint('🧹 [V101] Botany history cleared via Atomic Reset Protocol.');
   }
 
   /// Sanitizes metadata to remove common Portuguese leakages if locale is English

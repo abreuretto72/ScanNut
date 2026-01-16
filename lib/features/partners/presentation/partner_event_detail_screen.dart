@@ -352,7 +352,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                          onCancel: () => Navigator.pop(context),
                      )));
                  } else {
-                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaProfileNotFound(_event.petName))));
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Perfil não encontrado: ${_event.petName}')));
                  }
              },
              child: Row(

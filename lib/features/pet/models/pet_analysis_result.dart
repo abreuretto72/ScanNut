@@ -22,6 +22,13 @@ class PetAnalysisResult {
   final List<String>? possiveisCausasDiag;
   final String? urgenciaNivelDiag;
   final String? orientacaoImediataDiag;
+  final Map<String, dynamic>? clinicalSignsDiag; // 🛡️ V139: Added for Deep Scan
+  final Map<String, dynamic>? stoolAnalysis; // 🛡️ V231: Stool Analysis specialized data
+  final String? category; // 🛡️ V460: Clinical Category Tag
+  final Map<String, dynamic>? eyeDetails; // 🛡️ V460: Ocular specialist data
+  final Map<String, dynamic>? dentalDetails; // 🛡️ V460: Dental specialist data
+  final Map<String, dynamic>? skinDetails; // 🛡️ V460: Skin specialist data
+  final Map<String, dynamic>? woundDetails; // 🛡️ V460: Wound specialist data
 
   final List<Map<String, String>> tabelaBenigna;
   final List<Map<String, String>> tabelaMaligna;
@@ -49,6 +56,13 @@ class PetAnalysisResult {
     this.possiveisCausasDiag,
     this.urgenciaNivelDiag,
     this.orientacaoImediataDiag,
+    this.clinicalSignsDiag,
+    this.stoolAnalysis, // 🛡️ V231
+    this.category, // 🛡️ V460
+    this.eyeDetails, // 🛡️ V460
+    this.dentalDetails, // 🛡️ V460
+    this.skinDetails, // 🛡️ V460
+    this.woundDetails, // 🛡️ V460
     this.tabelaBenigna = const [],
     this.tabelaMaligna = const [],
     this.planoSemanal = const [],
@@ -58,12 +72,12 @@ class PetAnalysisResult {
   });
 
   // Backward compatibility getters
-  String get raca => analysisType == 'diagnosis' ? (racaDiag ?? 'N/A') : identificacao.racaPredominante;
-  String get especie => analysisType == 'diagnosis' ? (especieDiag ?? 'Animal') : (especieId ?? "Animal");
-  String get caracteristicas => analysisType == 'diagnosis' ? (caracteristicasDiag ?? 'N/A') : identificacao.porteEstimado;
-  String get descricaoVisual => analysisType == 'diagnosis' ? (descricaoVisualDiag ?? 'N/A') : perfilComportamental.driveAncestral;
-  String get urgenciaNivel => analysisType == 'diagnosis' ? (urgenciaNivelDiag ?? 'Verde') : "Verde"; 
-  String get orientacaoImediata => analysisType == 'diagnosis' ? (orientacaoImediataDiag ?? 'Consulte um Vet.') : dica.insightExclusivo;
+  String get raca => analysisType == 'diagnosis' || analysisType == 'stool_analysis' ? (racaDiag ?? 'N/A') : identificacao.racaPredominante;
+  String get especie => analysisType == 'diagnosis' || analysisType == 'stool_analysis' ? (especieDiag ?? 'Animal') : (especieId ?? "Animal");
+  String get caracteristicas => analysisType == 'diagnosis' || analysisType == 'stool_analysis' ? (caracteristicasDiag ?? 'N/A') : identificacao.porteEstimado;
+  String get descricaoVisual => analysisType == 'diagnosis' || analysisType == 'stool_analysis' ? (descricaoVisualDiag ?? 'N/A') : perfilComportamental.driveAncestral;
+  String get urgenciaNivel => analysisType == 'diagnosis' || analysisType == 'stool_analysis' ? (urgenciaNivelDiag ?? 'Verde') : "Verde"; 
+  String get orientacaoImediata => analysisType == 'diagnosis' || analysisType == 'stool_analysis' ? (orientacaoImediataDiag ?? 'Consulte um Vet.') : dica.insightExclusivo;
   List<String> get possiveisCausas => possiveisCausasDiag ?? [];
 
   factory PetAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -77,10 +91,26 @@ class PetAnalysisResult {
       return [];
     }
 
+    // V490: Atomic Reliability Mapping
+    String mapReliability(Map<String, dynamic> j) {
+        final val = j['reliability'] ?? j['confiabilidade'] ?? j['score'] ?? j['confianca'];
+        if (val == null) return 'N/A';
+        if (val is num) {
+           if (val <= 1.0) return '${(val * 100).toInt()}%';
+           return '$val%';
+        }
+        final s = val.toString().replaceAll('%', '');
+        final d = double.tryParse(s);
+        if (d != null && d <= 1.0) return '${(d * 100).toInt()}%';
+        return val.toString();
+    }
+
+    final reliabilityVal = mapReliability(json);
+
     // Check for Diagnosis Mode
-    if (json['analysis_type'] == 'diagnosis' || json['urgency_level'] != null) {
+    if (json['analysis_type'] == 'diagnosis' || json['analysis_type'] == 'stool_analysis' || json['urgency_level'] != null) {
       return PetAnalysisResult(
-        analysisType: 'diagnosis',
+        analysisType: json['analysis_type'] ?? 'diagnosis',
         identificacao: IdentificacaoPet.empty(),
         perfilComportamental: PerfilComportamental.empty(),
         nutricao: NutricaoEStrutura.empty(),
@@ -94,12 +124,20 @@ class PetAnalysisResult {
         caracteristicasDiag: json['characteristics'] ?? 'N/A',
         descricaoVisualDiag: json['visual_description'] ?? 'N/A',
         possiveisCausasDiag: List<String>.from(json['possible_causes'] ?? []),
+        clinicalSignsDiag: json['clinical_signs'] != null ? Map<String, dynamic>.from(json['clinical_signs']) : null, 
+        stoolAnalysis: json['stool_details'] != null ? Map<String, dynamic>.from(json['stool_details']) : null, // 🛡️ V231
+        category: json['category'], // 🛡️ V460
+        eyeDetails: json['eye_details'] != null ? Map<String, dynamic>.from(json['eye_details']) : null, // 🛡️ V460
+        dentalDetails: json['dental_details'] != null ? Map<String, dynamic>.from(json['dental_details']) : null, // 🛡️ V460
+        skinDetails: json['skin_details'] != null ? Map<String, dynamic>.from(json['skin_details']) : null, // 🛡️ V460
+        woundDetails: json['wound_details'] != null ? Map<String, dynamic>.from(json['wound_details']) : null, // 🛡️ V460
         urgenciaNivelDiag: json['urgency_level'] ?? 'Verde',
         orientacaoImediataDiag: json['immediate_care'] ?? 'Consulte um Vet.',
         tabelaBenigna: parseTable(json['tabela_benigna']),
         tabelaMaligna: parseTable(json['tabela_maligna']),
         planoSemanal: [],
         orientacoesGerais: null,
+        reliability: reliabilityVal, // V490 Mapped
       );
     }
 
@@ -117,10 +155,10 @@ class PetAnalysisResult {
       saude: SaudePreventiva.fromTotalInference(_safeMap(json['health'])),
       lifestyle: LifestyleEEducacao.fromTotalInference(_safeMap(json['lifestyle'])),
       dica: DicaEspecialista.empty(),
+      reliability: reliabilityVal, // V490 Mapped
       limitacoesAnalise: null,
       especieId: idMap['species']?.toString(), // Capture species from identification
       petName: json['pet_name'] ?? 'Pet',
-      reliability: json['metadata']?['reliability']?.toString() ?? '85%', // Capture reliability
       tabelaBenigna: [],
       tabelaMaligna: [],
       planoSemanal: [],
@@ -146,6 +184,13 @@ class PetAnalysisResult {
     'possible_causes': possiveisCausasDiag,
     'urgency_level': urgenciaNivelDiag,
     'immediate_care': orientacaoImediataDiag,
+    'clinical_signs': clinicalSignsDiag,
+    'stool_details': stoolAnalysis,
+    'category': category,
+    'eye_details': eyeDetails,
+    'dental_details': dentalDetails,
+    'skin_details': skinDetails,
+    'wound_details': woundDetails,
     'tabela_benigna': tabelaBenigna,
     'tabela_maligna': tabelaMaligna,
     'identification': identificacao.toJson(),
@@ -170,7 +215,15 @@ class IdentificacaoPet {
     required this.porteEstimado,
     required this.expectativaVidaMedia,
     required this.curvaCrescimento,
+    this.racaPredict = '',
+    this.origemGeografica = '',
+    this.morfologiaBase = '',
   });
+
+  // New optional fields for detailed PDF
+  final String racaPredict;
+  final String origemGeografica;
+  final String morfologiaBase;
 
   factory IdentificacaoPet.fromTotalInference(Map<String, dynamic> id, Map<String, dynamic> growth) {
     String size = id['size']?.toString() ?? 'Medium';
@@ -197,22 +250,74 @@ class IdentificacaoPet {
     mappedGrowth['peso_12_meses'] = check(growth['weight_12_months'], 'weight_12_months');
     mappedGrowth['peso_adulto'] = check(growth['adult_weight'], 'adult_weight');
 
+    // V490: Atomic Identity Mapping - Redundant Key Checks
+    String? getString(List<String> keys) {
+       for (final k in keys) {
+          if (id[k] != null && id[k].toString().isNotEmpty && id[k].toString().toLowerCase() != 'null') {
+             return id[k].toString();
+          }
+       }
+       return null;
+    }
+
+    final raca = getString(['breed_name', 'breed', 'raca', 'raça']) ?? 'Unknown Breed';
+    final origem = getString(['origin_region', 'regiao_origem', 'region', 'pais_origem']) ?? '';
+    final morfologia = getString(['morphology_type', 'tipo_morfologico', 'morfologia', 'morphology']) ?? '';
+    final linhagem = getString(['lineage', 'linhagem', 'linhagem_provavel', 'ancestry']) ?? 'Pure/Standard';
+    final life = getString(['lifespan', 'expectativa_vida', 'longevidade']) ?? '10-12 years';
+
+    // Trace Logic for Deep Debugging
+    // debugPrint('🔍 [ID_MAP] Raca: $raca | Origem: $origem | Morfo: $morfologia | Lin: $linhagem');
+
     return IdentificacaoPet(
-      racaPredominante: id['breed']?.toString() ?? 'N/A',
-      linhagemSrdProvavel: id['lineage']?.toString() ?? 'N/A',
+      racaPredominante: raca,
+      racaPredict: raca, 
+      origemGeografica: origem, 
+      morfologiaBase: morfologia, 
+      linhagemSrdProvavel: linhagem,
       porteEstimado: size,
-      expectativaVidaMedia: id['longevity']?.toString() ?? '10-15 anos',
+      expectativaVidaMedia: life,
       curvaCrescimento: mappedGrowth,
     );
   }
   
-  factory IdentificacaoPet.fromJson(Map<String, dynamic> json) => IdentificacaoPet.empty();
-  factory IdentificacaoPet.empty() => IdentificacaoPet(racaPredominante: 'N/A', linhagemSrdProvavel: 'N/A', porteEstimado: 'N/A', expectativaVidaMedia: 'N/A', curvaCrescimento: {});
+  factory IdentificacaoPet.fromJson(Map<String, dynamic> json) {
+     // Robust fromJson handling 
+     Map<String, dynamic> growth = {};
+     if (json['curva_crescimento'] is Map) {
+        growth = Map<String, dynamic>.from(json['curva_crescimento']);
+     }
+     
+     // Recursively use redundancy check even for direct Json
+     // Only if identifying via inference logic helper, but here we just map direct
+     return IdentificacaoPet(
+       racaPredominante: json['racaPredominante'] ?? json['breed'] ?? '',
+       linhagemSrdProvavel: json['linhagemSrdProvavel'] ?? json['linhagem'] ?? '',
+       porteEstimado: json['porteEstimado'] ?? json['size'] ?? '',
+       expectativaVidaMedia: json['expectativaVidaMedia'] ?? '',
+       curvaCrescimento: growth,
+       racaPredict: json['racaPredict'] ?? '',
+       origemGeografica: json['origemGeografica'] ?? json['origin_region'] ?? '',
+       morfologiaBase: json['morfologiaBase'] ?? json['morphology_type'] ?? '',
+     );
+  }
+  factory IdentificacaoPet.empty() => IdentificacaoPet(
+    racaPredominante: '', 
+    racaPredict: '',
+    origemGeografica: '',
+    morfologiaBase: '',
+    linhagemSrdProvavel: '', 
+    porteEstimado: '', 
+    expectativaVidaMedia: '', 
+    curvaCrescimento: {},
+  );
   Map<String, dynamic> toJson() => {
-    'breed': racaPredominante,
+    'breed_name': racaPredominante,
+    'origin_region': origemGeografica,
+    'morphology_type': morfologiaBase,
     'lineage': linhagemSrdProvavel,
     'size': porteEstimado,
-    'longevity': expectativaVidaMedia,
+    'lifespan': expectativaVidaMedia,
   };
 }
 
@@ -324,7 +429,13 @@ class SaudePreventiva {
     required this.pontosCriticosAnatomicos,
     required this.checkupVeterinario,
     required this.sensibilidadeClimatica,
+    this.predisposicoesGeneticas = '',
+    this.sinaisAlertaPrecoce = '',
   });
+
+  // Updated Fields for PDF
+  final String predisposicoesGeneticas;
+  final String sinaisAlertaPrecoce;
   
   factory SaudePreventiva.fromTotalInference(Map<String, dynamic> json) {
     List<String> predis = (json['predispositions'] as List? ?? []).map((e) => e.toString()).toList();
@@ -339,6 +450,8 @@ class SaudePreventiva {
         'exames_obrigatorios_anuais': [json['preventive_checkup'] ?? 'Hemograma e Checkup Geral']
       },
       sensibilidadeClimatica: {},
+      predisposicoesGeneticas: predis.join(", "), // 🚀 V125
+      sinaisAlertaPrecoce: json['early_warning_signs']?.toString() ?? '', // 🚀 V125
     );
   }
   
@@ -347,6 +460,8 @@ class SaudePreventiva {
     pontosCriticosAnatomicos: [],
     checkupVeterinario: {},
     sensibilidadeClimatica: {},
+    predisposicoesGeneticas: '', // 🚀 V125
+    sinaisAlertaPrecoce: '', // 🚀 V125
   );
   
   factory SaudePreventiva.fromJson(Map<String, dynamic> json) => SaudePreventiva.empty();

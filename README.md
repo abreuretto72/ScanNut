@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.5.3  
+**Versão:** 1.5.4  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -41,6 +41,38 @@ Lista de compras
 - 🖨️ **NOVO:** PDFs otimizados para impressão econômica (preto e branco)
 - 🤖 **NOVO:** Análise Inteligente de Anexos (Visual e OCR)
 - 🔗 **NOVO:** Pet Indexing Engine (Deep Links & Timeline Automática)
+
+---
+
+## ✨ **NOVIDADES DA VERSÃO 1.5.4**
+
+### **🐛 Correções Críticas de UX**
+- **🔐 Login Biométrico:**
+  - ✅ Corrigido erro de "SnackBar congelado" ao falhar autenticação
+  - ✅ Substituído SnackBar por AlertDialog modal para mensagens críticas
+  - ✅ Prevenção de race condition entre login manual e biométrico
+  - ✅ Mensagens de erro não aparecem mais após login bem-sucedido
+
+- **🍖 Gerador de Cardápio Pet:**
+  - ✅ Corrigido bloqueio por validação de "status reprodutivo"
+  - ✅ Implementado fallback automático para "Assumido Neutro"
+  - ✅ Corrigido erro "Missing weeks array" na resposta da IA
+  - ✅ Adicionado parsing defensivo para listas de compras
+  - ✅ Reforçado prompt com exemplo concreto de JSON
+  - ✅ Garantia de geração apenas com ingredientes naturais quando selecionado
+  - ✅ Logs de debug para rastreamento de parâmetros
+
+- **🗑️ Zona de Perigo (Gerenciador de Dados):**
+  - ✅ Implementado "Deep Clean" para remoção de registros órfãos
+  - ✅ Corrigida exclusão de itens híbridos na Linha do Tempo
+  - ✅ Limpeza agressiva por referência de `pet_name` além de `mode`
+  - ✅ Remoção garantida de registros inconsistentes entre domínios
+
+### **🛠️ Melhorias Técnicas**
+- 🛡️ Parsing JSON robusto com fallback para alucinações da IA
+- 📊 Validação de payload antes de envio para geração de cardápio
+- 🧹 Varredura customizada de histórico com predicados flexíveis
+- 🔍 Logs detalhados para debugging de geração de cardápios
 
 ---
 

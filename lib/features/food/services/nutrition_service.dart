@@ -14,6 +14,7 @@ import '../../../core/services/file_upload_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
 
 import '../../../core/services/media_vault_service.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 class NutritionService {
   static final NutritionService _instance = NutritionService._internal();
@@ -67,32 +68,11 @@ class NutritionService {
   }
 
   Future<Box<NutritionHistoryItem>> _ensureBox({HiveCipher? cipher}) async {
-    final isOpen = Hive.isBoxOpen(boxName);
-    debugPrint('🔍 [V61-TRACE] NutritionService checking box "$boxName": open=$isOpen');
-
-    if (isOpen) {
-      try {
-        _box = Hive.box<NutritionHistoryItem>(boxName);
-        debugPrint('✅ [V61-TRACE] Nutrition box already open with correct type.');
-        return _box!;
-      } catch (e) {
-        debugPrint('⚠️ [V61-TRACE] Type mismatch in Nutrition box. Closing dynamic instance...');
-        await Hive.box(boxName).close();
-      }
+    if (!Hive.isAdapterRegistered(20)) {
+      Hive.registerAdapter(NutritionHistoryItemAdapter());
     }
-
-    try {
-      if (!Hive.isAdapterRegistered(20)) {
-        Hive.registerAdapter(NutritionHistoryItemAdapter());
-      }
-      debugPrint('📂 [V61-TRACE] Opening Nutrition box tipada...');
-      _box = await Hive.openBox<NutritionHistoryItem>(boxName, encryptionCipher: cipher);
-      debugPrint('✅ [V61-TRACE] NutritionService initialized/re-opened (Secure).');
-      return _box!;
-    } catch (e) {
-      debugPrint('❌ [V61-TRACE] FATAL: Error initializing Secure NutritionService: $e');
-      rethrow;
-    }
+    _box = await HiveAtomicManager().ensureBoxOpen<NutritionHistoryItem>(boxName, cipher: cipher);
+    return _box!;
   }
 
   ValueListenable<Box<NutritionHistoryItem>>? get listenable {

@@ -15,6 +15,7 @@ import '../../../../core/utils/prompt_factory.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/enums/scannut_mode.dart';
 import '../../models/pet_profile_extended.dart';
+import '../../models/analise_ferida_model.dart'; // 🛡️ Import for Health History
 import '../../services/pet_vision_service.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -162,9 +163,10 @@ class _EditPetFormState extends State<EditPetForm>
   final PartnerService _partnerService = PartnerService();
   final Map<String, PartnerModel> _modifiedPartners = {};
   
-  // Lab Exams
+  // Lab Exams & History
   final LabExamService _labExamService = LabExamService();
   final ImagePicker _imagePicker = ImagePicker();
+  List<AnaliseFeridaModel> _historicoAnaliseFeridas = []; // 🛡️ Load structured history
   
   // Navigation & Scroll
   final ScrollController _scrollController = ScrollController();
@@ -236,8 +238,8 @@ class _EditPetFormState extends State<EditPetForm>
         especie: _especie,
         raca: PetProfileExtended.normalizeBreed(_racaController.text, _especie),
         idadeExata: _idadeController.text.trim().isEmpty ? null : _idadeController.text.trim(),
-        pesoAtual: double.tryParse(_pesoController.text.trim()),
-        pesoIdeal: double.tryParse(_pesoIdealController.text.trim()),
+        pesoAtual: double.tryParse(_pesoController.text.trim().replaceAll(',', '.')),
+        pesoIdeal: double.tryParse(_pesoIdealController.text.trim().replaceAll(',', '.')),
         nivelAtividade: _nivelAtividade,
         statusReprodutivo: _statusReprodutivo,
         sex: _sexo,
@@ -252,6 +254,7 @@ class _EditPetFormState extends State<EditPetForm>
         weightHistory: _getUpdatedWeightHistory(),
         labExams: _labExams.map((e) => e.toJson()).toList(),
         woundAnalysisHistory: _woundHistory,
+        historicoAnaliseFeridas: _historicoAnaliseFeridas, // 🛡️ Persist
         analysisHistory: _analysisHistory,
         observacoesIdentidade: _observacoesIdentidade,
         observacoesSaude: _observacoesSaude,
@@ -420,6 +423,7 @@ class _EditPetFormState extends State<EditPetForm>
       _weightHistory = List.from(existing.weightHistory);
       _labExams = (existing.labExams).map((json) => LabExam.fromJson(json)).toList();
       _woundHistory = (existing.woundAnalysisHistory).map((e) => Map<String, dynamic>.from(e)).toList();
+      _historicoAnaliseFeridas = List.from(existing.historicoAnaliseFeridas); // 🛡️ Load
       _analysisHistory = List.from(existing.analysisHistory);
       
       // FIX: Auto-fill Breed from Analysis (Aggressive & Comprehensive)
@@ -685,13 +689,58 @@ class _EditPetFormState extends State<EditPetForm>
     final allDocs = await _fileService.getMedicalDocuments(petName);
     if (!mounted) return;
 
+    // Define prefixes for specific categories
+    bool isIdentity(String n) => n.startsWith('identity_');
+    bool isExam(String n) => n.startsWith('health_exams_');
+    bool isPrescription(String n) => n.startsWith('health_prescriptions_');
+    bool isVaccine(String n) => n.startsWith('health_vaccines_');
+    bool isNutrition(String n) => n.startsWith('nutrition_');
+    // Gallery is explicitly 'gallery_' OR anything that doesn't fit others
+    bool isGallery(String n) => n.startsWith('gallery_') || 
+                                (!isIdentity(n) && !isExam(n) && !isPrescription(n) && !isVaccine(n) && !isNutrition(n));
+
+    // Helper to Deduplicate (Prefer OPT_)
+    List<File> optimizeList(List<File> rawList) {
+       final Map<String, File> unique = {};
+       final RegExp tsRegex = RegExp(r'(\d{13})');
+       
+       // First pass: Add non-timestamped files directly + timestamp strategy
+       final List<File> result = [];
+       
+       for (var f in rawList) {
+          final name = path.basename(f.path);
+          final match = tsRegex.firstMatch(name);
+          
+          if (match != null) {
+              final ts = match.group(0)!;
+              if (unique.containsKey(ts)) {
+                  final existingName = path.basename(unique[ts]!.path);
+                  // Upgrade to OPT if new is OPT and old is not
+                  if (!existingName.startsWith('OPT_') && name.startsWith('OPT_')) {
+                      unique[ts] = f;
+                  }
+              } else {
+                  unique[ts] = f;
+              }
+          } else {
+              result.add(f);
+          }
+       }
+       result.addAll(unique.values);
+       // Sort Newest First
+       result.sort((a,b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+       return result;
+    }
+
     setState(() {
-      _attachments['identity'] = allDocs.where((f) => path.basename(f.path).startsWith('identity_')).toList();
-      _attachments['health_exams'] = allDocs.where((f) => path.basename(f.path).startsWith('health_exams_')).toList();
-      _attachments['health_prescriptions'] = allDocs.where((f) => path.basename(f.path).startsWith('health_prescriptions_')).toList();
-      _attachments['health_vaccines'] = allDocs.where((f) => path.basename(f.path).startsWith('health_vaccines_')).toList();
-      _attachments['nutrition'] = allDocs.where((f) => path.basename(f.path).startsWith('nutrition_')).toList();
-      _attachments['gallery'] = allDocs.where((f) => path.basename(f.path).startsWith('gallery_')).toList();
+      _attachments['identity'] = optimizeList(allDocs.where((f) => isIdentity(path.basename(f.path))).toList());
+      _attachments['health_exams'] = optimizeList(allDocs.where((f) => isExam(path.basename(f.path))).toList());
+      _attachments['health_prescriptions'] = optimizeList(allDocs.where((f) => isPrescription(path.basename(f.path))).toList());
+      _attachments['health_vaccines'] = optimizeList(allDocs.where((f) => isVaccine(path.basename(f.path))).toList());
+      _attachments['nutrition'] = optimizeList(allDocs.where((f) => isNutrition(path.basename(f.path))).toList());
+      
+      // Gallery gets the rest (Catch-all)
+      _attachments['gallery'] = optimizeList(allDocs.where((f) => isGallery(path.basename(f.path))).toList());
     });
   }
 
@@ -725,7 +774,26 @@ class _EditPetFormState extends State<EditPetForm>
       String? knownSpecies = (_especie != null && _especie!.isNotEmpty) ? _especie : null;
       String? knownBreed = _racaController.text.trim().isNotEmpty ? _racaController.text.trim() : null;
 
-      final result = await _visionService.analisarFotoPet(file, locale, knownSpecies: knownSpecies, knownBreed: knownBreed);
+      // 🛡️ V139: Context-Aware Analysis Mode
+      ScannutMode mode = ScannutMode.petIdentification;
+      
+      // Determine mode based on active tab
+      // 0: Identity, 1: Health, 2: Nutrition, 3: Events?, 4: Gallery?, 5: Partners?
+      if (_tabController.index == 1) { 
+          mode = ScannutMode.petDiagnosis;
+          debugPrint('🛡️ [EditPetForm] Health Tab (1) active. Switching to DIAGNOSIS mode.');
+      } else if (_tabController.index == 2) {
+          // Could enable food analysis here if implemented for Pet Food
+          // mode = ScannutMode.petNutrition; // Future
+      }
+
+      final result = await _visionService.analisarFotoPet(
+          file, 
+          locale, 
+          knownSpecies: knownSpecies, 
+          knownBreed: knownBreed,
+          mode: mode
+      );
       
       _updateProfileFromAI(result);
       
@@ -925,7 +993,7 @@ class _EditPetFormState extends State<EditPetForm>
         const SizedBox(height: 16),
         Text(
           AppLocalizations.of(context)!.petEmptyGalleryDesc,
-          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.6), fontSize: 12),
+          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.6), fontSize: 12),
         ),
         const SizedBox(height: 20),
 
@@ -933,9 +1001,9 @@ class _EditPetFormState extends State<EditPetForm>
           Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: AppDesign.textPrimaryDark.withOpacity(0.05),
+              color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+              border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
             ),
             child: Column(
               children: [
@@ -2463,9 +2531,10 @@ class _EditPetFormState extends State<EditPetForm>
   }
 
   Widget _buildWoundAnalysisHistory() {
-    final woundHistory = _woundHistory;
+    final woundHistory = _woundHistory; // Legacy
+    final structuredHistory = _historicoAnaliseFeridas; // New Structured
     
-    if (woundHistory.isEmpty) {
+    if (woundHistory.isEmpty && structuredHistory.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2504,11 +2573,19 @@ class _EditPetFormState extends State<EditPetForm>
         _buildSectionTitle('🩹 ${AppLocalizations.of(context)!.petWoundHistory}'),
         const SizedBox(height: 8),
         Text(
-          AppLocalizations.of(context)!.petWoundsCount(woundHistory.length),
+          AppLocalizations.of(context)!.petWoundsCount(woundHistory.length + structuredHistory.length),
           style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
         ),
         const SizedBox(height: 16),
-        ...woundHistory.map((analysis) => _buildWoundAnalysisCard(analysis)),
+        // Deduplicate: If an image exists in structured history, don't show it in legacy history
+        ...woundHistory.where((legacy) {
+            final legacyPath = legacy['imagePath']?.toString();
+            return !structuredHistory.any((structured) => structured.imagemRef == legacyPath);
+        }).map((analysis) => _buildWoundAnalysisCard(analysis)),
+
+        // Render New Structured History (Higher precision)
+        ...structuredHistory.map((analysis) => _buildStructuredWoundCard(analysis)).toList().reversed,
+
       ],
     );
   }
@@ -4336,7 +4413,7 @@ class _EditPetFormState extends State<EditPetForm>
         Map<String, dynamic>? mealPlanData;
         try {
           final petsBox = Hive.box('box_pets_master');
-          final petData = petsBox.get(_nameController.text.trim());
+          final petData = petsBox.get(_nameController.text.trim().toLowerCase());
           
           if (petData != null && petData is Map) {
             final rawData = Map<String, dynamic>.from(petData);
@@ -4739,7 +4816,7 @@ class _EditPetFormState extends State<EditPetForm>
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: ExpansionTile(
         initiallyExpanded: initiallyExpanded,
@@ -4802,6 +4879,158 @@ class _EditPetFormState extends State<EditPetForm>
           ),
         ),
     );
+  }
+
+  // --- WOUND ANALYSIS RICH DISPLAY ---
+
+  Widget _buildStructuredWoundCard(AnaliseFeridaModel analysis) {
+      Color severityColor;
+      // Map Risk Levels to Colors
+      final risk = (analysis.nivelRisco ?? 'Green').toLowerCase();
+      if (risk.contains('red') || risk.contains('vermelho') || risk.contains('alta')) {
+          severityColor = AppDesign.error;
+      } else if (risk.contains('yellow') || risk.contains('amarelo') || risk.contains('média')) {
+          severityColor = Colors.orange;
+      } else {
+          severityColor = AppDesign.success;
+      }
+      
+      final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(analysis.dataAnalise);
+
+      return InkWell(
+        onTap: () {
+             _showWoundDetails(analysis);
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Row(
+            children: [
+               ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                      File(analysis.imagemRef),
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_,__,___) => Container(width: 60, height: 60, color: Colors.white10, child: const Icon(Icons.image_not_supported, size: 20, color: Colors.white30)),
+                  ),
+               ),
+               const SizedBox(width: 12),
+               Expanded(
+                   child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                            Row(children: [
+                                Container(
+                                    width: 8, height: 8,
+                                    decoration: BoxDecoration(color: severityColor, shape: BoxShape.circle),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(
+                                    analysis.diagnosticosProvaveis.isNotEmpty ? analysis.diagnosticosProvaveis.first : 'Sem diagnóstico',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                                    maxLines: 1, overflow: TextOverflow.ellipsis
+                                )),
+                            ]),
+                            const SizedBox(height: 4),
+                            Text(dateStr, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                            const SizedBox(height: 4),
+                            Text(
+                                analysis.recomendacao ?? '', 
+                                maxLines: 2, 
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white70, fontSize: 11)
+                            )
+                       ]
+                   )
+               ),
+               const Icon(Icons.chevron_right, color: Colors.white30)
+            ],
+          ),
+        ),
+      );
+  }
+
+  void _showWoundDetails(AnaliseFeridaModel analysis) {
+      showDialog(
+        context: context,
+        builder: (context) => Dialog(
+            backgroundColor: AppDesign.backgroundDark,
+            insetPadding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                        if (File(analysis.imagemRef).existsSync())
+                             Image.file(File(analysis.imagemRef), height: 250, width: double.infinity, fit: BoxFit.cover),
+                        
+                        Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text('Diagnóstico Detalhado', style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 18, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 16),
+                                
+                                _buildDetailRow('Nível de Risco', analysis.nivelRisco, color: Colors.white),
+                                _buildDetailRow('Data', DateFormat('dd/MM/yyyy HH:mm').format(analysis.dataAnalise), color: Colors.white),
+                                
+                                const Divider(color: Colors.white12, height: 24),
+                                
+                                if (analysis.diagnosticosProvaveis.isNotEmpty) ...[
+                                    const Text('Causas Prováveis:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                                    const SizedBox(height: 4),
+                                    ...analysis.diagnosticosProvaveis.map((c) => Padding(padding: const EdgeInsets.only(bottom: 2), child: Text('• $c', style: const TextStyle(color: Colors.white)))),
+                                    const SizedBox(height: 12),
+                                ],
+                                
+                                if (analysis.descricaoVisual != null) ...[
+                                    const Text('Descrição Visual:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                                    const SizedBox(height: 4),
+                                    Text(analysis.descricaoVisual!, style: const TextStyle(color: Colors.white)),
+                                    const SizedBox(height: 12),
+                                ],
+                                
+                                if (analysis.caracteristicas != null) ...[
+                                    const Text('Características:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                                    const SizedBox(height: 4),
+                                    Text(analysis.caracteristicas!, style: const TextStyle(color: Colors.white)),
+                                    const SizedBox(height: 12),
+                                ],
+
+                                const Text('Recomendação:', style: TextStyle(color: Colors.white60, fontSize: 12)),
+                                const SizedBox(height: 4),
+                                Text(analysis.recomendacao, style: const TextStyle(color: Colors.white)),
+
+                            ]),
+                        ),
+                        
+                        TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Fechar', style: TextStyle(color: Colors.white54))
+                        )
+                    ]
+                )
+            )
+        )
+      );
+  }
+
+  Widget _buildDetailRow(String label, String value, {Color color = Colors.white}) {
+      return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                  Text('$label: ', style: const TextStyle(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Expanded(child: Text(value, style: TextStyle(color: color, fontSize: 13))),
+              ]
+          )
+      );
   }
 
 }

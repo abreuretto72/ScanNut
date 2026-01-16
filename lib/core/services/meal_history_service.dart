@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'hive_atomic_manager.dart';
 
 final mealHistoryServiceProvider = Provider((ref) => MealHistoryService());
 
@@ -8,18 +8,12 @@ class MealHistoryService {
   static const String boxName = 'scannut_meal_history';
 
   Future<void> init({HiveCipher? cipher}) async {
-    if (!Hive.isBoxOpen(boxName)) {
-      await Hive.openBox(boxName, encryptionCipher: cipher);
-    }
+    await HiveAtomicManager().ensureBoxOpen(boxName, cipher: cipher);
   }
 
   // 🛡️ SELF-HEALING BOX ACCESS
   Future<Box> _getOpenBox() async {
-    if (!Hive.isBoxOpen(boxName)) {
-      debugPrint('⚠️ MealHistoryService: Box was closed. Reopening...');
-      return await Hive.openBox(boxName);
-    }
-    return Hive.box(boxName);
+    return await HiveAtomicManager().ensureBoxOpen(boxName);
   }
 
   // Save the ingredients used in a weekly plan for a specific pet

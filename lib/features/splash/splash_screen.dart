@@ -60,8 +60,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         
         debugPrint('👤 Checking session...');
         if (mounted) {
+           debugPrint('🛡️ [Splash] Calling simpleAuthService.checkPersistentSession()...');
            // Tenta recuperar sessão persistente e chave mestra
            final bool isLoggedIn = await simpleAuthService.checkPersistentSession();
+           debugPrint('✅ [Splash] Session check complete. Result: $isLoggedIn');
 
            // -------------------------------------------------------------
            // DEBUG DIAGNOSTICS LOGS
@@ -89,14 +91,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
              // Session is active/persistent. Check biometrics requirement.
              if (simpleAuthService.isBiometricEnabled) {
                 // Prompt Bio right here
-                final bioSuccess = await simpleAuthService.authenticateWithBiometrics();
-                if (bioSuccess) {
+                final bioResult = await simpleAuthService.authenticateWithBiometrics();
+                if (bioResult == AuthResult.success) {
                    nextScreen = const HomeView();
                    decisionLog = "NAVIGATE_TO_HOME (Biometric Success)";
                 } else {
                    // If bio fails or cancelled, user must login manually
                    nextScreen = const LoginScreen();
-                   decisionLog = "NAVIGATE_TO_LOGIN (Biometric Rejection/Cancel)";
+                   decisionLog = "NAVIGATE_TO_LOGIN (Biometric Rejection/Cancel/MissingKey)";
                 }
              } else {
                 nextScreen = const HomeView();

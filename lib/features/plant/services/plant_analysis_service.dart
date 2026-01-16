@@ -61,6 +61,14 @@ class PlantAnalysisService {
 
         return PlantAnalysisModel.fromJson(data);
       } catch (e) {
+        // ERROR HANDLING (Recuperação de Crash)
+        debugPrint('⚠️ Plant Analysis Critical Failure: $e');
+        
+        // Se for erro de Null Check, lançar mensagem amigável
+        if (e.toString().contains("Null check operator")) {
+           throw Exception("Ops! Não conseguimos ler todos os detalhes da planta. Tente uma foto mais nítida.");
+        }
+
         // 5. Logs de Debug
         debugPrint('Plant Analysis Error (Retries left: $retries): $e');
         

@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'hive_atomic_manager.dart';
 import '../utils/json_cast.dart';
 
 import 'simple_auth_service.dart';
@@ -14,7 +15,7 @@ class HistoryService {
 
   Future<void> init({HiveCipher? cipher}) async {
     final effectiveCipher = cipher ?? SimpleAuthService().encryptionCipher;
-    await Hive.openBox(boxName, encryptionCipher: effectiveCipher);
+    await HiveAtomicManager().ensureBoxOpen(boxName, cipher: effectiveCipher);
     
     // 🧹 GLOBAL RESET: Limpeza de Paths Órfãos (Cache/Temp)
     await _sanitizeOrphanedCachePaths();
@@ -64,12 +65,7 @@ class HistoryService {
   }
 
   static Future<Box> getBox() async {
-    if (Hive.isBoxOpen(boxName)) {
-      return Hive.box(boxName);
-    } else {
-      // 🛡️ Safe open
-      return await Hive.openBox(boxName, encryptionCipher: SimpleAuthService().encryptionCipher);
-    }
+    return await HiveAtomicManager().ensureBoxOpen(boxName, cipher: SimpleAuthService().encryptionCipher);
   }
 
   static Future<List<Map<String, dynamic>>> getHistory() async {
@@ -106,18 +102,25 @@ class HistoryService {
   }
 
   Future<void> saveAnalysis(Map<String, dynamic> analysis, String mode, {String? imagePath}) async {
+    await addScan(mode, analysis, imagePath: imagePath);
+  }
+
+  static Future<void> addScan(String mode, Map<String, dynamic> data, {String? imagePath, String? thumbnailPath, String? petName}) async {
     try {
       final box = await getBox();
       final entry = {
         'timestamp': DateTime.now().toIso8601String(),
         'mode': mode,
-        'data': analysis,
+        'data': data,
         if (imagePath != null) 'image_path': imagePath,
+        if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
+        if (petName != null) 'pet_name': petName,
+        if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
       };
       await box.add(entry);
       await box.flush(); // Ensure persistence
     } catch (e) {
-      debugPrint('❌ Error saving analysis: $e');
+      debugPrint('❌ Error adding scan to history: $e');
     }
   }
 

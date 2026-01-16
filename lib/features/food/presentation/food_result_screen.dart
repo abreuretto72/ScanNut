@@ -60,6 +60,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   bool _isSaved = false;
   late FoodAnalysisModel _analysis;
   bool _isGeneratingRecipes = false;
+  bool _isOpeningRecipe = false; // 🛡️ V132: Loop Lock
 
   @override
   void initState() {
@@ -131,7 +132,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 ),
                 IconButton(
                   icon: const Icon(Icons.menu_book, color: Colors.orange),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecipeHistoryScreen())),
+                  onPressed: _onRecipeClick,
                   tooltip: 'Receitas Salvas',
                 ),
                 IconButton(
@@ -167,8 +168,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.2),
-                            Colors.black.withOpacity(0.8),
+                            Colors.black.withValues(alpha: 0.2),
+                            Colors.black.withValues(alpha: 0.8),
                             Colors.black,
                           ],
                           stops: const [0.5, 0.7, 0.9, 1.0],
@@ -794,6 +795,25 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     }
   }
 
+  Future<void> _onRecipeClick() async {
+      if (_isOpeningRecipe) return;
+      
+      setState(() => _isOpeningRecipe = true);
+      
+      try {
+        await Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (_) => const RecipeHistoryScreen())
+        );
+      } finally {
+        if (mounted) {
+          // Add small delay to prevent rapid re-entry
+          await Future.delayed(const Duration(milliseconds: 500));
+          setState(() => _isOpeningRecipe = false);
+        }
+      }
+  }
+
   /// Adiciona ao plano de hoje
   Future<void> _addToTodayPlan() async {
     try {
@@ -971,36 +991,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   }
 
   Future<void> _autoSaveRecipes() async {
-    // ANTI-GRAVITY FORCE SAVE (INITIAL LOAD)
-    try {
-      if (_analysis.receitas.isNotEmpty) {
-         if (!Hive.isBoxOpen('recipe_history_box')) {
-            await Hive.openBox<RecipeHistoryItem>('recipe_history_box');
-         }
-         final box = Hive.box<RecipeHistoryItem>('recipe_history_box');
-         
-         for (var r in _analysis.receitas) {
-           // Check duplication based on composite ID or content
-           final alreadyExists = box.values.any((i) => i.foodName == _analysis.identidade.nome && i.recipeName == r.nome);
-           
-           if (!alreadyExists) {
-               final item = RecipeHistoryItem(
-                 id: "${DateTime.now().microsecondsSinceEpoch}_${r.nome.hashCode}",
-                 foodName: _analysis.identidade.nome,
-                 recipeName: r.nome,
-                 instructions: r.instrucoes,
-                 prepTime: r.tempoPreparo,
-                 timestamp: DateTime.now(),
-               );
-               await box.add(item);
-               debugPrint('✅ Anti-Gravity: Recipe forced saved: ${r.nome}');
-           }
-         }
-      }
-    } catch (e) {
-      debugPrint('❌ Anti-Gravity Force Save Failed: $e');
-    }
-
+    // 🛡️ V138: Safe Auto-Save via Service (Fixed Syntax)
     try {
       if (_analysis.receitas.isNotEmpty) {
         await RecipeService().saveAuto(_analysis.receitas, _analysis.identidade.nome);

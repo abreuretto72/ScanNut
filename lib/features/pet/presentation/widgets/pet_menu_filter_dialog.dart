@@ -26,6 +26,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
   
   // Diet
   PetDietType? _selectedDietType;
+  PetFoodType _selectedFoodType = PetFoodType.mixed; // Default
   final TextEditingController _otherNoteController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
@@ -131,7 +132,9 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       'mode': _selectedMode,
       'startDate': _startDate,
       'endDate': _endDate,
+      'endDate': _endDate,
       'dietType': _selectedDietType,
+      'foodType': _selectedFoodType,
       'otherNote': _otherNoteController.text.trim(),
     });
   }
@@ -202,6 +205,11 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
                       _buildSectionTitle(l10n.dietTypeLabel.toUpperCase()),
                       const SizedBox(height: 12),
                       _buildDietDropdown(l10n),
+                      
+                      const SizedBox(height: 12),
+                      _buildSectionTitle('TIPO DE ALIMENTO'), // TODO: Localize
+                       const SizedBox(height: 8),
+                      _buildFoodTypeDropdown(l10n),
 
                       if (_selectedDietType == PetDietType.other) ...[
                         const SizedBox(height: 12),
@@ -327,6 +335,38 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
             });
           },
           validator: (val) => val == null ? l10n.dietRequiredError : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFoodTypeDropdown(AppLocalizations l10n) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black.withOpacity(0.1)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButtonFormField<PetFoodType>(
+          value: _selectedFoodType,
+          dropdownColor: colorPastelPink,
+          isExpanded: true,
+          decoration: const InputDecoration(border: InputBorder.none),
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.black),
+          items: PetFoodType.values.map((type) {
+            return DropdownMenuItem(
+              value: type,
+              child: Text(
+                type.localizedLabel(l10n),
+                style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.w600),
+              ),
+            );
+          }).toList(),
+          onChanged: (val) {
+             if (val != null) setState(() => _selectedFoodType = val);
+          },
         ),
       ),
     );

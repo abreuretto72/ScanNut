@@ -248,6 +248,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
 
 
+
                 const SizedBox(height: 24),
                 
                 const SizedBox(height: 16),
@@ -543,51 +544,95 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _atomicWipeHistoryData() async {
+      final l10n = AppLocalizations.of(context)!;
+      try {
+         debugPrint('🚨 [WIPE_TRACE] Starting Atomic Wipe...');
+         
+         // 1. Identify Target Boxes (Operational Data Only)
+         // Excludes: user_profile, settings (Global Config)
+         final targetBoxes = [
+            'scannut_history',      // General history
+            'box_pets_master',      // Pets and internal history
+            'pet_events',           // Journal events
+            'pet_events_journal',   // Legacy journal
+            'meal_logs',            // Nutrition logs
+            'weekly_plans',         // Nutrition plans
+            'shopping_list',        // Nutrition list
+            'cached_feed',          // Social feed cache
+         ];
+
+         // 2. Clear Boxes Atomically (Keep Box Open)
+         for (final name in targetBoxes) {
+             try {
+                Box box;
+                if (Hive.isBoxOpen(name)) {
+                   box = Hive.box(name);
+                } else {
+                   // Open safely just to clear
+                   box = await Hive.openBox(name);
+                }
+                await box.clear(); // The Atomic Wipe
+                debugPrint('✅ [WIPE_TRACE] Box cleared: $name');
+             } catch (e) {
+                debugPrint('⚠️ [WIPE_TRACE] Failed to clear $name: $e');
+             }
+         }
+
+         // 3. Physical Media Cleanup (Reclaim Storage)
+         final mediaService = MediaVaultService();
+         await mediaService.clearDomain(MediaVaultService.PETS_DIR);
+         await mediaService.clearDomain(MediaVaultService.FOOD_DIR);
+         await mediaService.clearDomain(MediaVaultService.BOTANY_DIR);
+         await mediaService.clearDomain(MediaVaultService.WOUNDS_DIR); // V180
+         debugPrint('✅ [WIPE_TRACE] Media Vault purged.');
+
+         if (!mounted) return;
+         SnackBarHelper.showSuccess(context, 'Todos os registros foram limpos com sucesso.');
+         
+      } catch (e) {
+         debugPrint('❌ [WIPE_TRACE] Critical failure: $e');
+         if(mounted) SnackBarHelper.showError(context, 'Erro ao limpar dados: $e');
+      }
+  }
+
+  void _showAtomicWipeDialog() {
+     showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+           backgroundColor: AppDesign.surfaceDark,
+           title: Row(
+              children: [
+                 const Icon(Icons.warning_amber_rounded, color: AppDesign.error),
+                 const SizedBox(width: 8),
+                 Text('ZONA DE PERIGO', style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
+              ],
+           ),
+           content: Text(
+              'Deseja apagar todos os registros de histórico? Pets, diagnósticos, diários e cardápios serão removidos permanentemente.\n\nEsta ação NÃO afeta sua conta ou configurações.',
+              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
+           ),
+           actions: [
+              TextButton(
+                 onPressed: () => Navigator.pop(context),
+                 child: Text('Cancelar', style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+              ),
+              TextButton(
+                 onPressed: () {
+                    Navigator.pop(context);
+                    _atomicWipeHistoryData();
+                 },
+                 child: Text('APAGAR TUDO', style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
+              ),
+           ],
+        ),
+     );
+  }
+
   Future<void> _performFactoryReset() async {
-    try {
-      // 1. Reset SharedPreferences (Settings)
-      await ref.read(settingsProvider.notifier).resetToDefaults();
-      
-      // 2. Hard reset all Hive databases
-      await ref.read(historyServiceProvider).hardResetAllDatabases();
-
-      // 💣 NUCLEAR CLEANUP: Physically delete ALL media in vault
-      await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
-      await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR);
-      await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR);
-      await MediaVaultService().clearDomain(MediaVaultService.WOUNDS_DIR);
-      
-      // 3. Invalidate Providers to clear RAM cache (Exhaustive)
-      final providersToInvalidate = [
-        nutritionProfileProvider,
-        weeklyPlanHistoryProvider,
-        currentWeekPlanProvider,
-        mealLogsProvider,
-        shoppingListProvider,
-        historyServiceProvider,
-        settingsProvider,
-        vaccineStatusServiceProvider,
-        petEventServiceProvider,
-        partnerServiceProvider,
-      ];
-
-      for (final provider in providersToInvalidate) {
-        ref.invalidate(provider as dynamic);
-      }
-      
-      if (!mounted) return;
-      
-      // 4. Logout (Clears Encryption Key and Session)
-      await simpleAuthService.logout();
-
-      // 5. Force navigate to Root (Splash) - This will re-trigger init sequence
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-    } catch (e) {
-      debugPrint('Error factory reset: $e');
-      if (mounted) {
-        SnackBarHelper.showError(context, 'Erro ao resetar: $e');
-      }
-    }
+      await _atomicWipeHistoryData();
+      // Optional: Logout if desired, but Atomic Wipe is history-only.
+      // If full factory reset is needed, we would add settings reset logic here.
   }
 
   Future<void> _saveUserProfileOnChange() async {

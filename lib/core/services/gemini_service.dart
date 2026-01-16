@@ -43,7 +43,7 @@ class GeminiService {
       try {
         debugPrint('🔍 Testando modelo: $model');
         final response = await _dio.post(
-          '/v1beta/models/$model:generateContent',
+          '/v1/models/$model:generateContent',
           queryParameters: {'key': _apiKey},
           data: {
             'contents': [
@@ -202,7 +202,7 @@ class GeminiService {
 
       // Make request with timeout
       final response = await _dio.post(
-        '/v1beta/models/$workingModel:generateContent',
+        '/v1/models/$workingModel:generateContent',
         queryParameters: {'key': _apiKey},
         data: requestData,
         options: Options(
@@ -578,7 +578,7 @@ class GeminiService {
 
     try {
       final response = await _dio.post(
-        '/v1beta/models/$model:generateContent',
+        '/v1/models/$model:generateContent',
         queryParameters: {'key': _apiKey},
         data: {
           "contents": [{"parts": [{"text": prompt}]}]
@@ -610,9 +610,9 @@ class GeminiService {
       throw GeminiException('API Key missing', type: GeminiErrorType.configuration);
     }
 
-    // Using the fixed endpoint requested by the user
-    final String url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$_apiKey';
-
+    // Use dynamic model selection for improved reliability
+    final workingModel = await _findWorkingModel() ?? 'gemini-1.5-flash';
+    
     final requestData = {
       "contents": [
         {
@@ -622,25 +622,25 @@ class GeminiService {
       ],
       "generationConfig": {
         "temperature": 0.1,
-        "maxOutputTokens": 8192, // Increased as requested
-        "responseMimeType": "application/json"
+        "maxOutputTokens": 8192
       }
     };
 
     String rawText = '';
     try {
-      debugPrint('🚀 [Gemini] PetMenu Generation - Endpoint: gemini-2.5-flash');
+      debugPrint('🚀 [Gemini] PetMenu Generation - Model: $workingModel');
       
       final response = await _dio.post(
-        url,
+        '/v1/models/$workingModel:generateContent',
+        queryParameters: {'key': _apiKey},
         data: requestData,
         options: Options(
           headers: {'Content-Type': 'application/json'},
         ),
-      ).timeout(const Duration(seconds: 90)); // Increased timeout
+      ).timeout(const Duration(seconds: 90));
 
       final fetchedText = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-      if (fetchedText == null) throw Exception('Empty response parts');
+      if (fetchedText == null) throw Exception('Empty response parts from Gemini');
       rawText = fetchedText.toString();
 
       return _extractJson(rawText);
@@ -662,7 +662,8 @@ class GeminiService {
         final repairPrompt = "Você me enviou um JSON inválido ou incompleto. Por favor, corrija-o para que seja um JSON válido de acordo com o formato solicitado anteriormente. Retorne APENAS o JSON corrigido.";
         
         final repairResponse = await _dio.post(
-          url,
+          '/v1/models/$workingModel:generateContent',
+          queryParameters: {'key': _apiKey},
           data: {
             "contents": [
               {
@@ -680,8 +681,7 @@ class GeminiService {
             ],
             "generationConfig": {
               "temperature": 0.0, // Stable retry
-              "maxOutputTokens": 8192,
-              "responseMimeType": "application/json"
+              "maxOutputTokens": 8192
             }
           },
         ).timeout(const Duration(seconds: 60));

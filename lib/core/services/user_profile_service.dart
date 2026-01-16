@@ -1,6 +1,7 @@
-import 'package:hive/hive.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../models/user_profile.dart';
+import 'hive_atomic_manager.dart';
 
 class UserProfileService {
   static final UserProfileService _instance = UserProfileService._internal();
@@ -16,7 +17,7 @@ class UserProfileService {
       if (!Hive.isAdapterRegistered(23)) {
         Hive.registerAdapter(UserProfileAdapter());
       }
-      _box = await Hive.openBox<UserProfile>(boxName, encryptionCipher: cipher);
+      _box = await HiveAtomicManager().ensureBoxOpen<UserProfile>(boxName, cipher: cipher);
       debugPrint('✅ UserProfileService initialized (Secure).');
     } catch (e) {
       debugPrint('❌ Error initializing Secure UserProfileService: $e');

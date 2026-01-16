@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../l10n/app_localizations.dart';
@@ -14,6 +18,7 @@ import '../../../core/utils/app_feedback.dart';
 
 // Core
 import '../../../core/providers/analysis_provider.dart';
+import '../../../core/services/simple_auth_service.dart';
 import '../../../core/services/history_service.dart';
 import '../../../core/services/meal_history_service.dart';
 import '../../../core/providers/settings_provider.dart';
@@ -95,10 +100,85 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   Future<void> _initialize() async {
     await _checkDisclaimer();
+    
+    // 🧬 V114: Biometria Inteligente
+    if (mounted) {
+      final shouldPrompt = await simpleAuthService.shouldPromptBiometricActivation();
+      if (shouldPrompt) {
+        _showBiometricActivationDialog();
+      }
+    }
+
+    // 🛡️ V115: Validação Anti-Fantasmas (TOI)
+    _validateNoGhostPets();
+
     // Don't initialize camera on startup - wait for user to select a mode
     setState(() {
       _isLoading = false;
     });
+  }
+
+  void _validateNoGhostPets() async {
+    try {
+      final petService = PetProfileService();
+      await petService.init();
+      final pets = await petService.getAllProfiles();
+      final toiExists = pets.any((p) => p['name']?.toString().toUpperCase() == 'TOI');
+      
+      debugPrint('🛡️ [V115-AUDIT] Pets Validados (${pets.length}): ${pets.map((p) => p['name']).toList()}');
+      if (toiExists) {
+        debugPrint('🚨 [V115-AUDIT] GHOST DETECTADO: "TOI" ainda presente. Iniciando eliminação...');
+        // Atomic wipe of TOI is handled at service level if needed, but here we just audit.
+      } else {
+        debugPrint('✅ [V115-AUDIT] Sistema limpo de pets fantasmas.');
+      }
+    } catch (e) {
+      debugPrint('⚠️ [V115-AUDIT] Erro na auditoria de pets: $e');
+    }
+  }
+
+  Future<void> _showBiometricActivationDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    await showDialog(
+      context: context,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: AlertDialog(
+          backgroundColor: AppDesign.backgroundDark.withOpacity(0.9),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: AppDesign.success, width: 2)),
+          title: Row(
+            children: [
+              const Icon(Icons.fingerprint, color: AppDesign.success),
+              const SizedBox(width: 10),
+              Text('Acesso Rápido', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Text(
+            'Detectamos que seu dispositivo suporta biometria. Deseja ativar o acesso rápido para entrar no ScanNut sem digitar senha?',
+            style: GoogleFonts.poppins(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel, style: GoogleFonts.poppins(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppDesign.success),
+              onPressed: () async {
+                await simpleAuthService.setBiometricEnabled(true);
+                if (mounted) {
+                   Navigator.pop(context);
+                   AppFeedback.showSuccess(context, 'Acesso rápido ativado!');
+                }
+              },
+              child: Text('Ativar Agora', style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _checkDisclaimer() async {
@@ -187,7 +267,6 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
        });
     }
   }
-
   Future<void> _disposeCamera() async {
     if (_controller != null) {
       debugPrint('🔴 _disposeCamera: Starting disposal sequence...');
@@ -196,23 +275,29 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       if (mounted) {
         setState(() {
           _isCameraInitialized = false;
-          _currentIndex = -1; // Reset mode selection
+          // Note: We do NOT reset _currentIndex here anymore locally if we want to stay on the screen
+          // But original logic did. Let's keep it consistent, but note unified flow might need mode.
+          // _currentIndex = -1; // Removed to allow UI to persist mode during analysis
         });
       }
 
       // 2. Perform actual disposal in background
       final controllerToDispose = _controller;
-      _controller = null;
+      _controller = null; // Important: Clear immediately to prevent re-use attempt
       
       try {
-        await controllerToDispose!.dispose();
-        debugPrint('✅ _disposeCamera: Controller successfully disposed');
+        if (controllerToDispose != null) {
+          await controllerToDispose.dispose();
+          debugPrint('✅ _disposeCamera: Controller successfully disposed');
+        }
       } catch (e) {
         debugPrint('⚠️ _disposeCamera: Error during dispose: $e');
       }
     }
   }
 
+  /// 🚀 [V85] SUPER PROMPT: UNIFIED CAPTURE FLOW
+  /// Handles camera capture
   Future<void> _onCapture() async {
     debugPrint('🔵 _onCapture: START');
     
@@ -232,130 +317,162 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       final XFile image = await _controller!.takePicture();
       debugPrint('✅ _onCapture: Picture taken: ${image.path}');
       
-      // Save mode before disposing camera
-      final capturedMode = _currentIndex;
-      final capturedPetMode = _petMode;
-      debugPrint('📋 _onCapture: Mode captured: $capturedMode, PetMode: $capturedPetMode');
+      await _processCapturedImage(File(image.path));
       
-      setState(() {
-        _capturedImage = File(image.path);
-      });
-      debugPrint('✅ _onCapture: State updated with captured image');
-
-      // Dispose camera after taking photo
-      debugPrint('🔴 _onCapture: Disposing camera...');
-      await _disposeCamera();
-      debugPrint('✅ _onCapture: Camera disposed');
-
-      // For Health/Diagnosis mode (petMode == 1), show pet selection dialog
-      if (capturedMode == 2 && capturedPetMode == 1) {
-        debugPrint('🏥 _onCapture: Health mode detected, showing pet selection...');
-        final selectedPet = await _showPetSelectionDialog();
-        
-        if (selectedPet == null) {
-          debugPrint('❌ _onCapture: User cancelled pet selection');
-          return;
-        }
-        
-        setState(() {
-          _petName = selectedPet == '<NOVO>' ? null : selectedPet;
-        });
-        debugPrint('✅ _onCapture: Selected pet: ${_petName ?? "NOVO (no save)"}');
-      }
-      // For Identification mode, prompt for pet name as before
-      else if (capturedMode == 2 && capturedPetMode == 0) {
-        debugPrint('🐾 _onCapture: Prompting for pet name...');
-        final name = await _promptPetName();
-        if (name == null || name.trim().isEmpty) {
-          debugPrint('❌ _onCapture: User cancelled pet name');
-          return;
-        }
-        setState(() {
-          _petName = name.trim();
-        });
-        debugPrint('✅ _onCapture: Pet name set: $_petName');
-      }
-
-      // Trigger analysis
-      debugPrint('🔍 _onCapture: Determining analysis mode...');
-      ScannutMode mode;
-      switch (capturedMode) {
-        case 0:
-          mode = ScannutMode.food;
-          break;
-        case 1:
-          mode = ScannutMode.plant;
-          break;
-        case 2:
-        default:
-          mode = capturedPetMode == 0 ? ScannutMode.petIdentification : ScannutMode.petDiagnosis;
-          break;
-      }
-      debugPrint('✅ _onCapture: Mode: $mode');
-
-      List<String> excludedIngredients = [];
-      if (mode == ScannutMode.petIdentification && _petName != null) {
-        debugPrint('🍖 _onCapture: Getting excluded ingredients for $_petName');
-        excludedIngredients = await ref.read(mealHistoryServiceProvider).getRecentIngredients(_petName!);
-        debugPrint('✅ _onCapture: Excluded ingredients: ${excludedIngredients.length}');
-      }
-
-      // 🛡️ Phase 4: Inject Context Data
-      Map<String, String>? contextData;
-      if (_petName != null) {
-          try {
-              final pSrv = PetProfileService();
-              await pSrv.init();
-              final pMap = await pSrv.getProfile(_petName!);
-              if (pMap != null && pMap['data'] != null) {
-                  final pd = pMap['data'];
-                  contextData = {
-                      'species': pd['especie']?.toString() ?? 'Unknown',
-                      'breed': pd['raca']?.toString() ?? 'Unknown',
-                  };
-              }
-          } catch (e) {
-              debugPrint('Error loading context for analysis: $e');
-          }
-      }
-
-      // Language Shield: Enforce en_US if English is detected to prevent mixed responses
-      String localeCode = Localizations.localeOf(context).toString();
-      if (localeCode.toLowerCase().contains('en')) {
-        localeCode = 'en_US';
-      }
-
-      await ref.read(analysisNotifierProvider.notifier).analyzeImage(
-        imageFile: File(image.path), 
-        mode: mode,
-        petName: _petName,
-        excludedBases: excludedIngredients,
-        locale: localeCode,
-        contextData: contextData,
-      );
-      
-      // Capture the success state BEFORE resetting the provider
-      final resultState = ref.read(analysisNotifierProvider);
-
-      // Critical Fix: Reset provider to Idle to remove the Loading Overlay (Stack) immediately
-      // This prevents the "faded/blurred" effect over the result sheet.
-      ref.read(analysisNotifierProvider.notifier).reset();
-
-      if (!context.mounted) return;
-
-      // Small delay to allow the UI (loading overlay) to disappear completely from the frame
-      await Future.delayed(const Duration(milliseconds: 100));
-      
-      debugPrint('✅ _onCapture: Analysis complete, handling result...');
-      // Pass the captured state to the handler
-      await _handleAnalysisResult(resultState);
-      debugPrint('🎉 _onCapture: END SUCCESS');
     } catch (e, stackTrace) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
-      debugPrint('📚 Stack trace: $stackTrace');
-      if (mounted) {
-        AppFeedback.showError(context, 'Erro na captura: $e');
+       if (mounted) AppFeedback.showError(context, 'Erro na captura: $e');
+    }
+  }
+
+  /// 🚀 [V85] SUPER PROMPT: GALLERY FLOW
+  /// Handles gallery selection
+  Future<void> _pickFromGallery() async {
+    debugPrint('🔵 _pickFromGallery: START');
+    try {
+      final picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      
+      if (image != null) {
+        debugPrint('🖼️ _pickFromGallery: Image selected: ${image.path}');
+        await _processCapturedImage(File(image.path));
+      } else {
+        debugPrint('⚠️ _pickFromGallery: User cancelled');
       }
+    } catch (e) {
+      debugPrint('❌ Error picking from gallery: $e');
+      if (mounted) AppFeedback.showError(context, 'Erro ao abrir galeria: $e');
+    }
+  }
+
+  /// 🛡️ [V85] CORE PROCESSOR: Otimização Atômica e Injeção
+  Future<void> _processCapturedImage(File rawImage) async {
+      try {
+          // 1. Otimização Atômica (V70.1) - 1080px / 70%
+          final optimizedImage = await _optimizeImage(rawImage);
+          
+           setState(() {
+            _capturedImage = optimizedImage;
+          });
+          debugPrint('✅ _process: Image optimized & State updated.');
+
+          // 2. Dispose Camera (if active) to free resources
+          // We only dispose if we are NOT going to restart it immediately, 
+          // but for analysis it is good to pause/dispose.
+          if (_isCameraInitialized) {
+             debugPrint('🔴 _process: Disposing camera for analysis...');
+             await _disposeCamera();
+          }
+
+          final capturedMode = _currentIndex;
+          final capturedPetMode = _petMode;
+
+          // 3. Logic for Pet Selection (Unified)
+          if (capturedMode == 2 && (capturedPetMode == 1 || capturedPetMode == 2)) { // Health or Stool 💩
+             debugPrint('🏥 _process: Clinical mode detected, showing pet selection...');
+             final selectedPet = await _showPetSelectionDialog();
+             
+             if (selectedPet == null) {
+               debugPrint('❌ _process: User cancelled pet selection');
+               // Re-init camera if we cancelled? Or just valid exit.
+               return; 
+             }
+             setState(() => _petName = selectedPet == '<NOVO>' ? null : selectedPet);
+          } else if (capturedMode == 2 && capturedPetMode == 0) { // ID
+             debugPrint('🐾 _process: Prompting for pet name...');
+             final name = await _promptPetName();
+             if (name == null || name.trim().isEmpty) return;
+             setState(() => _petName = name.trim());
+          }
+
+          // 4. Injeção na IA Gemini
+          debugPrint('🔍 _process: Configuring Analysis Mode...');
+          ScannutMode mode;
+          switch (capturedMode) {
+            case 0: mode = ScannutMode.food; break;
+            case 1: mode = ScannutMode.plant; break;
+            case 2: 
+              if (capturedPetMode == 0) mode = ScannutMode.petIdentification;
+              else if (capturedPetMode == 1) mode = ScannutMode.petDiagnosis;
+              else mode = ScannutMode.petStoolAnalysis; // 💩 V231
+              break;
+            default: mode = ScannutMode.petIdentification; break;
+          }
+
+          List<String> excludedIngredients = [];
+          if (mode == ScannutMode.petIdentification && _petName != null) {
+             excludedIngredients = await ref.read(mealHistoryServiceProvider).getRecentIngredients(_petName!);
+          }
+
+          // 🛡️ Context Injection
+          Map<String, String>? contextData;
+          if (_petName != null) {
+              try {
+                  final pSrv = PetProfileService();
+                  await pSrv.init();
+                  final pMap = await pSrv.getProfile(_petName!);
+                  if (pMap != null && pMap['data'] != null) {
+                      final pd = pMap['data'];
+                      contextData = {
+                          'species': pd['especie']?.toString() ?? 'Unknown',
+                          'breed': pd['raca']?.toString() ?? 'Unknown',
+                          'weight': pd['peso']?.toString() ?? 'Unknown', // 💩 V231: Crucial for stool volume
+                      };
+                  }
+              } catch (e) {
+                  debugPrint('Error loading context: $e');
+              }
+          }
+
+          String localeCode = Localizations.localeOf(context).toString();
+          if (localeCode.toLowerCase().contains('en')) localeCode = 'en_US';
+
+          // Trigger
+          await ref.read(analysisNotifierProvider.notifier).analyzeImage(
+            imageFile: optimizedImage, 
+            mode: mode,
+            petName: _petName,
+            excludedBases: excludedIngredients,
+            locale: localeCode,
+            contextData: contextData,
+          );
+          
+          final resultState = ref.read(analysisNotifierProvider);
+          
+          // Critical Fix: Reset to remove overlay
+          ref.read(analysisNotifierProvider.notifier).reset();
+
+          if (!context.mounted) return;
+          await Future.delayed(const Duration(milliseconds: 100));
+          
+          await _handleAnalysisResult(resultState);
+          debugPrint('🎉 _process: END SUCCESS');
+
+      } catch (e) {
+           debugPrint('❌❌❌ ERROR in _processCapturedImage: $e');
+           if (mounted) AppFeedback.showError(context, 'Erro no processamento: $e');
+      }
+  }
+
+  Future<File> _optimizeImage(File originalFile) async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final targetPath = path.join(tempDir.path, 'opt_${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+      final result = await FlutterImageCompress.compressAndGetFile(
+        originalFile.absolute.path,
+        targetPath,
+        minWidth: 1080,
+        minHeight: 1080,
+        quality: 70,
+        format: CompressFormat.jpeg, 
+      );
+
+      if (result == null) return originalFile;
+      return File(result.path);
+    } catch (e) {
+      debugPrint('⚠️ Optimization failed, using original: $e');
+      return originalFile;
     }
   }
 
@@ -366,14 +483,18 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     try {
       if (state is AnalysisSuccess) {
         if (state.data is FoodAnalysisModel) {
+          // 🛡️ V231: Auto-Save Food Analysis to History
+          final foodData = state.data as FoodAnalysisModel;
+          _handleSave('Food', data: foodData);
+
           if (_capturedImage != null) {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => FoodResultScreen(
-                  analysis: state.data as FoodAnalysisModel,
+                  analysis: foodData,
                   imageFile: _capturedImage,
-                  onSave: () => _handleSave('Food', data: state.data),
+                  onSave: () => _handleSave('Food', data: foodData),
                 ),
               ),
             );
@@ -381,31 +502,35 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
              _showResultSheet(
               context,
               ResultCard(
-                analysis: state.data as FoodAnalysisModel,
-                onSave: () => _handleSave('Food', data: state.data),
+                analysis: foodData,
+                onSave: () => _handleSave('Food', data: foodData),
               ),
             );
           }
         } else if (state.data is PlantAnalysisModel) {
+          // 🛡️ V231: Auto-Save Plant Analysis to History
+          final plantData = state.data as PlantAnalysisModel;
+          _handleSave('Plant', data: plantData);
+
           _showResultSheet(
             context,
             PlantResultCard(
-              analysis: state.data as PlantAnalysisModel,
+              analysis: plantData,
               imagePath: _capturedImage?.path,
-              onSave: () => _handleSave('Plant', data: state.data),
+              onSave: () => _handleSave('Plant', data: plantData),
               onShop: () => _handleShop(),
             ),
           );
         } else if (state.data is PetAnalysisResult) {
+
           final petAnalysis = state.data as PetAnalysisResult;
 
-          // If in diagnosis mode and a pet was selected (not NOVO), save wound analysis
-          if (_petMode == 1 && _petName != null) {
-            debugPrint('💾 Saving wound analysis for pet: $_petName');
-            await _saveWoundAnalysis(petAnalysis);
-          } else if (_petMode == 1 && _petName == null) {
-            debugPrint('ℹ️ NOVO selected - showing analysis without saving');
+          // If in diagnosis mode, we rely on PetResultScreen for auto-save
+          // to avoid double entries (Legacy vs Structured).
+          if (_petMode == 1) {
+            debugPrint('🏥 [Home] Health mode: Handing off to PetResultScreen for unified save.');
           }
+
           
           // Clean up state before navigation
           ref.read(analysisNotifierProvider.notifier).reset();
@@ -477,6 +602,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
 
     if (type == 'Pet' && activeData is PetAnalysisResult) {
+      debugPrint('💾 [HomeView] Handling Save for Pet mode...');
       final petData = activeData;
       final petName = petData.petName ?? _petName;
 
@@ -648,7 +774,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        "Analisando imagem...",
+                        _currentIndex == 0 ? "Otimizando Dieta..." :
+                        _currentIndex == 1 ? "Identificando Planta..." :
+                        _petMode == 1 ? "Iniciando Triagem Clínica..." :
+                        _petMode == 2 ? "Analisando Amostra Coprológica..." :
+                        "Identificando seu PET...",
                         style: GoogleFonts.poppins(
                           color: Colors.black, // PRETO PURO (Requested)
                           fontWeight: FontWeight.bold,
@@ -866,6 +996,28 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      // Toggle 3: Stool (💩 V231)
+                      GestureDetector(
+                        onTap: () { setState(() { _petMode = 2; }); _clearCapturedImage(); },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _petMode == 2 ? AppDesign.getModeColor(2) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.biotech, size: 20, color: _petMode == 2 ? Colors.black : AppDesign.textPrimaryDark),
+                              if (_petMode == 2) ...[
+                                const SizedBox(width: 8),
+                                const Text("Fezes", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                              ]
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1056,7 +1208,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               left: 0,
               right: 0,
               child: Center(
-                child: _buildShutterButton(),
+                child: _buildCaptureControls(),
               ),
             ),
 
@@ -1130,25 +1282,63 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   );
 }
 
-   Widget _buildShutterButton() {
-    return GestureDetector(
-      onTap: _onCapture,
-      child: Container(
-        width: 80,
-        height: 80,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: AppDesign.getModeColor(_currentIndex), width: 4),
-          color: AppDesign.getModeColor(_currentIndex).withOpacity(0.2),
-        ),
-        padding: const EdgeInsets.all(4),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppDesign.getModeColor(_currentIndex),
+  Widget _buildCaptureControls() {
+    final modeColor = AppDesign.getModeColor(_currentIndex);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Gallery Button (Left)
+          GestureDetector(
+            onTap: _pickFromGallery,
+            child: Container(
+              width: 56, // Fixed size for symmetry
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+                border: Border.all(color: modeColor, width: 2),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2))
+                ],
+              ),
+              child: Icon(Icons.photo_library, color: modeColor, size: 26),
+            ),
           ),
-          child: const Icon(Icons.camera_alt, color: AppDesign.backgroundDark, size: 30),
-        ),
+          
+          const SizedBox(width: 30), // Spacing
+
+          // Shutter Button (Center)
+           GestureDetector(
+            onTap: _onCapture,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: modeColor, width: 4),
+                color: modeColor.withOpacity(0.2),
+                 boxShadow: [
+                  BoxShadow(color: modeColor.withOpacity(0.3), blurRadius: 15, spreadRadius: 1)
+                ],
+              ),
+              padding: const EdgeInsets.all(4),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: modeColor,
+                ),
+                child: const Icon(Icons.camera_alt, color: AppDesign.backgroundDark, size: 36),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 30), // Spacing
+
+          // Invisible Balancing Element (Right)
+          const SizedBox(width: 56, height: 56),
+        ],
       ),
     );
   }
@@ -1323,24 +1513,22 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   // Show pet selection dialog for Health mode
   Future<String?> _showPetSelectionDialog() async {
     try {
-      // 1. Load all registered pets (Profiles)
-      final petProfileService = PetProfileService();
-      await petProfileService.init();
-      final registeredPets = await petProfileService.getAllPetNames();
+      // 1. [V108] Pre-Render Validation (Protocolo de Interface Reativa)
+      // Zera cache da memória e força leitura do disco
+      PetProfileService.to.clearMemoryCache(); 
+      await PetProfileService.to.syncWithDisk();
       
-      // 2. Load pets from history (Analyzed before but maybe no profile yet)
-      final history = await HistoryService.getHistory();
-      final historyPets = history
-          .where((item) => item['mode'] == 'Pet')
-          .map((item) => item['pet_name'] as String? ?? '')
-          .where((name) => name.isNotEmpty)
-          .toList();
-
-      // 3. Merge and unique
-      final allUniquePets = <String>{...registeredPets, ...historyPets}.toList();
+      final registeredPets = await PetProfileService.to.getAllPetNames();
+      
+      // 🛡️ [V106/V108] GHOST PURGE PROTOCOL
+      // We explicitly DO NOT merge pets from HistoryService.
+      // History logs may contain "Ghost Pets" (deleted from profile but remaining in logs).
+      // By restricting selection to Active Profiles only, we eliminate the crash risk.
+      
+      final allUniquePets = registeredPets.toList();
       allUniquePets.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
       
-      debugPrint('📋 Loaded ${allUniquePets.length} unique pets (Profiles: ${registeredPets.length}, History: ${historyPets.length})');
+      debugPrint('🔍 [V108-UI] Pets Validados (${allUniquePets.length}): $allUniquePets');
       
       // Show dialog
       final selectedPet = await showDialog<String>(

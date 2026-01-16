@@ -33,9 +33,11 @@ import '../models/meal_plan_request.dart';
 
 import 'widgets/pet_event_report_dialog.dart';
 import 'pet_event_history_screen.dart';
+import 'deep_analysis_pet_screen.dart';
+import '../../../core/services/simple_auth_service.dart';
+import '../models/pet_analysis_result.dart'; // Ensure this is imported
+
 import 'package:share_plus/share_plus.dart';
-
-
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
   const PetHistoryScreen({Key? key}) : super(key: key);
@@ -97,28 +99,40 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     Map<String, PetProfileExtended?> profileMap = {};
     
     for (var item in petHistory) {
-         final petName = item['pet_name'];
-         if (petName != null && !profileMap.containsKey(petName)) {
-             final profileData = await profileService.getProfile(petName);
-             if (profileData != null && profileData['data'] != null) {
-                 final profile = PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(profileData['data']));
-                 profileMap[petName] = profile;
-                 
-                 // Cache image path
-                 imageMap[petName] = profile.imagePath;
-             }
-         }
-
-         // Load Vet for specific entries if needed
-         if (item['type'] == 'pet_profile_created' || item['type'] == 'pet_profile_updated') {
-             final petName = item['pet_name'];
-             if (petName != null) {
-                 final linkedIds = item['data']?['linked_partner_ids'] ?? [];
-                 if (linkedIds is List && linkedIds.isNotEmpty) {
-                     final partnerId = linkedIds.first; 
-                     final partner = partnerService.getPartner(partnerId);
-                     vetMap[petName] = partner;
+         // 🛡️ ROBUST NAME RESOLUTION (Match Builder Logic)
+         final data = item['data'] is Map ? item['data'] : {};
+         final rawName = item['pet_name'] ?? data['pet_name'] ?? data['name'];
+         
+         if (rawName != null) {
+             final petName = rawName.toString().trim();
+             
+             if (petName.isNotEmpty && !profileMap.containsKey(petName)) {
+                 final profileData = await profileService.getProfile(petName);
+                 if (profileData != null && profileData['data'] != null) {
+                     try {
+                        // Use consistent parsing logic
+                        final dataMap = deepCastMap(profileData['data']);
+                        final profile = PetProfileExtended.fromJson(dataMap);
+                        profileMap[petName] = profile;
+                        
+                        // Cache image path
+                        if (profile.imagePath != null && profile.imagePath!.isNotEmpty) {
+                            imageMap[petName] = profile.imagePath;
+                        }
+                     } catch (e) {
+                        debugPrint('❌ [PetHistory] Error parsing profile for $petName: $e');
+                     }
                  }
+             }
+             
+             // Load Vet for specific entries if needed
+             if (item['type'] == 'pet_profile_created' || item['type'] == 'pet_profile_updated') {
+                  final linkedIds = data['linked_partner_ids'] ?? [];
+                  if (linkedIds is List && linkedIds.isNotEmpty) {
+                      final partnerId = linkedIds.first; 
+                      final partner = partnerService.getPartner(partnerId);
+                      vetMap[petName] = partner;
+                  }
              }
          }
     }
@@ -174,12 +188,45 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
         builder: (context, box, _) {
           // Real-time filtering and sorting
           final allItems = box.values.toList();
-          final petHistory = allItems.where((item) {
+          debugPrint('📜 [PetHistory] Total items in history box: ${allItems.length}');
+          
+          final rawHistory = allItems.where((item) {
              if (item is! Map) return false;
-             return item['mode'] == 'Pet';
+             final mode = item['mode']?.toString();
+             // Debug log for non-matching items to see what's there
+             // if (mode != 'Pet') debugPrint('   [PetHistory] Skipping item with mode: $mode');
+             
+             return mode != null && mode.toLowerCase() == 'pet';
           }).map((e) => deepCastMap(e)).toList();
 
-
+          // 🛡️ DEDUPLICATION STRATEGY (V190)
+          // Group by Pet Name and keep only the LATEST entry.
+          // This prevents "Ghost Duplicates" when switching between Log-Mode (Add) and Profile-Mode (Put).
+          final Map<String, Map<String, dynamic>> uniqueMap = {};
+          
+          for (var item in rawHistory) {
+              final data = item['data'] is Map ? item['data'] : {};
+              final rawName = item['pet_name'] ?? data['pet_name'] ?? data['name'];
+              
+              if (rawName != null) {
+                  final key = rawName.toString().trim();
+                  if (key.isNotEmpty) {
+                      if (!uniqueMap.containsKey(key)) {
+                          uniqueMap[key] = item;
+                      } else {
+                          final currentTs = DateTime.tryParse(uniqueMap[key]?['timestamp'] ?? '') ?? DateTime(2000);
+                          final newTs = DateTime.tryParse(item['timestamp'] ?? '') ?? DateTime(2000);
+                          if (newTs.isAfter(currentTs)) {
+                              uniqueMap[key] = item;
+                          }
+                      }
+                  }
+              }
+          }
+          
+          // Override the list with uniqued values
+          final petHistory = uniqueMap.values.toList();
+          
           petHistory.sort((a, b) {
             final dateA = DateTime.tryParse(a['timestamp'] ?? '') ?? DateTime(2000);
             final dateB = DateTime.tryParse(b['timestamp'] ?? '') ?? DateTime(2000);
@@ -213,7 +260,14 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                 final item = petHistory[index];
                 final data = item['data'] ?? {};
                 final date = DateTime.tryParse(item['timestamp'] ?? '') ?? DateTime.now();
-                final petName = item['pet_name'] ?? l10n.petUnknown;
+                
+                // 🛡️ ROBUST NAME RESOLUTION
+                // Prioritize top-level pet_name, then data-level pet_name, then 'Pet'
+                final rawName = item['pet_name'] ?? data['pet_name'] ?? data['name'];
+                final petName = (rawName != null && rawName.toString().trim().isNotEmpty) 
+                    ? rawName.toString().trim() 
+                    : l10n.petUnknown;
+
                 final timestamp = DateFormat('dd/MM/yyyy HH:mm', Localizations.localeOf(context).toString()).format(date);
                 
                 // Extract breed/species for subtitle
@@ -264,71 +318,109 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                    subtitle = l10n.petBreedUnknown;
                 }
 
-                return Container(
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: AppDesign.surfaceDark,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // BLOCO 1 — CABEÇALHO (IDENTIDADE)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildPetAvatar(item, radius: 44),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                petName,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${_petProfiles[petName]?.especie ?? ''} • ${_petProfiles[petName]?.raca ?? data['breed'] ?? data['identificacao']?['raca_predominante'] ?? 'SRD'} • ${_petProfiles[petName]?.idadeExata ?? data['age'] ?? '---'}',
-                                style: const TextStyle(color: Colors.white60, fontSize: 13),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '${l10n.lastUpdated}: $timestamp',
-                                style: const TextStyle(color: Colors.white38, fontSize: 10),
-                              ),
-                            ],
-                          ),
+                return GestureDetector(
+                  onTap: () async {
+                      // 🛡️ V180: Secure Access to Deep Analysis
+                      final authResult = await SimpleAuthService.authenticate();
+                      if (authResult != AuthResult.success) return;
+                      
+                      try {
+                          final analysisData = deepCastMap(data);
+                          final result = PetAnalysisResult.fromJson(analysisData);
+                          final profile = _petProfiles[petName];
+                          
+                          // Resolve Best Image Path
+                          // Reuse logic from _buildPetAvatar somewhat or rely on cached map
+                          String? imgPath = _currentProfileImages[petName];
+                          if (imgPath == null || !File(imgPath).existsSync()) {
+                             imgPath = item['image_path'] ?? data['image_path'];
+                          }
+                          
+                          if (mounted) {
+                             Navigator.push(
+                               context, 
+                               MaterialPageRoute(
+                                 builder: (_) => DeepAnalysisPetScreen(
+                                   analysis: result,
+                                   imagePath: imgPath ?? '',
+                                   petProfile: profile,
+                                 )
+                               )
+                             );
+                          }
+                      } catch (e) {
+                          debugPrint('❌ Error opening deep analysis: $e');
+                          ScaffoldMessenger.of(context).showSnackBar(
+                             SnackBar(content: Text('Erro ao abrir análise: $e'))
+                          );
+                      }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: AppDesign.surfaceDark,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2), // Linter Fix
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // BLOCO 2 — AÇÕES (3 BOTÕES)
-                    PetActionBar(
-                      petId: petName,
-                      petName: petName,
-                      onAgendaTap: () => _showEventSelector(context, petName),
-                      onMenuTap: () => _handleMenuTap(context, petName),
-                      onEditTap: () => _handleEditTap(item, petName, data),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // BLOCO 1 — CABEÇALHO (IDENTIDADE)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildPetAvatar(item, radius: 44),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      petName,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${_petProfiles[petName]?.especie ?? ''} • ${_petProfiles[petName]?.raca ?? data['breed'] ?? data['identificacao']?['raca_predominante'] ?? 'SRD'} • ${_petProfiles[petName]?.idadeExata ?? data['age'] ?? '---'}',
+                                      style: const TextStyle(color: Colors.white60, fontSize: 13),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '${l10n.lastUpdated}: $timestamp',
+                                      style: const TextStyle(color: Colors.white38, fontSize: 10),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 12),
+                          
+                          // BLOCO 2 — AÇÕES (3 BOTÕES)
+                          PetActionBar(
+                            petId: petName,
+                            petName: petName,
+                            onAgendaTap: () => _showEventSelector(context, petName),
+                            onMenuTap: () => _handleMenuTap(context, petName),
+                            onEditTap: () => _handleEditTap(item, petName, data),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            );
+                  ),
+                );
          },
       ),
       );
@@ -372,10 +464,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Ocorrência", // Updated from Agenda
-                          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                children: [
+                  Text(
+                    (petName.isEmpty || petName == 'Pet') ? 'Pet (Sem Nome)' : petName,
+                    style: GoogleFonts.poppins(fontSize: 20,
+                      fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         Text(
                           'Selecione o tipo de registro',
@@ -418,7 +511,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     // 🛡️ Builds pet avatar with photo or fallback (PADRÃO OBRIGATÓRIO)
   Widget _buildPetAvatar(Map<String, dynamic> item, {double radius = 28}) {
     final l10n = AppLocalizations.of(context)!;
-    final petName = item['pet_name'] as String? ?? l10n.petUnknown;
+    // 🛡️ ROBUST NAME RESOLUTION (Synced with List Builder)
+    final rawName = item['pet_name'] ?? (item['data'] is Map ? item['data']['pet_name'] : null) ?? (item['data'] is Map ? item['data']['name'] : null);
+    final petName = (rawName != null && rawName.toString().trim().isNotEmpty) 
+                      ? rawName.toString().trim() 
+                      : l10n.petUnknown;
 
     debugPrint('🔍 [UI_TRACE] Avatar Build for: $petName');
 

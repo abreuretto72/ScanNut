@@ -6,6 +6,7 @@ import '../models/attachment_model.dart';
 import '../models/pet_event.dart';
 import 'pet_event_service.dart';
 import 'pet_indexing_service.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 class PetEventRepository {
   static final PetEventRepository _instance = PetEventRepository._internal();
@@ -25,7 +26,7 @@ class PetEventRepository {
         Hive.registerAdapter(PetEventModelAdapter());
       }
       
-      _box = await Hive.openBox<PetEventModel>(_boxName, encryptionCipher: cipher);
+      _box = await HiveAtomicManager().ensureBoxOpen<PetEventModel>(_boxName, cipher: cipher);
       
       // 🚀 MIGRATION SCRIPT: Reset volatile cache paths to avoid 'Photo Not Found' errors
       await _sanitizeOrphanedCachePaths();

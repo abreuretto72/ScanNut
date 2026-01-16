@@ -150,6 +150,7 @@ class GroqService {
       case ScannutMode.petDiagnosis:
       case ScannutMode.petVisualAnalysis:
       case ScannutMode.petDocumentOCR:
+      case ScannutMode.petStoolAnalysis:
         return {
           'especie': 'Animal Detectado',
           'descricao_visual': 'Sistema de visão em desenvolvimento.',
@@ -159,6 +160,8 @@ class GroqService {
           'urgencia_nivel': 'Verde',
           'orientacao_imediata': 'Consulte um veterinário para avaliação profissional. Este sistema está em desenvolvimento.',
         };
+      default:
+        return {'error': 'Modo desconhecido'};
     }
   }
 

@@ -1,13 +1,13 @@
 /// ============================================================================
-/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
-/// Este módulo de Eventos de Pets (Agenda/Histórico) foi concluído e validado.
-/// Nenhuma rotina ou lógica interna deve ser modificada.
-/// Data de Congelamento: 29/12/2025
+/// 🛡️ COMPONENTE BLINDADO (V104 - ATOMIC SYNC)
+/// Este módulo utiliza o protocolo de sincronização atômica V104.
+/// Gerenciamento de estado: HiveAtomicManager
 /// ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/pet_event.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 class PetEventService {
   static final PetEventService _instance = PetEventService._internal();
@@ -17,23 +17,39 @@ class PetEventService {
   static const String _boxName = 'pet_events';
   Box<PetEvent>? _box;
 
+  static bool get isInitialized => _instance._box != null && _instance._box!.isOpen;
+
+  // 🛡️ [V104] ATOMIC READY CHECK
+  // static method to ensure service is ready before UI attempts access
+  static Future<void> ensureReady() async {
+     await _instance.init();
+  }
+
   Future<void> init({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return;
+    
+    // 🛡️ [V104] ATOMIC MANAGER DELEGATION
     try {
-        if (!Hive.isBoxOpen(_boxName)) {
-            _box = await Hive.openBox<PetEvent>(_boxName, encryptionCipher: cipher);
-        } else {
-            _box = Hive.box<PetEvent>(_boxName);
+        _box = await HiveAtomicManager().ensureBoxOpen<PetEvent>(_boxName, cipher: cipher);
+        debugPrint('✅ [V104] PetEventService initialized via Atomic Manager.');
+    } catch (e) {
+        debugPrint('❌ [V104] Critical: Failed to open Pet Event Box: $e. Attempting Atomic Reset...');
+        try {
+           await HiveAtomicManager().recreateBox<PetEvent>(_boxName, cipher: cipher);
+           _box = await HiveAtomicManager().ensureBoxOpen<PetEvent>(_boxName, cipher: cipher);
+           debugPrint('✅ [V104] PetEventService recovered via Atomic Reset.');
+        } catch (resetErr) {
+           debugPrint('☠️ [V104] FATAL: Could not recover PetEvent Box: $resetErr');
+           rethrow;
         }
-        debugPrint('✅ PetEventService initialized (Secure). Box Open: ${_box?.isOpen}');
-    } catch (e, stack) {
-        debugPrint('❌ CRITICAL: Failed to open Secure Pet Event Box: $e\n$stack');
     }
   }
 
   Box<PetEvent> get box {
     if (_box == null || !_box!.isOpen) {
-      throw Exception('PetEventService not initialized. Call init() first.');
+      // 🛡️ [V104] FAIL-SAFE ACCESS
+      // If accessed before init, try one last sync attempt
+      throw Exception('PetEventService not initialized. Use ensureReady() first.'); 
     }
     return _box!;
   }

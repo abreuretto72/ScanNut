@@ -5,6 +5,7 @@ import '../../features/pet/models/pet_analysis_result.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../utils/app_logger.dart';
 import 'package:flutter/foundation.dart';
+import 'hive_atomic_manager.dart';
 import 'package:flutter_google_places_sdk/flutter_google_places_sdk.dart' as sdk;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -21,11 +22,7 @@ class PartnerService {
   Future<void> init({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen && _places != null) return;
     try {
-      if (!Hive.isBoxOpen(_boxName)) {
-        _box = await Hive.openBox(_boxName, encryptionCipher: cipher);
-      } else {
-        _box = Hive.box(_boxName);
-      }
+      _box = await HiveAtomicManager().ensureBoxOpen(_boxName, cipher: cipher);
       
       final apiKey = dotenv.env['GOOGLE_PLACES_API_KEY'];
       if (apiKey != null && apiKey.isNotEmpty) {

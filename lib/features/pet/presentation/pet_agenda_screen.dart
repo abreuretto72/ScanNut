@@ -317,7 +317,7 @@ class _EventCard extends StatelessWidget {
         return Colors.red;
       case EventType.medication:
         return Colors.orange;
-      case EventType.other:
+      default:
         return Colors.grey;
     }
   }

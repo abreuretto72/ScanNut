@@ -71,7 +71,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: AppDesign.surfaceDark.withOpacity(0.9),
+          backgroundColor: AppDesign.surfaceDark.withValues(alpha: 0.9),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25), side: const BorderSide(color: AppDesign.info, width: 2)),
           title: Row(
             children: [
@@ -886,13 +886,129 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
   Widget _buildSignsCard() {
     final l10n = AppLocalizations.of(context)!;
     final isDiag = widget.analysis.analysisType == 'diagnosis';
-    final signs = isDiag 
-        ? widget.analysis.possiveisCausas 
-        : [
+    final clinicalSigns = widget.analysis.clinicalSignsDiag;
+    final racaPredict = widget.analysis.identificacao.racaPredict;
+    final morfologia = widget.analysis.identificacao.morfologiaBase;
+
+    // 🛡️ V190: DEEP DIAGNOSIS MODE - NO HIDDEN DATA
+    if (isDiag) {
+       return Column(
+          children: [
+             // 1. Clinical Signs (Detailed Map)
+             if (clinicalSigns != null && clinicalSigns.isNotEmpty)
+               Container(
+                 margin: const EdgeInsets.only(bottom: 12),
+                 decoration: BoxDecoration(
+                   color: AppDesign.surfaceDark,
+                   borderRadius: BorderRadius.circular(24),
+                   border: Border.all(color: Colors.white10),
+                 ),
+                 child: Theme(
+                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                   child: ExpansionTile(
+                     initiallyExpanded: true,
+                     tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                     leading: const Icon(Icons.medical_services_outlined, color: AppDesign.warning),
+                     title: Text(
+                        "DETALHAMENTO CLÍNICO", // TODO: Localize key
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                     ),
+                     subtitle: Text(
+                        "${clinicalSigns.length} sinais identificados",
+                        style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                     ),
+                     children: clinicalSigns.entries.map((e) {
+                         IconData icon = Icons.help_outline;
+                         Color color = Colors.white70;
+                         String label = e.key.toUpperCase();
+
+                         // Icon Mapping
+                         if (e.key.toLowerCase().contains('eye') || e.key.toLowerCase().contains('olho')) { icon = Icons.visibility; }
+                         else if (e.key.toLowerCase().contains('skin') || e.key.toLowerCase().contains('pele')) { icon = Icons.spa; }
+                         else if (e.key.toLowerCase().contains('bone') || e.key.toLowerCase().contains('ortho') || e.key.toLowerCase().contains('ortop')) { icon = Icons.accessibility_new; }
+                         else if (e.key.toLowerCase().contains('diges')) { icon = Icons.local_dining; }
+                         else if (e.key.toLowerCase().contains('dent')) { icon = Icons.cleaning_services; }
+
+                         // Highlight abnormal findings
+                         final isNormal = e.value.toLowerCase().contains('normal') || e.value.toLowerCase().contains('saudável') || e.value.toLowerCase().contains('ausente');
+                         if (!isNormal) color = AppDesign.warning;
+
+                         return Container(
+                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                           child: Row(
+                             crossAxisAlignment: CrossAxisAlignment.start,
+                             children: [
+                               Icon(icon, color: color, size: 18),
+                               const SizedBox(width: 12),
+                               Expanded(
+                                 child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text(label, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                                     Text(e.value, style: GoogleFonts.poppins(color: isNormal ? Colors.white70 : Colors.white, fontSize: 13)),
+                                   ],
+                                 ),
+                               ),
+                             ],
+                           ),
+                         );
+                     }).toList(),
+                   ),
+                 ),
+               ),
+
+             // 2. Possible Causes (Explicit List)
+             if (widget.analysis.possiveisCausas.isNotEmpty)
+               Container(
+                 decoration: BoxDecoration(
+                   color: AppDesign.surfaceDark,
+                   borderRadius: BorderRadius.circular(24),
+                   border: Border.all(color: Colors.white10),
+                 ),
+                 child: Theme(
+                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                   child: ExpansionTile(
+                     initiallyExpanded: true,
+                     tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                     leading: const Icon(Icons.analytics_outlined, color: AppDesign.petPink),
+                     title: Text(
+                        l10n.petLabelPossibleCauses,
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                     ),
+                     children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                          child: Column(
+                             children: widget.analysis.possiveisCausas.map((cause) => 
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.arrow_right_rounded, color: AppDesign.petPink, size: 20),
+                                      const SizedBox(width: 4),
+                                      Expanded(child: Text(cause, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13))),
+                                    ],
+                                  ),
+                                )
+                             ).toList(),
+                          ),
+                        )
+                     ],
+                   ),
+                 ),
+               ),
+          ],
+       );
+    }
+
+    // fallback for Identification Mode
+    final signs = [
+            if (racaPredict != null && racaPredict != 'Unknown' && racaPredict.isNotEmpty) "IA Breed: $racaPredict",
+            if (morfologia != null && morfologia.isNotEmpty) "Morfologia: $morfologia",
             _bestEffortTranslate(widget.analysis.identificacao.porteEstimado),
             _bestEffortTranslate(widget.analysis.higiene.manutencaoPelagem['tipo_pelo'] ?? l10n.commonNormal),
-            _bestEffortTranslate(widget.analysis.lifestyle.estimuloMental['necessidade_estimulo_mental'] ?? l10n.commonModerate),
-          ];
+    ];
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -904,22 +1020,22 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.petObservedSigns,
-            style: GoogleFonts.poppins(
-              fontSize: 16, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.white
-            ),
+          Row(
+            children: [
+              const Icon(Icons.fingerprint, color: AppDesign.petPink),
+              const SizedBox(width: 8),
+              Text(
+                "CARACTERÍSTICAS FÍSICAS",
+                style: GoogleFonts.poppins(
+                  fontSize: 14, 
+                  fontWeight: FontWeight.bold, 
+                  color: Colors.white
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          if (signs.isEmpty || (signs.length == 1 && signs[0].isEmpty))
-            Text(
-              l10n.petNoRelevantChanges,
-              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white54, fontStyle: FontStyle.italic),
-            )
-          else
-            ...signs.map((sign) => Padding(
+           ...signs.map((sign) => Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -929,7 +1045,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       Expanded(
                         child: Text(
                           sign,
-                          style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withOpacity(0.9)),
+                          style: GoogleFonts.poppins(fontSize: 14, color: Colors.white.withValues(alpha: 0.9)),
                         ),
                       ),
                     ],
@@ -951,7 +1067,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             : l10n.petCheckup);
 
     final vetCare = isDiag
-        ? "${l10n.petLabelUrgencyLevel}: ${widget.analysis.urgenciaNivel}"
+        ? widget.analysis.urgenciaNivel 
         : l10n.petCheckup;
 
     final isEmergency = isDiag && (widget.analysis.urgenciaNivel.toLowerCase().contains('emergência') || 
@@ -959,65 +1075,96 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                                     widget.analysis.urgenciaNivel.toLowerCase().contains('vermelho'));
 
     return Container(
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isEmergency ? Colors.red.withOpacity(0.3) : Colors.white10),
+        border: Border.all(color: isEmergency ? Colors.red.withValues(alpha: 0.3) : Colors.white10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.petLabelRecommendations,
-            style: GoogleFonts.poppins(
-              fontSize: 16, 
-              fontWeight: FontWeight.bold, 
-              color: Colors.white
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildCareSection(l10n.petHomeCare, homeCare, Icons.home_rounded),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(color: Colors.white10),
-          ),
-          _buildCareSection(l10n.petVetCare, vetCare, Icons.medical_services_rounded, isAlert: isEmergency),
-        ],
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+           initiallyExpanded: true,
+           tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+           leading: Icon(
+             isEmergency ? Icons.warning_amber_rounded : Icons.healing,
+             color: isEmergency ? Colors.redAccent : AppDesign.petPink,
+           ),
+           title: Text(
+             l10n.petLabelRecommendations,
+             style: GoogleFonts.poppins(
+                fontSize: 14, 
+                fontWeight: FontWeight.bold, 
+                color: Colors.white
+             ),
+           ),
+           children: [
+               Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                        // VETERINARY STATUS HEADER
+                        Container(
+                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                           decoration: BoxDecoration(
+                             color: isEmergency ? Colors.red.withValues(alpha: 0.2) : Colors.green.withValues(alpha: 0.2),
+                             borderRadius: BorderRadius.circular(8),
+                             border: Border.all(
+                               color: isEmergency ? Colors.red : Colors.green,
+                             ),
+                           ),
+                           child: Row(
+                             mainAxisSize: MainAxisSize.min,
+                             children: [
+                                Icon(Icons.monitor_heart, size: 16, color: isEmergency ? Colors.red : Colors.green),
+                                const SizedBox(width: 8),
+                                Text(
+                                  vetCare.toUpperCase(),
+                                  style: GoogleFonts.poppins(
+                                     fontSize: 12,
+                                     fontWeight: FontWeight.bold,
+                                     color: isEmergency ? Colors.red : Colors.green
+                                  ),
+                                ),
+                             ],
+                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // FULL RECOMMENDATION TEXT
+                        Text(
+                           "ORIENTAÇÃO VETERINÁRIA & HOME CARE:", // TODO: Localize
+                           style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white54
+                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          homeCare,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14, 
+                            color: Colors.white, 
+                            height: 1.5
+                          ),
+                        ),
+                     ],
+                  ),
+               )
+           ],
+        ),
       ),
     );
   }
 
-  Widget _buildCareSection(String title, String content, IconData icon, {bool isAlert = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: isAlert ? Colors.redAccent : AppDesign.petPink, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 12, 
-                fontWeight: FontWeight.bold, 
-                color: isAlert ? Colors.redAccent : Colors.white60
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          content,
-          style: GoogleFonts.poppins(
-            fontSize: 14, 
-            color: Colors.white, 
-            height: 1.4
-          ),
-        ),
-      ],
-    );
-  }
+  // _buildCareSection is no longer needed but keeping it empty or deprecated would be cleaner. 
+  // For safety, I'll remove it or ignore it if not called.
+  // Actually, I can just replace the whole block including _buildCareSection if it was consecutive. 
+  // Checking line numbers... 1081 is _buildCareSection. My edit ends at 1110. 
+  // So I can replace both functions in one go.
+
+
 
   Widget _buildTechnicalExpansion() {
     final l10n = AppLocalizations.of(context)!;

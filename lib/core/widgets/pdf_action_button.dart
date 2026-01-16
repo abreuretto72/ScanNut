@@ -20,11 +20,11 @@ class PdfActionButton extends StatelessWidget {
       tooltip: tooltip,
       icon: Container(
         padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: color ?? Colors.transparent, // Default to transparent as requested
+        decoration: const BoxDecoration(
+          color: Colors.transparent, 
           shape: BoxShape.circle,
         ),
-        child: const AppPdfIcon(color: Colors.white, size: 20),
+        child: AppPdfIcon(color: color ?? Colors.white, size: 24),
       ),
     );
   }

@@ -379,6 +379,9 @@ Mantenha as chaves JSON em inglês.
 
       case ScannutMode.petDocumentOCR:
         return getPetOCRPrompt(languageName, languageInstruction);
+
+      case ScannutMode.petStoolAnalysis:
+        return PetPrompts.getPetStoolAnalysisPrompt(languageName, languageInstruction, isPortuguese, contextData: contextData);
     }
   }
 

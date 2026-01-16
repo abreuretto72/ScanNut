@@ -86,6 +86,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdfReportTitle => 'Report';
 
   @override
+  String get pdfAnaliseFezes => 'Fecal Analysis (Stool)';
+
+  @override
   String get pdfGeneratedOn => 'Generated on';
 
   @override
@@ -93,6 +96,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pdfHealthSection => 'Health & Medical History';
+
+  @override
+  String get pdfClinicalSigns => 'Clinical Signs & Triage';
+
+  @override
+  String get pdfEyes => 'Eyes';
+
+  @override
+  String get pdfTeeth => 'Teeth';
+
+  @override
+  String get pdfSkin => 'Skin/Coat';
 
   @override
   String get pdfNutritionSection => 'Nutrition & Meal Plan';
@@ -374,13 +389,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loadingFood => 'Analyzing food...';
 
   @override
-  String get loadingPlant => 'Diagnosing plant...';
+  String get loadingPlant => 'Analyzing plant...';
 
   @override
-  String get loadingPetBreed => 'Identifying breed and calculating metrics...';
+  String get loadingPetBreed => 'Analyzing PET image...';
 
   @override
-  String get loadingPetHealth => 'Analyzing health...';
+  String get loadingPetHealth => 'Analyzing PET health...';
 
   @override
   String get nutrientsAdvancedMacros => 'Advanced Macronutrients';
@@ -2070,6 +2085,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petBreedLabel => 'Breed';
 
   @override
+  String get petOriginRegion => 'Region of Origin';
+
+  @override
+  String get petMorphology => 'Morphological Type';
+
+  @override
+  String get unknownRegion => 'Unknown Region';
+
+  @override
+  String get unknownMorphology => 'Morphology N/A';
+
+  @override
   String get petAgeLabel => 'Exact Age (e.g., 2 years 3 months)';
 
   @override
@@ -3231,7 +3258,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'This event has no linked partner to show details.';
 
   @override
-  String agendaProfileNotFound(Object name) {
+  String agendaProfileNotFound(Object name, Object petName) {
     return 'Profile for $name not found.';
   }
 
@@ -5434,11 +5461,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petAddRestriction => 'Add restriction';
 
   @override
-  String get petDossierTitle => 'Análise Veterinária 360°';
+  String get petDossierTitle => 'Veterinary 360º Analysis';
 
   @override
   String get petDossierDisclaimer =>
-      'Conteúdo gerado por IA. Use como referência. Não substitui avaliação veterinária.';
+      'AI-generated content. Use as reference. Does not substitute professional veterinary evaluation.';
 
   @override
   String get petDossierAnalyzedImage => 'Imagem Analisada';
@@ -5459,10 +5486,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petDossierStatus => 'Status';
 
   @override
-  String get petSectionIdentity => 'Identificação Visual';
+  String get petSectionIdentity => 'Visual Identification';
 
   @override
-  String get petSectionPreventive => 'Saúde Preventiva';
+  String get petSectionPreventive => 'Preventive Health';
 
   @override
   String get petSectionGrowth => 'Curva de Crescimento';
@@ -5531,4 +5558,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String petIndexing_taskCompleted(Object task) {
     return 'Task completed: $task';
   }
+
+  @override
+  String get agendaLoadError => 'Erro ao carregar a agenda. Tente novamente.';
+
+  @override
+  String get pdfPrecision => 'Precision';
 }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../../../../core/services/hive_atomic_manager.dart';
 import 'package:flutter/foundation.dart';
 import '../models/weekly_plan.dart';
 import '../models/plan_day.dart';
@@ -20,28 +21,8 @@ class ShoppingListService {
   Box<ShoppingListItem>? _box;
 
   Future<void> init({HiveCipher? cipher}) async {
-    final isOpen = Hive.isBoxOpen(_boxName);
-    debugPrint('🔍 [V61-TRACE] ShoppingListService checking box "$_boxName": open=$isOpen');
-
-    if (isOpen) {
-      try {
-        _box = Hive.box<ShoppingListItem>(_boxName);
-        debugPrint('✅ [V61-TRACE] ShoppingList box already open with correct type.');
-      } catch (e) {
-        debugPrint('⚠️ [V61-TRACE] Type mismatch in ShoppingList box. Closing dynamic instance...');
-        await Hive.box(_boxName).close();
-      }
-    }
-
-    if (_box == null || !_box!.isOpen) {
-      try {
-        debugPrint('📂 [V61-TRACE] Opening ShoppingList box tipada...');
-        _box = await Hive.openBox<ShoppingListItem>(_boxName, encryptionCipher: cipher);
-        debugPrint('✅ [V61-TRACE] ShoppingListService initialized (Secure).');
-      } catch (e) {
-        debugPrint('❌ [V61-TRACE] FATAL: Error initializing Secure ShoppingListService: $e');
-      }
-    }
+    _box = await HiveAtomicManager().ensureBoxOpen<ShoppingListItem>(_boxName, cipher: cipher);
+    debugPrint('✅ ShoppingListService initialized (Secure).');
   }
   Future<void> clearCompleted() async {
     if (_box == null || !_box!.isOpen) return;

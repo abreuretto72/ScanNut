@@ -10,7 +10,7 @@ class PetVisionService {
 
   /// Processa a análise da foto do pet (Espécie, Raça, Linhagem)
   /// Retorna um Map com os dados brutos da análise
-  Future<Map<String, dynamic>> analisarFotoPet(File imageFile, String locale, {String? knownSpecies, String? knownBreed}) async {
+  Future<Map<String, dynamic>> analisarFotoPet(File imageFile, String locale, {String? knownSpecies, String? knownBreed, ScannutMode mode = ScannutMode.petIdentification}) async {
     try {
       
       Map<String, String>? contextData;
@@ -23,12 +23,7 @@ class PetVisionService {
 
       final result = await _geminiService.analyzeImage(
         imageFile: imageFile, 
-        mode: ScannutMode.petIdentification, // Note: This might need to be dynamic depending on what we are doing, but for now we follow existing logic.
-        // Wait, if we are diagnosing, we should use petDiagnosis? 
-        // The original code used ScannutMode.petIdentification for everything? 
-        // Let's check edit_pet_form.dart usage. It seems so.
-        // Actually, if we are doing diagnosis, edit_pet_form usually calls specific methods.
-        // But let's stick to the signature change first.
+        mode: mode, // 🛡️ V139: Dynamic Mode (Diagnosis vs Identification)
         locale: locale,
         contextData: contextData,
       );

@@ -394,6 +394,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
             endDate: config['endDate'],
             locale: Localizations.localeOf(context).toString(),
             dietType: config['dietType'] as PetDietType,
+            foodType: (config['foodType'] as PetFoodType?) ?? PetFoodType.mixed,
             otherNote: config['otherNote'] as String?,
             source: 'PetProfile', // Authorized Source (WeeklyMenuScreen is reached via PetProfile)
          );
@@ -596,6 +597,11 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                     Row(
                        children: [
                           IconButton(
+                             icon: const Icon(Icons.autorenew, size: 20, color: AppDesign.petPink),
+                             onPressed: () => _recycleMeal(plan, day),
+                             tooltip: "Sugerir outra (IA)", 
+                          ),
+                          IconButton(
                              icon: const Icon(Icons.edit, size: 16, color: Colors.white54),
                              onPressed: () => _editDayDialog(plan, day),
                              tooltip: l10n.commonSave, 
@@ -771,6 +777,71 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
      }
   }
 
+
+   Future<void> _recycleMeal(WeeklyMealPlan plan, DailyMealItem day) async {
+       if (!mounted) return;
+       final l10n = AppLocalizations.of(context)!;
+       
+       // Feedback
+       ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+               children: [
+                 const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                 const SizedBox(width: 12),
+                 Text("${l10n.petMenuCalculating(widget.petName)}..."),
+               ]
+            ),
+            backgroundColor: AppDesign.petPink,
+            duration: const Duration(seconds: 10), 
+          )
+       );
+       
+       try {
+          final newItem = await ref.read(petMenuGeneratorProvider).regenerateSingleMeal(day, widget.petName);
+          
+          if (newItem != null) {
+              if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              
+              // Save Logic (Copied from _editDayDialog or _deleteDay)
+              final newMeals = List<DailyMealItem>.from(plan.meals);
+              final index = newMeals.indexOf(day);
+              if (index != -1) newMeals[index] = newItem;
+
+              final updatedPlan = WeeklyMealPlan(
+                 id: plan.id,
+                 petId: plan.petId,
+                 startDate: plan.startDate,
+                 endDate: plan.endDate,
+                 dietType: plan.dietType,
+                 nutritionalGoal: plan.nutritionalGoal,
+                 meals: newMeals,
+                 metadata: plan.metadata,
+                 templateName: plan.templateName,
+                 createdAt: plan.createdAt
+              );
+              
+              await MealPlanService().savePlan(updatedPlan);
+              
+              if (mounted) {
+                 setState(() {
+                    final hIndex = _history.indexWhere((p) => p.id == plan.id);
+                    if (hIndex != -1) _history[hIndex] = updatedPlan;
+                 });
+                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Opção alterada com sucesso!"), backgroundColor: AppDesign.success));
+              }
+
+          } else {
+             if (mounted) {
+               ScaffoldMessenger.of(context).hideCurrentSnackBar();
+               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Falha ao regenerar opção."), backgroundColor: AppDesign.error));
+             }
+          }
+       } catch (e) {
+          debugPrint('Recycle error: $e');
+          if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
+       }
+   }
 
   String _getDietLabel(String code, AppLocalizations l10n) {
      if (code.toLowerCase().startsWith("outra") || code.toLowerCase().startsWith("other")) return code;

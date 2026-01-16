@@ -59,9 +59,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           ),
         ],
       ),
-      body: ValueListenableBuilder<Box<BotanyHistoryItem>>(
-        valueListenable: BotanyService().listenable!,
-        builder: (context, box, _) {
+      body: BotanyService().listenable == null 
+          ? const Center(child: CircularProgressIndicator(color: AppDesign.plantGreen))
+          : ValueListenableBuilder<Box<BotanyHistoryItem>>(
+              valueListenable: BotanyService().listenable!,
+              builder: (context, box, _) {
           final items = box.values.whereType<BotanyHistoryItem>().toList().reversed.toList();
           
           if (items.isEmpty) {

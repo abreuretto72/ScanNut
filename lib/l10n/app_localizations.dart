@@ -251,6 +251,12 @@ abstract class AppLocalizations {
   /// **'Prontuário'**
   String get pdfReportTitle;
 
+  /// No description provided for @pdfAnaliseFezes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Coprológica (Fezes)'**
+  String get pdfAnaliseFezes;
+
   /// No description provided for @pdfGeneratedOn.
   ///
   /// In pt, this message translates to:
@@ -268,6 +274,30 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Saúde e Histórico Médico'**
   String get pdfHealthSection;
+
+  /// No description provided for @pdfClinicalSigns.
+  ///
+  /// In pt, this message translates to:
+  /// **'Avaliação de Sinais Clínicos e Triagem'**
+  String get pdfClinicalSigns;
+
+  /// No description provided for @pdfEyes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Olhos'**
+  String get pdfEyes;
+
+  /// No description provided for @pdfTeeth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dentes'**
+  String get pdfTeeth;
+
+  /// No description provided for @pdfSkin.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pele/Pelagem'**
+  String get pdfSkin;
 
   /// No description provided for @pdfNutritionSection.
   ///
@@ -794,19 +824,19 @@ abstract class AppLocalizations {
   /// No description provided for @loadingPlant.
   ///
   /// In pt, this message translates to:
-  /// **'Diagnosticando planta...'**
+  /// **'Analisando a planta...'**
   String get loadingPlant;
 
   /// No description provided for @loadingPetBreed.
   ///
   /// In pt, this message translates to:
-  /// **'Calculando métricas personalizadas e identificando raça...'**
+  /// **'Analisando imagem do PET...'**
   String get loadingPetBreed;
 
   /// No description provided for @loadingPetHealth.
   ///
   /// In pt, this message translates to:
-  /// **'Analisando saúde...'**
+  /// **'Analisando saúde do PET...'**
   String get loadingPetHealth;
 
   /// No description provided for @nutrientsAdvancedMacros.
@@ -3995,6 +4025,30 @@ abstract class AppLocalizations {
   /// **'Raça'**
   String get petBreedLabel;
 
+  /// No description provided for @petOriginRegion.
+  ///
+  /// In pt, this message translates to:
+  /// **'Região de Origem'**
+  String get petOriginRegion;
+
+  /// No description provided for @petMorphology.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo Morfológico'**
+  String get petMorphology;
+
+  /// No description provided for @unknownRegion.
+  ///
+  /// In pt, this message translates to:
+  /// **'Região Desconhecida'**
+  String get unknownRegion;
+
+  /// No description provided for @unknownMorphology.
+  ///
+  /// In pt, this message translates to:
+  /// **'Morfologia N/A'**
+  String get unknownMorphology;
+
   /// No description provided for @petAgeLabel.
   ///
   /// In pt, this message translates to:
@@ -5468,7 +5522,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfAgendaTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Check de Agenda'**
+  /// **'AGENDA GLOBAL'**
   String get pdfAgendaTitle;
 
   /// No description provided for @pdfObservationsTitle.
@@ -5510,7 +5564,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfCompleted.
   ///
   /// In pt, this message translates to:
-  /// **'Realizado'**
+  /// **'Concluído'**
   String get pdfCompleted;
 
   /// No description provided for @pdfPending.
@@ -5534,7 +5588,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfAgendaReport.
   ///
   /// In pt, this message translates to:
-  /// **'Relatório de Agenda Pet'**
+  /// **'Relatório de Agenda'**
   String get pdfAgendaReport;
 
   /// No description provided for @pdfTotalEvents.
@@ -5588,7 +5642,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfSummaryReport.
   ///
   /// In pt, this message translates to:
-  /// **'Relatório Resumido - Tabela Omitida'**
+  /// **'Relatório Resumido'**
   String get pdfSummaryReport;
 
   /// No description provided for @pdfNoImages.
@@ -6134,7 +6188,7 @@ abstract class AppLocalizations {
   /// No description provided for @agendaGlobalTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Agenda Geral'**
+  /// **'Agenda Global'**
   String get agendaGlobalTitle;
 
   /// No description provided for @agendaViewCalendar.
@@ -6146,13 +6200,13 @@ abstract class AppLocalizations {
   /// No description provided for @agendaViewAll.
   ///
   /// In pt, this message translates to:
-  /// **'Ver Todos os Eventos'**
+  /// **'Ver Lista Completa'**
   String get agendaViewAll;
 
   /// No description provided for @agendaNoEventsRegistered.
   ///
   /// In pt, this message translates to:
-  /// **'Nenhum evento registrado.'**
+  /// **'Nenhum evento registado na agenda.'**
   String get agendaNoEventsRegistered;
 
   /// No description provided for @agendaNoEventsTodayDetail.
@@ -6164,7 +6218,7 @@ abstract class AppLocalizations {
   /// No description provided for @agendaAllPets.
   ///
   /// In pt, this message translates to:
-  /// **'Todos os Pets'**
+  /// **'Todos os Animais'**
   String get agendaAllPets;
 
   /// No description provided for @agendaExportPDF.
@@ -6176,13 +6230,13 @@ abstract class AppLocalizations {
   /// No description provided for @agendaReportingPeriod.
   ///
   /// In pt, this message translates to:
-  /// **'Período de Apuração'**
+  /// **'Período do Relatório'**
   String get agendaReportingPeriod;
 
   /// No description provided for @agendaFilterPet.
   ///
   /// In pt, this message translates to:
-  /// **'Filtrar por Pet'**
+  /// **'Filtrar por Animal'**
   String get agendaFilterPet;
 
   /// No description provided for @agendaFilterCategory.
@@ -6194,25 +6248,25 @@ abstract class AppLocalizations {
   /// No description provided for @agendaDetailLevel.
   ///
   /// In pt, this message translates to:
-  /// **'Nível de Detalhamento'**
+  /// **'Nível de Detalhe'**
   String get agendaDetailLevel;
 
   /// No description provided for @agendaDetailedTable.
   ///
   /// In pt, this message translates to:
-  /// **'Detalhado (Com Tabela)'**
+  /// **'Tabela Detalhada'**
   String get agendaDetailedTable;
 
   /// No description provided for @agendaSummaryOnly.
   ///
   /// In pt, this message translates to:
-  /// **'Resumo (Apenas Indicadores)'**
+  /// **'Apenas Resumo'**
   String get agendaSummaryOnly;
 
   /// No description provided for @agendaButtonGenerate.
   ///
   /// In pt, this message translates to:
-  /// **'GERAR RELATÓRIO'**
+  /// **'Gerar PDF'**
   String get agendaButtonGenerate;
 
   /// No description provided for @agendaAllCategories.
@@ -6224,14 +6278,14 @@ abstract class AppLocalizations {
   /// No description provided for @agendaNoPartnerLinked.
   ///
   /// In pt, this message translates to:
-  /// **'Este evento não tem parceiro vinculado para exibir detalhes.'**
+  /// **'Nenhum parceiro vinculado a este evento.'**
   String get agendaNoPartnerLinked;
 
   /// No description provided for @agendaProfileNotFound.
   ///
   /// In pt, this message translates to:
-  /// **'Perfil de {name} não encontrado.'**
-  String agendaProfileNotFound(Object name);
+  /// **'Perfil de {petName} não encontrado.'**
+  String agendaProfileNotFound(Object name, Object petName);
 
   /// No description provided for @agendaServiceRecord.
   ///
@@ -10582,6 +10636,18 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Tarefa concluída: {task}'**
   String petIndexing_taskCompleted(Object task);
+
+  /// No description provided for @agendaLoadError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao carregar a agenda. Tente novamente.'**
+  String get agendaLoadError;
+
+  /// No description provided for @pdfPrecision.
+  ///
+  /// In pt, this message translates to:
+  /// **'Precisão'**
+  String get pdfPrecision;
 }
 
 class _AppLocalizationsDelegate

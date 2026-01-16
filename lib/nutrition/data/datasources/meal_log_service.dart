@@ -1,6 +1,7 @@
-import 'package:hive/hive.dart';
 import 'package:flutter/foundation.dart';
 import '../models/meal_log.dart';
+import '../../../../core/services/hive_atomic_manager.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /// Serviço para gerenciar logs de refeições
 /// Box: nutrition_meal_logs
@@ -11,29 +12,7 @@ class MealLogService {
 
   /// Inicializa o box
   Future<void> init({HiveCipher? cipher}) async {
-    final isOpen = Hive.isBoxOpen(_boxName);
-    debugPrint('🔍 [V61-TRACE] MealLogService checking box "$_boxName": open=$isOpen');
-
-    if (isOpen) {
-      try {
-        _box = Hive.box<MealLog>(_boxName);
-        debugPrint('✅ [V61-TRACE] MealLog box already open with correct type.');
-      } catch (e) {
-        debugPrint('⚠️ [V61-TRACE] Type mismatch in MealLog box. Closing dynamic instance...');
-        await Hive.box(_boxName).close();
-      }
-    }
-
-    if (_box == null || !_box!.isOpen) {
-      try {
-        debugPrint('📂 [V61-TRACE] Opening MealLog box tipada...');
-        _box = await Hive.openBox<MealLog>(_boxName, encryptionCipher: cipher);
-        debugPrint('✅ [V61-TRACE] MealLogService initialized (Secure). Box Open: ${_box?.isOpen}');
-      } catch (e) {
-        debugPrint('❌ [V61-TRACE] FATAL: Error initializing Secure MealLogService: $e');
-        rethrow;
-      }
-    }
+    _box = await HiveAtomicManager().ensureBoxOpen<MealLog>(_boxName, cipher: cipher);
   }
 
   /// Adiciona um log de refeição

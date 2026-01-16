@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/theme/app_design.dart';
-import '../../../core/models/partner_model.dart';
+import 'package:scannut/core/theme/app_design.dart';
+import 'package:scannut/core/models/partner_model.dart';
 
 class PartnerExportConfigurationModal extends StatefulWidget {
   final List<PartnerModel> allPartners;

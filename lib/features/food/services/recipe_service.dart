@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/recipe_history_item.dart';
 import '../models/food_analysis_model.dart'; // For ReceitaRapida
 import '../../../core/services/subscription_service.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 class RecipeService {
   static final RecipeService _instance = RecipeService._internal();
@@ -15,11 +16,34 @@ class RecipeService {
   static const String boxName = 'recipe_history_box';
   Box<RecipeHistoryItem>? _box;
 
+  Future<void> _initService() async {
+    // ⚠️ Deprecated method call, keeping signature to match view_file but logic is inside init() below
+  }
+ 
   Future<void> init() async {
-    if (!Hive.isAdapterRegistered(31)) {
-      Hive.registerAdapter(RecipeHistoryItemAdapter());
+    debugPrint('🔧 [RecipeService] Init called.');
+    
+    try {
+      if (!Hive.isAdapterRegistered(31)) {
+        debugPrint('🔧 [RecipeService] Registering Adapter(31)...');
+        Hive.registerAdapter(RecipeHistoryItemAdapter());
+      }
+
+      debugPrint('🔧 [RecipeService] Ensuring box "$boxName" is open...');
+      _box = await HiveAtomicManager().ensureBoxOpen<RecipeHistoryItem>(boxName);
+      
+      debugPrint('✅ [RecipeService] Box "$boxName" opened.');
+    } catch (e) {
+      debugPrint('❌ [RecipeService] Init failed. Attempting SELF-HEALING (Recreate Box)... Error: $e');
+      try {
+        await HiveAtomicManager().recreateBox<RecipeHistoryItem>(boxName);
+        _box = await HiveAtomicManager().ensureBoxOpen<RecipeHistoryItem>(boxName);
+        debugPrint('✅ [RecipeService] SELF-HEALING SUCCESS.');
+      } catch (e2) {
+         debugPrint('💀 [RecipeService] SELF-HEALING FAILED: $e2');
+         rethrow;
+      }
     }
-    _box = await Hive.openBox<RecipeHistoryItem>(boxName);
   }
 
   Future<void> saveAuto(List<ReceitaRapida> recipes, String foodName) async {

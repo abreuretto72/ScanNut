@@ -123,15 +123,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
             style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-                setState(() { _isLoading = true; });
-                _loadHistory();
-            },
-            icon: const Icon(Icons.refresh, color: Colors.white), // Icon White
-            label: Text(l10n.foodReload),
-            style: ElevatedButton.styleFrom(backgroundColor: AppDesign.foodOrange, foregroundColor: Colors.white), // Food Orange Theme
-          ),
+          // V108: Removed Manual Reload Button (Reactive UI)
         ],
       ),
     );

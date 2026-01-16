@@ -68,18 +68,8 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
       _isToxic = true;
     }
     
-    // 🛡️ CRITICAL FIX: Trigger Auto-Save only for NEW analyses
-    // We check if it's NOT read-only (new scan) and NOT saved yet.
-    if (!widget.isReadOnly && !_isSaved) {
-       // Using Future.delayed to ensure build phase is complete before callback
-       Future.delayed(Duration.zero, () {
-          if (mounted && !_isSaved) {
-             debugPrint("🌱 Auto-Saving Plant Analysis...");
-             widget.onSave(); // Trigger the parent callback
-             setState(() => _isSaved = true);
-          }
-       });
-    }
+    // Auto-save logic removed: Handled by HomeView for consistency across non-pet domains.
+
   }
 
   @override
@@ -232,178 +222,189 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     // We removed DraggableScrollableSheet here because it's already used in the parent/HomeView logic
-    return ValueListenableBuilder<Box<BotanyHistoryItem>>(
-      valueListenable: BotanyService().listenable!,
-      builder: (context, box, _) {
-        return Material(
-          color: AppDesign.backgroundDark,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              // Handle Bar
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppDesign.textPrimaryDark.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+    final listenable = BotanyService().listenable;
+
+    if (listenable != null) {
+      return ValueListenableBuilder<Box<BotanyHistoryItem>>(
+        valueListenable: listenable,
+        builder: (context, box, _) {
+          return _buildContent(context);
+        },
+      );
+    }
+    
+    // Fallback if service is not ready
+    return _buildContent(context);
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return Material(
+      color: AppDesign.backgroundDark,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          // Handle Bar
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppDesign.textPrimaryDark.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
               ),
-
-              // TOP ACTIONS ROW
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (_isToxic) ...[
-                      _buildActionButton(Icons.warning_amber_rounded, "ALERT", AppDesign.error, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
-                      const SizedBox(width: 12),
-                    ],
-                    _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.white, _generatePDF, backgroundColor: Colors.transparent),
-                    const SizedBox(width: 12),
-                    _buildActionButton(
-                      _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
-                      null, 
-                      _themeColor, 
-                      () {
-                        if (!_isSaved) {
-                          setState(() => _isSaved = true);
-                          widget.onSave();
-                          HapticFeedback.heavyImpact();
-                        }
-                      }
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AutoSizeText(
-                            widget.analysis.plantName,
-                            style: GoogleFonts.poppins(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: AppDesign.textPrimaryDark,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 16,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          AutoSizeText(
-                            widget.analysis.identificacao.nomeCientifico,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: AppDesign.textSecondaryDark,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            maxLines: 1,
-                            minFontSize: 10,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _statusColor.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _statusColor.withOpacity(0.5)),
-                      ),
-                      child: Icon(_statusIcon, color: _statusColor, size: 24),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // TabBar
-              Container(
-                decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1))),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicatorColor: _themeColor,
-                  labelColor: _themeColor,
-                  unselectedLabelColor: AppDesign.textSecondaryDark,
-                  isScrollable: true,
-                  tabs: [
-                    Tab(text: AppLocalizations.of(context)!.tabHardware.toUpperCase()),
-                    Tab(text: AppLocalizations.of(context)!.tabHealth.toUpperCase()),
-                    Tab(text: AppLocalizations.of(context)!.tabBios.toUpperCase()),
-                    Tab(text: AppLocalizations.of(context)!.tabPropagation.toUpperCase()),
-                    Tab(text: AppLocalizations.of(context)!.tabLifestyle.toUpperCase()),
-                  ],
-                ),
-              ),
-
-              // TabBarView
-              Expanded(
-                child: _buildTabContent(null), // ScrollController is managed by ListView itself now
-              ),
-
-              // Navigation to History
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppDesign.backgroundDark,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.white.withOpacity(0.05),
-                      offset: const Offset(0, -4),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const BotanyHistoryScreen(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _themeColor, // AppDesign.success / Plant Color
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        "Ir para a lista de análises",
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+
+          // TOP ACTIONS ROW
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (_isToxic) ...[
+                  _buildActionButton(Icons.warning_amber_rounded, "ALERT", AppDesign.error, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
+                  const SizedBox(width: 12),
+                ],
+                _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.white, _generatePDF, backgroundColor: Colors.transparent),
+                const SizedBox(width: 12),
+                _buildActionButton(
+                  _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
+                  null, 
+                  _themeColor, 
+                  () {
+                    if (!_isSaved) {
+                      setState(() => _isSaved = true);
+                      widget.onSave();
+                      HapticFeedback.heavyImpact();
+                    }
+                  }
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AutoSizeText(
+                        widget.analysis.plantName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: AppDesign.textPrimaryDark,
+                        ),
+                        maxLines: 1,
+                        minFontSize: 16,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      AutoSizeText(
+                        widget.analysis.identificacao.nomeCientifico,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: AppDesign.textSecondaryDark,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        maxLines: 1,
+                        minFontSize: 10,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _statusColor.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _statusColor.withOpacity(0.5)),
+                  ),
+                  child: Icon(_statusIcon, color: _statusColor, size: 24),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // TabBar
+          Container(
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1))),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: _themeColor,
+              labelColor: _themeColor,
+              unselectedLabelColor: AppDesign.textSecondaryDark,
+              isScrollable: true,
+              tabs: [
+                Tab(text: AppLocalizations.of(context)!.tabHardware.toUpperCase()),
+                Tab(text: AppLocalizations.of(context)!.tabHealth.toUpperCase()),
+                Tab(text: AppLocalizations.of(context)!.tabBios.toUpperCase()),
+                Tab(text: AppLocalizations.of(context)!.tabPropagation.toUpperCase()),
+                Tab(text: AppLocalizations.of(context)!.tabLifestyle.toUpperCase()),
+              ],
+            ),
+          ),
+
+          // TabBarView
+          Expanded(
+            child: _buildTabContent(null), // ScrollController is managed by ListView itself now
+          ),
+
+          // Navigation to History
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppDesign.backgroundDark,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.05),
+                  offset: const Offset(0, -4),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const BotanyHistoryScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _themeColor, // AppDesign.success / Plant Color
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    "Ir para a lista de análises",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -96,7 +96,7 @@ class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: AppDesign.petPink.withOpacity(0.1),
+                        color: AppDesign.petPink.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -115,7 +115,7 @@ class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
               SizedBox(
                 width: 200,
                 child: LinearProgressIndicator(
-                  backgroundColor: Colors.white.withOpacity(0.1),
+                  backgroundColor: Colors.white.withValues(alpha: 0.1),
                   valueColor: const AlwaysStoppedAnimation<Color>(AppDesign.petPink),
                   minHeight: 4,
                 ),

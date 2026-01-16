@@ -120,6 +120,25 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
         avatarPath = widget.imagePath;
     }
 
+    // V480: IDENTITY ENGINE TRACE & FALLBACKS
+    final strings = AppLocalizations.of(context)!;
+    
+    // 1. Data Capture with Fallbacks
+    final lineageInv = widget.analysis.identificacao.linhagemSrdProvavel;
+    final lineage = (lineageInv.trim().isNotEmpty && !lineageInv.contains('N/A')) ? lineageInv : 'Linhagem N/A'; // Fallback visual
+
+    final originInv = widget.analysis.identificacao.origemGeografica;
+    final origin = (originInv.trim().isNotEmpty && !originInv.contains('N/A')) ? originInv : strings.unknownRegion;
+
+    final morphoInv = widget.analysis.identificacao.morfologiaBase;
+    final morpho = (morphoInv.trim().isNotEmpty && !morphoInv.contains('N/A')) ? morphoInv : strings.unknownMorphology;
+
+    final reliabilityRaw = widget.analysis.reliability ?? '0%';
+    final isReliable = reliabilityRaw.contains('9') || reliabilityRaw.toLowerCase() == 'high' || reliabilityRaw.toLowerCase() == 'alta';
+
+    // 2. Trace Log
+    debugPrint('✅ [ID_TRACE] Mapping: Linhagem: $lineage | Conf: $reliabilityRaw | Regiao: $origin | Morpho: $morpho');
+
     return Container(
       color: AppDesign.surfaceDark,
       padding: const EdgeInsets.fromLTRB(24, 10, 24, 24),
@@ -131,12 +150,13 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
             child: Container(
               width: 100,
               height: 100,
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: AppDesign.petPink, width: 3),
                 boxShadow: [
                    BoxShadow(
-                     color: AppDesign.petPink.withOpacity(0.2),
+                     color: AppDesign.petPink.withValues(alpha: 0.2),
                      blurRadius: 12,
                      spreadRadius: 2,
                    )
@@ -149,36 +169,35 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
           ),
           const SizedBox(height: 16),
           // Name
-          Text(
-            displayPetName,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          Text(displayPetName, style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white), textAlign: TextAlign.center),
           const SizedBox(height: 6),
           // Subtitle
-          Text(
-            '$species • $breed',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.white70,
-              fontWeight: FontWeight.w400,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          Text('$species • $breed', style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70, fontWeight: FontWeight.w400), textAlign: TextAlign.center),
           const SizedBox(height: 12),
-          // Small Chips (Age, Size)
+          
+          // V480: Unified Identity Grid
           Wrap(
             spacing: 8,
             runSpacing: 8,
             alignment: WrapAlignment.center,
             children: [
-              if (age != null && age.isNotEmpty)
-                _buildHeaderChip(age, Icons.cake_outlined),
-              _buildHeaderChip(widget.analysis.identificacao.porteEstimado, Icons.straighten),
+               // 1. Reliability (Green/High Priority)
+               _buildHeaderChip(
+                 reliabilityRaw.isEmpty ? 'N/A' : 'Conf: $reliabilityRaw', 
+                 Icons.verified_user, 
+                 backgroundColor: isReliable ? Colors.green.withValues(alpha: 0.2) : null,
+                 borderColor: isReliable ? Colors.green : Colors.grey,
+                 textColor: isReliable ? Colors.greenAccent : Colors.white70
+               ),
+               // 2. Origin
+               _buildHeaderChip(origin, Icons.public, borderColor: Colors.orangeAccent),
+               // 3. Morphology
+               _buildHeaderChip(morpho, Icons.pets, borderColor: AppDesign.petPink),
+               // 4. Lineage
+               _buildHeaderChip(lineage, Icons.account_tree_outlined, borderColor: Colors.blueAccent),
+               // 5. Basic Info
+               if (age != null && age.isNotEmpty) _buildHeaderChip(age, Icons.cake_outlined),
+               _buildHeaderChip(widget.analysis.identificacao.porteEstimado, Icons.straighten),
             ],
           ),
         ],
@@ -186,23 +205,23 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
     );
   }
 
-  Widget _buildHeaderChip(String label, IconData icon) {
+  Widget _buildHeaderChip(String label, IconData icon, {Color? borderColor, Color? backgroundColor, Color? textColor}) {
     if (label.isEmpty || label == 'N/A') return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: AppDesign.backgroundDark,
+        color: backgroundColor ?? AppDesign.backgroundDark,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: borderColor ?? Colors.white12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppDesign.petPink),
+          Icon(icon, size: 12, color: textColor ?? AppDesign.petPink),
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(color: Colors.white, fontSize: 11),
+            style: TextStyle(color: textColor ?? Colors.white, fontSize: 11),
           ),
         ],
       ),
@@ -218,7 +237,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
         decoration: BoxDecoration(
           color: const Color(0xFF2A2A2A), // Dark Gray
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
+          border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -281,7 +300,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
         borderRadius: BorderRadius.circular(12),
         // border: isHighlighted ? Border.all(color: AppDesign.petPink.withOpacity(0.5)) : null,
         boxShadow: [
-             BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2)),
+             BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -398,6 +417,9 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
+          _buildTriageCards(l10n),      // 🛡️ V460: Specialized Triage Cards
+          _buildClinicalSection(l10n), // 🛡️ V210: INJECTED CLINICAL SECTION
+          _buildStoolSection(l10n),    // 💩 V231: INJECTED STOOL SECTION
           _buildAccordion('identificacao', l10n.petSectionIdentity, Icons.pets, {
             'Raça Predominante': widget.analysis.identificacao.racaPredominante,
             'Linhagem': widget.analysis.identificacao.linhagemSrdProvavel,
@@ -433,6 +455,144 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
         ],
       ),
     );
+  }
+
+  Widget _buildTriageCards(AppLocalizations l10n) {
+      if (widget.analysis.category == null) return const SizedBox.shrink();
+      
+      final category = widget.analysis.category!.toLowerCase();
+      
+      if (category == 'olhos' && widget.analysis.eyeDetails != null) {
+          return _buildAccordion('triage_ocular', 'Análise Ocular Especializada', Icons.remove_red_eye, {
+              'Hiperemia': widget.analysis.eyeDetails!['hiperemia'] ?? 'N/A',
+              'Opacidade': widget.analysis.eyeDetails!['opacidade'] ?? 'N/A',
+              'Secreção': widget.analysis.eyeDetails!['secrecao'] ?? 'N/A',
+          });
+      }
+      
+      if (category == 'dentes' && widget.analysis.dentalDetails != null) {
+          return _buildAccordion('triage_dental', 'Análise Odontológica Especializada', Icons.health_and_safety, {
+              'Índice de Tártaro': widget.analysis.dentalDetails!['tartaro_index'] ?? 'N/A',
+              'Gengivite': widget.analysis.dentalDetails!['gengivite'] ?? 'N/A',
+              'Halitose': widget.analysis.dentalDetails!['halitose'] ?? 'N/A',
+          });
+      }
+      
+      if (category == 'pele' && widget.analysis.skinDetails != null) {
+          return _buildAccordion('triage_skin', 'Análise Dermatológica Especializada', Icons.spa, {
+              'Alopecias': widget.analysis.skinDetails!['alopecias'] ?? 'N/A',
+              'Ectoparasitas': widget.analysis.skinDetails!['ectoparasitas'] ?? 'N/A',
+              'Descamação': widget.analysis.skinDetails!['descamacao'] ?? 'N/A',
+          });
+      }
+      
+      if (category == 'ferida' && widget.analysis.woundDetails != null) {
+          return _buildAccordion('triage_wound', 'Análise de Lesão Especializada', Icons.healing, {
+              'Profundidade': widget.analysis.woundDetails!['profundidade'] ?? 'N/A',
+              'Secreção': widget.analysis.woundDetails!['secrecao'] ?? 'N/A',
+              'Bordas': widget.analysis.woundDetails!['bordas'] ?? 'N/A',
+          });
+      }
+
+      return const SizedBox.shrink();
+  }
+
+  Widget _buildStoolSection(AppLocalizations l10n) {
+      if (widget.analysis.analysisType != 'stool_analysis') return const SizedBox.shrink();
+      
+      final details = widget.analysis.stoolAnalysis ?? {};
+      final colorHex = details['color_hex']?.toString() ?? '#8B4513';
+      
+      // Bristol description helper
+      String bristolDesc = 'N/A';
+      final bristol = details['consistency_bristol_scale'];
+      if (bristol != null) {
+          final bInt = int.tryParse(bristol.toString()) ?? 0;
+          if (bInt == 1) bristolDesc = 'Caroços duros (Constipação)';
+          else if (bInt == 4) bristolDesc = 'Ideal (Salsicha lisa)';
+          else if (bInt == 7) bristolDesc = 'Aquosa (Diarreia)';
+          else bristolDesc = 'Escala $bInt';
+      }
+
+      return Column(
+        children: [
+            _buildAccordion('stool_main', 'Biometria de Consistência & Cor', Icons.biotech, {
+                'Escala de Bristol': bristolDesc,
+                'Firmeza': details['firmness'] ?? 'N/A',
+                'Hidratação/Muco': details['hydration_mucus'] ?? 'N/A',
+                'Coloração': '${details['color_name'] ?? "N/A"} ($colorHex)',
+                'Significado Clínico': details['clinical_color_meaning'] ?? 'N/A',
+            }),
+            _buildAccordion('stool_inclusions', 'Inclusões & Corpos Estranhos', Icons.search, {
+                'Corpos Estranhos': (details['foreign_bodies'] as List?)?.join(', ') ?? 'Nenhum detectado',
+                'Parasitas Visíveis': (details['parasites_detected'] == true) ? 'DETECTADO' : 'Nenhum detectado',
+                'Avaliação de Volume': details['volume_assessment'] ?? 'N/A',
+            }),
+            // Visual Color Indicator
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              child: Row(
+                children: [
+                  const Text('Cor Predominante: ', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Color(int.parse(colorHex.replaceFirst('#', '0xFF'))),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white24),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      );
+  }
+
+  Widget _buildClinicalSection(AppLocalizations l10n) {
+      // 🛡️ FALLBACK LOGIC
+      Map<String, dynamic>? signs = widget.analysis.clinicalSignsDiag != null 
+          ? Map<String, dynamic>.from(widget.analysis.clinicalSignsDiag!) 
+          : null;
+          
+      List<String>? causes = widget.analysis.possiveisCausas;
+
+      // Check if current analysis is empty, if so, look at history
+      bool useHistory = false;
+      if ((signs == null || signs.isEmpty) && (causes == null || causes.isEmpty)) {
+          final history = widget.petProfile?.historicoAnaliseFeridas;
+          if (history != null && history.isNotEmpty) {
+             final last = history.last;
+             // Fix Casting for History Data
+             signs = last.achadosVisuais;
+             causes = last.diagnosticosProvaveis;
+             useHistory = true;
+          }
+      }
+      
+      if ((signs == null || signs.isEmpty) && (causes == null || causes.isEmpty)) return const SizedBox.shrink();
+
+      return Column(
+        children: [
+            if (signs != null && signs.isNotEmpty)
+               _buildAccordion('clinical_signs', 'Sinais Clínicos Identificados', Icons.medical_services, Map<String, dynamic>.from(signs)),
+            
+            if (causes != null && causes.isNotEmpty)
+                _buildAccordion('possible_causes', 'Diagnósticos Prováveis', Icons.analytics, 
+                    Map.fromIterable(causes, key: (e) => 'Possibilidade', value: (e) => e.toString())
+                ),
+                
+            if (useHistory)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text(
+                      "(Exibindo dados do histórico recente)",
+                      style: GoogleFonts.poppins(color: Colors.white54, fontSize: 10, fontStyle: FontStyle.italic)
+                  ),
+                )
+        ],
+      );
   }
 
   Widget _buildAccordion(String id, String title, IconData icon, Map<String, dynamic> items) {
@@ -489,7 +649,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), offset: const Offset(0, -4), blurRadius: 12)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), offset: const Offset(0, -4), blurRadius: 12)],
       ),
       child: SafeArea(
         child: Row(

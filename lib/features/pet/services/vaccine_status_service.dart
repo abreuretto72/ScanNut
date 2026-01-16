@@ -8,17 +8,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/vaccine_status.dart';
+import '../../../core/services/hive_atomic_manager.dart';
 
 class VaccineStatusService {
   static const String _boxName = 'vaccine_status';
   Box<VaccineStatus>? _box;
 
   Future<void> init({HiveCipher? cipher}) async {
-    if (!Hive.isBoxOpen(_boxName)) {
-      _box = await Hive.openBox<VaccineStatus>(_boxName, encryptionCipher: cipher);
-    } else {
-      _box = Hive.box<VaccineStatus>(_boxName);
-    }
+    _box = await HiveAtomicManager().ensureBoxOpen<VaccineStatus>(_boxName, cipher: cipher);
   }
 
   Box<VaccineStatus> get box {

@@ -1,6 +1,7 @@
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../models/weekly_plan.dart';
+import '../../../../core/services/hive_atomic_manager.dart';
 
 /// Serviço para gerenciar planos semanais
 /// Box: nutrition_weekly_plans
@@ -20,38 +21,8 @@ class WeeklyPlanService {
 
   /// Ensure box is open
   Future<Box<WeeklyPlan>> _ensureBox({HiveCipher? cipher}) async {
-    final isOpen = Hive.isBoxOpen(_boxName);
-    debugPrint('🔍 [V61-TRACE] WeeklyPlanService checking box "$_boxName": open=$isOpen');
-
-    if (isOpen) {
-      try {
-        _box = Hive.box<WeeklyPlan>(_boxName);
-        debugPrint('✅ [V61-TRACE] WeeklyPlan box already open with correct type.');
-        return _box!;
-      } catch (e) {
-        debugPrint('⚠️ [V61-TRACE] Type mismatch in WeeklyPlan box. Closing dynamic instance...');
-        await Hive.box(_boxName).close();
-      }
-    }
-
-    try {
-      debugPrint('📂 [V61-TRACE] Opening WeeklyPlan box tipada...');
-      _box = await Hive.openBox<WeeklyPlan>(_boxName, encryptionCipher: cipher);
-      debugPrint('✅ WeeklyPlanService initialized/re-opened (Secure). Box Open: ${_box?.isOpen}');
-      return _box!;
-    } catch (e) {
-      debugPrint('⚠️ Error opening WeeklyPlan box. Data might be incompatible. Attempting recovery...');
-      try {
-        // Se falhar ao abrir, deletamos a box corrompida/antiga e tentamos novamente
-        await Hive.deleteBoxFromDisk(_boxName);
-        _box = await Hive.openBox<WeeklyPlan>(_boxName, encryptionCipher: cipher);
-        debugPrint('♻️ WeeklyPlan box recovered successfully.');
-        return _box!;
-      } catch (recoveryError) {
-        debugPrint('❌ Critical error initializing WeeklyPlan recovery: $recoveryError');
-        rethrow;
-      }
-    }
+    _box = await HiveAtomicManager().ensureBoxOpen<WeeklyPlan>(_boxName, cipher: cipher);
+    return _box!;
   }
 
   /// Inicializa o box

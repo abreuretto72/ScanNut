@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/menu_creation_params.dart';
+import '../../../../core/services/hive_atomic_manager.dart';
 
 /// Serviço para persistir a última configuração do filtro de cardápio
 class MenuFilterService {
@@ -14,7 +15,7 @@ class MenuFilterService {
   Box? _box;
 
   Future<void> init({HiveCipher? cipher}) async {
-    _box = await Hive.openBox(_boxName, encryptionCipher: cipher);
+    _box = await HiveAtomicManager().ensureBoxOpen(_boxName, cipher: cipher);
   }
 
   /// Salva a configuração atual

@@ -1,6 +1,7 @@
-import 'package:hive/hive.dart';
 import 'package:flutter/foundation.dart';
 import '../models/user_nutrition_profile.dart';
+import '../../../../core/services/hive_atomic_manager.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /// Serviço para gerenciar o perfil nutricional do usuário
 /// Box: nutrition_user_profile
@@ -12,30 +13,8 @@ class NutritionProfileService {
 
   /// Inicializa o box
   Future<void> init({HiveCipher? cipher}) async {
-    final isOpen = Hive.isBoxOpen(_boxName);
-    debugPrint('🔍 [V61-TRACE] NutritionProfileService checking box "$_boxName": open=$isOpen');
-
-    if (isOpen) {
-      try {
-        _box = Hive.box<UserNutritionProfile>(_boxName);
-        debugPrint('✅ [V61-TRACE] NutritionProfile box already open with correct type.');
-      } catch (e) {
-        debugPrint('⚠️ [V61-TRACE] Type mismatch in NutritionProfile box. Closing dynamic instance...');
-        await Hive.box(_boxName).close();
-      }
-    }
-
-    if (_box == null || !_box!.isOpen) {
-      try {
-        debugPrint('📂 [V61-TRACE] Opening NutritionProfile box tipada...');
-        _box = await Hive.openBox<UserNutritionProfile>(_boxName, encryptionCipher: cipher);
-        debugPrint('✅ [V61-TRACE] NutritionProfileService initialized (Secure). Box Open: ${_box?.isOpen}');
-      } catch (e) {
-        debugPrint('❌ [V61-TRACE] FATAL: Error initializing Secure NutritionProfileService: $e');
-        rethrow;
-      }
-    }
-
+    _box = await HiveAtomicManager().ensureBoxOpen<UserNutritionProfile>(_boxName, cipher: cipher);
+    
     // Criar perfil padrão se não existir
     if (_box != null && _box!.isEmpty) {
       await saveProfile(UserNutritionProfile.padrao());

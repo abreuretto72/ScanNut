@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:developer' as developer;
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'hive_atomic_manager.dart';
 import 'package:archive/archive.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
@@ -48,15 +49,9 @@ class LocalBackupService {
       developer.log('📦 Lendo e compactando ${boxNames.length} boxes...', name: 'BackupTrace');
       for (final boxName in boxNames) {
         try {
-          Box box;
-          if (Hive.isBoxOpen(boxName)) {
-            box = Hive.box(boxName);
-            developer.log('  🔍 Usando box já aberta: $boxName', name: 'BackupTrace');
-            await box.compact();
-          } else {
-            developer.log('  📂 Abrindo box fechada: $boxName', name: 'BackupTrace');
-            box = await Hive.openBox(boxName);
-          }
+          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
+          developer.log('  ✅ Box "$boxName" garantido/aberto', name: 'BackupTrace');
+          await box.compact();
 
           final boxData = <String, dynamic>{};
           for (var key in box.keys) {
@@ -134,13 +129,8 @@ class LocalBackupService {
 
       for (final boxName in boxNames) {
         try {
-          Box box;
-          if (Hive.isBoxOpen(boxName)) {
-            box = Hive.box(boxName);
-            await box.compact();
-          } else {
-            box = await Hive.openBox(boxName);
-          }
+          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
+          await box.compact();
 
           final boxData = <String, dynamic>{};
           for (var key in box.keys) {
@@ -223,12 +213,7 @@ class LocalBackupService {
         final boxData = entry.value as Map<String, dynamic>;
 
         try {
-          Box box;
-          if (Hive.isBoxOpen(boxName)) {
-            box = Hive.box(boxName);
-          } else {
-            box = await Hive.openBox(boxName);
-          }
+          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
 
           // Importante: Limpar antes de restaurar para evitar duplicidades ou lixo
           await box.clear();

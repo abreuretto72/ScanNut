@@ -21,7 +21,9 @@ class RecipeHistoryScreen extends StatefulWidget {
 
 class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
   bool _isReady = false;
-
+  bool _hasError = false;
+  String _errorMessage = '';
+  
   @override
   void initState() {
     super.initState();
@@ -29,11 +31,26 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
   }
 
   Future<void> _initService() async {
-    await RecipeService().init();
-    if (mounted) {
-      setState(() {
-        _isReady = true;
-      });
+    debugPrint('🔍 [RecipeHistoryScreen] Starting initialization...');
+    try {
+      await RecipeService().init();
+      debugPrint('✅ [RecipeHistoryScreen] Service initialized successfully.');
+      if (mounted) {
+        setState(() {
+          _isReady = true;
+          _hasError = false;
+        });
+      }
+    } catch (e, s) {
+      debugPrint('❌ [RecipeHistoryScreen] Init Failed: $e');
+      debugPrint('📜 [RecipeHistoryScreen] Stack Trace: $s');
+      if (mounted) {
+        setState(() {
+          _isReady = true; 
+          _hasError = true;
+          _errorMessage = e.toString();
+        });
+      }
     }
   }
 
@@ -59,7 +76,12 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
       ),
       body: !_isReady 
           ? const Center(child: CircularProgressIndicator(color: AppDesign.foodOrange))
-          : ValueListenableBuilder<Box<RecipeHistoryItem>>(
+          : _hasError
+            ? Center(child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text('Erro ao carregar receitas:\n$_errorMessage\n\nTente reiniciar.', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.redAccent)),
+              ))
+            : ValueListenableBuilder<Box<RecipeHistoryItem>>(
               valueListenable: Hive.box<RecipeHistoryItem>(RecipeService.boxName).listenable(),
               builder: (context, box, _) {
                 debugPrint('🔍 Recipe History Debug: Box Open? ${box.isOpen}, Key Count: ${box.keys.length}, Values Count: ${box.values.length}');
@@ -71,7 +93,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.restaurant_menu, size: 60, color: AppDesign.foodOrange.withOpacity(0.5)),
+                          Icon(Icons.restaurant_menu, size: 60, color: AppDesign.foodOrange.withValues(alpha: 0.5)),
                           const SizedBox(height: 16),
                           Text(
                             'Suas receitas sugeridas pela IA\naparecerão aqui.',
@@ -102,7 +124,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
@@ -136,7 +158,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: AppDesign.foodOrange.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(color: AppDesign.foodOrange.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                         child: Text(recipe.prepTime, style: GoogleFonts.poppins(color: AppDesign.foodOrange, fontSize: 10, fontWeight: FontWeight.bold)),
                       ),
                     ],

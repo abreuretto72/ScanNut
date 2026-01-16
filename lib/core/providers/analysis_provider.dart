@@ -140,8 +140,9 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           }
       }
 
-      // Save to history
-      await _historyService.saveAnalysis(jsonResponse, mode.toString());
+      // 🛡️ V230: Master History Save moved to UI/Result Screens for better context injection
+      // (Avoids duplicate entries with identical timestamps)
+
 
       // Parse response based on mode
       switch (mode) {
@@ -244,6 +245,10 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       case ScannutMode.petVisualAnalysis:
       case ScannutMode.petDocumentOCR:
          return 'loadingPetHealth';
+      case ScannutMode.petStoolAnalysis:
+         return 'loadingPetStool';
+      default:
+         return 'loadingGeneric';
     }
   }
 }

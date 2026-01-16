@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import '../../features/pet/models/pet_event.dart';
 import '../../features/pet/models/pet_profile_extended.dart';
+import '../../features/pet/models/pet_analysis_result.dart';
+import '../../features/pet/models/analise_fezes_model.dart';
 import '../../features/food/models/food_analysis_model.dart';
 import '../../features/pet/models/lab_exam.dart';
 import '../../core/models/partner_model.dart';
@@ -162,7 +164,7 @@ class ExportService {
                       '$dateLabel: $timestamp',
                       style: pw.TextStyle(
                         fontSize: 8,
-                        color: color != null ? PdfColors.white : PdfColors.grey700,
+                      color: (color == colorPet) ? PdfColors.black : (color != null ? PdfColors.white : PdfColors.grey700),
                       ),
                     ),
                   ],
@@ -954,220 +956,7 @@ class ExportService {
   }
 
   /// 4. FOOD ANALYSIS REPORT (UNIFIED LAYOUT)
-  Future<pw.Document> generateFoodAnalysisReport({required FoodAnalysisModel analysis, required AppLocalizations strings, File? imageFile}) async {
-    final pdf = pw.Document();
-    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
-    
-    // Carregar imagem se disponível
-    pw.ImageProvider? foodImage;
-    if (imageFile != null) {
-      foodImage = await safeLoadImage(imageFile.path);
-    }
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfFoodTitle, timestampStr, dateLabel: strings.pdfDate, color: colorFood),
-        footer: (context) => buildFooter(context, strings: strings),
-        build: (context) => [
-          // --- HEADER COM IMAGEM E DADOS BÁSICOS ---
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              if (foodImage != null)
-                pw.Container(
-                  width: 80,
-                  height: 80,
-                  margin: const pw.EdgeInsets.only(right: 15),
-                  decoration: pw.BoxDecoration(
-                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-                    border: pw.Border.all(color: PdfColors.grey400),
-                  ),
-                  child: pw.ClipRRect(
-                    horizontalRadius: 8,
-                    verticalRadius: 8,
-                    child: pw.Image(foodImage, fit: pw.BoxFit.cover),
-                  ),
-                ),
-              pw.Expanded(
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(analysis.identidade.nome, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.black)),
-                    pw.SizedBox(height: 5),
-                    pw.Row(
-
-                      children: [
-                        buildIndicator('${strings.pdfCalories}:', '${analysis.macros.calorias100g} kcal/100g', PdfColors.red700),
-                        pw.SizedBox(width: 10),
-                         buildIndicator('${strings.pdfTrafficLight}:', analysis.identidade.semaforoSaude, 
-                          analysis.identidade.semaforoSaude.toLowerCase() == 'verde' || analysis.identidade.semaforoSaude.toLowerCase() == 'green' ? PdfColors.green700 : 
-                          (analysis.identidade.semaforoSaude.toLowerCase() == 'amarelo' || analysis.identidade.semaforoSaude.toLowerCase() == 'yellow' ? PdfColors.amber700 : PdfColors.red700)),
-                      ],
-                    ),
-                    pw.SizedBox(height: 5),
-                    pw.Text('${strings.pdfProcessing}: ${analysis.identidade.statusProcessamento}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          
-          pw.SizedBox(height: 20),
-
-          // --- 1. RESUMO EXECUTIVO ---
-          buildSectionHeader(strings.pdfExSummary, color: colorFood),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(10),
-            decoration: pw.BoxDecoration(color: PdfColors.grey100, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5))),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text('${strings.pdfAiVerdict}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                pw.Text(analysis.analise.vereditoIa, style: const pw.TextStyle(fontSize: 9)), // Removed italic
-              ],
-            ),
-          ),
-          pw.SizedBox(height: 10),
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Expanded(
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('${strings.pdfPros}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
-                    ...analysis.analise.pontosPositivos.map((p) => pw.Bullet(text: p, style: const pw.TextStyle(fontSize: 8))),
-                  ],
-                ),
-              ),
-              pw.SizedBox(width: 10),
-              pw.Expanded(
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('${strings.pdfCons}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.amber700)),
-                    ...analysis.analise.pontosNegativos.map((p) => pw.Bullet(text: p, style: const pw.TextStyle(fontSize: 8))),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          // --- 2. NUTRIÇÃO DETALHADA ---
-          buildSectionHeader(strings.pdfDetailedNutrition, color: colorFood),
-          pw.Text('${strings.pdfMacros}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-          pw.SizedBox(height: 5),
-          pw.Table.fromTextArray(
-            border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-            headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey50),
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
-            cellStyle: const pw.TextStyle(fontSize: 8),
-            headers: [strings.pdfNutrient, strings.pdfQuantity, strings.pdfDetails],
-            data: [
-              [strings.nutrientsProteins, analysis.macros.proteinas, strings.labelAminoProfile],
-              [strings.nutrientsCarbs, analysis.macros.carboidratosLiquidos, '${strings.labelGlycemicImpact}: ${analysis.macros.indiceGlicemico}'],
-              [strings.nutrientsFats, analysis.macros.gordurasPerfil, strings.labelFattyAcids],
-            ],
-          ),
-          pw.SizedBox(height: 10),
-          pw.Text('${strings.pdfMicros}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-           pw.Wrap(
-            spacing: 10,
-            runSpacing: 5,
-            children: analysis.micronutrientes.lista.map((n) => 
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
-                child: pw.Text('${n.nome}: ${n.quantidade} (${n.percentualDv}%)', style: const pw.TextStyle(fontSize: 8)),
-              )
-            ).toList(),
-          ),
-          pw.SizedBox(height: 5),
-          pw.Text('${strings.pdfSynergy}: ${analysis.micronutrientes.sinergiaNutricional}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.blue700)), // Removed italic
-
-          // --- 3. BIOHACKING & SAÚDE ---
-          buildSectionHeader(strings.pdfBiohacking, color: colorFood),
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-               pw.Expanded(
-                 child: pw.Column(
-                   crossAxisAlignment: pw.CrossAxisAlignment.start,
-                   children: [
-                     pw.Text('${strings.pdfPerformance}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                     pw.Bullet(text: '${strings.pdfSatiety}: ${analysis.performance.indiceSaciedade}/5', style: const pw.TextStyle(fontSize: 8)),
-                     pw.Bullet(text: '${strings.pdfFocus}: ${analysis.performance.impactoFocoEnergia}', style: const pw.TextStyle(fontSize: 8)),
-                     pw.Bullet(text: '${strings.pdfIdealMoment}: ${analysis.performance.momentoIdealConsumo}', style: const pw.TextStyle(fontSize: 8)),
-                   ]
-                 ),
-               ),
-               pw.SizedBox(width: 10),
-               pw.Expanded(
-                 child: pw.Column(
-                   crossAxisAlignment: pw.CrossAxisAlignment.start,
-                   children: [
-                     pw.Text('${strings.pdfSecurity}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                     pw.Bullet(text: '${strings.pdfAlerts}: ${analysis.identidade.alertaCritico}', style: const pw.TextStyle(fontSize: 8, color: PdfColors.red700)),
-                     pw.Bullet(text: '${strings.pdfBiochem}: ${analysis.identidade.bioquimicaAlert}', style: const pw.TextStyle(fontSize: 8)),
-                   ]
-                 ),
-               ),
-            ],
-          ),
-
-          // --- 4. GASTRONOMIA ---
-          buildSectionHeader(strings.pdfGastronomy, color: colorFood),
-          if (analysis.receitas.isNotEmpty) ...[
-              pw.Text('${strings.pdfQuickRecipes}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-              ...analysis.receitas.map((r) => pw.Container(
-                  margin: const pw.EdgeInsets.symmetric(vertical: 4),
-                  padding: const pw.EdgeInsets.all(6),
-                  decoration: pw.BoxDecoration(color: PdfColors.orange50, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
-                  child: pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: [
-                          pw.Row(
-                            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                            children: [
-                              pw.Text(r.nome, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
-                              pw.Text(r.tempoPreparo, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.orange800)),
-                            ]
-                          ),
-                          pw.Text(r.instrucoes, style: const pw.TextStyle(fontSize: 8)),
-                      ]
-                  )
-              )).toList(),
-              pw.SizedBox(height: 10),
-          ],
-          
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Expanded(child: buildIndicator(strings.foodPreservation, analysis.gastronomia.preservacaoNutrientes, PdfColors.black)),
-              pw.SizedBox(width: 10),
-              pw.Expanded(child: buildIndicator(strings.foodSmartSwap, analysis.gastronomia.smartSwap, PdfColors.black)),
-            ],
-          ),
-          pw.SizedBox(height: 10),
-          pw.Container(
-            padding: const pw.EdgeInsets.all(8),
-            decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.amber, width: 1), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
-            child: pw.Column(
-               crossAxisAlignment: pw.CrossAxisAlignment.start,
-               children: [
-                 pw.Row(children: [pw.Icon(const pw.IconData(0xe80e), color: PdfColors.amber, size: 12), pw.SizedBox(width: 5), pw.Text(strings.recipesExpertTip, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.amber800))]),
-                 pw.SizedBox(height: 4),
-                 pw.Text(analysis.gastronomia.dicaEspecialista, style: const pw.TextStyle(fontSize: 9)),
-               ]
-            ),
-          ),
-        ],
-      ),
-    );
-    return pdf;
-  }
 
   /// 4.1 PLANT ANALYSIS REPORT (SCANNUT BOTANY STANDARD)
   Future<pw.Document> generatePlantAnalysisReport({
@@ -1342,6 +1131,80 @@ class ExportService {
     return pdf;
   }
 
+  // 📝 TRANSLATION MAP (English AI Keys -> Portuguese PDF)
+  static final Map<String, String> _keyTranslations = {
+    'IDENTIFICATION': 'IDENTIFICAÇÃO',
+    'BREED_NAME': 'RAÇA',
+    'BREED NAME': 'RAÇA',
+    'ORIGIN_REGION': 'REGIÃO DE ORIGEM',
+    'ORIGIN REGION': 'REGIÃO DE ORIGEM',
+    'MORPHOLOGY_TYPE': 'TIPO MORFOLÓGICO',
+    'MORPHOLOGY TYPE': 'TIPO MORFOLÓGICO',
+    'LINEAGE': 'LINHAGEM',
+    'SIZE': 'PORTE',
+    'LIFESPAN': 'EXPECTATIVA DE VIDA',
+    'GROWTH_CURVE': 'CURVA DE CRESCIMENTO', 
+    'GROWTH CURVE': 'CURVA DE CRESCIMENTO',
+    'NUTRITION': 'NUTRIÇÃO',
+    'KCAL_PUPPY': 'KCAL FILHOTE',
+    'KCAL PUPPY': 'KCAL FILHOTE',
+    'KCAL_ADULT': 'KCAL ADULTO', 
+    'KCAL ADULT': 'KCAL ADULTO',
+    'KCAL_SENIOR': 'KCAL SENIOR',
+    'TARGET_NUTRIENTS': 'NUTRIENTES ALVO',
+    'TARGET NUTRIENTS': 'NUTRIENTES ALVO',
+    'WEIGHT': 'PESO',
+    'HEIGHT': 'ALTURA',
+    'COAT': 'PELAGEM',
+    'COLOR': 'COR',
+    'TEMPERAMENT': 'TEMPERAMENTO',
+    'ENERGY_LEVEL': 'NÍVEL DE ENERGIA',
+    'SOCIAL_BEHAVIOR': 'COMPORTAMENTO SOCIAL',
+    'CLINICAL_SIGNS': 'SINAIS CLÍNICOS',
+    'CLINICAL SIGNS': 'SINAIS CLÍNICOS',
+    
+    // Additional Keys from Analysis
+    'GROOMING': 'CUIDADOS & HIGIENE',
+    'COAT_TYPE': 'TIPO DE PELAGEM',
+    'COAT TYPE': 'TIPO DE PELAGEM',
+    'GROOMING_FREQUENCY': 'FREQUÊNCIA DE ESCOVAÇÃO',
+    'GROOMING FREQUENCY': 'FREQUÊNCIA DE ESCOVAÇÃO',
+    'HEALTH': 'SAÚDE',
+    'PREDISPOSITIONS': 'PREDISPOSIÇÕES',
+    'PREVENTIVE_CHECKUP': 'CHECK-UP PREVENTIVO',
+    'PREVENTIVE CHECKUP': 'CHECK-UP PREVENTIVO',
+    'LIFESTYLE': 'ESTILO DE VIDA',
+    'TRAINING_INTELLIGENCE': 'INTELIGÊNCIA / TREINAMENTO',
+    'TRAINING INTELLIGENCE': 'INTELIGÊNCIA / TREINAMENTO',
+    'ENVIRONMENT_TYPE': 'AMBIENTE IDEAL',
+    'ENVIRONMENT TYPE': 'AMBIENTE IDEAL',
+    'ACTIVITY_LEVEL': 'NÍVEL DE ATIVIDADE',
+    'ACTIVITY LEVEL': 'NÍVEL DE ATIVIDADE',
+    'PERSONALITY': 'PERSONALIDADE',
+    'SOCIAL_BEHAVIOR': 'COMPORTAMENTO SOCIAL',
+  };
+
+  String _translateKey(String key) {
+    final upper = key.toUpperCase();
+    if (_keyTranslations.containsKey(upper)) return _keyTranslations[upper]!;
+    
+    final withUnderscore = upper.replaceAll(' ', '_');
+    if (_keyTranslations.containsKey(withUnderscore)) return _keyTranslations[withUnderscore]!;
+    
+    final withSpace = upper.replaceAll('_', ' ');
+    if (_keyTranslations.containsKey(withSpace)) return _keyTranslations[withSpace]!;
+
+    return withSpace; 
+  }
+
+  String _translateSex(String? val, AppLocalizations str) {
+      if (val == null) return str.petNotOffice; 
+      final v = val.toLowerCase().trim();
+      if (v.contains('fêmea') || v.contains('femea') || v.contains('female')) return 'Fêmea';
+      if (v.contains('macho') || v.contains('male')) return 'Macho';
+      return val; 
+  }
+
   Iterable<pw.Widget> _buildRecursivePDFMap(Map<dynamic, dynamic> map, {double indent = 0}) sync* {
      for (var e in map.entries.where((e) => e.value != null)) {
         final key = e.key.toString();
@@ -1353,8 +1216,8 @@ class ExportService {
            yield pw.Padding(
              padding: pw.EdgeInsets.only(left: indent),
              child: pw.Text(
-               key.replaceAll('_', ' ').toUpperCase(),
-               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: colorPet) // V64: Consistent Pink
+               _translateKey(key),
+               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black) // V64: Consistent Black Titles
              )
            );
            yield pw.Divider(color: PdfColors.grey300, thickness: 0.5, indent: indent, endIndent: 20);
@@ -1375,7 +1238,7 @@ class ExportService {
             children: [
                pw.SizedBox(
                  width: 120, 
-                 child: pw.Text('${key.replaceAll('_', ' ').toUpperCase()}:', 
+                 child: pw.Text('${_translateKey(key)}:',  
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black))
                ),
                pw.Expanded(child: pw.Text(val, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800))),
@@ -1449,38 +1312,88 @@ class ExportService {
         debugPrint('❌ Error loading events: $e'); 
     }
 
-    // 2. Gallery Images & Docs
+    // 2. Gallery Images & Docs (Smart Deduplication & Formatting)
     final List<Map<String, dynamic>> galleryImages = [];
     final List<String> otherDocNames = []; 
     if (sections['gallery'] == true) {
         try {
             debugPrint('📸 Loading gallery for pet: ${profile.petName}');
             final allDocs = await FileUploadService().getMedicalDocuments(profile.petName);
-            debugPrint('📸 Found ${allDocs.length} documents');
+            debugPrint('📸 Found ${allDocs.length} raw documents');
+
+            // 🧠 DEDUPLICATION ENGINE
+            final Map<String, File> uniqueImages = {};
+            final List<File> sortedFiles = [];
+
+            // 1. Group by "Event ID" (Timestamp)
+            // Regex to find 13-digit timestamps: 1768457048289
+            final RegExp timestampRegex = RegExp(r'(\d{13})');
+
             for (var file in allDocs) {
                 final ext = path.extension(file.path).toLowerCase();
-                debugPrint('📸 Processing file: ${file.path} (ext: $ext)');
-                if (['.jpg', '.jpeg', '.png', '.webp'].contains(ext)) {
-                    final memImg = await safeLoadImage(file.path);
-                    if (memImg != null) {
-                        final name = path.basename(file.path);
-                        String caption = name;
-                        if (name.contains('_')) caption = name.split('_').first.toUpperCase();
-                        
-                        galleryImages.add({
-                            'image': memImg,
-                            'caption': caption,
-                        });
-                        debugPrint('✅ Added image to gallery: $caption');
+                if (!['.jpg', '.jpeg', '.png', '.webp'].contains(ext)) {
+                     otherDocNames.add(path.basename(file.path));
+                     continue;
+                }
+
+                final name = path.basename(file.path);
+                final match = timestampRegex.firstMatch(name);
+                
+                if (match != null) {
+                    final timestamp = match.group(0)!;
+                    // Preference Logic: If we already have this timestamp, prefer the one with 'OPT_' prefix
+                    if (uniqueImages.containsKey(timestamp)) {
+                        final existing = uniqueImages[timestamp]!;
+                        final existingName = path.basename(existing.path);
+                        if (!existingName.startsWith('OPT_') && name.startsWith('OPT_')) {
+                             uniqueImages[timestamp] = file; // Upgrade to OPT
+                        }
                     } else {
-                        debugPrint('❌ Failed to load image: ${file.path}');
+                        uniqueImages[timestamp] = file;
                     }
                 } else {
-                    otherDocNames.add(path.basename(file.path));
-                    debugPrint('📄 Added document: ${path.basename(file.path)}');
+                    // No timestamp, just add to sorted list directly (or handle by name)
+                    sortedFiles.add(file);
                 }
             }
-            debugPrint('📸 Gallery loading complete: ${galleryImages.length} images, ${otherDocNames.length} docs');
+            
+            // Add unique timestamped images to list
+            sortedFiles.addAll(uniqueImages.values);
+
+            // Sort by Date (Newest First)
+            sortedFiles.sort((a, b) {
+                 final statA = a.lastModifiedSync();
+                 final statB = b.lastModifiedSync();
+                 return statB.compareTo(statA);
+            });
+
+            for (var file in sortedFiles) {
+                 final memImg = await safeLoadImage(file.path);
+                 if (memImg != null) {
+                     final name = path.basename(file.path);
+                     String caption = name;
+                     
+                     // 🎨 SMART CAPTIONING
+                     final match = timestampRegex.firstMatch(name);
+                     if (match != null) {
+                         try {
+                             final ts = int.parse(match.group(0)!);
+                             final date = DateTime.fromMillisecondsSinceEpoch(ts);
+                             caption = DateFormat('dd/MM/yy HH:mm').format(date);
+                         } catch (_) {}
+                     } else {
+                         // Fallback clean
+                         caption = caption.replaceAll('OPT_', '').replaceAll('.jpg', '').replaceAll('.png', '');
+                         if (caption.length > 20) caption = caption.substring(0, 17) + '...';
+                     }
+                     
+                     galleryImages.add({
+                         'image': memImg,
+                         'caption': caption,
+                     });
+                 }
+            }
+            debugPrint('📸 Gallery final: ${galleryImages.length} unique images');
         } catch(e) { 
             debugPrint('❌ Error loading gallery: $e'); 
         }
@@ -1528,6 +1441,23 @@ class ExportService {
 
     // Pre-load partner data for PARC Section
     final List<Map<String, dynamic>> linkedPartnersData = [];
+    
+    // 💩 Pre-load Stool Analysis images for Health Section if enabled
+    final List<Map<String, dynamic>> stoolWithImages = [];
+    if (sections['health'] == true && profile.historicoFezes.isNotEmpty) {
+        // Sort by date descending
+        final sortedStool = List<AnaliseFezesModel>.from(profile.historicoFezes)
+             ..sort((a, b) => b.dataAnalise.compareTo(a.dataAnalise));
+        
+        for (var s in sortedStool) {
+            final img = await safeLoadImage(s.imagemRef);
+            // Create a map to store the data + image for the PDF generator loop
+            stoolWithImages.add({
+                'model': s,
+                'pdfImage': img
+            });
+        }
+    }
     if (sections['parc'] == true && profile.linkedPartnerIds.isNotEmpty) {
         try {
             debugPrint('👥 Loading partner data for ${profile.linkedPartnerIds.length} partners');
@@ -1670,6 +1600,31 @@ class ExportService {
     // 🔍 [V64-TRACE] Calculando altura do conteúdo para o Pet: ${profile.petName}
     debugPrint('[V64-TRACE] Calculando altura do conteúdo para o Pet: ${profile.petName}');
 
+    // --- Helper Styles for Tables ---
+    final headerStyle = pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10);
+    final cellStyle = pw.TextStyle(fontSize: 9);
+    final boldCellStyle = pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold);
+    final padding = pw.EdgeInsets.all(6);
+
+    // --- Data Extraction Logic for Identity ---
+    String pesoIdealDisplay = strings.petNotOffice;
+    if (profile.pesoIdeal != null) {
+        pesoIdealDisplay = '${profile.pesoIdeal} kg';
+    } else if (profile.rawAnalysis != null) {
+          // Try deep extraction from raw analysis
+          final rawGrowth = profile.rawAnalysis!['identificacao'] != null 
+              ? (profile.rawAnalysis!['identificacao']['curva_crescimento'] as Map?) 
+              : null;
+          
+          if (rawGrowth != null && rawGrowth['peso_adulto'] != null) {
+              pesoIdealDisplay = '${rawGrowth['peso_adulto']} (Est.)';
+          }
+    }
+
+    final growthData = (profile.rawAnalysis?['identificacao'] != null && profile.rawAnalysis!['identificacao']['curva_crescimento'] != null)
+        ? (profile.rawAnalysis!['identificacao']['curva_crescimento'] as Map)
+        : {};
+
     // ========== CONTENT PAGES ==========
     pdf.addPage(
       pw.MultiPage(
@@ -1683,25 +1638,78 @@ class ExportService {
           if (sections['identity'] == true) ...[
             buildSectionHeader(strings.pdfIdentitySection, color: colorPet),
             
-            pw.Table.fromTextArray(
+            // --- Identity Table ---
+            pw.Table(
               border: pw.TableBorder.all(color: PdfColors.grey700, width: 0.5),
-              headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
-              cellStyle: const pw.TextStyle(fontSize: 9),
-              cellPadding: const pw.EdgeInsets.all(6),
-              headers: [strings.pdfFieldLabel, strings.pdfFieldValue],
-              data: [
-                [strings.pdfFieldName, profile.petName],
-                [strings.pdfFieldBreed, profile.raca ?? strings.petNotIdentified],
-                [strings.pdfFieldAge, profile.idadeExata ?? strings.petNotOffice],
-                [strings.pdfFieldSex, profile.rawAnalysis?['identificacao']?['sexo'] ?? profile.statusReprodutivo ?? strings.petNotOffice],
-                [strings.pdfFieldMicrochip, profile.rawAnalysis?['identificacao']?['microchip'] ?? strings.petNotOffice],
-                [strings.pdfFieldCurrentWeight, profile.pesoAtual != null ? '${profile.pesoAtual} kg' : strings.petNotOffice],
-                [strings.pdfFieldIdealWeight, profile.pesoIdeal != null ? '${profile.pesoIdeal} kg' : strings.petNotOffice],
-                [strings.pdfFieldReproductiveStatus, profile.statusReprodutivo ?? strings.petNotOffice],
-                [strings.pdfFieldActivityLevel, profile.nivelAtividade ?? strings.petActivityModerate],
-                [strings.pdfFieldBathFrequency, profile.frequenciaBanho ?? strings.petNotOffice],
+              columnWidths: {
+                0: const pw.FlexColumnWidth(1), // Label
+                1: const pw.FlexColumnWidth(2), // Value
+              },
+              children: [
+                // Header
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    pw.Padding(padding: padding, child: pw.Text(strings.pdfFieldLabel, style: headerStyle)),
+                    pw.Padding(padding: padding, child: pw.Text(strings.pdfFieldValue, style: headerStyle)),
+                  ],
+                ),
+                // Pet Name (Bold!)
+                pw.TableRow(
+                  children: [
+                    pw.Padding(padding: padding, child: pw.Text(strings.pdfFieldName, style: cellStyle)),
+                    pw.Padding(padding: padding, child: pw.Text(profile.petName, style: boldCellStyle)), 
+                  ],
+                ),
+                // Other Standard Rows
+                for (var row in [
+                    [strings.pdfFieldBreed, profile.raca ?? strings.petNotIdentified],
+                    [strings.pdfFieldAge, profile.idadeExata ?? strings.petNotOffice],
+                    [strings.pdfFieldSex, _translateSex(profile.sex ?? profile.rawAnalysis?['identificacao']?['sexo'], strings)],
+                    [strings.pdfFieldMicrochip, profile.rawAnalysis?['identificacao']?['microchip'] ?? strings.petNotOffice],
+                    [strings.pdfFieldCurrentWeight, profile.pesoAtual != null ? '${profile.pesoAtual} kg' : strings.petNotOffice],
+                    [strings.pdfFieldIdealWeight, pesoIdealDisplay],
+                    [strings.pdfFieldReproductiveStatus, profile.statusReprodutivo ?? strings.petNotOffice],
+                    [strings.pdfFieldActivityLevel, profile.nivelAtividade ?? strings.petActivityModerate],
+                    [strings.pdfFieldBathFrequency, profile.frequenciaBanho ?? strings.petNotOffice],
+                ]) 
+                pw.TableRow(
+                  children: [
+                     pw.Padding(padding: padding, child: pw.Text(row[0].toString(), style: cellStyle)),
+                     pw.Padding(padding: padding, child: pw.Text(row[1].toString(), style: cellStyle)),
+                  ]
+                )
               ],
             ),
+
+            // --- Growth Curve Section (If data exists) ---
+            if (growthData.isNotEmpty) ...[
+                pw.SizedBox(height: 15),
+                pw.Text('${strings.petGrowthCurve}:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                pw.SizedBox(height: 5),
+                pw.Table(
+                    border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+                    children: [
+                        pw.TableRow(
+                            decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                            children: [
+                                pw.Padding(padding: padding, child: pw.Text('3 Meses', style: headerStyle)),
+                                pw.Padding(padding: padding, child: pw.Text('6 Meses', style: headerStyle)),
+                                pw.Padding(padding: padding, child: pw.Text('12 Meses', style: headerStyle)),
+                                pw.Padding(padding: padding, child: pw.Text('Adulto (Est.)', style: headerStyle)),
+                            ]
+                        ),
+                        pw.TableRow(
+                            children: [
+                                pw.Padding(padding: padding, child: pw.Text(growthData['peso_3_meses']?.toString() ?? '-', style: cellStyle)),
+                                pw.Padding(padding: padding, child: pw.Text(growthData['peso_6_meses']?.toString() ?? '-', style: cellStyle)),
+                                pw.Padding(padding: padding, child: pw.Text(growthData['peso_12_meses']?.toString() ?? '-', style: cellStyle)),
+                                pw.Padding(padding: padding, child: pw.Text(growthData['peso_adulto']?.toString() ?? '-', style: cellStyle)),
+                            ]
+                        )
+                    ]
+                )
+            ],
             
             // Preferências Alimentares
             if (profile.preferencias.isNotEmpty) ...[
@@ -1874,6 +1882,86 @@ class ExportService {
                 pw.SizedBox(height: 15),
             ],
 
+            // 🏥 Histórico de Sinais Clínicos e Triagem (Clinical Signs & Triage)
+            if (profile.analysisHistory.any((a) => (a['clinical_signs'] ?? a['clinicalSigns']) != null)) ...[
+                pw.SizedBox(height: 15),
+                pw.Text('${strings.pdfClinicalSigns}:', 
+                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                pw.SizedBox(height: 5),
+                ...profile.analysisHistory.where((a) => (a['clinical_signs'] ?? a['clinicalSigns']) != null).map((analysis) {
+                    final dateStr = DateFormat.yMd(strings.localeName).format(
+                        DateTime.tryParse(analysis['last_updated']?.toString() ?? analysis['created_at']?.toString() ?? '') ?? DateTime.now()
+                    );
+                    
+                    final signs = (analysis['clinical_signs'] ?? analysis['clinicalSigns'] ?? {}) as Map;
+                    // Handle diagnosis list or string
+                    String diagnosis = 'N/A';
+                    if (analysis['possiveis_causas'] != null) {
+                       if (analysis['possiveis_causas'] is List) {
+                          diagnosis = (analysis['possiveis_causas'] as List).join(', ');
+                       } else {
+                          diagnosis = analysis['possiveis_causas'].toString();
+                       }
+                    } else if (analysis['diagnosis'] != null) {
+                       diagnosis = analysis['diagnosis'].toString();
+                    }
+
+                    return pw.Container(
+                        margin: const pw.EdgeInsets.only(bottom: 8),
+                         padding: const pw.EdgeInsets.all(8),
+                         decoration: pw.BoxDecoration(
+                            color: PdfColors.white,
+                            border: pw.Border.all(color: PdfColors.grey400),
+                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                         ),
+                         child: pw.Column(
+                             crossAxisAlignment: pw.CrossAxisAlignment.start,
+                             children: [
+                                 pw.Row(
+                                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                    children: [
+                                       pw.Text(dateStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                                       pw.Expanded(child: pw.Text(diagnosis, textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700))),
+                                    ]
+                                 ),
+                                 pw.SizedBox(height: 4),
+                                 pw.Divider(color: PdfColors.grey300, thickness: 0.5),
+                                 pw.SizedBox(height: 4),
+                                 
+                                 // Grid of signs
+                                 pw.Row(
+                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                    children: [
+                                        // Eyes
+                                        if (signs['eyes'] != null)
+                                            pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                                                pw.Text(strings.pdfEyes, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                                                pw.Text(signs['eyes'].toString(), style: const pw.TextStyle(fontSize: 8)),
+                                            ])),
+                                        if (signs['eyes'] != null) pw.SizedBox(width: 8),
+
+                                        // Teeth
+                                        if (signs['dental'] != null || signs['teeth'] != null)
+                                            pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                                                pw.Text(strings.pdfTeeth, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                                                pw.Text((signs['dental'] ?? signs['teeth']).toString(), style: const pw.TextStyle(fontSize: 8)),
+                                            ])),
+                                        if (signs['dental'] != null || signs['teeth'] != null) pw.SizedBox(width: 8),
+
+                                        // Skin (General)
+                                        if (signs['skin'] != null)
+                                            pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                                                pw.Text(strings.pdfSkin, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                                                pw.Text(signs['skin'].toString(), style: const pw.TextStyle(fontSize: 8)),
+                                            ])),
+                                    ]
+                                 )
+                             ]
+                         )
+                    );
+                }).toList(),
+            ],
+
             if (profile.labExams.isNotEmpty) ...[
               pw.SizedBox(height: 15),
               pw.Text('${strings.pdfExamesLab}:', 
@@ -2020,6 +2108,94 @@ class ExportService {
               }).toList(),
             ],
             
+            // 💩 Histórico de Análises Coprológicas (Fezes)
+            if (stoolWithImages.isNotEmpty) ...[
+              pw.SizedBox(height: 15),
+              pw.Text('${strings.pdfAnaliseFezes} (Stool Analysis):', 
+                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+              pw.SizedBox(height: 5),
+              ...stoolWithImages.map((item) {
+                final fezes = item['model'] as AnaliseFezesModel;
+                final pdfImage = item['pdfImage'] as pw.ImageProvider?;
+                
+                final dateStr = DateFormat.yMd(strings.localeName).add_Hm().format(fezes.dataAnalise);
+                final bristol = fezes.bristolScale;
+                final colorName = fezes.colorName;
+                final diagnosis = fezes.possiveisCausas.isNotEmpty ? fezes.possiveisCausas.first : strings.petDiagnosisDefault;
+                
+                final PdfColor riskColor = fezes.nivelRisco.toLowerCase().contains('vermelho') ? PdfColors.red : 
+                            (fezes.nivelRisco.toLowerCase().contains('amarelo') ? PdfColors.orange : PdfColors.green);
+
+                return pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 8),
+                  padding: const pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.white,
+                    border: pw.Border.all(color: PdfColors.grey400),
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                  ),
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                        if (pdfImage != null)
+                             pw.Container(
+                                 width: 70,
+                                 height: 70,
+                                 margin: const pw.EdgeInsets.only(right: 10),
+                                 decoration: pw.BoxDecoration(
+                                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                                     border: pw.Border.all(color: PdfColors.grey400),
+                                     color: PdfColors.white,
+                                 ),
+                                 child: pw.ClipRRect(
+                                     horizontalRadius: 4, verticalRadius: 4,
+                                     child: pw.Image(pdfImage, fit: pw.BoxFit.cover),
+                                 ),
+                             ),
+
+                        pw.Expanded(
+                            child: pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Row(
+                                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      pw.Text(
+                                        dateStr,
+                                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+                                      ),
+                                      pw.Container(
+                                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: pw.BoxDecoration(
+                                          color: riskColor,
+                                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                                        ),
+                                        child: pw.Text(
+                                          fezes.nivelRisco.toUpperCase(),
+                                          style: pw.TextStyle(color: PdfColors.white, fontSize: 8, fontWeight: pw.FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  pw.SizedBox(height: 4),
+                                  pw.Text('Bristol Scale: $bristol | Cor: $colorName', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                                  pw.SizedBox(height: 2),
+                                  pw.Text(strings.pdfDiagnosis(diagnosis), style: const pw.TextStyle(fontSize: 9)),
+                                  
+                                  if (fezes.recomendacao.isNotEmpty) ...[
+                                    pw.SizedBox(height: 4),
+                                    pw.Text('${strings.pdfRecommendations}:', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                                    pw.Text(fezes.recomendacao, style: const pw.TextStyle(fontSize: 8)),
+                                  ],
+                                ],
+                            ),
+                        ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+
             ..._buildObservationsBlock(profile.observacoesSaude, strings),
             pw.SizedBox(height: 20),
           ],
@@ -3183,6 +3359,478 @@ class ExportService {
         ),
       );
     }
+    return pdf;
+  }
+
+  /// 6. VETERINARY 360 REPORT (SCANNUT STANDARD V116)
+  Future<pw.Document> generateVeterinary360Report({
+    required PetAnalysisResult analysis,
+    required String imagePath,
+    required AppLocalizations strings,
+    PetProfileExtended? profile, // 🛡️ V180
+  }) async {
+    debugPrint('🔍 [V116-PDF] Iniciando renderização via pdfpreview...');
+    final pdf = pw.Document();
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
+    
+    // Load Pet Image
+    pw.ImageProvider? petImage = await safeLoadImage(imagePath);
+    
+    // Extract Metadata
+    final petName = analysis.petName ?? strings.petUnknown;
+    final breed = analysis.raca;
+    final size = analysis.identificacao.porteEstimado;
+    final reliability = analysis.reliability ?? '90%';
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(35),
+        header: (context) => buildHeader('${strings.petDossierTitle.toUpperCase()} - 360º', timestampStr, color: colorPet),
+        footer: (context) => buildFooter(context, strings: strings),
+        build: (context) => [
+          // 🛡️ V116: IDENTITY BLOCK
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              if (petImage != null)
+                pw.Container(
+                  width: 120,
+                  height: 120,
+                  margin: const pw.EdgeInsets.only(right: 20),
+                  decoration: pw.BoxDecoration(
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                    border: pw.Border.all(color: colorPet, width: 2),
+                  ),
+                  child: pw.ClipRRect(
+                    horizontalRadius: 6,
+                    verticalRadius: 6,
+                    child: pw.Image(petImage, fit: pw.BoxFit.cover),
+                  ),
+                ),
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(petName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.black)),
+                    pw.SizedBox(height: 5),
+                    pw.Text('$breed • $size', style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700)),
+                    pw.SizedBox(height: 15),
+                    
+                    // PRECISION SEAL (V116)
+                    pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: pw.BoxDecoration(
+                        color: colorPetLight,
+                        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(20)),
+                        border: pw.Border.all(color: colorPet, width: 1),
+                      ),
+                      child: pw.Row(
+                        mainAxisSize: pw.MainAxisSize.min,
+                        children: [
+                          pw.Text('🛡️', style: const pw.TextStyle(fontSize: 12)),
+                          pw.SizedBox(width: 5),
+                          pw.Text('${strings.pdfPrecision?.toUpperCase() ?? "PRECISÃO"}: $reliability', 
+                            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          pw.SizedBox(height: 30),
+
+          // 🛡️ V116: BIO-VISUAL SIGNAL DETAILS
+          buildSectionHeader(strings.petAnalysisResults.toUpperCase(), color: colorPet),
+          pw.SizedBox(height: 10),
+          
+          // Identity Details
+          pw.Text('1. ${strings.petSectionIdentity.toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+          pw.SizedBox(height: 5),
+          pw.Bullet(text: '${strings.pdfFieldBreed}: ${analysis.identificacao.racaPredominante}'),
+          pw.Bullet(text: 'Linhagem: ${analysis.identificacao.linhagemSrdProvavel}'),
+          // V470: Morphology & Origin (Re-enabled)
+          if (analysis.identificacao.origemGeografica.trim().isNotEmpty && analysis.identificacao.origemGeografica != 'N/A')
+             pw.Bullet(text: '${strings.petOriginRegion}: ${analysis.identificacao.origemGeografica}'),
+          if (analysis.identificacao.morfologiaBase.trim().isNotEmpty && analysis.identificacao.morfologiaBase != 'N/A')
+             pw.Bullet(text: '${strings.petMorphology}: ${analysis.identificacao.morfologiaBase}'),
+
+          // V472: Growth Curve Table
+          if (analysis.identificacao.curvaCrescimento.isNotEmpty) ...[
+               pw.SizedBox(height: 8),
+               pw.Text(strings.petGrowthCurve, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.grey800)),
+               pw.SizedBox(height: 4),
+               pw.Table(
+                  border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+                  children: [
+                      pw.TableRow(
+                          decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                          children: [
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('3 Meses', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('6 Meses', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('12 Meses', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Adulto (Est.)', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8))),
+                          ]
+                      ),
+                      pw.TableRow(
+                          children: [
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(analysis.identificacao.curvaCrescimento['peso_3_meses']?.toString() ?? '-', style: const pw.TextStyle(fontSize: 8))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(analysis.identificacao.curvaCrescimento['peso_6_meses']?.toString() ?? '-', style: const pw.TextStyle(fontSize: 8))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(analysis.identificacao.curvaCrescimento['peso_12_meses']?.toString() ?? '-', style: const pw.TextStyle(fontSize: 8))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(analysis.identificacao.curvaCrescimento['peso_adulto']?.toString() ?? '-', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold))),
+                          ]
+                      )
+                  ]
+               ),
+               pw.SizedBox(height: 5),
+          ],
+          pw.SizedBox(height: 10),
+
+          // Health Details
+          pw.Text('2. ${strings.petSectionPreventive.toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+          pw.SizedBox(height: 5),
+          if (analysis.saude.predisposicoesGeneticas.isNotEmpty)
+             pw.Text('Genética: ${analysis.saude.predisposicoesGeneticas}', style: const pw.TextStyle(fontSize: 10)),
+          if (analysis.saude.sinaisAlertaPrecoce.isNotEmpty)
+             pw.Text('Sinais de Alerta: ${analysis.saude.sinaisAlertaPrecoce}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.red900)),
+          pw.SizedBox(height: 10),
+
+          // V472: Clinical Signs Logic (Eyes/Teeth/Skin)
+          if (analysis.eyeDetails != null || analysis.dentalDetails != null || analysis.skinDetails != null) ...[
+              pw.Text(strings.pdfClinicalSigns, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+              pw.SizedBox(height: 4),
+              pw.Table(
+                  border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+                  columnWidths: {
+                      0: const pw.FlexColumnWidth(1),
+                      1: const pw.FlexColumnWidth(3),
+                  },
+                  children: [
+                      if (analysis.eyeDetails != null)
+                          pw.TableRow(children: [
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(strings.pdfEyes, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(analysis.eyeDetails!['characteristics']?.toString() ?? 'N/A', style: const pw.TextStyle(fontSize: 9))),
+                          ]),
+                      if (analysis.dentalDetails != null)
+                          pw.TableRow(children: [
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(strings.pdfTeeth, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(analysis.dentalDetails!['characteristics']?.toString() ?? 'N/A', style: const pw.TextStyle(fontSize: 9))),
+                          ]),
+                      if (analysis.skinDetails != null)
+                          pw.TableRow(children: [
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(strings.pdfSkin, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
+                              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(analysis.skinDetails!['characteristics']?.toString() ?? 'N/A', style: const pw.TextStyle(fontSize: 9))),
+                          ]),
+                  ]
+              ),
+              pw.SizedBox(height: 10),
+          ],
+          
+          // Nutrition
+          pw.Text('3. ${strings.petSectionNutrition.toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+          pw.SizedBox(height: 5),
+          pw.Bullet(text: 'Metas Calóricas: Adulto (${analysis.nutricao.metaCalorica['kcal_adulto']}), Filhote (${analysis.nutricao.metaCalorica['kcal_filhote']})'),
+          pw.Bullet(text: 'Nutrientes Alvo: ${analysis.nutricao.nutrientesAlvo.join(", ")}'),
+          
+          pw.SizedBox(height: 15),
+          
+          // Lifestyle
+          pw.Text('4. ${strings.petSectionLifestyle.toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+          pw.SizedBox(height: 5),
+          pw.Bullet(text: 'Ambiente Ideal: ${analysis.lifestyle.ambienteIdeal['necessidade_de_espaco_aberto']}'),
+          pw.Bullet(text: 'Nível de Atividade: ${analysis.lifestyle.estimuloMental['necessidade_estimulo_mental']}'),
+          
+          pw.SizedBox(height: 15),
+
+          // 🛡️ V231: STOOL ANALYSIS DETAILS (ROBUST CHECK)
+          if (analysis.analysisType == 'stool_analysis' || (analysis.category?.toLowerCase().contains('fezes') ?? false) || analysis.stoolAnalysis != null) ...[
+             _buildStoolAnalysisSection(analysis, strings),
+          ],
+
+          // 🛡️ V180: WOUND EVOLUTION HISTORY
+          if (profile != null && profile.historicoAnaliseFeridas.isNotEmpty) ...[
+             pw.Text('5. ${strings.pdfAnaliseFeridas.toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+             pw.SizedBox(height: 5),
+             ...profile.historicoAnaliseFeridas.take(5).map((entry) {
+                 final dateStr = DateFormat.yMd(strings.localeName).format(entry.dataAnalise);
+                 return pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 6),
+                    padding: const pw.EdgeInsets.all(6),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.grey100,
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                    ),
+                    child: pw.Row(
+                      children: [
+                        pw.Text(dateStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                        pw.SizedBox(width: 8),
+                        pw.Container(
+                          padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: pw.BoxDecoration(
+                            color: entry.nivelRisco.toLowerCase().contains('alto') ? PdfColors.red : 
+                                   (entry.nivelRisco.toLowerCase().contains('médio') ? PdfColors.orange : PdfColors.green),
+                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
+                          ),
+                          child: pw.Text(
+                            entry.nivelRisco.toUpperCase(),
+                            style: pw.TextStyle(color: PdfColors.white, fontSize: 7, fontWeight: pw.FontWeight.bold)
+                          ),
+                        ),
+                        pw.SizedBox(width: 8),
+                         pw.Expanded(
+                           child: pw.Text(entry.recomendacao, maxLines: 1, overflow: pw.TextOverflow.clip, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800))
+                         )
+                      ]
+                    )
+                 );
+             }).toList(),
+          ] else if (analysis.analysisType == 'diagnosis') ...[
+             // Fallback for current analysis implies first
+             pw.SizedBox(height: 5),
+             pw.Text('5. ${strings.pdfAnaliseFeridas.toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+             pw.Text("Primeira Análise Registrada", style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic, color: PdfColors.grey600)),
+          ],
+
+          pw.SizedBox(height: 30),
+
+          // 🛡️ V116: LEGAL DISCLAIMER
+          pw.Container(
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.grey100,
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+              border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+            ),
+            child: pw.Row(
+              children: [
+                pw.Text('⚠️', style: const pw.TextStyle(fontSize: 18)),
+                pw.SizedBox(width: 10),
+                pw.Expanded(
+                  child: pw.Text(
+                    strings.petDossierDisclaimer,
+                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    debugPrint('✅ [V116-PDF] Relatório gerado com sucesso para o pet: $petName.');
+    return pdf;
+  }
+
+  /// 🛡️ V231: Build Stool Analysis Section for PDF
+  pw.Widget _buildStoolAnalysisSection(PetAnalysisResult analysis, AppLocalizations strings) {
+    final details = analysis.stoolAnalysis ?? {};
+    final PdfColor pdfRiskColor = analysis.urgenciaNivel.toLowerCase().contains('vermelho') ? PdfColors.red : 
+                            (analysis.urgenciaNivel.toLowerCase().contains('amarelo') ? PdfColors.orange : PdfColors.green);
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.SizedBox(height: 15),
+        pw.Text('5. ANÁLISE COPROLÓGICA (STOOL ANALYSIS)', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+        pw.SizedBox(height: 8),
+        
+        pw.Container(
+          padding: const pw.EdgeInsets.all(10),
+          decoration: pw.BoxDecoration(
+            color: PdfColors.grey100,
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+            border: pw.Border.all(color: PdfColors.grey300),
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                   pw.Text('STATUS:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                   pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: pw.BoxDecoration(color: pdfRiskColor, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
+                      child: pw.Text(analysis.urgenciaNivel.toUpperCase(), style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 8)),
+                   ),
+                ],
+              ),
+              pw.SizedBox(height: 10),
+              
+              _buildReportRow('Consistência (Bristol):', 'Escala ${details['consistency_bristol_scale'] ?? "-"}'),
+              _buildReportRow('Textura/Firmeza:', details['firmness']?.toString() ?? '-'),
+              _buildReportRow('Hidratação/Muco:', details['hydration_mucus']?.toString() ?? '-'),
+              _buildReportRow('Cor:', '${details['color_name'] ?? "-"} (${details['color_hex'] ?? ""})'),
+              _buildReportRow('Significado Clínico:', details['clinical_color_meaning']?.toString() ?? '-'),
+              _buildReportRow('Corpos Estranhos:', (details['foreign_bodies'] as List?)?.join(", ") ?? 'Nenhum detectado'),
+              _buildReportRow('Parasitas Visíveis:', (details['parasites_detected'] == true) ? 'SIM' : 'Não detectados'),
+              _buildReportRow('Avaliação de Volume:', details['volume_assessment']?.toString() ?? '-'),
+              
+              pw.Divider(thickness: 0.5, color: PdfColors.grey400, height: 16),
+              
+              pw.Text('DESCRIÇÃO VISUAL COMPLETA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+              pw.SizedBox(height: 4),
+              pw.Text(analysis.descricaoVisual, style: const pw.TextStyle(fontSize: 8.5)),
+            ],
+          ),
+        ),
+        
+        if (analysis.possiveisCausas.isNotEmpty) ...[
+          pw.SizedBox(height: 10),
+           pw.Text('DIAGNÓSTICOS DIFERENCIAIS:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+           ...analysis.possiveisCausas.map((c) => pw.Bullet(text: c, style: const pw.TextStyle(fontSize: 8.5))),
+        ],
+        
+        pw.SizedBox(height: 10),
+        pw.Container(
+           padding: const pw.EdgeInsets.all(8),
+           decoration: pw.BoxDecoration(color: colorPetUltraLight, border: pw.Border.all(color: colorPet, width: 0.5)),
+           child: pw.Column(
+             crossAxisAlignment: pw.CrossAxisAlignment.start,
+             children: [
+                pw.Text('CONSELHO DO ESPECIALISTA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black)),
+                pw.SizedBox(height: 4),
+                pw.Text(analysis.orientacaoImediata, style: pw.TextStyle(fontSize: 8.5, fontStyle: pw.FontStyle.italic)),
+             ],
+           ),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildReportRow(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 3),
+      child: pw.Row(
+        children: [
+          pw.SizedBox(width: 120, child: pw.Text(label, style: pw.TextStyle(color: PdfColors.grey700, fontSize: 8))),
+          pw.Expanded(child: pw.Text(value, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8.5))),
+        ],
+      ),
+    );
+  }
+
+  /// 8. HUMAN FOOD ANALYSIS REPORT (SCANNUT STANDARD V135)
+  Future<pw.Document> generateFoodAnalysisReport({
+    required FoodAnalysisModel analysis,
+    File? imageFile,
+    required AppLocalizations strings,
+  }) async {
+    final pdf = pw.Document();
+    final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
+
+    pw.ImageProvider? foodImage;
+    if (imageFile != null) {
+      foodImage = await safeLoadImage(imageFile.path);
+    }
+    
+    // 🛡️ V135: HUMAN FOOD DATA EXTRACTION
+    final String dishName = analysis.identidade.nome;
+    final String processing = analysis.identidade.statusProcessamento;
+    final String trafficLight = analysis.identidade.semaforoSaude;
+    final String? weight = analysis.identidade.estimativaPeso; // New V135
+    final String? method = analysis.identidade.metodoPreparo;  // New V135
+    
+    final int kcal = analysis.macros.calorias100g;
+    final String carbs = analysis.macros.carboidratosLiquidos;
+    final String protein = analysis.macros.proteinas;
+    final String fats = analysis.macros.gordurasPerfil;
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(35),
+        header: (context) => buildHeader('${strings.pdfFoodTitle} - 360º', timestampStr, color: colorFood),
+        footer: (context) => buildFooter(context, strings: strings),
+        build: (context) => [
+          // HEADER IMAGE & TITLE
+          pw.Row(
+             crossAxisAlignment: pw.CrossAxisAlignment.start,
+             children: [
+                if (foodImage != null)
+                   pw.Container(
+                     width: 100,
+                     height: 100,
+                     margin: const pw.EdgeInsets.only(right: 15),
+                     decoration: pw.BoxDecoration(
+                        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                        border: pw.Border.all(color: colorFood, width: 2),
+                     ),
+                     child: pw.ClipRRect(
+                        horizontalRadius: 6,
+                        verticalRadius: 6,
+                        child: pw.Image(foodImage, fit: pw.BoxFit.cover),
+                     ),
+                   ),
+                pw.Expanded(
+                   child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                         pw.Text(dishName.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20, color: PdfColors.black)),
+                         pw.SizedBox(height: 5),
+                         pw.Text('$processing • $trafficLight', style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+                         if (weight != null)
+                            pw.Text('Peso Est.: $weight', style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+                         if (method != null)
+                            pw.Text('Preparo: $method', style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+                      ]
+                   )
+                )
+             ]
+          ),
+          
+          pw.SizedBox(height: 20),
+          
+          // MACROS GRID
+          buildSectionHeader(strings.pdfDetailedNutrition, color: colorFood),
+          pw.SizedBox(height: 10),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+               buildIndicator('Calorias (100g)', '$kcal kcal', colorFood),
+               buildIndicator(strings.nutrientsCarbs, carbs, PdfColors.orange),
+               buildIndicator(strings.nutrientsProteins, protein, PdfColors.red),
+               buildIndicator(strings.nutrientsFats, fats, PdfColors.yellow),
+            ]
+          ),
+          
+          pw.SizedBox(height: 20),
+          
+          // ANALYSIS
+          buildSectionHeader(strings.pdfExSummary, color: colorFood),
+          pw.Container(
+             padding: const pw.EdgeInsets.all(12),
+             decoration: pw.BoxDecoration(
+                color: PdfColors.grey100,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                border: pw.Border.all(color: PdfColors.grey300),
+             ),
+             child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                   pw.Text('VEREDITO DA IA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                   pw.SizedBox(height: 4),
+                   pw.Text(analysis.analise.vereditoIa, style: const pw.TextStyle(fontSize: 10)),
+                   pw.SizedBox(height: 8),
+                   if (analysis.analise.pontosPositivos.isNotEmpty) ...[
+                      pw.Text('PONTOS POSITIVOS:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
+                      ...analysis.analise.pontosPositivos.map((e) => pw.Bullet(text: e, style: const pw.TextStyle(fontSize: 9))),
+                   ],
+                   if (analysis.analise.pontosNegativos.isNotEmpty) ...[
+                      pw.SizedBox(height: 8),
+                      pw.Text('PONTOS DE ATENÇÃO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.red700)),
+                      ...analysis.analise.pontosNegativos.map((e) => pw.Bullet(text: e, style: const pw.TextStyle(fontSize: 9))),
+                   ]
+                ]
+             )
+          ),
+        ]
+      ),
+    );
     return pdf;
   }
 }

@@ -94,6 +94,9 @@ class IdentidadeESeguranca {
   final String semaforoSaude;
   final String alertaCritico;
   final String bioquimicaAlert;
+  // 🛡️ [V135] Novos Campos para Human Food
+  final String? estimativaPeso;
+  final String? metodoPreparo;
 
   IdentidadeESeguranca({
     required this.nome,
@@ -101,6 +104,8 @@ class IdentidadeESeguranca {
     required this.semaforoSaude,
     required this.alertaCritico,
     required this.bioquimicaAlert,
+    this.estimativaPeso,
+    this.metodoPreparo,
   });
 
   Map<String, dynamic> toJson() => {
@@ -109,6 +114,8 @@ class IdentidadeESeguranca {
     'semaforo_saude': semaforoSaude,
     'alerta_critico': alertaCritico,
     'bioquimica_alert': bioquimicaAlert,
+    'estimativa_peso': estimativaPeso,
+    'metodo_preparo': metodoPreparo,
   };
 
   factory IdentidadeESeguranca.fromJson(Map<String, dynamic> json) {
@@ -118,6 +125,8 @@ class IdentidadeESeguranca {
       semaforoSaude: json['health_traffic_light']?.toString() ?? json['semaforo_saude']?.toString() ?? 'Verde',
       alertaCritico: json['critical_alert']?.toString() ?? json['alerta_critico']?.toString() ?? 'Nenhum',
       bioquimicaAlert: json['biochemistry_alert']?.toString() ?? json['bioquimica_alert']?.toString() ?? '',
+      estimativaPeso: json['weight_estimate']?.toString() ?? json['estimativa_peso']?.toString(),
+      metodoPreparo: json['preparation_method']?.toString() ?? json['metodo_preparo']?.toString(),
     );
   }
 }

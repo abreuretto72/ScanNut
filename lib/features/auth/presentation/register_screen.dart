@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../core/theme/app_design.dart';
+import '../../home/presentation/home_view.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -38,9 +39,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (mounted) {
       if (success) {
-        SnackBarHelper.showSuccess(context, 'Cadastro realizado! Agora você pode entrar.');
-        Navigator.of(context).pop();
+        debugPrint('✅ [V113-AUTH] Auto-Login successful. Navigating to Home...');
+        SnackBarHelper.showSuccess(context, 'Bem-vindo ao ScanNut! Login realizado com sucesso.');
+        
+        // Navigate to Home and clear navigation stack (Force session entry point)
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeView()),
+          (route) => false,
+        );
       } else {
+        debugPrint('❌ [V113-AUTH] Registration failed or already exists.');
         SnackBarHelper.showError(context, 'Este e-mail já está cadastrado.');
       }
     }

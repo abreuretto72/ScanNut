@@ -87,6 +87,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get pdfReportTitle => 'HISTORIAL VETERINARIO COMPLETO';
 
   @override
+  String get pdfAnaliseFezes => 'Análisis Coprológico (Heces)';
+
+  @override
   String get pdfGeneratedOn => 'Generado el';
 
   @override
@@ -94,6 +97,18 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pdfHealthSection => 'Salud e Historial Médico';
+
+  @override
+  String get pdfClinicalSigns => 'Evaluación de Signos Clínicos y Triaje';
+
+  @override
+  String get pdfEyes => 'Ojos';
+
+  @override
+  String get pdfTeeth => 'Dientes';
+
+  @override
+  String get pdfSkin => 'Piel/Pelaje';
 
   @override
   String get pdfNutritionSection => 'Nutrición y Plan Alimentario';
@@ -2083,6 +2098,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get petBreedLabel => 'Raza';
 
   @override
+  String get petOriginRegion => 'Región de Origen';
+
+  @override
+  String get petMorphology => 'Tipo Morfológico';
+
+  @override
+  String get unknownRegion => 'Región Desconocida';
+
+  @override
+  String get unknownMorphology => 'Morfología N/A';
+
+  @override
   String get petAgeLabel => 'Edad Exacta (ej: 2 años 3 meses)';
 
   @override
@@ -2370,7 +2397,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get petSectionObservedSigns => 'Sinais Observados';
 
   @override
-  String get petSectionNutrition => 'Nutrição & Dieta';
+  String get petSectionNutrition => 'Nutrición y Dieta';
 
   @override
   String get petSectionGrooming => 'Grooming & Higiene';
@@ -2379,7 +2406,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get petSectionHealth => 'Saúde Preventiva';
 
   @override
-  String get petSectionLifestyle => 'Lifestyle & Educação';
+  String get petSectionLifestyle => 'Estilo de Vida y Educación';
 
   @override
   String get petInsightSpecialist => 'Insight do Especialista';
@@ -3248,7 +3275,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este evento no tiene un socio vinculado para mostrar detalles.';
 
   @override
-  String agendaProfileNotFound(Object name) {
+  String agendaProfileNotFound(Object name, Object petName) {
     return 'Perfil de $name no encontrado.';
   }
 
@@ -4145,7 +4172,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get agendaNoAttendants => 'Sem membros na equipe';
 
   @override
-  String get petAnalysisResults => 'Resultados Análise';
+  String get petAnalysisResults => 'Resultados del Análisis';
 
   @override
   String get petAnalysisEmpty => 'Nenhuma análise registrada.';
@@ -5462,11 +5489,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get petAddRestriction => 'Adicionar restrição';
 
   @override
-  String get petDossierTitle => 'Análise Veterinária 360°';
+  String get petDossierTitle => 'Análisis Veterinario 360º';
 
   @override
   String get petDossierDisclaimer =>
-      'Conteúdo gerado por IA. Use como referência. Não substitui avaliação veterinária.';
+      'Contenido generado por IA. Usar como referencia. No sustituye la evaluación veterinaria profesional.';
 
   @override
   String get petDossierAnalyzedImage => 'Imagem Analisada';
@@ -5487,10 +5514,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get petDossierStatus => 'Status';
 
   @override
-  String get petSectionIdentity => 'Identificação Visual';
+  String get petSectionIdentity => 'Identificación Visual';
 
   @override
-  String get petSectionPreventive => 'Saúde Preventiva';
+  String get petSectionPreventive => 'Salud Preventiva';
 
   @override
   String get petSectionGrowth => 'Curva de Crescimento';
@@ -5559,4 +5586,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String petIndexing_taskCompleted(Object task) {
     return 'Tarea completada: $task';
   }
+
+  @override
+  String get agendaLoadError => 'Erro ao carregar a agenda. Tente novamente.';
+
+  @override
+  String get pdfPrecision => 'Precisión';
 }

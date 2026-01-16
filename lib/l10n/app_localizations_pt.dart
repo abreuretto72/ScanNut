@@ -87,6 +87,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfReportTitle => 'Prontuário';
 
   @override
+  String get pdfAnaliseFezes => 'Análise Coprológica (Fezes)';
+
+  @override
   String get pdfGeneratedOn => 'Gerado em';
 
   @override
@@ -94,6 +97,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pdfHealthSection => 'Saúde e Histórico Médico';
+
+  @override
+  String get pdfClinicalSigns => 'Avaliação de Sinais Clínicos e Triagem';
+
+  @override
+  String get pdfEyes => 'Olhos';
+
+  @override
+  String get pdfTeeth => 'Dentes';
+
+  @override
+  String get pdfSkin => 'Pele/Pelagem';
 
   @override
   String get pdfNutritionSection => 'Nutrição e Plano Alimentar';
@@ -380,14 +395,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get loadingFood => 'Analisando alimento...';
 
   @override
-  String get loadingPlant => 'Diagnosticando planta...';
+  String get loadingPlant => 'Analisando a planta...';
 
   @override
-  String get loadingPetBreed =>
-      'Calculando métricas personalizadas e identificando raça...';
+  String get loadingPetBreed => 'Analisando imagem do PET...';
 
   @override
-  String get loadingPetHealth => 'Analisando saúde...';
+  String get loadingPetHealth => 'Analisando saúde do PET...';
 
   @override
   String get nutrientsAdvancedMacros => 'Macronutrientes Avançados';
@@ -2085,6 +2099,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petBreedLabel => 'Raça';
 
   @override
+  String get petOriginRegion => 'Região de Origem';
+
+  @override
+  String get petMorphology => 'Tipo Morfológico';
+
+  @override
+  String get unknownRegion => 'Região Desconhecida';
+
+  @override
+  String get unknownMorphology => 'Morfologia N/A';
+
+  @override
   String get petAgeLabel => 'Idade Exata (ex: 2 anos 3 meses)';
 
   @override
@@ -2854,7 +2880,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfRecommendations => 'Recomendações';
 
   @override
-  String get pdfAgendaTitle => 'Check de Agenda';
+  String get pdfAgendaTitle => 'AGENDA GLOBAL';
 
   @override
   String get pdfObservationsTitle => 'HISTÓRICO DE OBSERVAÇÕES:';
@@ -2875,7 +2901,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfDescription => 'Descrição';
 
   @override
-  String get pdfCompleted => 'Realizado';
+  String get pdfCompleted => 'Concluído';
 
   @override
   String get pdfPending => 'Pendente';
@@ -2887,7 +2913,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfNoPlan => 'Sem plano alimentar registrado.';
 
   @override
-  String get pdfAgendaReport => 'Relatório de Agenda Pet';
+  String get pdfAgendaReport => 'Relatório de Agenda';
 
   @override
   String get pdfTotalEvents => 'Total de Eventos';
@@ -2914,7 +2940,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdfObservations => 'Observações';
 
   @override
-  String get pdfSummaryReport => 'Relatório Resumido - Tabela Omitida';
+  String get pdfSummaryReport => 'Relatório Resumido';
 
   @override
   String get pdfNoImages => 'Nenhuma imagem encontrada na galeria.';
@@ -3201,57 +3227,57 @@ class AppLocalizationsPt extends AppLocalizations {
   String get agendaGeneratePDF => 'Gerar PDF';
 
   @override
-  String get agendaGlobalTitle => 'Agenda Geral';
+  String get agendaGlobalTitle => 'Agenda Global';
 
   @override
   String get agendaViewCalendar => 'Ver Calendário';
 
   @override
-  String get agendaViewAll => 'Ver Todos os Eventos';
+  String get agendaViewAll => 'Ver Lista Completa';
 
   @override
-  String get agendaNoEventsRegistered => 'Nenhum evento registrado.';
+  String get agendaNoEventsRegistered => 'Nenhum evento registado na agenda.';
 
   @override
   String get agendaNoEventsTodayDetail => 'Nenhum evento para este dia.';
 
   @override
-  String get agendaAllPets => 'Todos os Pets';
+  String get agendaAllPets => 'Todos os Animais';
 
   @override
   String get agendaExportPDF => 'Exportar Relatório PDF';
 
   @override
-  String get agendaReportingPeriod => 'Período de Apuração';
+  String get agendaReportingPeriod => 'Período do Relatório';
 
   @override
-  String get agendaFilterPet => 'Filtrar por Pet';
+  String get agendaFilterPet => 'Filtrar por Animal';
 
   @override
   String get agendaFilterCategory => 'Filtrar por Categoria';
 
   @override
-  String get agendaDetailLevel => 'Nível de Detalhamento';
+  String get agendaDetailLevel => 'Nível de Detalhe';
 
   @override
-  String get agendaDetailedTable => 'Detalhado (Com Tabela)';
+  String get agendaDetailedTable => 'Tabela Detalhada';
 
   @override
-  String get agendaSummaryOnly => 'Resumo (Apenas Indicadores)';
+  String get agendaSummaryOnly => 'Apenas Resumo';
 
   @override
-  String get agendaButtonGenerate => 'GERAR RELATÓRIO';
+  String get agendaButtonGenerate => 'Gerar PDF';
 
   @override
   String get agendaAllCategories => 'Todas as Categorias';
 
   @override
   String get agendaNoPartnerLinked =>
-      'Este evento não tem parceiro vinculado para exibir detalhes.';
+      'Nenhum parceiro vinculado a este evento.';
 
   @override
-  String agendaProfileNotFound(Object name) {
-    return 'Perfil de $name não encontrado.';
+  String agendaProfileNotFound(Object name, Object petName) {
+    return 'Perfil de $petName não encontrado.';
   }
 
   @override
@@ -5558,6 +5584,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String petIndexing_taskCompleted(Object task) {
     return 'Tarefa concluída: $task';
   }
+
+  @override
+  String get agendaLoadError => 'Erro ao carregar a agenda. Tente novamente.';
+
+  @override
+  String get pdfPrecision => 'Precisão';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).
@@ -7055,9 +7087,69 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
       'Crie ementas semanais personalizadas baseadas nas suas metas e restrições alimentares.';
 
   @override
+  String get pdfAgendaTitle => 'AGENDA GLOBAL';
+
+  @override
+  String get pdfAgendaReport => 'Relatório de Agenda';
+
+  @override
+  String get agendaGlobalTitle => 'Agenda Global';
+
+  @override
+  String get agendaViewCalendar => 'Ver Calendário';
+
+  @override
+  String get agendaViewAll => 'Ver Lista Completa';
+
+  @override
+  String get agendaNoEventsRegistered => 'Nenhum evento registado na agenda.';
+
+  @override
+  String get agendaNoEventsTodayDetail => 'Nenhum evento para este dia.';
+
+  @override
+  String get agendaAllPets => 'Todos os Animais';
+
+  @override
+  String get agendaReportingPeriod => 'Período do Relatório';
+
+  @override
+  String get agendaFilterPet => 'Filtrar por Animal';
+
+  @override
+  String get agendaFilterCategory => 'Filtrar por Categoria';
+
+  @override
+  String get agendaDetailLevel => 'Nível de Detalhe';
+
+  @override
+  String get agendaDetailedTable => 'Tabela Detalhada';
+
+  @override
+  String get agendaSummaryOnly => 'Apenas Resumo';
+
+  @override
+  String get agendaButtonGenerate => 'Gerar PDF';
+
+  @override
+  String get agendaAllCategories => 'Todas as Categorias';
+
+  @override
+  String get agendaNoPartnerLinked =>
+      'Nenhum parceiro vinculado a este evento.';
+
+  @override
+  String agendaProfileNotFound(Object name, Object petName) {
+    return 'Perfil de $petName não encontrado.';
+  }
+
+  @override
   String get privacySecurityTitle => 'Segurança e Proteção de Dados';
 
   @override
   String get privacySecurityBody =>
       'O ScanNut prioriza a privacidade do utilizador através de uma arquitetura de dados local. Utilizamos criptografia de nível militar (AES-256) para cifrar a base de dados armazenada no seu dispositivo. As chaves de segurança são mantidas em ambiente isolado (Keystore/Keychain), garantindo que, mesmo em caso de perda do telemóvel, os dados permaneçam inacessíveis sem as devidas credenciais ou chaves do sistema.\n\nO utilizador está ciente de que, por não utilizarmos armazenamento na nuvem (Cloud), a manutenção e segurança dos ficheiros de Cópia de Segurança Local exportados são da sua inteira responsabilidade.';
+
+  @override
+  String get agendaLoadError => 'Erro ao carregar a agenda. Tente novamente.';
 }

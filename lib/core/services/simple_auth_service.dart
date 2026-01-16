@@ -25,6 +25,7 @@ import '../../nutrition/data/datasources/shopping_list_service.dart';
 import '../services/partner_service.dart';
 import '../../nutrition/data/datasources/menu_filter_service.dart';
 import '../../features/pet/services/pet_event_repository.dart';
+import 'hive_atomic_manager.dart';
 
 
 class SimpleAuthService {
@@ -41,7 +42,7 @@ class SimpleAuthService {
   List<int>? _encryptionKey;
 
   Future<void> init() async {
-    await Hive.openBox(_authBoxName);
+    await HiveAtomicManager().ensureBoxOpen(_authBoxName);
     logger.info('🔐 SimpleAuthService initialized');
   }
 
@@ -176,9 +177,13 @@ class SimpleAuthService {
       final keyBytes = utf8.encode(email + password);
       _encryptionKey = sha256.convert(keyBytes).bytes;
       
-      if (rememberMe) {
-        // Salva a chave no Secure Storage se o usuário quiser persistir
+      if (rememberMe || isBiometricEnabled) {
+        // Salva a chave no Secure Storage para Auto-Login ou Biometria
+        // V127: Força salvamento se Biometria estiver ativada, mesmo que rememberMe seja falso
         await _storage.write(key: _encryptionKeyName, value: base64Encode(_encryptionKey!));
+        if (isBiometricEnabled) {
+           logger.info('🔒 [V127-AUTH] Biometrics is ON: Key persisted automatically.');
+        }
       }
 
       await box.put(_sessionKey, email);
@@ -204,25 +209,36 @@ class SimpleAuthService {
       return false;
     }
     
+    // 1. Persist new user in auth box
     users[email] = _hashPassword(password);
     await box.put('users', users);
-    logger.info('✅ User $email registered successfully (hashed)');
-    return true;
+    logger.info('✅ [V113-AUTH] User $email registered successfully. Starting Auto-Login...');
+
+    // 2. Perform Auto-Login (V113)
+    // We default to rememberMe: true to ease the first-run experience
+    return await login(email, password, rememberMe: true);
   }
 
   Future<void> logout() async {
-    final box = Hive.box(_authBoxName);
-    await box.delete(_sessionKey);
-    await box.delete(_persistKey);
-    await _storage.delete(key: _encryptionKeyName);
-    _encryptionKey = null; // Limpa a chave da memória
-    
-    // Opcionalmente: Fechar todas as boxes abertas
-    await Hive.close();
-    await Hive.initFlutter(); // Re-inicializar para permitir abrir a auth box de novo
-    await init();
-    
-    logger.info('🚪 User logged out. Encryption key and boxes cleared.');
+    try {
+      final box = Hive.box(_authBoxName);
+      await box.delete(_sessionKey);
+      await box.delete(_persistKey);
+      await _storage.delete(key: _encryptionKeyName);
+      _encryptionKey = null; // Limpa a chave da memória
+      
+      // 🛡️ [V170] CLOSE HIVE SECURELY
+      // Fechamos todas as boxes e o motor para garantir integridade.
+      await Hive.close();
+      
+      // Reinicializar para permitir operações básicas de Auth
+      await Hive.initFlutter();
+      await init();
+      
+      logger.info('🚪 [V170] User logged out. Encryption key and boxes cleared safely.');
+    } catch (e) {
+      logger.error('⚠️ Error during logout: $e');
+    }
   }
 
   Future<String?> changePassword(String email, String currentPassword, String newPassword) async {
@@ -321,6 +337,24 @@ class SimpleAuthService {
     final box = Hive.box(_authBoxName);
     return box.get(_biometricEnabledKey, defaultValue: false);
   }
+
+  /// 🧬 V114: Verifica se o hardware suporta biometria e se já está ativa
+  Future<bool> shouldPromptBiometricActivation() async {
+    final available = await checkHardwareBiometrics();
+    final alreadyEnabled = isBiometricEnabled;
+    return available && !alreadyEnabled;
+  }
+
+  Future<bool> checkHardwareBiometrics() async {
+    try {
+      final bool canAuthenticateWithBiometrics = await _localAuth.canCheckBiometrics;
+      final bool isSupported = await _localAuth.isDeviceSupported();
+      return canAuthenticateWithBiometrics || isSupported;
+    } catch (e) {
+      logger.error('Error checking hardware biometrics: $e');
+      return false;
+    }
+  }
   
   Future<bool> checkBiometricsAvailable() async {
     try {
@@ -342,6 +376,13 @@ class SimpleAuthService {
     if (enabled && _encryptionKey != null) {
         await _storage.write(key: _encryptionKeyName, value: base64Encode(_encryptionKey!));
         logger.info('🔒 Biometric active: Key forced into SecureStorage.');
+    } else if (enabled && _encryptionKey == null) {
+       // Se tentar ativar sem estar logado ou sem chave na memória, isso é um erro lógico
+       // mas não podemos recuperar a senha do nada. O usuário terá que logar de novo para salvar a chave.
+       final hasKey = await _storage.containsKey(key: _encryptionKeyName);
+       if (!hasKey) {
+          logger.warning('⚠️ Ativando biometria mas sem chave mestre. Usuário precisará relogar.');
+       }
     }
     
     // If disabling, run setPersistSession logic to clean up if needed
@@ -372,10 +413,29 @@ class SimpleAuthService {
     }
   }
 
-  Future<bool> authenticateWithBiometrics() async {
+  Future<bool> hasStoredCredentials() async {
+    return await _storage.containsKey(key: _encryptionKeyName);
+  }
+
+  bool _isAuthenticating = false;
+
+  Future<AuthResult> authenticateWithBiometrics() async {
+     if (_isAuthenticating) return AuthResult.unavailable;
+     _isAuthenticating = true;
+     
      try {
        final available = await checkBiometricsAvailable();
-       if (!available) return false;
+       if (!available) {
+          _isAuthenticating = false;
+          return AuthResult.unavailable;
+       }
+       
+       // V128: Pre-Check for Key
+       if (!await hasStoredCredentials()) {
+          logger.warning('⚠️ [V128-BIO] No key stored. Cannot authenticate.');
+          _isAuthenticating = false;
+          return AuthResult.missingKey;
+       }
 
        final bool didAuthenticate = await _localAuth.authenticate(
          localizedReason: 'Toque no sensor para entrar no ScanNut',
@@ -386,30 +446,43 @@ class SimpleAuthService {
        );
        
        if (didAuthenticate) {
+           debugPrint('✅ [V128-BIO] OS Authentication Succeeded (Handshake).');
+           
            // Retrieve key purely from storage
            final keyString = await _storage.read(key: _encryptionKeyName);
            if (keyString != null) {
               _encryptionKey = base64Decode(keyString).toList();
-              // We must also set active_session if it's not set (e.g. Keep Signed In was false)
-              // But we don't know the email unless we stored it??
-              // CHECK: _sessionKey stores email. If "Keep Signed In" is false, do we delete _sessionKey?
-              // The `logout` method deletes _sessionKey. 
-              // `checkPersistentSession` checks if _sessionKey != null.
-              // If User logged out, _sessionKey is gone. Biometrics can't restore EMAIL.
-              // Biometrics is only useful if user did NOT logout, but just closed app with "Keep Signed In" OFF.
-              // In that case, valid session = false, but keys are there.
-           }
-           if (_encryptionKey != null) {
-             await initializeSecureData();
-             return true;
+              
+              // 🚀 V126: RESTORE SESSION STATE
+              final box = Hive.box(_authBoxName);
+              if (box.get(_sessionKey) == null) {
+                  await box.put(_sessionKey, "biometric_user@scannut.app"); 
+                  debugPrint('⚠️ [V128-BIO] Session resurrected via Biometrics.');
+              }
+              
+              await initializeSecureData();
+              debugPrint('🚀 [V128-BIO] Secure Data Initialized. Returning SUCCESS.');
+              _isAuthenticating = false;
+              return AuthResult.success;
+           } else {
+              debugPrint('❌ [V128-BIO] Auth OK but No Key in Storage explicity.');
+              _isAuthenticating = false;
+              return AuthResult.missingKey;
            }
        }
-       return false;
+       _isAuthenticating = false;
+       return AuthResult.failed;
      } catch (e) {
        logger.error('Error in bio auth: $e');
-       return false;
+       _isAuthenticating = false;
+       return AuthResult.failed;
      }
   }
+  static Future<AuthResult> authenticate() async {
+    return await _instance.authenticateWithBiometrics();
+  }
 }
+
+enum AuthResult { success, failed, missingKey, unavailable }
 
 final simpleAuthService = SimpleAuthService();
