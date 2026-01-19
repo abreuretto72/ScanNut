@@ -1,6 +1,6 @@
 import 'pet_analysis_result.dart';
 import 'analise_ferida_model.dart';
-import 'analise_fezes_model.dart';
+import 'analise_ferida_model.dart';
 import '../../../core/utils/json_cast.dart';
 
 
@@ -16,6 +16,7 @@ class PetProfileExtended {
   final String? nivelAtividade; // Sedentário, Moderado, Ativo
   final String? statusReprodutivo; // Castrado, Inteiro
   final String? sex; // Macho, Fêmea
+  final String? microchip; // Código do microchip (geralmente 15 dígitos)
   final String? porte; // Pequeno, Médio, Grande, Gigante
   final String? reliability; // % of AI confidence
   
@@ -36,7 +37,7 @@ class PetProfileExtended {
   final List<Map<String, dynamic>> labExams; // Lab exams with OCR and AI analysis
   final List<Map<String, dynamic>> woundAnalysisHistory; // Legacy: Wound/injury analysis history [{date, imagePath, diagnosis, severity, recommendations}]
   final List<AnaliseFeridaModel> historicoAnaliseFeridas; // 🛡️ V170: Structured Wound History
-  final List<AnaliseFezesModel> historicoFezes; // 🛡️ V231: Stool Analysis History
+
   final List<Map<String, dynamic>> analysisHistory; // Completed AI Analysis Result History
   
   // Observações Cumulativas por Seção (com timestamps)
@@ -61,6 +62,7 @@ class PetProfileExtended {
     this.nivelAtividade,
     this.statusReprodutivo,
     this.sex,
+    this.microchip,
     this.alergiasConhecidas = const [],
     this.preferencias = const [],
     this.restricoes = const [],
@@ -73,7 +75,7 @@ class PetProfileExtended {
     this.labExams = const [],
     this.woundAnalysisHistory = const [],
     this.historicoAnaliseFeridas = const [],
-    this.historicoFezes = const [],
+
     this.analysisHistory = const [],
     this.observacoesIdentidade = '',
     this.observacoesSaude = '',
@@ -100,6 +102,7 @@ class PetProfileExtended {
       nivelAtividade: json['nivel_atividade'] as String?,
       statusReprodutivo: json['status_reprodutivo'] as String?,
       sex: json['sex'] as String?,
+      microchip: json['microchip'] as String?,
       porte: json['porte'] as String?,
       alergiasConhecidas: (json['alergias_conhecidas'] as List?)?.cast<String>() ?? [],
       preferencias: (json['preferencias'] as List?)?.cast<String>() ?? [],
@@ -122,9 +125,7 @@ class PetProfileExtended {
       historicoAnaliseFeridas: (json['historico_analise_feridas'] as List?)
           ?.map((e) => AnaliseFeridaModel.fromJson(Map<String, dynamic>.from(e)))
           .toList() ?? [],
-      historicoFezes: (json['historico_fezes'] as List?)
-          ?.map((e) => AnaliseFezesModel.fromJson(Map<String, dynamic>.from(e)))
-          .toList() ?? [],
+
       analysisHistory: deepCastMapList(json['analysis_history']),
 
       observacoesIdentidade: (json['observacoes_identidade'] ?? '') as String,
@@ -233,7 +234,7 @@ class PetProfileExtended {
          labExams: [],
          woundAnalysisHistory: [],
          historicoAnaliseFeridas: [],
-         historicoFezes: [],
+
           analysisHistory: [rawAnalysis],
           porte: result.identificacao.porteEstimado,
      );
@@ -250,6 +251,7 @@ class PetProfileExtended {
       if (nivelAtividade != null) 'nivel_atividade': nivelAtividade,
       if (statusReprodutivo != null) 'status_reprodutivo': statusReprodutivo,
       if (sex != null) 'sex': sex,
+      if (microchip != null) 'microchip': microchip,
       if (porte != null) 'porte': porte,
       'alergias_conhecidas': alergiasConhecidas,
       'preferencias': preferencias,
@@ -264,7 +266,7 @@ class PetProfileExtended {
       'lab_exams': labExams,
       'wound_analysis_history': woundAnalysisHistory,
       'historico_analise_feridas': historicoAnaliseFeridas.map((e) => e.toJson()).toList(),
-      'historico_fezes': historicoFezes.map((e) => e.toJson()).toList(),
+
       'analysis_history': analysisHistory,
       'observacoes_identidade': observacoesIdentidade,
       'observacoes_saude': observacoesSaude,
@@ -316,6 +318,7 @@ class PetProfileExtended {
     String? nivelAtividade,
     String? statusReprodutivo,
     String? sex,
+    String? microchip,
     List<String>? alergiasConhecidas,
     List<String>? preferencias,
     List<String>? restricoes,
@@ -328,7 +331,7 @@ class PetProfileExtended {
     List<Map<String, dynamic>>? labExams,
     List<Map<String, dynamic>>? woundAnalysisHistory,
     List<AnaliseFeridaModel>? historicoAnaliseFeridas,
-    List<AnaliseFezesModel>? historicoFezes,
+
     List<Map<String, dynamic>>? analysisHistory, // New
     String? observacoesIdentidade,
     String? observacoesSaude,
@@ -351,6 +354,7 @@ class PetProfileExtended {
       nivelAtividade: nivelAtividade ?? this.nivelAtividade,
       statusReprodutivo: statusReprodutivo ?? this.statusReprodutivo,
       sex: sex ?? this.sex,
+      microchip: microchip ?? this.microchip,
       alergiasConhecidas: alergiasConhecidas ?? this.alergiasConhecidas,
       preferencias: preferencias ?? this.preferencias,
       restricoes: restricoes ?? this.restricoes,
@@ -363,7 +367,7 @@ class PetProfileExtended {
       labExams: labExams ?? this.labExams,
       woundAnalysisHistory: woundAnalysisHistory ?? this.woundAnalysisHistory,
       historicoAnaliseFeridas: historicoAnaliseFeridas ?? this.historicoAnaliseFeridas,
-      historicoFezes: historicoFezes ?? this.historicoFezes,
+
       analysisHistory: analysisHistory ?? this.analysisHistory, // New
       observacoesIdentidade: observacoesIdentidade ?? this.observacoesIdentidade,
       observacoesSaude: observacoesSaude ?? this.observacoesSaude,

@@ -815,9 +815,17 @@ class GeminiService {
           .replaceAll('```', '')
           .trim();
 
+      // 4. 🛡️ Sanitization: Remove comments and trailing commas (Common AI Errors)
+      // Remove single-line comments //...
+      jsonString = jsonString.replaceAll(RegExp(r'\/\/.*'), '');
+      // Remove multi-line comments /*...*/
+      jsonString = jsonString.replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '');
+      // Remove trailing commas before closing braces/brackets
+      jsonString = jsonString.replaceAll(RegExp(r',(?=\s*[\}\]])'), '');
+
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ Failed to extract/decode JSON. String sample: ${text.length > 100 ? text.substring(0, 100) : text}');
+      debugPrint('❌ Failed to extract/decode JSON. String sample: ${text.length > 200 ? text.substring(0, 200) : text}');
       throw const FormatException('Invalid JSON format');
     }
   }

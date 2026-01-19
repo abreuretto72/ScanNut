@@ -8,11 +8,11 @@ import 'package:scannut/l10n/app_localizations.dart';
 import '../models/pet_profile_extended.dart';
 import '../models/pet_analysis_result.dart';
 import '../models/analise_ferida_model.dart';
-import '../models/analise_fezes_model.dart';
+
 import '../models/lab_exam.dart';
 import '../../../core/services/image_optimization_service.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../../core/services/partner_service.dart'; // Import Added
+import '../../../core/services/partner_service.dart';
 
 class PetPdfGenerator {
   static final PetPdfGenerator _instance = PetPdfGenerator._internal();
@@ -22,6 +22,60 @@ class PetPdfGenerator {
   static final PdfColor colorPrimary = PdfColor.fromHex('#FFD1DC'); // Rosa Pastel
   static final PdfColor colorAccent = PdfColor.fromHex('#FF4081');
   static final PdfColor colorText = PdfColor.fromHex('#333333');
+
+  Future<pw.Document> generateSingleAnalysisReport({
+    required PetProfileExtended profile,
+    required AppLocalizations strings,
+    AnaliseFeridaModel? specificWound,
+  }) async {
+    final pdf = pw.Document();
+    
+    // 1. Load Images
+    pw.ImageProvider? profileImage;
+    if (profile.imagePath != null && profile.imagePath!.isNotEmpty) {
+      profileImage = await _safeLoadImage(profile.imagePath!);
+    }
+
+    pw.ImageProvider? analysisImage;
+    if (specificWound != null && specificWound.imagemRef.isNotEmpty) {
+        analysisImage = await _safeLoadImage(specificWound.imagemRef);
+    }
+
+    // 2. Build PDF
+    final font = await PdfGoogleFonts.openSansRegular();
+    final fontBold = await PdfGoogleFonts.openSansBold();
+
+    pdf.addPage(
+      pw.Page(
+        theme: pw.ThemeData.withFont(base: font, bold: fontBold),
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+               _buildHeader(profile, profileImage, strings),
+               pw.SizedBox(height: 20),
+               
+               _buildSectionTitle(strings.pdfIdentitySection, strings),
+               _buildIdentityTable(profile, strings),
+               pw.SizedBox(height: 30),
+
+               if (specificWound != null) ...[
+                   _buildSectionTitle('DETALHES DA ANÁLISE CLÍNICA', strings),
+                   pw.SizedBox(height: 10),
+                   (specificWound.categoria == 'fezes' || specificWound.categoria == 'stool')
+                       ? _buildStoolItem(specificWound, analysisImage, strings)
+                       : _buildWoundItem(specificWound, analysisImage, strings),
+               ],
+            ]
+          );
+        },
+      )
+    );
+
+    return pdf;
+  }
 
   Future<pw.Document> generateReport({
     required PetProfileExtended profile,
@@ -66,16 +120,6 @@ class PetPdfGenerator {
        woundItems.add({ 'model': item, 'image': img });
     }
 
-    // STOOL
-    final List<Map<String, dynamic>> stoolItems = [];
-    final List<AnaliseFezesModel> fullStool = [...profile.historicoFezes];
-    fullStool.sort((a,b) => b.dataAnalise.compareTo(a.dataAnalise));
-    for (var item in fullStool) {
-        pw.ImageProvider? img;
-        if (item.imagemRef.isNotEmpty) img = await _safeLoadImage(item.imagemRef);
-        stoolItems.add({ 'model': item, 'image': img });
-    }
-
     // LAB EXAMS
     final List<Map<String, dynamic>> labItems = [];
     for (var examMap in profile.labExams) { 
@@ -110,23 +154,19 @@ class PetPdfGenerator {
     }
 
     // GALERIA
-    // GALERIA
     final List<Map<String, dynamic>> galleryItems = [];
-    // 🛡️ V_REQ: Only show MANUALLY ADDED photos in Gallery section
     if (manualGallery != null) {
         for (var f in manualGallery) {
             final img = await _safeLoadImage(f.path);
             if (img != null) {
                  galleryItems.add({
                     'image': img, 
-                    'date': DateTime.now(), // Fallback (real metadata hard to get here quickly)
+                    'date': DateTime.now(), // Fallback
                     'label': 'Galeria'
                  });
             }
         }
     }
-    // REMOVED automatic merge (Wounds/Stool not added to Gallery anymore)
-
 
     // --- 2. BUILD PDF ---
     final font = await PdfGoogleFonts.openSansRegular();
@@ -145,68 +185,62 @@ class PetPdfGenerator {
              _buildSectionTitle(strings.pdfIdentitySection, strings),
              _buildIdentityTable(profile, strings),
              pw.SizedBox(height: 10),
-             if (profile.preferencias.isNotEmpty || profile.restricoes.isNotEmpty) ...[
-                 _buildPreferences(profile, strings),
-                 pw.SizedBox(height: 20),
-             ],
              
-             // PARTNERS SECTION
-             if (partnerItems.isNotEmpty) ...[
-                 _buildSectionTitle(strings.pdfParcSection, strings),
-                 pw.SizedBox(height: 10),
-                 _buildPartnersTable(partnerItems),
-                 pw.SizedBox(height: 20),
-             ],
+             _buildPreferences(profile, strings),
+             pw.SizedBox(height: 20),
+             
+             _buildSectionTitle(strings.pdfParcSection, strings),
+             pw.SizedBox(height: 10),
+             partnerItems.isNotEmpty 
+                ? _buildPartnersTable(partnerItems)
+                : pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+             pw.SizedBox(height: 20),
 
              _buildSectionTitle(strings.pdfHealthSection, strings),
              _buildVaccineTable(profile, strings),
              pw.SizedBox(height: 10),
              _buildWeightSection(profile, strings),
              pw.SizedBox(height: 10),
-             if (profile.alergiasConhecidas.isNotEmpty) ...[
-                 _buildAllergies(profile, strings),
-                 pw.SizedBox(height: 20),
-             ],
              
-             // Notas Gerais
-             if (_hasNotes(profile)) ...[
-                 _buildSectionTitle(strings.guideObservationsTitle, strings),
-                 _buildNotesSection(profile, strings),
-                 pw.SizedBox(height: 20),
-             ],
+             _buildAllergies(profile, strings),
+             pw.SizedBox(height: 20),
+             
+             _buildSectionTitle(strings.guideObservationsTitle, strings),
+             _buildNotesSection(profile, strings),
+             pw.SizedBox(height: 20),
 
-             if (woundItems.isNotEmpty) ...[
-                 _buildSectionTitle(strings.pdfAnaliseFeridas.toUpperCase(), strings),
-                 pw.SizedBox(height: 10),
-                 ...woundItems.map((e) => _buildWoundItem(e['model'], e['image'], strings)).toList(),
-                 pw.SizedBox(height: 20),
-             ],
+             _buildSectionTitle(strings.pdfAnaliseFeridas.toUpperCase(), strings),
+             pw.SizedBox(height: 10),
+             if (woundItems.isNotEmpty)
+                ...woundItems.map((e) {
+                    final model = e['model'] as AnaliseFeridaModel;
+                    return (model.categoria == 'fezes' || model.categoria == 'stool')
+                        ? _buildStoolItem(model, e['image'], strings)
+                        : _buildWoundItem(model, e['image'], strings);
+                }).toList()
+             else
+                pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+             pw.SizedBox(height: 20),
 
-             if (stoolItems.isNotEmpty) ...[
-                 _buildSectionTitle('ANÁLISE COPROLÓGICA (FEZES)', strings),
-                 pw.SizedBox(height: 10),
-                 ...stoolItems.map((e) => _buildStoolItem(e['model'], e['image'], strings)).toList(),
-                 pw.SizedBox(height: 20),
-             ],
-
-             if (labItems.isNotEmpty) ...[
-                 _buildSectionTitle('EXAMES LABORATORIAIS', strings),
-                 pw.SizedBox(height: 10),
-                 ...labItems.map((e) => _buildLabItem(e['model'], e['image'], strings)).toList(),
-                 pw.SizedBox(height: 20),
-             ],
+             _buildSectionTitle('EXAMES LABORATORIAIS', strings),
+             pw.SizedBox(height: 10),
+             if (labItems.isNotEmpty)
+                 ...labItems.map((e) => _buildLabItem(e['model'], e['image'], strings)).toList()
+             else
+                 pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+             pw.SizedBox(height: 20),
              
              _buildSectionTitle(strings.pdfNutritionSection.toUpperCase(), strings),
              _buildNutritionSection(profile, strings),
              pw.SizedBox(height: 20),
              
-             // --- GALERIA ---
-             if (galleryItems.isNotEmpty) ...[
-                 pw.NewPage(), 
-                 _buildSectionTitle(strings.pdfGallerySection.toUpperCase(), strings),
-                 pw.SizedBox(height: 15),
-                 _buildGalleryGrid(galleryItems, strings),
-             ]
+             pw.NewPage(), 
+             _buildSectionTitle(strings.pdfGallerySection.toUpperCase(), strings),
+             pw.SizedBox(height: 15),
+             if (galleryItems.isNotEmpty)
+                 _buildGalleryGrid(galleryItems, strings)
+             else 
+                 pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
           ];
         },
         footer: (context) => _buildFooter(context),
@@ -243,14 +277,15 @@ class PetPdfGenerator {
   }
 
   pw.Widget _buildIdentityTable(PetProfileExtended profile, AppLocalizations strings) {
+      final noInfo = 'Sem informação';
       return pw.Table(border: pw.TableBorder.all(color: PdfColors.grey300), children: [
-           _buildTableRow('Espécie / Raça', '${profile.especie ?? '-'} / ${profile.raca ?? '-'}'),
-           _buildTableRow('Porte', profile.porte ?? '-'),
-           _buildTableRow('Idade', profile.idadeExata ?? '-'),
-           _buildTableRow('Peso', '${profile.pesoAtual ?? '-'} kg (Ideal: ${profile.pesoIdeal ?? '-'} kg)'),
-           _buildTableRow('Sexo / Castrado', '${_localizeSex(profile.sex, strings)} / ${profile.statusReprodutivo ?? '-'}'),
-           _buildTableRow('Nível de Atividade', profile.nivelAtividade ?? '-'),
-           _buildTableRow('Frequência de Banho', profile.frequenciaBanho ?? '-'),
+           _buildTableRow('Espécie / Raça', '${profile.especie ?? noInfo} / ${profile.raca ?? noInfo}'),
+           _buildTableRow('Porte', profile.porte ?? noInfo),
+           _buildTableRow('Idade', profile.idadeExata ?? noInfo),
+           _buildTableRow('Peso', '${profile.pesoAtual ?? noInfo} kg (Ideal: ${profile.pesoIdeal ?? noInfo} kg)'),
+           _buildTableRow('Sexo / Castrado', '${_localizeSex(profile.sex, strings)} / ${profile.statusReprodutivo ?? noInfo}'),
+           _buildTableRow('Nível de Atividade', profile.nivelAtividade ?? noInfo),
+           _buildTableRow('Frequência de Banho', profile.frequenciaBanho ?? noInfo),
       ]);
   }
   
@@ -262,9 +297,10 @@ class PetPdfGenerator {
   }
 
   pw.Widget _buildPreferences(PetProfileExtended profile, AppLocalizations strings) {
+      final noInfo = 'Sem informação';
       return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          if (profile.preferencias.isNotEmpty) pw.Text('Preferências: ${profile.preferencias.join(", ")}', style: const pw.TextStyle(fontSize: 10)),
-          if (profile.restricoes.isNotEmpty) pw.Text('Restrições: ${profile.restricoes.join(", ")}', style: pw.TextStyle(fontSize: 10, color: PdfColors.red900)),
+          pw.Text('Preferências: ${profile.preferencias.isNotEmpty ? profile.preferencias.join(", ") : noInfo}', style: const pw.TextStyle(fontSize: 10)),
+          pw.Text('Restrições: ${profile.restricoes.isNotEmpty ? profile.restricoes.join(", ") : noInfo}', style: pw.TextStyle(fontSize: 10, color: profile.restricoes.isNotEmpty ? PdfColors.red900 : PdfColors.black)),
       ]);
   }
   
@@ -287,11 +323,6 @@ class PetPdfGenerator {
       ]);
   }
   
-  bool _hasNotes(PetProfileExtended profile) {
-      return profile.observacoesIdentidade.isNotEmpty || profile.observacoesSaude.isNotEmpty || 
-             profile.observacoesNutricao.isNotEmpty || profile.observacoesGaleria.isNotEmpty || profile.observacoesPrac.isNotEmpty;
-  }
-  
   pw.Widget _buildNotesSection(PetProfileExtended profile, AppLocalizations strings) {
       final notes = [
           if (profile.observacoesIdentidade.isNotEmpty) 'Ident/Comp: ${profile.observacoesIdentidade}',
@@ -300,6 +331,11 @@ class PetPdfGenerator {
           if (profile.observacoesGaleria.isNotEmpty) 'Galeria: ${profile.observacoesGaleria}',
           if (profile.observacoesPrac.isNotEmpty) 'Outros: ${profile.observacoesPrac}',
       ];
+      
+      if (notes.isEmpty) {
+          return pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700));
+      }
+
       return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: notes.map((n) => pw.Padding(padding: const pw.EdgeInsets.only(bottom: 4), child: pw.Text('• $n', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800)))).toList());
   }
   
@@ -314,7 +350,7 @@ class PetPdfGenerator {
   }
 
   pw.Widget _buildWeightSection(PetProfileExtended profile, AppLocalizations strings) {
-      if (profile.weightHistory.isEmpty) return pw.Container();
+      if (profile.weightHistory.isEmpty) return pw.Text('Histórico de Peso: Sem informação', style: const pw.TextStyle(fontSize: 10));
       return pw.Row(children: [
          pw.Text('Histórico de Peso (${profile.weightHistory.length} registros): ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
          pw.Text(profile.weightHistory.take(3).map((e) => '${e['weight']}kg').join(' → '), style: const pw.TextStyle(fontSize: 10)),
@@ -322,6 +358,9 @@ class PetPdfGenerator {
   }
 
   pw.Widget _buildAllergies(PetProfileExtended profile, AppLocalizations strings) {
+      if (profile.alergiasConhecidas.isEmpty) {
+          return pw.Text('ALERGIAS CONHECIDAS: Sem informação', style: const pw.TextStyle(fontSize: 10));
+      }
       return pw.Container(
          padding: const pw.EdgeInsets.all(8),
          decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.red), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
@@ -340,7 +379,7 @@ class PetPdfGenerator {
         padding: const pw.EdgeInsets.all(8),
         decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
         child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            if (image != null) pw.Container(width: 70, height: 70, margin: const pw.EdgeInsets.only(right: 10), child: pw.Image(image, fit: pw.BoxFit.cover)),
+            if (image != null) pw.Container(width: 70, height: 70, margin: const pw.EdgeInsets.only(right: 10), child: pw.Image(image, fit: pw.BoxFit.contain)),
             pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                 pw.Row(children: [
                     pw.Text(dateStr, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
@@ -360,7 +399,7 @@ class PetPdfGenerator {
      );
   }
 
-  pw.Widget _buildStoolItem(AnaliseFezesModel item, pw.ImageProvider? image, AppLocalizations strings) {
+  pw.Widget _buildStoolItem(AnaliseFeridaModel item, pw.ImageProvider? image, AppLocalizations strings) {
       final dateStr = DateFormat.yMd(strings.localeName).format(item.dataAnalise);
       PdfColor riskColor = PdfColors.green;
       if (item.nivelRisco.toLowerCase().contains('alto') || item.nivelRisco.toLowerCase().contains('vermelho')) riskColor = PdfColors.red;
@@ -371,19 +410,19 @@ class PetPdfGenerator {
         padding: const pw.EdgeInsets.all(8),
         decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
         child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-            if (image != null) pw.Container(width: 70, height: 70, margin: const pw.EdgeInsets.only(right: 10), child: pw.Image(image, fit: pw.BoxFit.cover)),
+            if (image != null) pw.Container(width: 70, height: 70, margin: const pw.EdgeInsets.only(right: 10), child: pw.Image(image, fit: pw.BoxFit.contain)),
             pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                  pw.Row(children: [
-                    pw.Text('$dateStr - Bristol ${item.bristolScale} (${item.stoolDetails['color_name'] ?? 'Cor N/A'})', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    pw.Text('$dateStr - Bristol ${item.achadosVisuais['bristol_scale'] ?? "-"}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                     pw.SizedBox(width: 10),
                     pw.Container(padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2), decoration: pw.BoxDecoration(color: riskColor, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2))), child: pw.Text(item.nivelRisco.toUpperCase(), style: const pw.TextStyle(color: PdfColors.white, fontSize: 8)))
                 ]),
                 pw.SizedBox(height: 4),
-                if (item.possiveisCausas.isNotEmpty)
-                    pw.Text('Causas: ${_localizeDiagnosisList(item.possiveisCausas, strings).join(", ")}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
-                if (item.descricaoVisual.isNotEmpty) ...[
+                if (item.diagnosticosProvaveis.isNotEmpty)
+                    pw.Text('Causas: ${_localizeDiagnosisList(item.diagnosticosProvaveis, strings).join(", ")}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                if (item.descricaoVisual != null && item.descricaoVisual!.isNotEmpty) ...[
                     pw.SizedBox(height: 2),
-                    pw.Text(item.descricaoVisual, style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic), maxLines: 6),
+                    pw.Text(item.descricaoVisual!, style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic), maxLines: 6),
                 ],
                 pw.SizedBox(height: 4),
                 pw.Text(item.recomendacao, style: const pw.TextStyle(fontSize: 9), maxLines: 6),
@@ -397,7 +436,7 @@ class PetPdfGenerator {
       return pw.Container(
         margin: const pw.EdgeInsets.only(bottom: 12),
         child: pw.Row(children: [
-            if (image != null) pw.Container(width: 70, height: 70, margin: const pw.EdgeInsets.only(right: 10), child: pw.Image(image, fit: pw.BoxFit.cover)),
+            if (image != null) pw.Container(width: 70, height: 70, margin: const pw.EdgeInsets.only(right: 10), child: pw.Image(image, fit: pw.BoxFit.contain)),
             pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
                 pw.Text('$dateStr - ${_localizeLabCategory(item.category, strings).toUpperCase()}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                 if (item.aiExplanation != null) 
@@ -467,7 +506,6 @@ class PetPdfGenerator {
 
   Future<pw.ImageProvider?> _safeLoadImage(String pathStr) async {
        if (pathStr.isEmpty) return null;
-       // Clean path
        String cleanPath = pathStr;
        if (cleanPath.startsWith('file://')) cleanPath = cleanPath.substring(7);
        
@@ -475,25 +513,17 @@ class PetPdfGenerator {
        File file = File(cleanPath);
        
        if (!await file.exists()) {
-           debugPrint('⚠️ [PDF] File not found at strict path: $cleanPath');
-           // Fallback: Try checking filename in Documents dir
            try {
                final docs = await getApplicationDocumentsDirectory();
-               // Try exact match in docs
                final altPath1 = '${docs.path}/$cleanPath';
                if (await File(altPath1).exists()) {
                    file = File(altPath1);
-                   debugPrint('✅ [PDF] Found at alt path 1: $altPath1');
                } else {
-                    // Try basename in docs
                     final basename = cleanPath.split('/').last;
                     final altPath2 = '${docs.path}/$basename';
                     if (await File(altPath2).exists()) {
                         file = File(altPath2);
-                        debugPrint('✅ [PDF] Found at alt path 2: $altPath2');
                     } else {
-                        // Try pictures dir?
-                        debugPrint('❌ [PDF] Image absolutely not found.');
                         return null;
                     }
                }
@@ -505,14 +535,13 @@ class PetPdfGenerator {
        try {
            final opt = await ImageOptimizationService().loadOptimizedBytes(originalPath: file.path); 
            if (opt != null) return pw.MemoryImage(opt); 
-           
            return pw.MemoryImage(await file.readAsBytes());
        } catch (e) {
            debugPrint('❌ [PDF] Error reading bytes: $e');
        }
        return null;
   }
-  // --- LOCALIZATION HELPERS ---
+
   String _localizeSex(String? sex, AppLocalizations strings) {
       if (sex == null) return '-';
       final s = sex.toLowerCase();

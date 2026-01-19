@@ -200,45 +200,49 @@ class PetEventHistoryScreen extends StatelessWidget {
                                       Text(petName, style: const TextStyle(color: AppDesign.accent, fontSize: 10, fontWeight: FontWeight.bold)),
                                       const SizedBox(width: 8),
                                       // Intelligence Check Button
-                                      GestureDetector(
-                                        onTap: () async {
-                                           final isCompleted = event.data['is_completed'] == true;
-                                           if (isCompleted) return; // Prevent double indexing or unchecking for now as per prompt "Action: Click Check"
-                                           
-                                           // Update State
-                                           final updatedData = Map<dynamic, dynamic>.from(event.data);
-                                           updatedData['is_completed'] = true;
-                                           
-                                           final updatedEvent = event.copyWith(data: updatedData);
-                                           await PetEventRepository().updateEvent(updatedEvent);
-                                           // Rebuild happens automatically via ValueListenableBuilder
-                                           
-                                           // Indexing (Intelligence)
-                                            try {
-                                              PetIndexingService().indexTaskCompletion(
-                                                petId: event.petId,
-                                                petName: petName,
-                                                taskTitle: event.title,
-                                                taskId: event.id,
-                                                localizedTitle: AppLocalizations.of(context)!.petIndexing_taskCompleted(event.title),
-                                              );
-                                              
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  content: Text('Tarefa concluída e registrada em Saúde!'),
-                                                  backgroundColor: AppDesign.petPink,
-                                                )
-                                              );
-                                            } catch (e) {
-                                              debugPrint('Error indexing task completion: $e');
-                                            }
-                                        },
-                                        child: Icon(
-                                            event.data['is_completed'] == true ? Icons.check_circle : Icons.radio_button_unchecked, 
-                                            color: event.data['is_completed'] == true ? AppDesign.petPink : Colors.white30, 
-                                            size: 18
+                                      // Intelligence Check Button (Only for Schedule or Tasks)
+                                      if (event.group == 'schedule' || event.data['is_task'] == true) 
+                                        GestureDetector(
+                                          onTap: () async {
+                                             final isCompleted = event.data['is_completed'] == true;
+                                             if (isCompleted) return; // Prevent double indexing
+                                             
+                                             // Update State
+                                             final updatedData = Map<dynamic, dynamic>.from(event.data);
+                                             updatedData['is_completed'] = true;
+                                             
+                                             final updatedEvent = event.copyWith(data: updatedData);
+                                             await PetEventRepository().updateEvent(updatedEvent);
+                                             
+                                             // Indexing (Intelligence)
+                                              try {
+                                                PetIndexingService().indexTaskCompletion(
+                                                  petId: event.petId,
+                                                  petName: petName,
+                                                  taskTitle: event.title,
+                                                  taskId: event.id,
+                                                  localizedTitle: AppLocalizations.of(context)!.petIndexing_taskCompleted(event.title),
+                                                );
+                                                
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('Tarefa marcada como concluída!'),
+                                                    backgroundColor: AppDesign.petPink,
+                                                  )
+                                                );
+                                              } catch (e) {
+                                                debugPrint('Error indexing task completion: $e');
+                                              }
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(right: 8),
+                                            child: Icon(
+                                                event.data['is_completed'] == true ? Icons.check_circle : Icons.radio_button_unchecked, 
+                                                color: event.data['is_completed'] == true ? AppDesign.petPink : Colors.white30, 
+                                                size: 18
+                                            ),
+                                          ),
                                         ),
-                                      ),
                                       const SizedBox(width: 8),
                                       GestureDetector(
                                         onTap: () => _confirmDelete(context, event.id),
@@ -283,7 +287,14 @@ class PetEventHistoryScreen extends StatelessWidget {
                               spacing: 8,
                               runSpacing: 8,
                               children: event.data.entries.map((e) {
-                                 if (e.key == 'deep_link' || e.key == 'indexing_origin' || e.value == null || e.value.toString().isEmpty) return const SizedBox.shrink();
+                                 final key = e.key.toLowerCase();
+                                 const ignoredKeys = {
+                                    'deep_link', 'indexing_origin', 'pet_name', 'file_name', 
+                                    'vault_path', 'is_automatic', 'file_type', 'analysis_type', 
+                                    'result_id', 'raw_content', 'timestamp', 'event_type', 'is_completed'
+                                 };
+                                 
+                                 if (ignoredKeys.contains(key) || e.value == null || e.value.toString().isEmpty) return const SizedBox.shrink();
                                  return Container(
                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                    decoration: BoxDecoration(
@@ -470,9 +481,16 @@ class PetEventHistoryScreen extends StatelessWidget {
 
     // 3. AI ANALYSIS
     if (deepLink.startsWith('scannut://pet/analysis/')) {
-        // Find result in data or attachments
-        // For indexed events, we usually have a result_id in data
-        // and often the original image as an attachment.
+        // 🛡️ V231: Check for Embedded Result First (Indexing v2)
+        final embeddedResult = event.data['raw_result']?.toString();
+        final embeddedImage = event.data['image_path']?.toString();
+        
+        if (embeddedResult != null && embeddedResult.isNotEmpty) {
+             _openAnalysisResult(context, embeddedResult, embeddedImage ?? '');
+             return;
+        }
+
+        // 🛡️ Fallback: Legend Disk Search (Index v1 / Attachments)
         if (event.attachments.isNotEmpty) {
             final firstImage = event.attachments.firstWhere((a) => a.kind == 'image', orElse: () => event.attachments.first);
             final sidecarPath = path.join(
@@ -488,6 +506,10 @@ class PetEventHistoryScreen extends StatelessWidget {
                     const SnackBar(content: Text('Resultado da análise não encontrado.'))
                 );
             }
+        } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Detalhes desta análise não disponíveis offline.'))
+            );
         }
         return;
     }
@@ -495,6 +517,10 @@ class PetEventHistoryScreen extends StatelessWidget {
     // 4. EXTERNAL LINKS
     if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
+    } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Não foi possível abrir o link: $deepLink'))
+        );
     }
   }
 

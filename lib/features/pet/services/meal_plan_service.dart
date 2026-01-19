@@ -7,8 +7,11 @@
 
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/weekly_meal_plan.dart';
 import '../../../core/services/hive_atomic_manager.dart';
+
+final mealPlanServiceProvider = Provider<MealPlanService>((ref) => MealPlanService());
 
 class MealPlanService {
   static final MealPlanService _instance = MealPlanService._internal();

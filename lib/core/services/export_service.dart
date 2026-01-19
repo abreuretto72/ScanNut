@@ -9,7 +9,6 @@ import 'package:scannut/l10n/app_localizations.dart';
 import '../../features/pet/models/pet_event.dart';
 import '../../features/pet/models/pet_profile_extended.dart';
 import '../../features/pet/models/pet_analysis_result.dart';
-import '../../features/pet/models/analise_fezes_model.dart';
 import '../../features/pet/models/analise_ferida_model.dart';
 import '../../features/food/models/food_analysis_model.dart';
 import '../../features/pet/models/lab_exam.dart';
@@ -1460,7 +1459,9 @@ class ExportService {
                      'severity': item.nivelRisco,
                      'diagnosis': item.diagnosticosProvaveis.join(', '), 
                      'recommendations': [item.recomendacao], 
-                     'pdfImage': img
+                     'pdfImage': img,
+                     'category': item.categoria,
+                     'achadosVisuais': item.achadosVisuais,
                  });
              }
         } 
@@ -1490,22 +1491,6 @@ class ExportService {
     // Pre-load partner data for PARC Section
     final List<Map<String, dynamic>> linkedPartnersData = [];
     
-    // 💩 Pre-load Stool Analysis images for Health Section if enabled
-    final List<Map<String, dynamic>> stoolWithImages = [];
-    if (sections['health'] == true && profile.historicoFezes.isNotEmpty) {
-        // Sort by date descending
-        final sortedStool = List<AnaliseFezesModel>.from(profile.historicoFezes)
-             ..sort((a, b) => b.dataAnalise.compareTo(a.dataAnalise));
-        
-        for (var s in sortedStool) {
-            final img = await safeLoadImage(s.imagemRef);
-            // Create a map to store the data + image for the PDF generator loop
-            stoolWithImages.add({
-                'model': s,
-                'pdfImage': img
-            });
-        }
-    }
     if (sections['parc'] == true && profile.linkedPartnerIds.isNotEmpty) {
         try {
             debugPrint('👥 Loading partner data for ${profile.linkedPartnerIds.length} partners');
@@ -1761,68 +1746,6 @@ class ExportService {
     }
 
     // 🛡️ V142: Pre-build Feces Analysis Widgets (Async Image Loading)
-    List<pw.Widget> fecesWidgets = [];
-    if (profile.historicoFezes.isNotEmpty) {
-       fecesWidgets.add(pw.SizedBox(height: 15));
-       fecesWidgets.add(
-         pw.Text('ANÁLISE DE FEZES (BRISTOL & COR):', // TODO: Localize
-           style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.brown800))
-       );
-       fecesWidgets.add(pw.SizedBox(height: 5));
-
-       for (var feces in profile.historicoFezes) {
-           // 1. Image (Source of Truth)
-           if (feces.imagemRef.isNotEmpty) {
-               final file = File(feces.imagemRef);
-               if (await file.exists()) {
-                   fecesWidgets.add(
-                     pw.Container(
-                        alignment: pw.Alignment.center,
-                        height: 250, 
-                        margin: const pw.EdgeInsets.symmetric(vertical: 8),
-                        child: pw.Image(
-                            pw.MemoryImage(file.readAsBytesSync()),
-                            fit: pw.BoxFit.contain
-                        )
-                     )
-                   );
-               }
-           }
-
-           // 2. Data Container
-           fecesWidgets.add(
-             pw.Container(
-                    margin: const pw.EdgeInsets.only(bottom: 8),
-                    padding: const pw.EdgeInsets.all(8),
-                    decoration: pw.BoxDecoration(
-                        color: PdfColors.white,
-                        border: pw.Border.all(color: PdfColors.brown300),
-                        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                    ),
-                    child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                            pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-                                pw.Text('Data: ${DateFormat.yMd(strings.localeName).format(feces.dataAnalise)}', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
-                                pw.Text('Escala Bristol: ${feces.bristolScale}', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.brown900)),
-                            ]),
-                            pw.SizedBox(height: 4),
-                            // 🛡️ V131: Fix property names (bristolScale, colorName, parasitesDetected)
-                            pw.Text('Cor: ${feces.colorName} | Presença de Sangue: ${(feces.stoolDetails['blood_detected'] == true) ? "SIM ⚠️" : "Não"} | Vermes: ${feces.parasitesDetected ? "SIM ⚠️" : "Não"}', style: const pw.TextStyle(fontSize: 8)),
-                            if (feces.descricaoVisual.isNotEmpty || feces.recomendacao.isNotEmpty) ...[
-                                pw.SizedBox(height: 4),
-                                pw.Container(
-                                    padding: const pw.EdgeInsets.all(4),
-                                    decoration: pw.BoxDecoration(color: PdfColors.brown50, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2))),
-                                    child: pw.Text('${feces.descricaoVisual}\n\nRecomendação: ${feces.recomendacao}', style: const pw.TextStyle(fontSize: 7, color: PdfColors.brown900))
-                                )
-                            ]
-                        ]
-                    )
-             )
-           );
-       }
-    }
 
     pdf.addPage(
       pw.MultiPage(
@@ -2184,8 +2107,6 @@ class ExportService {
               // 🛡️ V140: Inject Pre-built Lab Exam Widgets
               ...labExamsWidgets,
 
-            // 🛡️ V142: Inject Pre-built Feces Analysis Widgets
-            ...fecesWidgets,
 
             // Histórico de Análises de Feridas
             if (woundsWithImages.isNotEmpty) ...[
@@ -2274,93 +2195,6 @@ class ExportService {
               }).toList(),
             ],
             
-            // 💩 Histórico de Análises Coprológicas (Fezes)
-            if (stoolWithImages.isNotEmpty) ...[
-              pw.SizedBox(height: 15),
-              pw.Text('${strings.pdfAnaliseFezes} (Stool Analysis):', 
-                style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
-              pw.SizedBox(height: 5),
-              ...stoolWithImages.map((item) {
-                final fezes = item['model'] as AnaliseFezesModel;
-                final pdfImage = item['pdfImage'] as pw.ImageProvider?;
-                
-                final dateStr = DateFormat.yMd(strings.localeName).add_Hm().format(fezes.dataAnalise);
-                final bristol = fezes.bristolScale;
-                final colorName = fezes.colorName;
-                final diagnosis = fezes.possiveisCausas.isNotEmpty ? fezes.possiveisCausas.first : strings.petDiagnosisDefault;
-                
-                final PdfColor riskColor = fezes.nivelRisco.toLowerCase().contains('vermelho') ? PdfColors.red : 
-                            (fezes.nivelRisco.toLowerCase().contains('amarelo') ? PdfColors.orange : PdfColors.green);
-
-                return pw.Container(
-                  margin: const pw.EdgeInsets.only(bottom: 8),
-                  padding: const pw.EdgeInsets.all(8),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.white,
-                    border: pw.Border.all(color: PdfColors.grey400),
-                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                  ),
-                  child: pw.Row(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                        if (pdfImage != null)
-                             pw.Container(
-                                 width: 70,
-                                 height: 70,
-                                 margin: const pw.EdgeInsets.only(right: 10),
-                                 decoration: pw.BoxDecoration(
-                                     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                                     border: pw.Border.all(color: PdfColors.grey400),
-                                     color: PdfColors.white,
-                                 ),
-                                 child: pw.ClipRRect(
-                                     horizontalRadius: 4, verticalRadius: 4,
-                                     child: pw.Image(pdfImage, fit: pw.BoxFit.cover),
-                                 ),
-                             ),
-
-                        pw.Expanded(
-                            child: pw.Column(
-                                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                children: [
-                                  pw.Row(
-                                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      pw.Text(
-                                        dateStr,
-                                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-                                      ),
-                                      pw.Container(
-                                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: pw.BoxDecoration(
-                                          color: riskColor,
-                                          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-                                        ),
-                                        child: pw.Text(
-                                          fezes.nivelRisco.toUpperCase(),
-                                          style: pw.TextStyle(color: PdfColors.white, fontSize: 8, fontWeight: pw.FontWeight.bold),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  pw.SizedBox(height: 4),
-                                  pw.Text('Bristol Scale: $bristol | Cor: $colorName', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-                                  pw.SizedBox(height: 2),
-                                  pw.Text(strings.pdfDiagnosis(diagnosis), style: const pw.TextStyle(fontSize: 9)),
-                                  
-                                  if (fezes.recomendacao.isNotEmpty) ...[
-                                    pw.SizedBox(height: 4),
-                                    pw.Text('${strings.pdfRecommendations}:', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-                                    pw.Text(fezes.recomendacao, style: const pw.TextStyle(fontSize: 8)),
-                                  ],
-                                ],
-                            ),
-                        ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ],
 
             ..._buildObservationsBlock(profile.observacoesSaude, strings),
             pw.SizedBox(height: 20),

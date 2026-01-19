@@ -1030,7 +1030,10 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                         "${effectiveSigns.length} sinais identificados",
                         style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
                      ),
-                     children: effectiveSigns.entries.map((e) {
+                     children: effectiveSigns.entries.where((e) {
+                       final k = e.key.toLowerCase();
+                       return !['identification', 'identificacao', 'pet_name', 'analysis_type', 'metadata', 'raw_response'].contains(k);
+                     }).map((e) {
                          IconData icon = Icons.help_outline;
                          Color color = Colors.white70;
                          String label = e.key.toUpperCase().replaceAll('_', ' ');

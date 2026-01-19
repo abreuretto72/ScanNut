@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Added
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../home/presentation/home_view.dart';
@@ -10,21 +11,30 @@ import '../../core/services/simple_auth_service.dart';
 import '../../core/theme/app_design.dart';
 import '../../../l10n/app_localizations.dart';
 
-class SplashScreen extends StatefulWidget {
+// Test Suite Imports
+import '../pet/services/pet_profile_service.dart';
+import '../pet/services/pet_menu_generator_service.dart';
+import '../pet/services/meal_plan_service.dart';
+import '../pet/services/cardapio_stress_test.dart';
+
+class SplashScreen extends ConsumerStatefulWidget { // Changed
   const SplashScreen({Key? key}) : super(key: key);
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState(); // Changed
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin { // Changed
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
   late Animation<double> _slideAnimation;
 
   // DEBUG SWITCH: Set to true to force login screen logic ignoring stored session
-  static const bool FORCE_LOGIN_DEBUG = false; // <<<--- CHANGE THIS TO TRUE TO TEST LOGIN
+  static const bool FORCE_LOGIN_DEBUG = false; 
+  
+  // 🛡️ STRESS TEST SWITCH: Set to true to run V710 validation on startup
+  static const bool RUN_STRESS_TEST = true;
 
   @override
   void initState() {
@@ -53,6 +63,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     debugPrint('🕒 Splash Timer scheduled for 1000ms');
     Timer(const Duration(milliseconds: 1000), () async {
       debugPrint('🔔 Splash Timer fired! Checking mounted...');
+      
+      // 🛡️ RUN STRESS TEST (V710)
+      if (RUN_STRESS_TEST && mounted) {
+          debugPrint('🧪 [Splash] Triggering CardapioStressTest (Background)...');
+          final tester = CardapioStressTest(
+              ref.read(petProfileServiceProvider),
+              ref.read(petMenuGeneratorProvider),
+              ref.read(mealPlanServiceProvider)
+          );
+          // Fire and forget - Check debug console for results
+          tester.runStressTest(); 
+      }
+
       if (mounted) {
         debugPrint('📦 Loading SharedPreferences...');
         final prefs = await SharedPreferences.getInstance();

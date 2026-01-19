@@ -167,7 +167,10 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
           // 3. SINAIS CLÍNICOS (Iteração Robusta)
           if (widget.analysis.clinicalSignsDiag != null && widget.analysis.clinicalSignsDiag!.isNotEmpty) ...[
             _buildSectionTitle('Sinais Clínicos Detalhados'),
-            ...widget.analysis.clinicalSignsDiag!.entries.map((e) {
+            ...widget.analysis.clinicalSignsDiag!.entries.where((e) {
+                 final k = e.key.toString().toLowerCase();
+                 return !['identification', 'identificacao', 'pet_name', 'analysis_type', 'metadata'].contains(k);
+            }).map((e) {
                  // Clean & Translate Key
                  String label = _translateKey(e.key.toString());
                  dynamic rawVal = e.value;

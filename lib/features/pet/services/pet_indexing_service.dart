@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/pet_event_model.dart';
 import '../services/pet_event_repository.dart';
@@ -19,6 +20,8 @@ class PetIndexingService {
     required String petName,
     required String analysisType, // e.g., 'Fezes', 'Urina', 'Sangue'
     required String resultId,
+    Map<String, dynamic>? rawResult, // 🛡️ V231: Full result payload
+    String? imagePath, // 🛡️ V231: Associated image
     String? localizedTitle,
     String? localizedNotes,
   }) async {
@@ -35,6 +38,8 @@ class PetIndexingService {
         'analysis_type': analysisType,
         'result_id': resultId,
         'deep_link': 'scannut://pet/analysis/$resultId',
+        'raw_result': rawResult != null ? jsonEncode(rawResult) : null, // 🛡️ Store JSON
+        'image_path': imagePath, // 🛡️ Store Path
         'is_automatic': true,
         'indexing_origin': 'mare_ia',
       },

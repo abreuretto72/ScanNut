@@ -159,7 +159,7 @@ RIGID RULES:
 2. DO NOT return medical diagnosis.
 3. Use ONLY the provided context for the pet's identity.
 4. Language: EXCLUSIVELY ${request.locale}.
-5. Response Format: PURE JSON ONLY. No markdown blocks, no prefix/suffix text.
+5. Response Format: PURE JSON ONLY. No markdown blocks, NO COMMENTS (// or /*), no prefix/suffix text.
 6. CHECK ALLERGIES: If the pet is allergic to an item in the Pool or History, DISCARD IT immediately.
 $rigidFoodRule
 

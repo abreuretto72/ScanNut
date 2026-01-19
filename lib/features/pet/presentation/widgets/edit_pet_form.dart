@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:hive/hive.dart';
+import 'package:uuid/uuid.dart';
 import 'package:open_filex/open_filex.dart';
 import '../../../../core/services/file_upload_service.dart';
 import '../../../../core/services/gemini_service.dart';
@@ -18,6 +19,7 @@ import '../../../../core/enums/scannut_mode.dart';
 import '../../models/pet_profile_extended.dart';
 import '../../services/pet_pdf_generator.dart'; // 🛡️ NEW PDF GENERATOR
 import '../../models/analise_ferida_model.dart'; // 🛡️ Import for Health History
+
 import '../../services/pet_vision_service.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
@@ -63,6 +65,14 @@ import '../pet_event_history_screen.dart'; // Added
 import 'pet_event_grid.dart'; // Added
 import '../../services/pet_indexing_service.dart';
 
+import 'profile_fragments/profile_design_system.dart';
+import 'profile_fragments/identity_fragment.dart';
+import 'profile_fragments/nutrition_fragment.dart';
+import 'profile_fragments/health_fragment.dart';
+import 'profile_fragments/partners_fragment.dart';
+import 'profile_fragments/analysis_results_fragment.dart';
+import 'profile_fragments/gallery_fragment.dart';
+
 enum SaveStatus { saved, saving, error }
 
 /// Comprehensive pet profile edit form with tabs
@@ -103,6 +113,7 @@ class _EditPetFormState extends State<EditPetForm>
   late TextEditingController _racaController;
   late TextEditingController _idadeController;
   late TextEditingController _pesoController;
+  late TextEditingController _microchipController;
   late TextEditingController _pesoIdealController; // New
   late TextEditingController _alergiasController;
   late TextEditingController _preferenciasController;
@@ -127,6 +138,8 @@ class _EditPetFormState extends State<EditPetForm>
   List<String> _linkedPartnerIds = [];
   List<PartnerModel> _linkedPartnerModels = [];
   Map<String, List<Map<String, dynamic>>> _partnerNotes = {}; 
+  List<PartnerModel> _availablePartners = []; // V_FIX: Store all partners
+  String _partnerFilter = 'Todos'; // V_FIX: Filter state
   List<Map<String, dynamic>> _weightHistory = [];
   List<LabExam> _labExams = []; // Lab exams with OCR
   List<Map<String, dynamic>> _woundHistory = []; // Local state for wound analysis history
@@ -141,6 +154,7 @@ class _EditPetFormState extends State<EditPetForm>
   // File Upload
   List<Map<String, dynamic>> _analysisHistory = [];
   final FileUploadService _fileService = FileUploadService();
+  String? _profileUrl; // V_FIX: Added missing variable
   Map<String, List<File>> _attachments = {
     'identity': [],
     'health_exams': [],
@@ -169,6 +183,7 @@ class _EditPetFormState extends State<EditPetForm>
   final LabExamService _labExamService = LabExamService();
   final ImagePicker _imagePicker = ImagePicker();
   List<AnaliseFeridaModel> _historicoAnaliseFeridas = []; // 🛡️ Load structured history
+
   
   // Navigation & Scroll
   final ScrollController _scrollController = ScrollController();
@@ -242,6 +257,7 @@ class _EditPetFormState extends State<EditPetForm>
         idadeExata: _idadeController.text.trim().isEmpty ? null : _idadeController.text.trim(),
         pesoAtual: double.tryParse(_pesoController.text.trim().replaceAll(',', '.')),
         pesoIdeal: double.tryParse(_pesoIdealController.text.trim().replaceAll(',', '.')),
+        microchip: _microchipController.text.trim().isEmpty ? null : _microchipController.text.trim(),
         nivelAtividade: _nivelAtividade,
         statusReprodutivo: _statusReprodutivo,
         sex: _sexo,
@@ -257,6 +273,7 @@ class _EditPetFormState extends State<EditPetForm>
         labExams: _labExams.map((e) => e.toJson()).toList(),
         woundAnalysisHistory: _woundHistory,
         historicoAnaliseFeridas: _historicoAnaliseFeridas, // 🛡️ Persist
+
         analysisHistory: _analysisHistory,
         observacoesIdentidade: _observacoesIdentidade,
         observacoesSaude: _observacoesSaude,
@@ -384,7 +401,9 @@ class _EditPetFormState extends State<EditPetForm>
                     });
                 }
             }
-        }).catchError((e) => debugPrint('Image recovery failed: $e'));
+        }).catchError((e) {
+             debugPrint('Image recovery failed: $e');
+        });
       }
     }
 
@@ -405,6 +424,7 @@ class _EditPetFormState extends State<EditPetForm>
     _pesoIdealController = TextEditingController(
       text: existing?.pesoIdeal?.toString() ?? '',
     );
+    _microchipController = TextEditingController(text: existing?.microchip ?? '');
     _alergiasController = TextEditingController();
     _preferenciasController = TextEditingController();
     _restricoesController = TextEditingController();
@@ -428,6 +448,7 @@ class _EditPetFormState extends State<EditPetForm>
       _labExams = (existing.labExams).map((json) => LabExam.fromJson(json)).toList();
       _woundHistory = (existing.woundAnalysisHistory).map((e) => Map<String, dynamic>.from(e)).toList();
       _historicoAnaliseFeridas = List.from(existing.historicoAnaliseFeridas); // 🛡️ Load
+
       _analysisHistory = List.from(existing.analysisHistory);
       
       // FIX: Auto-fill Breed from Analysis (Aggressive & Comprehensive)
@@ -474,6 +495,7 @@ class _EditPetFormState extends State<EditPetForm>
     _idadeController.addListener(_onIdadeChanged);
     _pesoController.addListener(_onPesoChanged);
     _pesoIdealController.addListener(_onPesoIdealChanged);
+    _microchipController.addListener(_onUserTyping);
     _alergiasController.addListener(_onUserTyping);
     _preferenciasController.addListener(_onUserTyping);
     _restricoesController.addListener(_onUserTyping);
@@ -640,6 +662,93 @@ class _EditPetFormState extends State<EditPetForm>
     super.dispose();
   }
 
+
+
+  @override
+  Widget build(BuildContext context) {
+    // Safety check for analysis overlay
+    final bool showOverlay = _isAnalyzingPet;
+
+    return Stack(children: [
+      Scaffold(
+        backgroundColor: AppDesign.backgroundDark,
+        appBar: AppBar(
+          backgroundColor: AppDesign.backgroundDark,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppDesign.textPrimaryDark),
+            onPressed: () => _handleWillPop().then((canPop) {
+                if (canPop) Navigator.of(context).pop();
+            }),
+          ),
+          title: Text(
+              widget.existingProfile == null 
+                  ? AppLocalizations.of(context)!.petNew 
+                  : AppLocalizations.of(context)!.petEdit,
+              style: const TextStyle(color: AppDesign.textPrimaryDark)
+          ),
+          actions: [_buildActionButtons()],
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: AppDesign.petPink,
+            labelColor: AppDesign.petPink,
+            unselectedLabelColor: AppDesign.textSecondaryDark,
+            tabs: [
+              Tab(text: AppLocalizations.of(context)!.sectionIdentity),
+              Tab(text: AppLocalizations.of(context)!.sectionHealth),
+              Tab(text: AppLocalizations.of(context)!.sectionNutrition),
+              const Tab(text: 'Parceiros'),
+              const Tab(text: 'Galeria'),
+              const Tab(text: 'Análises'),
+            ],
+          ),
+        ),
+        body: Column(
+            children: [
+                const SizedBox(height: 20),
+                _buildProfileImageHeader(),
+                Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildIdentityTabContent(),
+                        _buildHealthTabContent(),
+                        _buildNutritionTabContent(),
+                        _buildPartnersTabContent(),
+                        _buildGalleryTabContent(),
+                        _buildAnalysisTabContent(),
+                      ],
+                    )
+                )
+            ]
+        ),
+        bottomNavigationBar: SafeArea(
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Hero(
+                    tag: 'save-btn',
+                    child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: AppDesign.petPink,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: _savePetProfile,
+                        child: Text(AppLocalizations.of(context)!.commonSave, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                    )
+                )
+            )
+        ),
+      ),
+      
+      if (showOverlay)
+         Container(
+             color: Colors.black54,
+             child: const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
+         )
+    ]);
+  }
+
   Future<void> _savePetProfile() async {
       await _saveNow(silent: false);
   }
@@ -657,8 +766,7 @@ class _EditPetFormState extends State<EditPetForm>
         final partnerService = PartnerService();
         await partnerService.init();
         final all = partnerService.getAllPartners();
-        debugPrint('DEBUG: LinkedPartner: IDs needed: $_linkedPartnerIds');
-        debugPrint('DEBUG: LinkedPartner: Service returned ${all.length} partners');
+        if (mounted) setState(() => _availablePartners = all); // V_FIX: Store all
         
         final matches = all.where((p) => _linkedPartnerIds.contains(p.id)).toList();
         debugPrint('DEBUG: LinkedPartner: Found ${matches.length} matches');
@@ -687,25 +795,19 @@ class _EditPetFormState extends State<EditPetForm>
   }
 
   // Attachment Logic
-  Future<void> _loadAttachments() async {
-    final petName = widget.existingProfile?.petName ?? _nameController.text.trim();
-    if (petName.isEmpty) return;
+    // --- Helpers for Attachments ---
+    bool _isIdentity(String n) => n.startsWith('identity_');
+    bool _isExam(String n) => n.startsWith('health_exams_');
+    bool _isPrescription(String n) => n.startsWith('health_prescriptions_');
+    bool _isVaccine(String n) => n.startsWith('health_vaccines_');
+    bool _isNutrition(String n) => n.startsWith('nutrition_');
+    bool _isProfilePic(String n) => n.startsWith('profile_pic');
+    
+    bool _isGallery(String n) => n.startsWith('gallery_') || 
+                                (! _isIdentity(n) && ! _isExam(n) && ! _isPrescription(n) && ! _isVaccine(n) && ! _isNutrition(n) && ! _isProfilePic(n));
 
-    final allDocs = await _fileService.getMedicalDocuments(petName);
-    if (!mounted) return;
-
-    // Define prefixes for specific categories
-    bool isIdentity(String n) => n.startsWith('identity_');
-    bool isExam(String n) => n.startsWith('health_exams_');
-    bool isPrescription(String n) => n.startsWith('health_prescriptions_');
-    bool isVaccine(String n) => n.startsWith('health_vaccines_');
-    bool isNutrition(String n) => n.startsWith('nutrition_');
-    // Gallery is explicitly 'gallery_' OR anything that doesn't fit others
-    bool isGallery(String n) => n.startsWith('gallery_') || 
-                                (!isIdentity(n) && !isExam(n) && !isPrescription(n) && !isVaccine(n) && !isNutrition(n));
-
-    // Helper to Deduplicate (Aggressive V143)
-    List<File> optimizeList(List<File> rawList) {
+    // Helper to Deduplicate (Aggressive V143) promoted to class method
+    List<File> _optimizeList(List<File> rawList) {
        final Map<String, File> uniqueMap = {};
        
        debugPrint('🔍 [V143] optimizeList: Processing ${rawList.length} files');
@@ -714,57 +816,51 @@ class _EditPetFormState extends State<EditPetForm>
           if (!f.existsSync()) continue;
           
           final name = path.basename(f.path);
-          
-          // 1. Extract potential timestamp ID (10+ digits) to group variations
-          // e.g. "image_1234567890.jpg", "opt_1234567890.jpg" -> ID_1234567890
           final match = RegExp(r'(\d{10,})').firstMatch(name);
           String contentId;
           
           if (match != null) {
               contentId = "ID_${match.group(0)}"; 
           } else {
-              // Fallback: Group by Exact Size (Collision risk is low for photos)
-              // This removes identical duplicates with different names
               contentId = "SIZE_${f.lengthSync()}";
           }
 
-          // Decision: Who stays?
           if (uniqueMap.containsKey(contentId)) {
              final existing = uniqueMap[contentId]!;
              final existingName = path.basename(existing.path);
-             
-             // Preference Logic:
-             // 1. Prefer 'OPT_' (Optimized)
-             // 2. Otherwise keep the first one found (usually fine)
              
              final isNewOpt = name.toUpperCase().startsWith('OPT_');
              final isOldOpt = existingName.toUpperCase().startsWith('OPT_');
              
              if (isNewOpt && !isOldOpt) {
-                 uniqueMap[contentId] = f; // Upgrade to optimized version
+                 uniqueMap[contentId] = f; 
              }
           } else {
              uniqueMap[contentId] = f;
           }
        }
        
-       // Convert to list and sort by modification time desc (Newest First)
        final result = uniqueMap.values.toList();
        result.sort((a,b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
-       
-       debugPrint('✅ [V143] optimizeList: Reduced to ${result.length} unique files');
        return result;
     }
 
+  Future<void> _loadAttachments() async {
+    final petName = widget.existingProfile?.petName ?? _nameController.text.trim();
+    if (petName.isEmpty) return;
+
+    final allDocs = await _fileService.getMedicalDocuments(petName);
+    if (!mounted) return;
+
     setState(() {
-      _attachments['identity'] = optimizeList(allDocs.where((f) => isIdentity(path.basename(f.path))).toList());
-      _attachments['health_exams'] = optimizeList(allDocs.where((f) => isExam(path.basename(f.path))).toList());
-      _attachments['health_prescriptions'] = optimizeList(allDocs.where((f) => isPrescription(path.basename(f.path))).toList());
-      _attachments['health_vaccines'] = optimizeList(allDocs.where((f) => isVaccine(path.basename(f.path))).toList());
-      _attachments['nutrition'] = optimizeList(allDocs.where((f) => isNutrition(path.basename(f.path))).toList());
+      _attachments['identity'] = _optimizeList(allDocs.where((f) => _isIdentity(path.basename(f.path))).toList());
+      _attachments['health_exams'] = _optimizeList(allDocs.where((f) => _isExam(path.basename(f.path))).toList());
+      _attachments['health_prescriptions'] = _optimizeList(allDocs.where((f) => _isPrescription(path.basename(f.path))).toList());
+      _attachments['health_vaccines'] = _optimizeList(allDocs.where((f) => _isVaccine(path.basename(f.path))).toList());
+      _attachments['nutrition'] = _optimizeList(allDocs.where((f) => _isNutrition(path.basename(f.path))).toList());
       
       // Gallery gets the rest (Catch-all)
-      _attachments['gallery'] = optimizeList(allDocs.where((f) => isGallery(path.basename(f.path))).toList());
+      _attachments['gallery'] = _optimizeList(allDocs.where((f) => _isGallery(path.basename(f.path))).toList());
       
       // 🛡️ V123: Debug logging
       debugPrint('📎 [V123] Attachments loaded:');
@@ -779,7 +875,7 @@ class _EditPetFormState extends State<EditPetForm>
         for (var doc in allDocs.take(5)) {
           final name = path.basename(doc.path);
           debugPrint('  - $name');
-          debugPrint('    Identity: ${isIdentity(name)}, Prescription: ${isPrescription(name)}, Vaccine: ${isVaccine(name)}');
+          debugPrint('    Identity: ${_isIdentity(name)}, Prescription: ${_isPrescription(name)}, Vaccine: ${_isVaccine(name)}');
         }
       }
     });
@@ -864,11 +960,51 @@ class _EditPetFormState extends State<EditPetForm>
   }
 
   Future<void> _handleNewImageSelection(File tempFile) async {
-    // 🛡️ CRITICAL FIX: Immediate Persistence
-    // Prevent data loss by saving to Documents immediately, even before the form is saved.
+    // 🛡️ CRITICAL FIX: Context-Aware Logic
+    // If user is on Health Tab (index 1), this is a CLINICAL ANALYSIS, NOT a profile pic change.
+    final isHealthMode = _tabController.index == 1;
+
     String petName = _nameController.text.trim();
     if (petName.isEmpty) petName = "New_Pet_${DateTime.now().millisecondsSinceEpoch}";
     
+    if (isHealthMode) {
+        debugPrint('🛡️ [Context-Aware] Health Tab detected. Processing as CLINICAL ANALYSIS (No Profile Pic Change).');
+        try {
+            // Save as clinical document
+            final permanentPath = await _fileService.saveMedicalDocument(
+                file: tempFile, 
+                petName: petName, 
+                attachmentType: 'health_analysis_source'
+            );
+
+            if (permanentPath != null && mounted) {
+                 final permFile = File(permanentPath);
+                 
+                 // Show feedback
+                 ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Analisando imagem clínica... A foto de perfil não será alterada.'),
+                        backgroundColor: AppDesign.petPink,
+                        duration: Duration(seconds: 2),
+                    )
+                 );
+
+                 // Trigger Analysis directly (bypassing _analyzePetProfile which might be ambiguous)
+                 // Or calling it but ensuring it handles 'mode' correctly without side effects logic.
+                 // Ideally, we call a dedicated analysis method.
+                 // For now, let's reuse _analyzePetProfile but rely on its internal mode check, 
+                 // BUT we must ensure IT DOES NOT update UI fields it shouldn't.
+                 // _analyzePetProfile calls _updateProfileFromAI.
+                 
+                 _analyzePetProfile(permFile);
+            }
+        } catch (e) {
+            debugPrint('❌ Error processing clinical image: $e');
+        }
+        return; // STOP HERE. Do not update _profileImage.
+    }
+
+    // --- STANDARD PROFILE PICTURE CHANGE (Identity Tab or Others) ---
     try {
         final permanentPath = await _fileService.saveMedicalDocument(
             file: tempFile,
@@ -883,8 +1019,6 @@ class _EditPetFormState extends State<EditPetForm>
             if (mounted) {
                 setState(() {
                     _profileImage = permFile;
-                    // Note: We don't update _initialImagePath here because we want _saveNow 
-                    // to detect this as a "change" and update the ID/Hive record.
                 });
                 _markDirty(); // Trigger Profile Update
                 _analyzePetProfile(permFile);
@@ -892,7 +1026,7 @@ class _EditPetFormState extends State<EditPetForm>
         }
     } catch (e) {
         debugPrint('❌ Critical Error: Failed to secure image: $e');
-        // Fallback to temp file (Better than nothing)
+        // Fallback to temp file
          if (mounted) {
             setState(() => _profileImage = tempFile);
             _markDirty();
@@ -1046,100 +1180,6 @@ class _EditPetFormState extends State<EditPetForm>
     );
   }
 
-  Widget _buildGalleryTabContent() {
-    final docs = _attachments['gallery'] ?? [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('📸 ${AppLocalizations.of(context)!.petGallery}'),
-        const SizedBox(height: 16),
-        Text(
-          AppLocalizations.of(context)!.petEmptyGalleryDesc,
-          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.6), fontSize: 12),
-        ),
-        const SizedBox(height: 20),
-
-        if (docs.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.perm_media_outlined, size: 48, color: AppDesign.textPrimaryDark.withOpacity(0.24)),
-                const SizedBox(height: 16),
-                Text(AppLocalizations.of(context)!.petEmptyGallery, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
-              ],
-            ),
-          )
-        else
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 1,
-            ),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final file = docs[index];
-              final isVideo = file.path.toLowerCase().endsWith('.mp4') || file.path.toLowerCase().endsWith('.mov');
-              return InkWell(
-                onTap: () {
-                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.commonFilePrefix + path.basename(file.path))));
-                },
-                onLongPress: () => _deleteAttachment(file),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppDesign.surfaceDark,
-                    borderRadius: BorderRadius.circular(8),
-                    image: !isVideo ? DecorationImage(image: FileImage(file), fit: BoxFit.cover) : null,
-                  ),
-                  child: isVideo 
-                    ? const Center(child: Icon(Icons.play_circle_fill, color: AppDesign.textPrimaryDark, size: 32))
-                    : null,
-                ),
-              );
-            },
-          ),
-        
-        const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _addAttachment('gallery'),
-            icon: const Icon(Icons.add_a_photo),
-            label: Text(AppLocalizations.of(context)!.petAddToGallery),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.all(16),
-              side: const BorderSide(color: AppDesign.accent),
-              foregroundColor: AppDesign.accent,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Galeria',
-          initialValue: _observacoesGaleria,
-          onChanged: (value) {
-            setState(() => _observacoesGaleria = value);
-            _onUserTyping();
-          },
-          icon: Icons.photo_library,
-          accentColor: Colors.purple,
-        ),
-
-        // Include actions at the bottom explicitly
-         _buildActionButtons(),
-      ],
-    );
-  }
 
   Future<void> _saveFile(File file, String petName, String type) async {
     try {
@@ -1197,1469 +1237,135 @@ class _EditPetFormState extends State<EditPetForm>
     }
   }
 
-  Widget _buildAttachmentSection(String type, String title) {
-    final docs = _attachments[type] ?? [];
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.attach_file, color: Colors.white54, size: 16),
-                  const SizedBox(width: 8),
-                  Text(title, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
-                  if (docs.isNotEmpty) 
-                    Container(
-                      margin: const EdgeInsets.only(left: 8),
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(color: AppDesign.petPink, shape: BoxShape.circle),
-                      child: Text('${docs.length}', style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                ],
-              ),
-              IconButton( // Small Add Button
-                onPressed: () => _addAttachment(type),
-                icon: const Icon(Icons.add_circle_outline, color: AppDesign.petPink, size: 20),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
-                tooltip: AppLocalizations.of(context)!.commonAdd,
-              ),
-            ],
-          ),
-          if (docs.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 90, // 🛡️ V121: Increased height to fit filename
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: docs.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final file = docs[index];
-                  final isPdf = file.path.toLowerCase().endsWith('.pdf');
-                  final filename = path.basenameWithoutExtension(file.path);
-                  
-                  // 🛡️ V121: Remove type prefix from display name
-                  final displayName = filename.replaceFirst(RegExp(r'^(identity|nutrition|health_\w+|gallery)_'), '');
-                  
-                  return InkWell(
-                  onTap: () async {
-                    // 🛡️ V120: Open file with system default app
-                    try {
-                      debugPrint('📂 [V120] Opening file: ${file.path}');
-                      final result = await OpenFilex.open(file.path);
-
-                      if (result.type != ResultType.done) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Erro ao abrir arquivo: ${result.message}'),
-                              backgroundColor: AppDesign.error,
-                            )
-                          );
-                        }
-                      }
-                    } catch (e) {
-                      debugPrint('❌ [V120] Error opening file: $e');
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Erro ao abrir arquivo: $e'),
-                            backgroundColor: AppDesign.error,
-                          )
-                        );
-                      }
-                    }
-                  },
-                  onLongPress: () => _deleteAttachment(file),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 85, // 🛡️ V122: Slightly increased for better spacing
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppDesign.surfaceDark,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isPdf ? Colors.red.withOpacity(0.3) : Colors.blueAccent.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min, // 🛡️ V122: Prevent overflow
-                            children: [
-                              Icon(
-                                isPdf ? Icons.picture_as_pdf_rounded : Icons.image,
-                                color: isPdf ? Colors.red : Colors.blueAccent,
-                                size: 28,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isPdf ? 'PDF' : 'IMG',
-                                style: TextStyle(
-                                  color: isPdf ? Colors.red.withOpacity(0.7) : Colors.blueAccent.withOpacity(0.7),
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              // 🛡️ V122: Constrained text to prevent overflow
-                              Flexible(
-                                child: Text(
-                                  displayName,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 9,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // 🛡️ V122: Delete icon hint
-                        Positioned(
-                          top: 2,
-                          right: 2,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Icon(
-                              Icons.delete_outline,
-                              size: 12,
-                              color: Colors.white54,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ] else
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(AppLocalizations.of(context)!.commonNoAttachments, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 11, fontStyle: FontStyle.italic)),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIdentityTabContentNEW() {
-    final l10n = AppLocalizations.of(context)!;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 1. NAME (Top Priority)
-        _buildTextField(
-          controller: _nameController,
-          label: 'Nome do Pet *',
-          icon: Icons.person,
-          validator: (v) => v?.trim().isEmpty ?? true ? 'Este campo é obrigatório para a análise 360°' : null,
-          onChanged: (v) => _onUserTyping(),
-          isRequired: true,
-        ),
-        
-        const SizedBox(height: 12),
-
-        // 2. SPECIES
-        _buildSectionTitle('📌 ${l10n.species_label}'),
-        const SizedBox(height: 12),
-        FormField<String>(
-          validator: (val) => _especie == null ? 'Espécie obrigatória' : null,
-          initialValue: _especie,
-          builder: (FormFieldState<String> state) {
-             return InputDecorator(
-               decoration: InputDecoration(
-                 label: RichText(text: TextSpan(text: 'Espécie', style: const TextStyle(color: Colors.white60, fontSize: 16), children: [const TextSpan(text: ' *', style: TextStyle(color: AppDesign.petPink))])),
-                 prefixIcon: const Icon(Icons.pets, color: Colors.white30, size: 18),
-                 filled: true,
-                 fillColor: AppDesign.backgroundDark,
-                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                 errorText: state.hasError ? state.errorText : null,
-               ),
-               child: Row(
-                  children: [
-                    Expanded(child: InkWell(onTap: () { setState(() => _especie = 'Cão'); state.didChange('Cão'); _onUserInteractionGeneric(); }, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), decoration: BoxDecoration(color: _especie == 'Cão' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Radio<String>(value: 'Cão', groupValue: _especie, activeColor: AppDesign.petPink, onChanged: (val) { setState(() => _especie = val); state.didChange(val); _onUserInteractionGeneric(); }), const Icon(Icons.pets, color: Colors.white70, size: 18), const SizedBox(width: 4), Text(l10n.species_dog, style: TextStyle(color: _especie == 'Cão' ? Colors.white : Colors.white60, fontSize: 13))])))),
-                    const SizedBox(width: 8),
-                    Expanded(child: InkWell(onTap: () { setState(() => _especie = 'Gato'); state.didChange('Gato'); _onUserInteractionGeneric(); }, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), decoration: BoxDecoration(color: _especie == 'Gato' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Radio<String>(value: 'Gato', groupValue: _especie, activeColor: AppDesign.petPink, onChanged: (val) { setState(() => _especie = val); state.didChange(val); _onUserInteractionGeneric(); }), const Icon(Icons.auto_awesome, color: Colors.white70, size: 18), const SizedBox(width: 4), Text(l10n.species_cat, style: TextStyle(color: _especie == 'Gato' ? Colors.white : Colors.white60, fontSize: 13))])))),
-                  ],
-               ),
-             );
-          },
-        ),
-
-        const SizedBox(height: 24),
-        
-        // 3. BREED
-        _buildTextField(
-          controller: _racaController,
-          label: l10n.petProfile_breed,
-          icon: Icons.category,
-          validator: (v) => v?.trim().isEmpty ?? true ? 'Este campo é obrigatório para a análise 360°' : null,
-          isRequired: true,
-        ),
-        if (_reliability != null) ...[
-           const SizedBox(height: 4),
-           Align(alignment: Alignment.centerRight, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppDesign.petPink.withOpacity(0.3))), child: Row(mainAxisSize: MainAxisSize.min, children: [const Icon(Icons.verified, color: AppDesign.petPink, size: 14), const SizedBox(width: 4), Text('${l10n.reliability_label}: $_reliability', style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.bold))]))),
-        ],
-        _buildRaceDetailsSection(),
-
-        const SizedBox(height: 12),
-
-        // 4. AGE
-        _buildTextField(
-          controller: _idadeController,
-          label: l10n.petAgeLabel,
-          icon: Icons.cake,
-          validator: (v) => v?.trim().isEmpty ?? true ? 'Este campo é obrigatório para a análise 360°' : null,
-          isRequired: true,
-        ),
-        
-        // 5. WEIGHT (Moved Here)
-        const SizedBox(height: 12),
-        _buildTextField(
-            controller: _pesoController,
-            label: l10n.petCurrentWeight,
-            icon: Icons.monitor_weight,
-            keyboardType: TextInputType.number,
-            validator: (v) => v?.trim().isEmpty ?? true ? 'Este campo é obrigatório para a análise 360°' : null,
-            isRequired: true,
-        ),
-        _buildWeightFeedback(),
-
-        const SizedBox(height: 12),
-        
-        // 6. PORTE
-         _buildSectionTitle('📏 Porte / Tamanho'),
-        const SizedBox(height: 12),
-        _buildOptionSelector(
-          value: _porte,
-          label: 'Porte',
-          icon: Icons.straighten,
-          options: ['Pequeno', 'Médio', 'Grande', 'Gigante'],
-          onChanged: (val) { setState(() => _porte = val); _onUserInteractionGeneric(); },
-          isRequired: true,
-        ),
-
-        const SizedBox(height: 24),
-        
-        // 7. SEX
-        _buildSectionTitle('⚤ Sexo'),
-         const SizedBox(height: 12),
-        FormField<String>(
-          validator: (val) => _sexo == null ? 'Sexo obrigatório' : null,
-          initialValue: _sexo,
-          builder: (FormFieldState<String> state) {
-             return InputDecorator(
-               decoration: InputDecoration(
-                 label: RichText(text: TextSpan(text: 'Sexo', style: const TextStyle(color: Colors.white60, fontSize: 16), children: [const TextSpan(text: ' *', style: TextStyle(color: AppDesign.petPink))])),
-                 prefixIcon: const Icon(Icons.transgender, color: Colors.white30, size: 18),
-                 filled: true,
-                 fillColor: AppDesign.backgroundDark,
-                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                 errorText: state.hasError ? state.errorText : null,
-                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-               ),
-               child: Row(
-                  children: [
-                    Expanded(child: InkWell(onTap: () { setState(() => _sexo = 'Male'); state.didChange('Male'); _onUserInteractionGeneric(); }, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), decoration: BoxDecoration(color: _sexo == 'Male' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Radio<String>(value: 'Male', groupValue: _sexo, activeColor: AppDesign.petPink, onChanged: (val) { setState(() => _sexo = val); state.didChange(val); _onUserInteractionGeneric(); }), Text(l10n.gender_male, style: TextStyle(color: _sexo == 'Male' ? Colors.white : Colors.white60, fontSize: 13))])))),
-                    const SizedBox(width: 8),
-                    Expanded(child: InkWell(onTap: () { setState(() => _sexo = 'Female'); state.didChange('Female'); _onUserInteractionGeneric(); }, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), decoration: BoxDecoration(color: _sexo == 'Female' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Radio<String>(value: 'Female', groupValue: _sexo, activeColor: AppDesign.petPink, onChanged: (val) { setState(() => _sexo = val); state.didChange(val); _onUserInteractionGeneric(); }), Text(l10n.gender_female, style: TextStyle(color: _sexo == 'Female' ? Colors.white : Colors.white60, fontSize: 13))])))),
-                  ],
-               ),
-             );
-          },
-        ),
-
-        const SizedBox(height: 24),
-        _buildSectionTitle('⚙️ ${l10n.petBiologicalProfile}'),
-        const SizedBox(height: 16),
-        
-        // 8. ACTIVITY
-       _buildOptionSelector(
-        value: _nivelAtividade,
-        label: l10n.petActivityLevel,
-        icon: Icons.directions_run,
-        options: _getLocalizedItems((l) => [
-           l.petActivityLow,
-           l.petActivityModerate,
-           l.petActivityHigh,
-           l.petActivityAthlete
-        ]),
-        onChanged: (val) { setState(() => _nivelAtividade = val!); _onUserInteractionGeneric(); },
-        isRequired: true,
-      ),
-      
-      // 9. REPRO STATUS
-       FormField<String>(
-          validator: (val) => (_statusReprodutivo == 'Não informado' || _statusReprodutivo == 'Not Informed') ? l10n.petProfile_errorReproductive : null,
-          initialValue: _statusReprodutivo,
-          builder: (FormFieldState<String> state) {
-             return InputDecorator(
-               decoration: InputDecoration(
-                 label: RichText(text: TextSpan(text: l10n.petProfile_reproductiveStatus, style: const TextStyle(color: Colors.white60, fontSize: 16), children: [const TextSpan(text: ' *', style: TextStyle(color: AppDesign.petPink))])),
-                 prefixIcon: const Icon(Icons.medical_services, color: Colors.white30, size: 18),
-                 filled: true,
-                 fillColor: AppDesign.backgroundDark,
-                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                 errorText: state.hasError ? state.errorText : null,
-                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-               ),
-               child: Row(
-                 children: [
-                    Expanded(child: InkWell(onTap: () { setState(() => _statusReprodutivo = l10n.petNeutered); state.didChange(l10n.petNeutered); _onUserInteractionGeneric(); }, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), decoration: BoxDecoration(color: _localizeValue(_statusReprodutivo) == l10n.petNeutered ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Radio<String>(value: l10n.petNeutered, groupValue: _localizeValue(_statusReprodutivo), activeColor: AppDesign.petPink, onChanged: (val) { setState(() => _statusReprodutivo = val!); state.didChange(val); _onUserInteractionGeneric(); }), Expanded(child: Text(l10n.petNeutered, style: TextStyle(color: _localizeValue(_statusReprodutivo) == l10n.petNeutered ? Colors.white : Colors.white60, fontSize: 13)))])))),
-                    const SizedBox(width: 8),
-                    Expanded(child: InkWell(onTap: () { setState(() => _statusReprodutivo = l10n.petIntact); state.didChange(l10n.petIntact); _onUserInteractionGeneric(); }, child: Container(padding: const EdgeInsets.symmetric(vertical: 4), decoration: BoxDecoration(color: _localizeValue(_statusReprodutivo) == l10n.petIntact ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Radio<String>(value: l10n.petIntact, groupValue: _localizeValue(_statusReprodutivo), activeColor: AppDesign.petPink, onChanged: (val) { setState(() => _statusReprodutivo = val!); state.didChange(val); _onUserInteractionGeneric(); }), Expanded(child: Text(l10n.petIntact, style: TextStyle(color: _localizeValue(_statusReprodutivo) == l10n.petIntact ? Colors.white : Colors.white60, fontSize: 13)))])))),
-                 ],
-               ),
-             );
-          },
-      ),
-
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Identidade',
-          initialValue: _observacoesIdentidade,
-          onChanged: (value) {
-            setState(() => _observacoesIdentidade = value);
-            _onUserTyping();
-          },
-          icon: Icons.pets,
-          accentColor: AppDesign.petPink,
-        ),
-
-        _buildAttachmentSection('identity', AppLocalizations.of(context)!.pdfIdentitySection),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvoked: (bool didPop) async {
-        // Atomic Save: Ensure any pending changes or debounced writes are committed
-        if ((_debounce?.isActive ?? false) || _hasChanges) {
-           _debounce?.cancel();
-           await _saveNow(silent: true);
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppDesign.backgroundDark,
-        body: Form(
-          key: _formKey,
-          child: _buildProfileLayout(),
-        ),
-      ),
-    );
-  }
-
-  // --- PARTNERS TAB IMPLEMENTATION ---
-  
-
-  // Helper for deep search (public within class)
-  String? _findBreedRecursive(Map map) {
-      if (map['breed'] != null) return map['breed'].toString();
-      if (map['raca'] != null) return map['raca'].toString();
-      for (var v in map.values) {
-          if (v is Map) {
-              final found = _findBreedRecursive(v);
-              if (found != null) return found;
-          }
-      }
-      return null;
-  }
-
-  String _tryLocalizeLabel(BuildContext context, String key) {
-    if (!context.mounted) return key.toUpperCase().replaceAll('_', ' ');
-    final k = key.toLowerCase().trim().replaceAll(' ', '_');
-    final l10n = AppLocalizations.of(context);
-    if (l10n == null) return key.toUpperCase().replaceAll('_', ' ');
-    
-    switch (k) {
-        case 'urgency_level': return l10n.petLabelUrgencyLevel;
-        case 'confidence': return l10n.petLabelConfidence;
-        case 'diagnosis': return l10n.petLabelDiagnosis;
-        case 'visual_aspects': return l10n.petLabelVisualAspects;
-        case 'possible_causes': return l10n.petLabelPossibleCauses;
-        case 'recommendations': return l10n.petLabelRecommendations;
-        case 'breed': return l10n.petLabelBreed;
-        case 'raca': return l10n.petLabelBreed;
-        case 'species': return l10n.petLabelSpecies;
-        case 'especie': return l10n.petLabelSpecies;
-        case 'color': return l10n.petLabelColor;
-        case 'coat_type': return l10n.petLabelCoatType;
-        case 'size': return l10n.petLabelSize;
-        case 'life_expectancy': return l10n.petLabelLifeExpectancy;
-        case 'origin': return l10n.petLabelOrigin;
-        case 'temperament': return l10n.petLabelTemperament;
-        case 'personality': return l10n.petLabelPersonality;
-        case 'social_behavior': return l10n.petLabelSocialBehavior;
-        case 'identification': case 'identificacao': return l10n.petLabelIdentification;
-        case 'growth_curve': case 'curva_crescimento': return l10n.petLabelGrowthCurve;
-        case 'nutrition': case 'nutricao': return l10n.petLabelNutrition;
-        case 'grooming': case 'higiene': return l10n.petLabelGrooming;
-        case 'health': case 'saude': return l10n.petLabelHealth;
-        case 'lifestyle': case 'estilo_vida': return l10n.petLabelLifestyle;
-        case 'behavior': case 'comportamento': return l10n.petLabelBehavior;
-        default: return key.toUpperCase().replaceAll('_', ' '); 
-    }
-  }
-
-  Widget _buildAnalysisTabContent() {
-    final history = _analysisHistory;
-    final current = _currentRawAnalysis;
-    final hasData = history.isNotEmpty || (current != null && current.isNotEmpty);
-
-    if (!hasData) {
-       return Center(child: Padding(
-         padding: const EdgeInsets.symmetric(vertical: 60),
-         child: Column(mainAxisSize: MainAxisSize.min, children: [
-           const Icon(Icons.analytics_outlined, size: 60, color: Colors.white24),
-           const SizedBox(height: 16),
-           Text(AppLocalizations.of(context)!.petHistoryEmpty, style: GoogleFonts.poppins(color: Colors.white54)),
-         ]),
-       ));
-    }
-
-    // Show List of Analyses
-    return Column(
-      children: List.generate(history.length + (current != null && current.isNotEmpty && history.isEmpty ? 1 : 0) + 1, (index) {
-          if (index == 0) {
-              // AI Disclaimer
-              return Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, color: Colors.amberAccent, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context)!.petAnalysisDisclaimer,
-                        style: GoogleFonts.poppins(color: Colors.amberAccent, fontSize: 11),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-          }
-          
-          final actualIndex = index - 1;
-          // If history empty but current exists
-          Map<String, dynamic> data;
-          if (history.isEmpty) {
-              data = current!;
-          } else {
-              // Reverse order
-              data = history[history.length - 1 - actualIndex];
-          }
-          
-          final type = data['analysis_type']?.toString().toUpperCase() ?? AppLocalizations.of(context)!.petAnalysisDefaultTitle;
-          
-          // Date Parsing Logic with Fallback
-          String dateStr = AppLocalizations.of(context)!.petAnalysisDateUnknown;
-          DateTime? dt;
-          if (data['last_updated'] != null) {
-             try {
-                 dt = DateTime.parse(data['last_updated'].toString());
-             } catch (_) {}
-          } else if (widget.existingProfile != null) {
-             // Fallback to Profile Last Updated
-             dt = widget.existingProfile!.lastUpdated;
-          }
-
-          if (dt != null) {
-             dateStr = '${dt.day.toString().padLeft(2,'0')}/${dt.month.toString().padLeft(2,'0')}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2,'0')}';
-             if (data['last_updated'] == null) {
-                 dateStr += AppLocalizations.of(context)!.petAnalysisProfileDate;
-             }
-          }
-
-          // Deep Search for Breed (Using class helper)
-          String? extractedBreed = data['breed']?.toString() ?? _findBreedRecursive(data);
-          
-          // Last Resort: Regex Search in toString() if still null
-          if (extractedBreed == null) {
-              final str = data.toString();
-              // Try 'breed: Value' pattern (Dart Map toString uses key: value)
-              final match = RegExp(r'(?:breed|raca)[:]\s*([^,}\]]+)', caseSensitive: false).firstMatch(str);
-              if (match != null) extractedBreed = match.group(1)?.trim();
-          }
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white10)
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Text(type, style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold)),
-                    const Icon(Icons.history, size: 16, color: Colors.white30)
-                ]),
-                
-                // Show Breed explicitly
-                if (extractedBreed != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                        extractedBreed, 
-                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)
-                    ),
-                ],
-                
-                const SizedBox(height: 8),
-                Text(dateStr, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                const Divider(color: Colors.white10),
-                
-                // Structured Data View
-                ...data.entries.where((e) {
-                    final k = e.key;
-                    final v = e.value;
-                    
-                    // Filter out technical keys and null values
-                    if (['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification'].contains(k)) return false;
-                    
-                    // 🛡️ V127: More robust null filtering
-                    if (v == null) return false;
-                    if (v.toString().toLowerCase() == 'null') return false;
-                    if (v is String && v.trim().isEmpty) return false;
-                    
-                    return true;
-                }).map((e) {
-                   final val = e.value;
-                   
-                   if (e.key.contains('image_path') && val is String) {
-                       return InkWell(
-                           onTap: () async {
-                               String finalPath = val;
-                               if (!File(finalPath).existsSync()) {
-                                   try {
-                                       final dir = await getApplicationDocumentsDirectory();
-                                       final filename = path.basename(finalPath);
-                                       final petName = _nameController.text.trim();
-                                       var rPath = path.join(dir.path, filename);
-                                       if (File(rPath).existsSync()) {
-                                           finalPath = rPath;
-                                       } else if (petName.isNotEmpty) {
-                                           rPath = path.join(dir.path, 'medical_docs', petName, filename);
-                                           if (File(rPath).existsSync()) finalPath = rPath;
-                                       }
-                                   } catch (e) {
-                                       debugPrint('Recovery error: $e');
-                                   }
-                               }
-
-                               if (File(finalPath).existsSync()) {
-                                   if (!context.mounted) return;
-                                   showDialog(context: context, builder: (_) => Dialog(
-                                       backgroundColor: Colors.transparent,
-                                       child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                           Image.file(File(finalPath)),
-                                           TextButton(
-                                               onPressed: () => Navigator.pop(context), 
-                                               child: Text(AppLocalizations.of(context)!.commonClose, style: const TextStyle(color: Colors.white))
-                                           )
-                                       ])
-                                   ));
-                               }
-                           },
-                           child: Container(
-                               margin: const EdgeInsets.symmetric(vertical: 8),
-                               padding: const EdgeInsets.all(8),
-                               decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white12)),
-                               child: Row(children: [
-                                   const Icon(Icons.image, color: AppDesign.petPink, size: 20),
-                                   const SizedBox(width: 8),
-                                   Expanded(child: Text(AppLocalizations.of(context)!.petAnalysisViewImage, style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 12))),
-                                   const Icon(Icons.open_in_new, color: Colors.white30, size: 16)
-                               ]),
-                           )
-                       );
-                   }
-
-                   if (val is Map) {
-                       return ExpansionTile(
-                           initiallyExpanded: true, // 🛡️ V126: Open by default
-                           title: Text(_tryLocalizeLabel(context, e.key), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                           childrenPadding: const EdgeInsets.only(left: 16, bottom: 8),
-                           children: (val as Map).entries.where((sub) => sub.value != null).map((sub) => Padding(
-                               padding: const EdgeInsets.only(bottom: 4),
-                               child: Row(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                       Text('${_tryLocalizeLabel(context, sub.key)}: ', style: const TextStyle(color: Colors.white60, fontSize: 11)),
-                                       Expanded(child: Text(sub.value.toString(), style: const TextStyle(color: Colors.white, fontSize: 11))),
-                                   ]
-                               ),
-                           )).toList(),
-                       );
-                   }
-                   return Padding(
-                       padding: const EdgeInsets.symmetric(vertical: 4),
-                       child: Row(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                               Text('${_tryLocalizeLabel(context, e.key)}: ', style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.bold)),
-                               Expanded(child: Text(val.toString(), style: const TextStyle(color: Colors.white70, fontSize: 11))),
-                           ]
-                       ),
-                   );
-                }).toList(),
-            ]),
-          );
-      }),
-    );
-  }
-
-  Widget _buildPartnersTabContent() {
-    return FutureBuilder<List<PartnerModel>>(
-      future: (() async {
-        final ps = PartnerService();
-        await ps.init();
-        return ps.getAllPartners();
-      })(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: AppDesign.petPink));
-        
-        final allPartners = snapshot.data!;
-        final filterAll = AppLocalizations.of(context)!.partnersFilterAll;
-        final filtered = _selectedPartnerFilter == filterAll
-            ? allPartners 
-            : allPartners.where((p) => _localizeValue(p.category) == _selectedPartnerFilter).toList();
-
-        return Column(
-          children: [
-            // 1. Filter Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Row(
-                children: _partnerFilterCategories.map((cat) {
-                  final isSelected = _selectedPartnerFilter == cat;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      label: Text(cat),
-                      selected: isSelected,
-                      onSelected: (v) => setState(() => _selectedPartnerFilter = cat),
-                      backgroundColor: Colors.white.withOpacity(0.05),
-                      selectedColor: AppDesign.petPink,
-                      labelStyle: TextStyle(color: isSelected ? Colors.black : Colors.white),
-                      checkmarkColor: Colors.black,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            
-            const SizedBox(height: 10),
-
-            // 2. Partners List
-            if (allPartners.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
-                child: Center(
-                  child: Text(
-                    AppLocalizations.of(context)!.petPartnersNoPartners,
-                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-            else if (filtered.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Center(
-                  child: Text(
-                    AppLocalizations.of(context)!.petPartnersNotFound,
-                    style: GoogleFonts.poppins(color: Colors.white30),
-                  ),
-                ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                      final partner = filtered[index];
-                      final isLinked = _linkedPartnerIds.contains(partner.id);
-                      
-                       if (isLinked) {
-                        return LinkedPartnerCard(
-                          partner: partner,
-                          petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
-                          petName: _nameController.text.trim(),
-                          onUnlink: () async {
-                            setState(() {
-                              _linkedPartnerIds.remove(partner.id);
-                              _linkedPartnerModels.removeWhere((p) => p.id == partner.id);
-                            });
-                            _markDirty(); // Trigger auto-save
-                          },
-                          onUpdate: (updated) async {
-                            setState(() {
-                              _modifiedPartners[updated.id] = updated;
-                              final idx = _linkedPartnerModels.indexWhere((p) => p.id == updated.id);
-                              if (idx != -1) _linkedPartnerModels[idx] = updated;
-                            });
-                            await PartnerService().savePartner(updated);
-                          },
-                          onOpenAgenda: () => _openPartnerAgenda(partner),
-                        );
-                      }
-
-                      return Card(
-                        color: AppDesign.textPrimaryDark.withOpacity(0.05),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                backgroundColor: Colors.grey.withOpacity(0.1),
-                                child: const Icon(Icons.link_off, color: Colors.grey, size: 20),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-                                    Text(_localizeValue(partner.category), style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                                  ],
-                                ),
-                              ),
-                              Switch(
-                                value: false,
-                                activeColor: AppDesign.petPink,
-                                onChanged: (val) async {
-                                  if (val) {
-                                    setState(() {
-                                      _linkedPartnerIds.add(partner.id);
-                                      _linkedPartnerModels.add(partner);
-                                    });
-                                    _markDirty(); // Trigger auto-save
-                                    
-                                    // Indexing
-                                    try {
-                                      PetIndexingService().indexPartnerInteraction(
-                                        petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
-                                        petName: _nameController.text.trim(),
-                                        partnerName: partner.name,
-                                        partnerId: partner.id,
-                                        interactionType: 'linked_partner',
-                                        localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerLinked(partner.name),
-                                        localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
-                                      );
-                                    } catch (e) {
-                                      debugPrint('Error indexing partner link: $e');
-                                    }
-                                  }
-                                },
-                              )
-                            ],
-                          ),
-                        ),
-                      );
-                },
-              ),
-
-            // 3. Observations Field
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: CumulativeObservationsField(
-                sectionName: AppLocalizations.of(context)!.petPartnersObs,
-                initialValue: _observacoesPrac,
-                onChanged: (value) {
-                  setState(() => _observacoesPrac = value);
-                  _onUserTyping();
-                },
-                icon: Icons.handshake,
-                accentColor: AppDesign.petPink,
-              ),
-            ),
-
-            // 4. Action Buttons
-            _buildActionButtons(),
-
-            // 5. Bottom Padding (ensures content is visible above keyboard)
-            const SizedBox(height: 100),
-          ],
-        );
-      }
-    );
-  }
-
-
-
-
-  Widget _buildProfileImageHeader() {
-    // 1. Determine Image Source
-    ImageProvider? imageProvider;
-
-    if (_profileImage != null && _profileImage!.existsSync() && _profileImage!.lengthSync() > 0) {
-      imageProvider = FileImage(_profileImage!);
-    } else if (_initialImagePath != null && _initialImagePath!.isNotEmpty) {
-       final f = File(_initialImagePath!);
-       if (f.existsSync() && f.lengthSync() > 0) {
-           imageProvider = FileImage(f);
-       } else if (_initialImagePath!.startsWith('http')) {
-           imageProvider = NetworkImage(_initialImagePath!);
-       }
-    }
-
-    // Debug Log
-    debugPrint('PET_PROFILE_IMAGE: path=${_profileImage?.path}, initial=$_initialImagePath, provider=$imageProvider');
-
-    // 2. Build Widget with Robust Error Handling
-    return Center(
-      child: GestureDetector(
-        onTap: _pickProfileImage,
-        child: Stack(
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppDesign.petPink, width: 3),
-                color: Colors.white.withOpacity(0.1),
-              ),
-              child: ClipOval(
-                child: imageProvider != null
-                    ? Image(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                            debugPrint('🔴 Erro visual recuperado na imagem: $error');
-                            return const Center(child: Icon(Icons.pets, size: 60, color: Colors.white24));
-                        },
-                      )
-                    : const Center(child: Icon(Icons.pets, size: 60, color: Colors.white24)),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: AppDesign.petPink,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.camera_alt, color: Colors.black, size: 20),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildIdentityTabContent() {
-      return _buildIdentityTabContentNEW();
-  }
-
-  Widget _buildIdentityTabContent_OLD() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ESPÉCIE (Mandatory Selection - MOVED TO TOP)
-        _buildSectionTitle('📌 ${AppLocalizations.of(context)!.species_label} *'),
-        const SizedBox(height: 12),
-        FormField<String>(
-          validator: (val) => _especie == null ? 'Espécie obrigatória' : null,
-          initialValue: _especie,
-          builder: (FormFieldState<String> state) {
-             return InputDecorator(
-               decoration: InputDecoration(
-                 labelText: 'Espécie *', 
-                 prefixIcon: const Icon(Icons.pets, color: Colors.white30, size: 18),
-                 filled: true,
-                 fillColor: AppDesign.backgroundDark,
-                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                 errorText: state.hasError ? state.errorText : null,
-               ),
-               child: Row(
-                 children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () { 
-                            setState(() => _especie = 'Cão'); 
-                            state.didChange('Cão'); 
-                            _onUserInteractionGeneric(); 
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _especie == 'Cão' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                               Radio<String>(
-                                 value: 'Cão',
-                                 groupValue: _especie,
-                                 activeColor: AppDesign.petPink,
-                                 onChanged: (val) { 
-                                     setState(() => _especie = val); 
-                                     state.didChange(val); 
-                                     _onUserInteractionGeneric(); 
-                                 },
-                               ),
-                               const Icon(Icons.pets, color: Colors.white70, size: 18),
-                               const SizedBox(width: 4),
-                               Text(l10n.species_dog, style: TextStyle(color: _especie == 'Cão' ? Colors.white : Colors.white60, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: InkWell(
-                         onTap: () { 
-                             setState(() => _especie = 'Gato'); 
-                             state.didChange('Gato'); 
-                             _onUserInteractionGeneric(); 
-                         },
-                         child: Container(
-                           padding: const EdgeInsets.symmetric(vertical: 4),
-                           decoration: BoxDecoration(
-                             color: _especie == 'Gato' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
-                             borderRadius: BorderRadius.circular(8),
-                           ),
-                           child: Row(
-                             mainAxisAlignment: MainAxisAlignment.center,
-                             children: [
-                                Radio<String>(
-                                  value: 'Gato',
-                                  groupValue: _especie,
-                                  activeColor: AppDesign.petPink,
-                                  onChanged: (val) { 
-                                      setState(() => _especie = val); 
-                                      state.didChange(val); 
-                                      _onUserInteractionGeneric(); 
-                                  },
-                                ),
-                                const Icon(Icons.auto_awesome, color: Colors.white70, size: 18),
-                                const SizedBox(width: 4),
-                                Text(l10n.species_cat, style: TextStyle(color: _especie == 'Gato' ? Colors.white : Colors.white60, fontSize: 13)),
-                             ],
-                           ),
-                         ),
-                      ),
-                    ),
-                 ],
-               ),
-             );
-          },
-        ),
-
-        const SizedBox(height: 24),
-        _buildRaceDetailsSection(),
-        const SizedBox(height: 24),
-
-        // SEXO DO PET
-        _buildSectionTitle('⚤ Sexo *'),
-        const SizedBox(height: 12),
-        FormField<String>(
-          validator: (val) => _sexo == null ? 'Sexo obrigatório' : null,
-          initialValue: _sexo,
-          builder: (FormFieldState<String> state) {
-             return InputDecorator(
-               decoration: InputDecoration(
-                 labelText: 'Sexo *',
-                 prefixIcon: const Icon(Icons.transgender, color: Colors.white30, size: 18),
-                 filled: true,
-                 fillColor: AppDesign.backgroundDark,
-                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                 errorText: state.hasError ? state.errorText : null,
-                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-               ),
-               child: Row(
-                 children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () { 
-                            setState(() => _sexo = 'Male'); 
-                            state.didChange('Male'); 
-                            _onUserInteractionGeneric(); 
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _sexo == 'Male' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                               Radio<String>(
-                                 value: 'Male',
-                                 groupValue: _sexo,
-                                 activeColor: AppDesign.petPink,
-                                 onChanged: (val) { 
-                                     setState(() => _sexo = val); 
-                                     state.didChange(val); 
-                                     _onUserInteractionGeneric(); 
-                                 },
-                               ),
-                               Text(l10n.gender_male, style: TextStyle(color: _sexo == 'Male' ? Colors.white : Colors.white60, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: InkWell(
-                         onTap: () { 
-                             setState(() => _sexo = 'Female'); 
-                             state.didChange('Female'); 
-                             _onUserInteractionGeneric(); 
-                         },
-                         child: Container(
-                           padding: const EdgeInsets.symmetric(vertical: 4),
-                           decoration: BoxDecoration(
-                             color: _sexo == 'Female' ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
-                             borderRadius: BorderRadius.circular(8),
-                           ),
-                           child: Row(
-                             mainAxisAlignment: MainAxisAlignment.center,
-                             children: [
-                               Radio<String>(
-                                 value: 'Female',
-                                 groupValue: _sexo,
-                                 activeColor: AppDesign.petPink,
-                                 onChanged: (val) { 
-                                     setState(() => _sexo = val); 
-                                     state.didChange(val); 
-                                     _onUserInteractionGeneric(); 
-                                 },
-                               ),
-                               Text(l10n.gender_female, style: TextStyle(color: _sexo == 'Female' ? Colors.white : Colors.white60, fontSize: 13)),
-                             ],
-                           ),
-                         ),
-                      ),
-                    ),
-                 ],
-               ),
-             );
-          },
-        ),
-        
-        const SizedBox(height: 12),
-        
-        // NAME
-        _buildTextField(
-          controller: _nameController,
-          label: 'Nome do Pet *',
-          icon: Icons.person,
-          validator: (v) => v?.trim().isEmpty ?? true ? 'Nome obrigatório' : null,
-          onChanged: (v) => _onUserTyping(),
-        ),
-
-        const SizedBox(height: 12),
-        
-        // BREED (Validated)
-        _buildTextField(
-          controller: _racaController,
-          label: '${AppLocalizations.of(context)!.petProfile_breed} *',
-          icon: Icons.category,
-          validator: (v) => v?.trim().isEmpty ?? true ? AppLocalizations.of(context)!.breed_required : null,
-        ),
-        if (_reliability != null) ...[
-           const SizedBox(height: 4),
-           Align(
-             alignment: Alignment.centerRight,
-             child: Container(
-               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-               decoration: BoxDecoration(
-                 color: AppDesign.petPink.withOpacity(0.1),
-                 borderRadius: BorderRadius.circular(12),
-                 border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
-               ),
-               child: Row(
-                 mainAxisSize: MainAxisSize.min,
-                 children: [
-                   const Icon(Icons.verified, color: AppDesign.petPink, size: 14),
-                   const SizedBox(width: 4),
-                   Text(
-                     '${l10n.reliability_label}: $_reliability',
-                     style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.bold),
-                   ),
-                 ],
-               ),
-             ),
-           ),
-        ],
-        
-        const SizedBox(height: 12),
-
-        // PORTE (Mandatory Selection)
-        _buildSectionTitle('📏 Porte / Tamanho *'),
-        const SizedBox(height: 12),
-        _buildOptionSelector(
-          value: _porte,
-          label: 'Porte *',
-          icon: Icons.straighten,
-          options: [
-            'Pequeno',
-            'Médio',
-            'Grande',
-            'Gigante'
-          ],
-          onChanged: (val) { 
-            setState(() => _porte = val); 
-            _onUserInteractionGeneric(); 
-          },
-        ),
-
-        const SizedBox(height: 12),
-
-        _buildTextField(
-          controller: _idadeController,
-          label: '${AppLocalizations.of(context)!.petAgeLabel} *',
-          icon: Icons.cake,
-          validator: (v) => v?.trim().isEmpty ?? true ? AppLocalizations.of(context)!.commonRequired : null,
-        ),
-        
-        const SizedBox(height: 24),
-      _buildSectionTitle('⚙️ ${l10n.petBiologicalProfile}'),
-      const SizedBox(height: 16),
-      
-      _buildOptionSelector(
-        value: _nivelAtividade,
-        label: l10n.petActivityLevel,
-        icon: Icons.directions_run,
-        options: _getLocalizedItems((l) => [
-           l.petActivityLow,
-           l.petActivityModerate,
-           l.petActivityHigh,
-           l.petActivityAthlete
-        ]),
-        onChanged: (val) { setState(() => _nivelAtividade = val!); _onUserInteractionGeneric(); },
-      ),
-      
-      // STATUS REPRODUTIVO (Radio Sim/Não para Castrado)
-      FormField<String>(
-          validator: (val) => (_statusReprodutivo == 'Não informado' || _statusReprodutivo == 'Not Informed') ? l10n.petProfile_errorReproductive : null,
-          initialValue: _statusReprodutivo,
-          builder: (FormFieldState<String> state) {
-             return InputDecorator(
-               decoration: InputDecoration(
-                 labelText: '${l10n.petProfile_reproductiveStatus} *',
-                 prefixIcon: const Icon(Icons.medical_services, color: Colors.white30, size: 18),
-                 filled: true,
-                 fillColor: AppDesign.backgroundDark,
-                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                 errorText: state.hasError ? state.errorText : null,
-                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-               ),
-               child: Row(
-                 children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: () { 
-                            setState(() => _statusReprodutivo = l10n.petNeutered); 
-                            state.didChange(l10n.petNeutered); 
-                            _onUserInteractionGeneric(); 
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _localizeValue(_statusReprodutivo) == l10n.petNeutered ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                               Radio<String>(
-                                 value: l10n.petNeutered,
-                                 groupValue: _localizeValue(_statusReprodutivo),
-                                 activeColor: AppDesign.petPink,
-                                 onChanged: (val) { 
-                                     setState(() => _statusReprodutivo = val!); 
-                                     state.didChange(val); 
-                                     _onUserInteractionGeneric(); 
-                                 },
-                               ),
-                               Expanded(child: Text(l10n.petNeutered, style: TextStyle(color: _localizeValue(_statusReprodutivo) == l10n.petNeutered ? Colors.white : Colors.white60, fontSize: 13))),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: InkWell(
-                        onTap: () { 
-                            setState(() => _statusReprodutivo = l10n.petIntact); 
-                            state.didChange(l10n.petIntact); 
-                            _onUserInteractionGeneric(); 
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _localizeValue(_statusReprodutivo) == l10n.petIntact ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                               Radio<String>(
-                                 value: l10n.petIntact,
-                                 groupValue: _localizeValue(_statusReprodutivo),
-                                 activeColor: AppDesign.petPink,
-                                 onChanged: (val) { 
-                                     setState(() => _statusReprodutivo = val!); 
-                                     state.didChange(val); 
-                                     _onUserInteractionGeneric(); 
-                                 },
-                               ),
-                               Expanded(child: Text(l10n.petIntact, style: TextStyle(color: _localizeValue(_statusReprodutivo) == l10n.petIntact ? Colors.white : Colors.white60, fontSize: 13))),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                 ],
-               ),
-             );
-          },
-      ),
-
-
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Identidade',
-          initialValue: _observacoesIdentidade,
-          onChanged: (value) {
-            setState(() => _observacoesIdentidade = value);
-            _onUserTyping();
-          },
-          icon: Icons.pets,
-          accentColor: AppDesign.petPink,
-        ),
-
-        _buildAttachmentSection('identity', AppLocalizations.of(context)!.pdfIdentitySection),
-      ],
+    return IdentityFragment(
+      nameController: _nameController,
+      especie: _especie,
+      racaController: _racaController,
+      idadeController: _idadeController,
+      pesoController: _pesoController,
+      microchipController: _microchipController,
+      porte: _porte,
+      sexo: _sexo,
+      nivelAtividade: _nivelAtividade,
+      statusReprodutivo: _statusReprodutivo,
+      reliability: _reliability,
+      observacoesIdentidade: _observacoesIdentidade,
+      activityOptions: _getLocalizedItems((l) => [
+         l.petActivityLow,
+         l.petActivityModerate,
+         l.petActivityHigh,
+         l.petActivityAthlete
+      ]),
+      attachments: _attachments,
+      currentRawAnalysis: _currentRawAnalysis,
+      onEspecieChanged: (val) { setState(() => _especie = val); _onUserInteractionGeneric(); },
+      onSexoChanged: (val) { setState(() => _sexo = val); _onUserInteractionGeneric(); },
+      onPorteChanged: (val) { setState(() => _porte = val); _onUserInteractionGeneric(); },
+      onNivelAtividadeChanged: (val) { setState(() => _nivelAtividade = val!); _onUserInteractionGeneric(); },
+      onStatusReprodutivoChanged: (val) { setState(() => _statusReprodutivo = val!); _onUserInteractionGeneric(); },
+      onObservacoesChanged: (val) { setState(() => _observacoesIdentidade = val); _onUserTyping(); },
+      onUserTyping: _onUserTyping,
+      onUserInteractionGeneric: _onUserInteractionGeneric,
+      localizeValue: _localizeValue,
+      onAddAttachment: () => _addAttachment('identity'),
+      onDeleteAttachment: _deleteAttachment,
     );
   }
 
+
   Widget _buildHealthTabContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox.shrink(), // Weight Section Removed (Moved to Identify Tab)
-        
-        const SizedBox(height: 24),
-        _buildSectionTitle('💉 ${AppLocalizations.of(context)!.petVaccinationHistory}'),
-        const SizedBox(height: 16),
-        
-        _buildDatePicker(
-          label: AppLocalizations.of(context)!.petLastV10,
-          icon: Icons.vaccines,
-          selectedDate: _dataUltimaV10,
-          onDateSelected: (date) { setState(() => _dataUltimaV10 = date); _onUserInteractionGeneric(); },
-        ),
-        
-        _buildDatePicker(
-          label: AppLocalizations.of(context)!.petLastRabies,
-          icon: Icons.coronavirus,
-          selectedDate: _dataUltimaAntirrabica,
-          onDateSelected: (date) { setState(() => _dataUltimaAntirrabica = date); _onUserInteractionGeneric(); },
-        ),
-        
-        const SizedBox(height: 24),
-      _buildSectionTitle('🛁 ${l10n.petHygiene}'),
-      const SizedBox(height: 16),
-      
-      _buildOptionSelector(
-        value: _frequenciaBanho,
-        label: l10n.petBathFrequency,
-        icon: Icons.water_drop,
-        options: _getLocalizedItems((l) => [
-           l.petBathBiweekly,
-           l.petBathWeekly,
-           l.petBathMonthly
-        ]),
-        onChanged: (val) { setState(() => _frequenciaBanho = val!); _onUserInteractionGeneric(); },
+    return HealthFragment(
+      dataUltimaV10: _dataUltimaV10,
+      dataUltimaAntirrabica: _dataUltimaAntirrabica,
+      frequenciaBanho: _frequenciaBanho,
+      bathOptions: _getLocalizedItems((l) => [
+         l.petBathBiweekly,
+         l.petBathWeekly,
+         l.petBathMonthly
+      ]),
+      labExams: _labExams,
+      observacoesSaude: _observacoesSaude,
+      onV10DateSelected: (date) { setState(() => _dataUltimaV10 = date); _onUserInteractionGeneric(); },
+      onAntirrabicaDateSelected: (date) { setState(() => _dataUltimaAntirrabica = date); _onUserInteractionGeneric(); },
+      onFrequenciaBanhoChanged: (val) { setState(() => _frequenciaBanho = val); _onUserInteractionGeneric(); },
+      onObservacoesChanged: (value) {
+        setState(() => _observacoesSaude = value);
+        _onUserTyping();
+      },
+      attachments: _attachments,
+      labExamsSection: LabExamsSection(
+        exams: _labExams,
+        onAddExam: _addLabExam,
+        onDeleteExam: _deleteLabExam,
+        onExplainExam: _explainLabExam,
+        onMarkDirty: _markDirty,
       ),
-
-        const SizedBox(height: 24),
-        
-        // New Lab Exams Section
-        LabExamsSection(
-          exams: _labExams,
-          onAddExam: _addLabExam,
-          onDeleteExam: _deleteLabExam,
-          onExplainExam: _explainLabExam,
-          onMarkDirty: _markDirty,
-        ),
-        
-        const SizedBox(height: 24),
-        _buildSectionTitle('📄 ${AppLocalizations.of(context)!.petMedicalDocs}'),
-        const SizedBox(height: 8),
-        
-        _buildAttachmentSection('health_prescriptions', '📝 ${AppLocalizations.of(context)!.petPrescriptions}'),
-        _buildAttachmentSection('health_vaccines', '💉 ${AppLocalizations.of(context)!.petVaccineCard}'),
-
-        const SizedBox(height: 24),
-        _buildWoundAnalysisHistory(),
-
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Saúde',
-          initialValue: _observacoesSaude,
-          onChanged: (value) {
-            setState(() => _observacoesSaude = value);
-            _onUserTyping();
-          },
-          icon: Icons.medical_services,
-          accentColor: AppDesign.petPink,
-        ),
-      ],
+      woundAnalysisHistory: _buildWoundAnalysisHistory(),
+      onAddAttachmentPrescription: () => _addAttachment('health_prescriptions'),
+      onAddAttachmentVaccine: () => _addAttachment('health_vaccines'),
+      onDeleteAttachment: _deleteAttachment,
     );
   }
 
   Widget _buildNutritionTabContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionTitle('⚠️ ${AppLocalizations.of(context)!.petFoodAllergies}'),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.petFoodAllergiesDesc,
-          style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
-        ),
-        const SizedBox(height: 16),
-        
-        _buildChipInput(
-          controller: _alergiasController,
-          label: AppLocalizations.of(context)!.petAddAllergy,
-          icon: Icons.warning,
-          chips: _alergiasConhecidas,
-          onAdd: (text) {
-            setState(() {
-              _alergiasConhecidas.add(text);
-              _alergiasController.clear();
-            });
-            _markDirty();
-          },
-          onDelete: (index) {
-            setState(() => _alergiasConhecidas.removeAt(index));
-            _markDirty();
-          },
-        ),
-
-        const SizedBox(height: 24),
-        _buildSectionTitle('🚫 ${AppLocalizations.of(context)!.petFoodRestrictions ?? 'Restrições'}'),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.petFoodRestrictionsDesc ?? 'Ingredientes proibidos ou a evitar (ex: sem frango, sem glúten).',
-          style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
-        ),
-        const SizedBox(height: 16),
-        
-        _buildChipInput(
-          controller: _restricoesController,
-          label: AppLocalizations.of(context)!.petAddRestriction ?? 'Adicionar restrição',
-          icon: Icons.block,
-          chips: _restricoes,
-          chipColor: AppDesign.petPink.withOpacity(0.8),
-          onAdd: (text) {
-            setState(() {
-              _restricoes.add(text);
-              _restricoesController.clear();
-            });
-            _markDirty();
-          },
-          onDelete: (index) {
-            setState(() => _restricoes.removeAt(index));
-            _markDirty();
-          },
-        ),
-        
-        const SizedBox(height: 24),
-        _buildSectionTitle('❤️ ${AppLocalizations.of(context)!.petFoodPreferences}'),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.petFoodPreferencesDesc,
-          style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
-        ),
-        const SizedBox(height: 16),
-        
-        _buildChipInput(
-          controller: _preferenciasController,
-          label: AppLocalizations.of(context)!.petAddPreference,
-          icon: Icons.favorite,
-          chips: _preferencias,
-          chipColor: AppDesign.petPink,
-          onAdd: (text) {
-            setState(() {
-              _preferencias.add(text);
-              _preferenciasController.clear();
-            });
-            _markDirty();
-          },
-          onDelete: (index) {
-            setState(() => _preferencias.removeAt(index));
-            _markDirty();
-          },
-        ),
-
-        _buildWeeklyPlanSection(),
-
-        _buildAttachmentSection('nutrition', AppLocalizations.of(context)!.petDietRecipes),
-        
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Nutrição',
-          initialValue: _observacoesNutricao,
-          onChanged: (value) {
-            setState(() => _observacoesNutricao = value);
-            _onUserTyping();
-          },
-          icon: Icons.restaurant,
-          accentColor: AppDesign.petPink,
-        ),
-      ],
+    return NutritionFragment(
+      alergiasController: _alergiasController,
+      alergiasConhecidas: _alergiasConhecidas,
+      restricoesController: _restricoesController,
+      restricoes: _restricoes,
+      preferenciasController: _preferenciasController,
+      preferencias: _preferencias,
+      observacoesNutricao: _observacoesNutricao,
+      onAddAlergia: (text) {
+        setState(() {
+          _alergiasConhecidas.add(text);
+          _alergiasController.clear();
+        });
+        _markDirty();
+      },
+      onDeleteAlergia: (index) {
+        setState(() => _alergiasConhecidas.removeAt(index));
+        _markDirty();
+      },
+      onAddRestricao: (text) {
+        setState(() {
+          _restricoes.add(text);
+          _restricoesController.clear();
+        });
+        _markDirty();
+      },
+      onDeleteRestricao: (index) {
+        setState(() => _restricoes.removeAt(index));
+        _markDirty();
+      },
+      onAddPreferencial: (text) {
+        setState(() {
+          _preferencias.add(text);
+          _preferenciasController.clear();
+        });
+        _markDirty();
+      },
+      onDeletePreferencial: (index) {
+        setState(() => _preferencias.removeAt(index));
+        _markDirty();
+      },
+      onObservacoesChanged: (value) {
+        setState(() => _observacoesNutricao = value);
+        _onUserTyping();
+      },
+      pesoController: _pesoController,
+      raca: _racaController.text,
+      porte: _porte,
+      attachments: _attachments['nutrition'] ?? [],
+      weeklyPlanSection: _buildWeeklyPlanSection(),
+      onAddAttachment: () => _addAttachment('nutrition'),
+      onDeleteAttachment: _deleteAttachment,
     );
   }
+
+
 
   Future<void> _confirmDelete() async {
     final confirm = await showDialog<bool>(
@@ -2735,7 +1441,7 @@ class _EditPetFormState extends State<EditPetForm>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('🩹 ${AppLocalizations.of(context)!.petWoundHistory}'),
+        _buildSectionTitle('🩺 ${AppLocalizations.of(context)!.petWoundHistory}'),
         const SizedBox(height: 8),
         Text(
           AppLocalizations.of(context)!.petWoundsCount(woundHistory.length + structuredHistory.length),
@@ -3300,7 +2006,9 @@ class _EditPetFormState extends State<EditPetForm>
       },
       localeId: localeId,
       listenMode: stt.ListenMode.dictation,
-      cancelOnError: true,
+      listenOptions: stt.SpeechListenOptions(
+        cancelOnError: true,
+      ),
     );
   }
 
@@ -3810,194 +2518,6 @@ class _EditPetFormState extends State<EditPetForm>
      }
   }
 
-   Widget _buildRaceDetailsSection() {
-     final raw = _currentRawAnalysis;
-     if (raw == null) return const SizedBox.shrink();
-
-     final ident = raw['identificacao'] as Map?;
-     final temp = raw['temperamento'] as Map?;
-     final fisica = raw['caracteristicas_fisicas'] as Map?;
-     final origem = raw['origem_historia'] as String?;
-     final curiosidades = raw['curiosidades'] as List?;
-     
-     if (ident == null && temp == null && fisica == null && origem == null) return const SizedBox.shrink();
-
-     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-           const SizedBox(height: 24),
-           Padding(
-             padding: const EdgeInsets.symmetric(vertical: 8),
-             child: _buildSectionTitle(AppLocalizations.of(context)!.petRaceAnalysis),
-           ),
-           const SizedBox(height: 8),
-           
-           
-            if (ident != null) ...[
-               _buildInfoRow(AppLocalizations.of(context)!.petLineage, _localizeValue(ident['linhagem_mista']?.toString())),
-               _buildInfoRow(AppLocalizations.of(context)!.petRaceAnalysis, _localizeValue(ident['raca_predominante']?.toString())),
-               _buildInfoRow(AppLocalizations.of(context)!.petReliability, _localizeValue(ident['confiabilidade']?.toString(), isReliability: true)),
-            ],
-            
-            if (fisica != null) ...[
-               _buildInfoRow(AppLocalizations.of(context)!.petLifeExpectancy, fisica['expectativa_vida']?.toString() ?? AppLocalizations.of(context)!.petNotEstimated),
-               _buildInfoRow(AppLocalizations.of(context)!.petSize, fisica['porte']?.toString() ?? AppLocalizations.of(context)!.petNotIdentified),
-               _buildInfoRow(AppLocalizations.of(context)!.petTypicalWeight, fisica['peso_estimado']?.toString() ?? AppLocalizations.of(context)!.petVariable),
-            ],
-
-           if (temp != null) ...[
-               const SizedBox(height: 12),
-               Text(AppLocalizations.of(context)!.petTemperament, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-               const SizedBox(height: 4),
-               if (temp['personalidade'] != null)
-                  Text(temp['personalidade'].toString(), style: const TextStyle(color: Colors.white70)),
-               if (temp['comportamento_social'] != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(temp['comportamento_social'].toString(), style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12, fontStyle: FontStyle.italic)),
-                  ),
-           ],
-           
-           if (origem != null) ...[
-               const SizedBox(height: 12),
-               ExpansionTile(
-                  title: Text(AppLocalizations.of(context)!.petOrigin, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-                  collapsedIconColor: Colors.white54,
-                  iconColor: AppDesign.petPink,
-                  children: [Padding(padding: const EdgeInsets.all(8), child: Text(origem, style: const TextStyle(color: Colors.white70)))],
-               )
-           ],
-
-           if (curiosidades != null && curiosidades.isNotEmpty) ...[
-               const SizedBox(height: 12),
-               ExpansionTile(
-                  title: Text(AppLocalizations.of(context)!.petCuriosities, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-                  collapsedIconColor: Colors.white54,
-                  iconColor: Colors.amber,
-                  children: curiosidades.map((c) => ListTile(
-                      leading: const Icon(Icons.star, color: Colors.amber, size: 16),
-                      title: Text(c.toString(), style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                  )).toList(),
-               )
-           ]
-        ]
-     );
-  }
-
-
-
-  Widget _buildInfoRow(String label, String value) {
-      if (value.isEmpty) return const SizedBox.shrink();
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 8.0),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-                SizedBox(width: 130, child: Text(label, style: const TextStyle(color: Colors.white54, fontSize: 13))),
-                Expanded(child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 14))),
-            ]
-        ),
-      );
-  }
-
-  Future<void> _handleGenerateTap(BuildContext context, WidgetRef ref) async {
-      if (widget.existingProfile == null && _nameController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.petNameRequired)));
-          return;
-      }
-      
-      final l10n = AppLocalizations.of(context)!;
-      final config = await showDialog<Map<String, dynamic>>(
-        context: context,
-        builder: (context) => PetMenuFilterDialog(),
-      );
-
-      if (config == null || !mounted) return;
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => MealPlanLoadingWidget(petName: _nameController.text.trim()),
-      );
-
-      try {
-          // Construct profile context using latest UI values (Source of Truth)
-          final Map<String, dynamic> profileData = widget.existingProfile?.toJson() ?? {};
-          profileData['pet_name'] = _nameController.text;
-          profileData['especie'] = _especie; 
-          profileData['raca'] = _racaController.text;
-          profileData['peso_atual'] = double.tryParse(_pesoController.text.replaceAll(',', '.'));
-          profileData['idade_exata'] = _idadeController.text;
-          profileData['porte'] = _porte;
-          
-          // Compatibilidade com chaves do PetMenuGeneratorService
-          profileData['species'] = _especie;
-          profileData['breed'] = _racaController.text;
-          profileData['weight'] = _pesoController.text;
-          profileData['age'] = _idadeController.text;
-          profileData['size'] = _porte;
-          
-          // 🛡️ PRE-REQUEST VALIDATION (Phase 7)
-          if (_especie == null || _especie!.isEmpty ||
-              _racaController.text.trim().isEmpty ||
-              _idadeController.text.trim().isEmpty ||
-              _pesoController.text.trim().isEmpty ||
-              _porte == null || _porte!.isEmpty) {
-              
-              if (mounted) {
-                  Navigator.pop(context); // loading
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("Complete os dados do perfil do pet para gerar o cardápio."),
-                          backgroundColor: AppDesign.error,
-                      )
-                  );
-              }
-              return;
-          }
-          
-          final request = MealPlanRequest(
-              petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
-              profileData: profileData,
-              mode: config['mode'],
-              startDate: config['startDate'],
-              endDate: config['endDate'],
-              locale: Localizations.localeOf(context).toString(),
-              dietType: config['dietType'] as PetDietType,
-              otherNote: config['otherNote'] as String?,
-              source: 'PetProfile', // Authorized Source
-          );
-
-          await ref.read(petMenuGeneratorProvider).generateAndSave(request);
-
-
-          if (mounted) {
-              Navigator.pop(context); // loading
-              ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.petMenuSuccess), backgroundColor: AppDesign.petPink)
-              );
-              
-              // Update status
-              _loadMealPlanStatus();
-              
-              // Open Weekly Menu
-              Navigator.push(context, MaterialPageRoute(builder: (_) => WeeklyMenuScreen(
-                  currentWeekPlan: [],
-                  generalGuidelines: '',
-                  petName: widget.existingProfile?.petName ?? _nameController.text,
-                  raceName: _racaController.text,
-              )));
-          }
-      } catch (e) {
-         if (mounted) {
-             Navigator.pop(context); // loading
-             ScaffoldMessenger.of(context).showSnackBar(
-                 SnackBar(content: Text('Erro: $e'), backgroundColor: AppDesign.error)
-             );
-         }
-      }
-  }
-
   Widget _buildWeeklyPlanSection() {
     return Container(
        padding: const EdgeInsets.all(16),
@@ -4091,7 +2611,7 @@ class _EditPetFormState extends State<EditPetForm>
                            foregroundColor: Colors.black,
                            padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        onPressed: () => _handleGenerateTap(context, ref),
+                        onPressed: _generateNewMenu,
                      ),
                    );
                 }
@@ -4154,69 +2674,6 @@ class _EditPetFormState extends State<EditPetForm>
 
 
 
-  Widget _buildWeightFeedback() {
-      return AnimatedBuilder(
-          animation: _pesoController,
-          builder: (context, _) {
-              final weightStatus = _calculateIntelligentWeightStatus();
-              if (weightStatus == null) return const SizedBox.shrink();
-              
-              return Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: weightStatus.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: weightStatus.color.withOpacity(0.3), width: 2)
-                  ),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                          Row(
-                              children: [
-                                  Icon(weightStatus.icon, color: weightStatus.color, size: 22),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                      child: Text(
-                                          weightStatus.message, 
-                                          style: GoogleFonts.poppins(
-                                              color: weightStatus.color, 
-                                              fontSize: 14, 
-                                              fontWeight: FontWeight.bold
-                                          )
-                                      )
-                                  ),
-                                  Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                          color: weightStatus.color.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                          '${weightStatus.percentage}%',
-                                          style: TextStyle(
-                                              color: weightStatus.color,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                          ),
-                                      ),
-                                  ),
-                              ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                              weightStatus.getRecommendation(AppLocalizations.of(context)!),
-                              style: GoogleFonts.poppins(
-                                  color: Colors.white70,
-                                  fontSize: 11,
-                              ),
-                          ),
-                      ],
-                  ),
-              );
-          }
-      );
-  }
 
   /// Cálculo inteligente de status de peso usando database
   WeightStatus? _calculateIntelligentWeightStatus() {
@@ -4290,79 +2747,29 @@ class _EditPetFormState extends State<EditPetForm>
       // Copy file to app directory for persistence
       final appDir = await getApplicationDocumentsDirectory();
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.basename(pickedFile.path)}';
-      final savedPath = path.join(appDir.path, 'lab_exams', fileName);
+      final savedFile = await File(pickedFile.path).copy('${appDir.path}/$fileName');
       
-      // Create directory if needed
-      final dir = Directory(path.dirname(savedPath));
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
-      
-      // Copy file
-      await File(pickedFile.path).copy(savedPath);
-      
-      // Create exam object
-      final newExam = LabExam(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        category: category,
-        filePath: savedPath,
+      final newExam = examTemplate.copyWith(
+        id: const Uuid().v4(),
         uploadDate: DateTime.now(),
-        isProcessing: true,
+        filePath: savedFile.path,
+        isProcessing: true, // Start processing
       );
       
       setState(() {
         _labExams.add(newExam);
+        _markDirty();
       });
-      _onUserInteractionGeneric();
       
-      // Process OCR in background
-      _processExamOCR(newExam.id);
+      // Trigger Analysis
+      _explainLabExam(newExam.id);
       
     } catch (e) {
       debugPrint('Error adding lab exam: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.errorAddingExam(e.toString())),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-  
-  Future<void> _processExamOCR(String examId) async {
-    try {
-      final examIndex = _labExams.indexWhere((e) => e.id == examId);
-      if (examIndex == -1) return;
-      
-      final exam = _labExams[examIndex];
-      
-      // Process with OCR service
-      final processedExam = await _labExamService.processExam(exam);
-      
-      if (mounted) {
-        setState(() {
-          _labExams[examIndex] = processedExam;
-        });
-        _onUserInteractionGeneric();
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.ocrSuccess),
-            backgroundColor: AppDesign.petPink,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error processing OCR: $e');
-      if (mounted) {
-        final examIndex = _labExams.indexWhere((e) => e.id == examId);
-        if (examIndex != -1) {
-          setState(() {
-            _labExams[examIndex] = _labExams[examIndex].copyWith(isProcessing: false);
-          });
-        }
+         ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('Erro ao adicionar exame: $e'), backgroundColor: AppDesign.error)
+         );
       }
     }
   }
@@ -4589,7 +2996,7 @@ class _EditPetFormState extends State<EditPetForm>
      }
   }
 
-  Future<void> _generatePetReport() async {
+  Future<void> _generatePetReport({AnaliseFeridaModel? specificWound}) async {
     try {
         // 🚀 V68: DIRECT PDF GENERATION - NO FILTER MODAL
         // User wants the complete medical record immediately
@@ -4756,6 +3163,15 @@ class _EditPetFormState extends State<EditPetForm>
             builder: (context) => PdfPreviewScreen(
               title: '${AppLocalizations.of(context)!.pdfReportTitle} - ${profile.petName}',
               buildPdf: (format) async {
+                if (specificWound != null) {
+                    final pdf = await PetPdfGenerator().generateSingleAnalysisReport(
+                        profile: profile,
+                        strings: AppLocalizations.of(context)!,
+                        specificWound: specificWound,
+                    );
+                    return pdf.save();
+                }
+
                 final pdf = await PetPdfGenerator().generateReport(
                   profile: profile,
                   strings: AppLocalizations.of(context)!,
@@ -5094,6 +3510,15 @@ class _EditPetFormState extends State<EditPetForm>
       }
       
       final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(analysis.dataAnalise);
+      final bool isStool = analysis.categoria == 'fezes' || analysis.categoria == 'stool';
+      
+      String title = analysis.diagnosticosProvaveis.isNotEmpty 
+          ? analysis.diagnosticosProvaveis.first 
+          : (isStool ? 'Análise de Fezes' : 'Sem diagnóstico');
+
+      if (isStool && analysis.achadosVisuais.containsKey('bristol_scale')) {
+          title = 'Bristol ${analysis.achadosVisuais['bristol_scale']} - ${analysis.achadosVisuais['color_name'] ?? 'Cor N/A'}';
+      }
 
       return InkWell(
         onTap: () {
@@ -5131,7 +3556,7 @@ class _EditPetFormState extends State<EditPetForm>
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(child: Text(
-                                    analysis.diagnosticosProvaveis.isNotEmpty ? analysis.diagnosticosProvaveis.first : 'Sem diagnóstico',
+                                    title,
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                                     maxLines: 1, overflow: TextOverflow.ellipsis
                                 )),
@@ -5148,11 +3573,43 @@ class _EditPetFormState extends State<EditPetForm>
                        ]
                    )
                ),
+               IconButton(
+                    icon: const Icon(Icons.delete_outline, color: AppDesign.error, size: 20),
+                    onPressed: () => _confirmDeleteStructuredWoundAnalysis(analysis),
+                    tooltip: 'Excluir análise',
+                ),
                const Icon(Icons.chevron_right, color: Colors.white30)
             ],
           ),
         ),
       );
+  }
+
+  void _confirmDeleteStructuredWoundAnalysis(AnaliseFeridaModel analysis) async {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppLocalizations.of(context)!.commonDelete),
+          content: Text('${AppLocalizations.of(context)!.commonDelete} a análise de ${DateFormat.yMd().format(analysis.dataAnalise)}?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppLocalizations.of(context)!.btnCancel)),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true), 
+              child: Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.red))
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        setState(() {
+           _historicoAnaliseFeridas.remove(analysis);
+           // Also try to remove from _woundHistory legacy if present
+           _woundHistory.removeWhere((w) => w['date'] == analysis.dataAnalise.toIso8601String() || w['imagePath'] == analysis.imagemRef);
+           _markDirty();
+        });
+        _onUserInteractionGeneric();
+      }
   }
 
   void _showWoundDetails(AnaliseFeridaModel analysis) {
@@ -5166,17 +3623,59 @@ class _EditPetFormState extends State<EditPetForm>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                         if (File(analysis.imagemRef).existsSync())
-                             Image.file(File(analysis.imagemRef), height: 250, width: double.infinity, fit: BoxFit.cover),
+                            Container(
+                                width: double.infinity,
+                                height: 250,
+                                color: Colors.black12,
+                                child: Image.file(
+                                    File(analysis.imagemRef), 
+                                    height: 250, 
+                                    width: double.infinity, 
+                                    fit: BoxFit.contain
+                                ),
+                            ),
                         
                         Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('Diagnóstico Detalhado', style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 18, fontWeight: FontWeight.bold)),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                        Expanded(
+                                            child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                    Text(
+                                                        _nameController.text.isNotEmpty ? _nameController.text : 'Pet',
+                                                        style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.normal)
+                                                    ),
+                                                    Text(
+                                                        (analysis.categoria == 'fezes' || analysis.categoria == 'stool') ? 'Análise de Fezes' : 'Diagnóstico Detalhado', 
+                                                        style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 18, fontWeight: FontWeight.bold)
+                                                    ),
+                                                ],
+                                            ),
+                                        ),
+                                        PdfActionButton(
+                                            onPressed: () {
+                                                Navigator.pop(context); // Close dialog first?
+                                                _generatePetReport(specificWound: analysis);
+                                            }
+                                        ),
+                                    ],
+                                ),
                                 const SizedBox(height: 16),
                                 
                                 _buildDetailRow('Nível de Risco', analysis.nivelRisco, color: Colors.white),
                                 _buildDetailRow('Data', DateFormat('dd/MM/yyyy HH:mm').format(analysis.dataAnalise), color: Colors.white),
                                 
+                                if (analysis.categoria == 'fezes' || analysis.categoria == 'stool') ...[
+                                    if (analysis.achadosVisuais.containsKey('bristol') || analysis.achadosVisuais.containsKey('Escala de Bristol'))
+                                        _buildDetailRow('Escala de Bristol', analysis.achadosVisuais['bristol']?.toString() ?? analysis.achadosVisuais['Escala de Bristol']?.toString() ?? 'N/A'),
+                                    if (analysis.achadosVisuais.containsKey('color') || analysis.achadosVisuais.containsKey('Cor'))
+                                        _buildDetailRow('Cor', analysis.achadosVisuais['color']?.toString() ?? analysis.achadosVisuais['Cor']?.toString() ?? 'N/A'),
+                                ],
+
                                 const Divider(color: Colors.white12, height: 24),
                                 
                                 if (analysis.diagnosticosProvaveis.isNotEmpty) ...[
@@ -5231,5 +3730,145 @@ class _EditPetFormState extends State<EditPetForm>
       );
   }
 
+  // --- TAB CONTENT BUILDERS (Missing Methods) ---
+
+  Widget _buildPartnersTabContent() {
+    final l10n = AppLocalizations.of(context)!;
+    return PartnersFragment(
+      allPartners: _availablePartners, 
+      linkedPartnerIds: _linkedPartnerIds,
+      selectedPartnerFilter: _partnerFilter,
+      filterCategories: [
+         'Todos', 
+         l10n.partnersFilterVet,
+         l10n.partnersFilterPetShop,
+         l10n.partnersFilterPharmacy,
+         l10n.partnersFilterGrooming,
+         l10n.partnersFilterHotel,
+         l10n.partnersFilterLab,
+      ], 
+      observacoesPrac: _observacoesPrac,
+      petId: widget.existingProfile?.petName ?? _nameController.text,
+      petName: _nameController.text,
+      onFilterChanged: (v) => setState(() => _partnerFilter = v),
+      onLinkStatusChanged: (p) => setState(() {
+           if (_linkedPartnerIds.contains(p.id)) {
+              _linkedPartnerIds.remove(p.id);
+           } else {
+              _linkedPartnerIds.add(p.id);
+           }
+           _markDirty();
+      }),
+      onPartnerUpdated: (_) => _loadLinkedPartners(), 
+      onOpenAgenda: (p) => Navigator.push(context, MaterialPageRoute(builder: (_) => PartnerAgendaScreen(
+             partner: p,
+             initialEvents: const [],
+             petId: widget.existingProfile?.petName ?? _nameController.text,
+             onSave: (list) {},
+      ))),
+      onObservacoesChanged: (v) {
+          setState(() => _observacoesPrac = v);
+          _onUserTyping();
+      },
+      actionButtons: const SizedBox(), 
+      localizeValue: (v) => v,
+    );
+  }
+
+  Widget _buildProfileImageHeader() {
+    final imageProvider = _profileImage != null 
+        ? FileImage(_profileImage!) 
+        : (_profileUrl != null ? NetworkImage(_profileUrl!) : null) as ImageProvider?;
+
+    return GestureDetector(
+      onTap: _pickProfileImage,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppDesign.petPink.withOpacity(0.2),
+          shape: BoxShape.circle,
+          border: Border.all(color: AppDesign.petPink.withOpacity(0.5), width: 3),
+        ),
+        child: Stack(
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.1),
+              ),
+              child: ClipOval(
+                child: imageProvider != null
+                    ? Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                            return const Center(child: Icon(Icons.pets, size: 60, color: Colors.white24));
+                        },
+                      )
+                    : const Center(child: Icon(Icons.pets, size: 60, color: Colors.white24)),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: AppDesign.petPink,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.camera_alt, color: Colors.black, size: 20),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalysisTabContent() {
+      // Tenta localizar labels (breed, etc) se necessario
+      return AnalysisResultsFragment(
+        analysisHistory: _analysisHistory, // Legacy 
+        currentRawAnalysis: _currentRawAnalysis,
+        petName: _nameController.text,
+        existingProfilePetName: widget.existingProfile?.petName,
+        existingProfileLastUpdated: widget.existingProfile?.lastUpdated,
+        tryLocalizeLabel: (ctx, key) => key, // Simplificado, mantido para evitar erros de l10n agora
+        findBreedRecursive: _findBreedRecursive,
+      );
+  }
+
+  Widget _buildGalleryTabContent() {
+      return GalleryFragment(
+          docs: _attachments['gallery'] ?? [],
+          observacoesGaleria: _observacoesGaleria,
+          onAddAttachment: () => _addAttachment('gallery'),
+          onDeleteAttachment: _deleteAttachment,
+          onObservacoesChanged: (v) {
+              setState(() => _observacoesGaleria = v);
+              _onUserTyping();
+          },
+          actionButtons: const SizedBox(),
+      );
+  }
+
+
+
+  // Helper
+  String? _findBreedRecursive(Map<dynamic, dynamic> map) {
+     if (map.containsKey('raca')) return map['raca']?.toString();
+     if (map.containsKey('breed')) return map['breed']?.toString();
+     
+     for (var v in map.values) {
+        if (v is Map) {
+             final found = _findBreedRecursive(v);
+             if (found != null) return found;
+        }
+     }
+     return null;
+  }
 }
 

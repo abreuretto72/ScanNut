@@ -8,15 +8,17 @@
 import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'pet_event_service.dart';
 import '../models/analise_ferida_model.dart';
-import '../models/analise_fezes_model.dart';
+
 import '../../../core/utils/json_cast.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
 import '../../../core/services/media_vault_service.dart';
 import '../../../core/services/hive_atomic_manager.dart';
 
+final petProfileServiceProvider = Provider<PetProfileService>((ref) => PetProfileService());
 
 /// Service for managing pet profiles (Raça & ID data)
 class PetProfileService {
@@ -588,38 +590,5 @@ class PetProfileService {
       }
   }
 
-  /// 🛡️ V231: Save Stool Analysis (Atomic Append)
-  Future<void> saveStoolAnalysis(String petName, AnaliseFezesModel analysis) async {
-    try {
-      await init();
-      final key = _normalizeKey(petName);
-      final entry = _profileBox?.get(key);
 
-      if (entry != null) {
-        final map = deepCastMap(entry);
-        final data = deepCastMap(map['data']);
-        
-        // Load existing history
-        final List<dynamic> existingRaw = data['historico_fezes'] ?? [];
-        final List<Map<String, dynamic>> history = [];
-        
-        for (var item in existingRaw) {
-             if (item is Map) history.add(deepCastMap(item));
-        }
-
-        // Add new analysis
-        history.insert(0, analysis.toJson()); // Most recent first
-        
-        data['historico_fezes'] = history;
-        map['data'] = data;
-        map['last_updated'] = DateTime.now().toIso8601String();
-
-        await _profileBox!.put(key, map);
-        await _profileBox!.flush();
-        debugPrint('✅ [V231] Analysis persisted in historico_fezes. Total: ${history.length}');
-      }
-    } catch (e, stack) {
-      debugPrint('❌ Error saving stool analysis: $e\n$stack');
-    }
-  }
 }

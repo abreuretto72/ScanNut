@@ -123,7 +123,7 @@ class PetAnalysisResult {
         racaDiag: json['breed'] ?? 'N/A',
         caracteristicasDiag: json['characteristics'] ?? 'N/A',
         descricaoVisualDiag: json['visual_description'] ?? 'N/A',
-        possiveisCausasDiag: List<String>.from(json['possible_causes'] ?? []),
+        possiveisCausasDiag: (json['possible_causes'] as List? ?? []).map((e) => e.toString()).toList(),
         clinicalSignsDiag: json['clinical_signs'] != null ? Map<String, dynamic>.from(json['clinical_signs']) : null, 
         stoolAnalysis: json['stool_details'] != null ? Map<String, dynamic>.from(json['stool_details']) : null, // 🛡️ V231
         category: json['category'], // 🛡️ V460

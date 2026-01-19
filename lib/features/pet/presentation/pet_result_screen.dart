@@ -9,6 +9,7 @@ import '../models/pet_profile_extended.dart';
 import 'widgets/edit_pet_form.dart';
 import 'widgets/pet_dossier_view.dart';
 import '../models/analise_ferida_model.dart'; // 🛡️ V170 Import
+
 import '../services/pet_profile_service.dart';
 import '../../../core/services/file_upload_service.dart'; // Added
 import '../../../core/services/history_service.dart';
@@ -50,6 +51,7 @@ class PetResultScreen extends ConsumerStatefulWidget {
 class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   bool _isLoading = true;
   File? _permanentImage;
+  bool _isSaving = false; // 🛡️ V_FIX: Atomic lock
   bool _autoSaveAttempted = false; // Flag to prevent duplicate saves
 
   @override
@@ -207,7 +209,20 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
        
        // Just Navigate logic
        final imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
-       final profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
+       
+       // 🛡️ [V_FIX] LOAD EXISTING PROFILE TO AVOID OVERWRITING IDENTITY/IMAGE
+       final ps = PetProfileService();
+       await ps.init();
+       final existingEntry = await ps.getProfile(result.petName ?? '');
+       
+       PetProfileExtended profile;
+       if (existingEntry != null && existingEntry['data'] != null) {
+           // Existing Pet: Load current profile to preserve all fields (weight, vaccines, photo)
+           profile = PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(existingEntry));
+       } else {
+           // New Pet: Create skeleton
+           profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
+       }
        
        // 🛡️ V_FIX: Optimistic UI Update (Immediate History)
        // Add current analysis to profile history so it shows up in Edit Form immediately
@@ -215,10 +230,11 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
             Map<String, dynamic> visualFindings = {};
             String cat = result.category?.toLowerCase() ?? '';
             
-            if (cat == 'olhos') visualFindings = result.eyeDetails ?? {};
-            else if (cat == 'dentes') visualFindings = result.dentalDetails ?? {};
-            else if (cat == 'pele') visualFindings = result.skinDetails ?? {};
-            else if (cat == 'ferida') visualFindings = result.woundDetails ?? {};
+            // Refined category detection
+            if (cat == 'olhos' || cat == 'eyes') visualFindings = result.eyeDetails ?? {};
+            else if (cat == 'dentes' || cat == 'dental') visualFindings = result.dentalDetails ?? {};
+            else if (cat == 'pele' || cat == 'skin') visualFindings = result.skinDetails ?? {};
+            else if (cat == 'ferida' || cat == 'wound') visualFindings = result.woundDetails ?? {};
             else if (cat == 'fezes' || cat == 'stool' || result.analysisType == 'stool_analysis') {
                visualFindings = result.stoolAnalysis ?? {};
                if (cat.isEmpty) cat = 'fezes'; 
@@ -227,30 +243,32 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
             }
 
             final healthAnalysis = AnaliseFeridaModel(
-               dataAnalise: DateTime.now(), 
-               imagemRef: imagePathToUse, 
-               achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
-               categoria: cat.isNotEmpty ? cat : 'geral',
-               nivelRisco: result.urgenciaNivel, 
-               recomendacao: result.orientacaoImediata,
-               diagnosticosProvaveis: result.possiveisCausas,
-               rawClinicalSigns: result.clinicalSignsDiag != null ? {'clinical_signs': result.clinicalSignsDiag} : null,
-               descricaoVisual: result.descricaoVisual,
-               caracteristicas: result.caracteristicas,
+                dataAnalise: DateTime.now(), 
+                imagemRef: imagePathToUse, 
+                achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
+                categoria: cat.isNotEmpty ? cat : 'geral',
+                nivelRisco: result.urgenciaNivel, 
+                recomendacao: result.orientacaoImediata,
+                diagnosticosProvaveis: result.possiveisCausas,
+                rawClinicalSigns: result.clinicalSignsDiag != null ? {'clinical_signs': result.clinicalSignsDiag} : null,
+                descricaoVisual: result.descricaoVisual,
+                caracteristicas: result.caracteristicas,
             );
-            
-            // Inject into profile (in-memory)
-            profile.historicoAnaliseFeridas.add(healthAnalysis);
-            
-            // Legacy injection for robustness
-            profile.woundAnalysisHistory.add({
-                'date': DateTime.now().toIso8601String(),
-                'imagePath': imagePathToUse,
-                'visual_findings': healthAnalysis.achadosVisuais,
-                'risk_level': healthAnalysis.nivelRisco,
-                'recommendation': healthAnalysis.recomendacao
-            });
-            
+
+            // 🛡️ Prevenção de duplicidade: verificar se já existe entrada com a mesma imagem
+            final alreadyExists = profile.historicoAnaliseFeridas.any((e) => e.imagemRef == imagePathToUse);
+            if (!alreadyExists) {
+                profile.historicoAnaliseFeridas.add(healthAnalysis);
+                
+                // Legacy injection for robustness
+                profile.woundAnalysisHistory.add({
+                    'date': DateTime.now().toIso8601String(),
+                    'imagePath': imagePathToUse,
+                    'visual_findings': healthAnalysis.achadosVisuais,
+                    'risk_level': healthAnalysis.nivelRisco,
+                    'recommendation': healthAnalysis.recomendacao
+                });
+            }
        } catch (e) {
            debugPrint('⚠️ Optimistic update failed: $e');
        }
@@ -273,7 +291,9 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   }
 
   Future<void> _performAutoSave(PetAnalysisResult result) async {
+    if (_isSaving) return;
     try {
+      if (mounted) setState(() => _isSaving = true);
       final profileService = PetProfileService();
       await profileService.init();
 
@@ -311,9 +331,15 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
            // 🛡️ CRITICAL FIX: Ensure Profile Exists skeleton
            if (!await profileService.hasProfile(safePetName)) {
                debugPrint('   [V144] Profile "$safePetName" not found. Creating skeleton profile...');
-               final newProfile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
+               // If it's a health analysis, DO NOT use the clinical image as the main profile photo
+               final bool isClinical = result.analysisType == 'diagnosis' || result.analysisType == 'stool_analysis';
+               final String? profilePhoto = isClinical ? null : imagePathToUse;
+               
+               final newProfile = PetProfileExtended.fromAnalysisResult(result, profilePhoto ?? '');
                final jsonProfile = newProfile.toJson();
                jsonProfile['pet_name'] = safePetName;
+               if (profilePhoto == null) jsonProfile['image_path'] = null; // Ensure null if clinical
+               
                await profileService.saveOrUpdateProfile(safePetName, jsonProfile);
            }
            
@@ -330,50 +356,55 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
              petName: safePetName
            );
 
-           // B. Save to Structured Unified History (historicoAnaliseFeridas)
-           // Logic to pick the correct specific details based on category
+           // 🛡️ Extração de Categoria e Achados (V231)
+           final String cat = (result.category ?? result.analysisType).toLowerCase();
            Map<String, dynamic> visualFindings = {};
-           
-           // Priority: Category Tag (from Unified Prompt)
-           String cat = result.category?.toLowerCase() ?? '';
-           
-           if (cat == 'olhos') visualFindings = result.eyeDetails ?? {};
-           else if (cat == 'dentes') visualFindings = result.dentalDetails ?? {};
+           if (cat == 'olhos' || cat == 'eyes') visualFindings = result.eyeDetails ?? {};
+           else if (cat == 'dental') visualFindings = result.dentalDetails ?? {};
            else if (cat == 'pele') visualFindings = result.skinDetails ?? {};
            else if (cat == 'ferida') visualFindings = result.woundDetails ?? {};
-           else if (cat == 'fezes' || cat == 'stool' || result.analysisType == 'stool_analysis') {
-              visualFindings = result.stoolAnalysis ?? {};
-              if (cat.isEmpty) cat = 'fezes'; // Force category for legacy stool_analysis
-           } else {
-              visualFindings = result.clinicalSignsDiag ?? {};
-           }
+           else if (cat == 'fezes' || cat == 'stool' || result.analysisType == 'stool_analysis') visualFindings = result.stoolAnalysis ?? {};
+           else visualFindings = result.clinicalSignsDiag ?? {};
 
-           final healthAnalysis = AnaliseFeridaModel(
-              dataAnalise: DateTime.now(), 
-              imagemRef: imagePathToUse, 
-              // If findings are empty, try fallback to generic clinical signs
-              achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
-              categoria: cat.isNotEmpty ? cat : 'geral',
-              nivelRisco: result.urgenciaNivel, 
-              recomendacao: result.orientacaoImediata,
-              diagnosticosProvaveis: result.possiveisCausas,
-              rawClinicalSigns: result.clinicalSignsDiag != null ? {'clinical_signs': result.clinicalSignsDiag} : null,
-              descricaoVisual: result.descricaoVisual,
-              caracteristicas: result.caracteristicas,
-           );
-           
-           // THIS METHOD NOW STORES EVERYTHING (EYES, TEETH, STOOL, WOUNDS)
-           await profileService.saveDetailedAnalysis(safePetName, healthAnalysis);
+            // 🛡️ UNIFIED HEALTH DOMAIN (Wound, Stool, Dental, Eyes, Skin)
+            final healthAnalysis = AnaliseFeridaModel(
+               dataAnalise: DateTime.now(), 
+               imagemRef: imagePathToUse, 
+               achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
+               categoria: cat.isNotEmpty ? cat : 'geral',
+               nivelRisco: result.urgenciaNivel, 
+               recomendacao: result.orientacaoImediata,
+               diagnosticosProvaveis: result.possiveisCausas,
+               rawClinicalSigns: result.clinicalSignsDiag != null ? {'clinical_signs': result.clinicalSignsDiag} : null,
+               descricaoVisual: result.descricaoVisual,
+               caracteristicas: result.caracteristicas,
+            );
+            await profileService.saveDetailedAnalysis(safePetName, healthAnalysis);
 
-      } else {
+      }
+ else {
            // IDENTITY DOMAIN: SAVE/UPDATE PROFILE & IMAGE
            debugPrint('🐾 [V220] Persisting Identity (Profile Update)');
            
            // Standard update
-           final profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
-           final jsonProfile = profile.toJson();
+           final existingEntry = await profileService.getProfile(safePetName);
+           PetProfileExtended profile;
            
-           // Ensure name consistency
+           if (existingEntry != null && existingEntry['data'] != null) {
+               final current = PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(existingEntry));
+               // Update specific identity fields but keep the rest
+               profile = current.copyWith(
+                  especie: current.especie ?? result.especie,
+                  raca: (current.raca == null || current.raca == 'N/A' || current.raca!.contains('SRD')) ? result.raca : current.raca,
+                  imagePath: imagePathToUse, // In Identity mode, we intentionally update the main photo
+                  lastUpdated: DateTime.now(),
+                  reliability: result.reliability,
+               );
+           } else {
+               profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
+           }
+           
+           final jsonProfile = profile.toJson();
            jsonProfile['pet_name'] = safePetName;
            
            await profileService.saveOrUpdateProfile(safePetName, jsonProfile);
@@ -394,12 +425,20 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       // 🧠 AUTOMATIC INDEXING (MARE Logic)
       try {
         final indexer = PetIndexingService();
+        String displayType = result.analysisType;
+        if (displayType == 'stool_analysis') displayType = 'Fezes';
+        if (displayType == 'wound_analysis') displayType = 'Feridas';
+        if (displayType == 'identification') displayType = 'Identificação';
+        if (displayType == 'diagnosis') displayType = 'Diagnóstico';
+
         await indexer.indexAiAnalysis(
           petId: result.petName ?? 'Unknown', 
           petName: result.petName ?? 'Unknown',
-          analysisType: result.analysisType,
+          analysisType: displayType, 
           resultId: DateTime.now().millisecondsSinceEpoch.toString(),
-          localizedTitle: AppLocalizations.of(context)!.petIndexing_aiTitle(result.analysisType),
+          rawResult: result.toJson(), // 🛡️ V231: Full payload
+          imagePath: imagePathToUse, // 🛡️ V231: Assoc image
+          localizedTitle: AppLocalizations.of(context)!.petIndexing_aiTitle(displayType),
           localizedNotes: result.urgenciaNivel,
         );
       } catch (e) {
@@ -414,6 +453,8 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
            SnackBar(content: Text('Falha no salvamento automático: $e'), backgroundColor: AppDesign.warning)
          );
       }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
