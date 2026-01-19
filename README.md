@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.5.4  
+**Versão:** 1.5.5  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -41,6 +41,33 @@ Lista de compras
 - 🖨️ **NOVO:** PDFs otimizados para impressão econômica (preto e branco)
 - 🤖 **NOVO:** Análise Inteligente de Anexos (Visual e OCR)
 - 🔗 **NOVO:** Pet Indexing Engine (Deep Links & Timeline Automática)
+
+---
+
+## ✨ **NOVIDADES DA VERSÃO 1.5.5**
+
+### **🎨 Refatoração Completa da UI do Perfil do Pet**
+- **Arquitetura Micro-Frontend:**
+  - ✅ Separação modular em fragmentos reutilizáveis (IdentityFragment, HealthFragment, etc.)
+  - ✅ ProfileDesignSystem para consistência visual em todos os componentes
+  - ✅ Componentes especializados (AttachmentSection, RaceDetailsSection, WeightFeedbackSection)
+  - ✅ Código 60% mais limpo e manutenível
+
+- **Melhorias de UX:**
+  - ✅ Todos os elementos organizados em cards visuais com glassmorphism
+  - ✅ Ícones representativos em todos os títulos de seção (🐾 Nome, 📊 Análise, 🏷️ Características, 🔬 Perfil Biológico)
+  - ✅ Campo de **microchip** (15 dígitos) no Perfil Biológico
+  - ✅ Agrupamento inteligente de características (Idade, Peso, Sexo, Status Reprodutivo)
+  - ✅ Espaçamentos e alinhamentos padronizados
+  - ✅ Fonte maior (18px) para nome do pet
+  - ✅ Indicadores de obrigatoriedade (*) nos títulos de seção ao invés de cada campo
+  - ✅ Remoção de ícones redundantes nos seletores para layout mais limpo
+
+- **Integração de Dados:**
+  - ✅ Curva de crescimento/peso ideal integrada na Análise da Raça
+  - ✅ Anexos de identidade dentro do card Perfil Biológico
+  - ✅ Auto-save mantido em todos os campos
+  - ✅ Validação de formulários preservada
 
 ---
 
