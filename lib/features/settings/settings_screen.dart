@@ -28,6 +28,7 @@ import '../../core/services/media_vault_service.dart';
 import '../../features/pet/models/pet_event.dart';
 import '../../features/pet/services/pet_event_service.dart';
 import 'screens/data_archiving_screen.dart';
+import 'package:uuid/uuid.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -42,6 +43,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   int _devTapCount = 0;
+  String? _profileId;
 
   @override
   void initState() {
@@ -56,6 +58,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     
     final profile = await UserProfileService().getProfile();
     if (profile != null) {
+      _profileId = profile.id;
       _weightController.text = profile.weight.toString();
       _heightController.text = profile.height.toString();
     }
@@ -638,6 +641,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Future<void> _saveUserProfileOnChange() async {
     final settings = ref.read(settingsProvider);
     final profile = UserProfile(
+      id: _profileId ?? const Uuid().v4(),
       userName: settings.userName,
       dailyCalorieGoal: settings.dailyCalorieGoal,
       weight: double.tryParse(_weightController.text) ?? 0.0,

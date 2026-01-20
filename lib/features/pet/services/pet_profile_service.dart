@@ -9,7 +9,9 @@ import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 import 'pet_event_service.dart';
+import '../models/pet_profile_extended.dart';
 import '../models/analise_ferida_model.dart';
 
 import '../../../core/utils/json_cast.dart';
@@ -17,6 +19,7 @@ import '../../../core/services/simple_auth_service.dart';
 import '../../../core/services/permanent_backup_service.dart';
 import '../../../core/services/media_vault_service.dart';
 import '../../../core/services/hive_atomic_manager.dart';
+import '../../../core/services/history_service.dart';
 
 final petProfileServiceProvider = Provider<PetProfileService>((ref) => PetProfileService());
 
@@ -45,6 +48,9 @@ class PetProfileService {
         await _sanitizeOrphanedCachePaths();
         
         debugPrint('✅ [V105] PetProfileService initialized via Atomic Manager.');
+
+        // 🛡️ [V_UUID] MIGRAÇÃO E INTEGRIDADE
+        await _migrateToUuidKeys();
     } catch (e) {
         debugPrint('❌ [V105] Critical: Failed to open Pet Profile Box: $e. Attempting Atomic Reset...');
         // ☢️ [V105] NUCLEAR OPTION
@@ -183,12 +189,57 @@ class PetProfileService {
       }
   }
 
-  ValueListenable<Box>? get listenable => _profileBox?.listenable();
+  String _normalizeKey(String id) {
+    return id.trim().toLowerCase();
+  }
 
-  String _normalizeKey(String petName) {
-    final normalized = petName.trim().toLowerCase();
-    // debugPrint('🔑 [PetProfileService] Normalizing key: "$petName" -> "$normalized"');
-    return normalized;
+  /// 🛡️ [V_UUID] MIGRATION: Converts old name-based keys to UUID-based keys
+  Future<void> _migrateToUuidKeys() async {
+      if (_profileBox == null) return;
+      
+      final keys = _profileBox!.keys.toList();
+      bool migrated = false;
+      
+      for (var key in keys) {
+          final entry = _profileBox!.get(key);
+          if (entry is Map) {
+              final map = deepCastMap(entry);
+              final data = deepCastMap(map['data'] ?? map);
+              
+              String? id = map['id'] ?? data['id'];
+              
+              // Se a chave não parece um UUID (ex: é o nome do pet) e não tem ID interno
+              bool keyIsName = !key.toString().contains('-') || key.toString().length < 30; // Heurística simples
+              
+              if (id == null || keyIsName) {
+                  final petName = data['pet_name'] ?? key.toString();
+                  final newId = id ?? const Uuid().v4();
+                  
+                  debugPrint('🔄 [MIGRATION] Re-keying pet "$petName": $key -> $newId');
+                  
+                  // Atualiza os dados com o novo ID
+                  data['id'] = newId;
+                  map['id'] = newId;
+                  map['data'] = data;
+                  map['pet_name'] = petName;
+                  
+                  // Salva na nova chave
+                  await _profileBox!.put(newId, map);
+                  
+                  // Se a chave antiga for diferente da nova, remove a antiga
+                  if (key.toString() != newId) {
+                      await _profileBox!.delete(key);
+                  }
+                  
+                  migrated = true;
+              }
+          }
+      }
+      
+      if (migrated) {
+          await _profileBox!.flush();
+          debugPrint('✅ [MIGRATION] Database successfully migrated to UUID keys.');
+      }
   }
 
   /// Save or update pet profile
@@ -225,17 +276,24 @@ class PetProfileService {
           }
       }
       
-      final key = _normalizeKey(petName);
+      final petId = profileData['id'] ?? const Uuid().v4();
+      final key = _normalizeKey(petId);
+      
+      if (profileData['id'] == null) {
+          profileData['id'] = petId;
+      }
+
       debugPrint('💾 [PetProfileService] Saving profile for key: "$key" (Display: $petName)...');
       debugPrint('   [PetProfileService] Image Path: ${profileData['image_path']}');
       
       await _profileBox!.put(key, {
-        'pet_name': petName.trim(), // Keep original display name
+        'id': petId,
+        'pet_name': petName.trim(), 
         'last_updated': DateTime.now().toIso8601String(),
-        'photo_path': profileData['image_path'], // New top-level key for auditing
+        'photo_path': profileData['image_path'], 
         'data': profileData,
       });
-      await _profileBox!.flush(); // Force write to disk
+      await _profileBox!.flush();
       debugPrint('✅ [PetProfileService] HIVE SUCCESS: Objeto ["$key"] persistido no disco.');
     
     // 🔄 Trigger automatic permanent backup
@@ -249,13 +307,27 @@ class PetProfileService {
     }
   }
 
-  /// Get pet profile
-  Future<Map<String, dynamic>?> getProfile(String petName) async {
+  /// Get pet profile by ID or Name (Compatibility layer)
+  Future<Map<String, dynamic>?> getProfile(String idOrName) async {
     try {
-      final key = _normalizeKey(petName);
-      final profile = _profileBox?.get(key);
+      final key = _normalizeKey(idOrName);
+      var profile = _profileBox?.get(key);
+      
       if (profile == null) {
-          debugPrint('⚠️ [PROFILE_TRACE] Profile not found for key: "$key"');
+          // Fallback: Search by name if key lookup fails
+          debugPrint('🔍 [PROFILE_TRACE] Key lookup failed for "$idOrName". Searching by name...');
+          final all = await getAllProfiles();
+          final match = all.firstWhere(
+              (p) => p['pet_name']?.toString().toLowerCase() == idOrName.toLowerCase(),
+              orElse: () => {}
+          );
+          if (match.isNotEmpty) {
+              profile = match;
+          }
+      }
+
+      if (profile == null) {
+          debugPrint('⚠️ [PROFILE_TRACE] Profile not found for: "$idOrName"');
           return null;
       }
       
@@ -268,7 +340,7 @@ class PetProfileService {
             pathCheck = map['data']['image_path'] as String?;
         }
         
-        debugPrint('🔍 [PROFILE_TRACE] Checking image for $petName ($key)');
+        debugPrint('🔍 [PROFILE_TRACE] Checking image for ${map['pet_name']} ($key)');
         debugPrint('   [PROFILE_TRACE] Raw Path: $pathCheck');
         
         if (pathCheck != null && pathCheck.isNotEmpty) {
@@ -305,6 +377,18 @@ class PetProfileService {
     return profiles.map((p) => p['pet_name'] as String).toList();
   }
 
+  /// Get name and ID of all pets for dropdowns and filtering
+  Future<Map<String, String>> getAllPetSummaries() async {
+    final profiles = await getAllProfiles();
+    final Map<String, String> summary = {};
+    for (var p in profiles) {
+       final name = p['pet_name']?.toString() ?? 'Desconhecido';
+       final id = p['id']?.toString() ?? name; // Fallback to name if no ID
+       summary[name] = id;
+    }
+    return summary;
+  }
+
   /// Get all profiles as raw maps
   Future<List<Map<String, dynamic>>> getAllProfiles() async {
     try {
@@ -332,17 +416,58 @@ class PetProfileService {
     }
   }
 
-  /// Delete pet profile
-  Future<void> deleteProfile(String petName) async {
+  /// Delete pet profile (Robust ID/Name lookup)
+  Future<void> deleteProfile(String idOrName) async {
     try {
-      final key = _normalizeKey(petName);
-      await _profileBox?.delete(key);
+      if (_profileBox == null || !(_profileBox?.isOpen ?? false)) await init();
+      
+      final key = _normalizeKey(idOrName);
+      String? actualPetName;
+      bool deleted = false;
+      
+      // 1. Try direct key deletion
+      if (_profileBox?.containsKey(key) ?? false) {
+           final entry = _profileBox?.get(key);
+           if (entry is Map) {
+               actualPetName = entry['pet_name'];
+           }
+           await _profileBox?.delete(key);
+           deleted = true;
+           debugPrint('✅ Profile deleted by direct key: "$key" (Name: $actualPetName)');
+      } 
+      
+      // 2. Fallback: Search all profiles by name if direct key didn't work
+      if (!deleted) {
+           debugPrint('🔍 [PetProfileService] Direct key lookup failed for "$idOrName". Searching by name...');
+           final profiles = await getAllProfiles();
+           final match = profiles.firstWhere(
+               (p) => p['pet_name']?.toString().toLowerCase() == idOrName.toLowerCase(),
+               orElse: () => {}
+           );
+           
+           if (match.isNotEmpty) {
+               actualPetName = match['pet_name'];
+               final actualId = match['id']?.toString();
+               if (actualId != null) {
+                   final realKey = _normalizeKey(actualId);
+                   await _profileBox?.delete(realKey);
+                   deleted = true;
+                   debugPrint('✅ Profile deleted by name resolution: "$idOrName" -> "$actualId"');
+               }
+           }
+      }
+      
       await _profileBox?.flush();
       
-      // Cleanup associated events
-      await PetEventService().deleteAllEventsForPet(petName);
+    // 3. Cleanup associated events and history
+    // Use the resolved pet name if found, otherwise use input
+    final targetNameForEvents = actualPetName ?? idOrName;
+    await PetEventService().deleteAllEventsForPet(targetNameForEvents);
+    await HistoryService.deletePet(targetNameForEvents);
       
-      debugPrint('✅ Profile deleted for key: "$key" and events purged.');
+      if (!deleted) {
+          debugPrint('⚠️ Delete failed: No profile found for "$idOrName" or its name.');
+      }
     } catch (e) {
       debugPrint('❌ Error deleting profile: $e');
     }
@@ -590,5 +715,115 @@ class PetProfileService {
       }
   }
 
+  /// Add a general analysis to the pet history (Sound, Food, etc.)
+  Future<void> addAnalysisToHistory(String petName, Map<String, dynamic> analysisData) async {
+      try {
+          await init();
+          String key = _normalizeKey(petName);
+          var entry = _profileBox?.get(key);
+          
+          // 🛡️ FALLBACK: Se busca direta falhar, procurar por nome no conteúdo
+          if (entry == null) {
+             debugPrint('🔍 [PetProfileService] addAnalysis: Key lookup failed for "$petName". Searching by content...');
+             final all = await getAllProfiles();
+             final match = all.firstWhere(
+                 (p) => p['pet_name']?.toString().toLowerCase() == petName.toLowerCase(),
+                 orElse: () => {}
+             );
+             
+             if (match.isNotEmpty) {
+                 final realId = match['id'];
+                 // Se achou pelo ID nos dados, usa esse ID como chave (se for consistente com a chave do Hive)
+                 // Mas precisamos saber a CHAVE do Hive. getAllProfiles retorna o MAP.
+                 // A chave do Hive geralmente é o ID se migrado.
+                 
+                 // Vamos iterar nas chaves para achar a correta
+                 final hiveKey = _profileBox!.keys.firstWhere((k) {
+                    final curr = _profileBox!.get(k);
+                    if (curr is Map) {
+                       return curr['pet_name']?.toString().toLowerCase() == petName.toLowerCase();
+                    }
+                    return false;
+                 }, orElse: () => null);
+                 
+                 if (hiveKey != null) {
+                    key = hiveKey;
+                    entry = _profileBox!.get(key);
+                    debugPrint('✅ [PetProfileService] Found correct key via fallback: "$key"');
+                 }
+             }
+          }
+          
+          if (entry != null) {
+              final map = deepCastMap(entry);
+              final data = deepCastMap(map['data']);
+              
+              final List<dynamic> rawHistory = data['analysisHistory'] ?? data['analysis_history'] ?? [];
+              final List<Map<String, dynamic>> history = [];
+              for (var item in rawHistory) {
+                  if (item is Map) history.add(deepCastMap(item));
+              }
 
+              // Prepend local timestamp if missing
+              if (analysisData['last_updated'] == null) {
+                  analysisData['last_updated'] = DateTime.now().toIso8601String();
+              }
+
+              history.insert(0, analysisData);
+              
+              // Maintain both naming conventions for safety
+              data['analysisHistory'] = history;
+              data['analysis_history'] = history;
+              
+              map['data'] = data;
+              map['last_updated'] = DateTime.now().toIso8601String();
+              
+              await _profileBox!.put(key, map);
+              await _profileBox!.flush();
+              debugPrint('✅ [PetProfileService] Analysis history updated for $petName (Key: $key). Total: ${history.length}');
+          } else {
+             debugPrint('❌ [PetProfileService] Profile NOT FOUND for addAnalysis: "$petName"');
+          }
+      } catch (e) {
+          debugPrint('❌ [PetProfileService] addAnalysisToHistory failed: $e');
+      }
+  }
+
+  /// Remove a specific analysis from the pet history
+  Future<void> removeAnalysisFromHistory(String petName, Map<String, dynamic> analysisData) async {
+      try {
+          await init();
+          final key = _normalizeKey(petName);
+          final entry = _profileBox?.get(key);
+          
+          if (entry != null) {
+              final map = deepCastMap(entry);
+              final data = deepCastMap(map['data']);
+              
+              final List<dynamic> rawHistory = data['analysisHistory'] ?? data['analysis_history'] ?? [];
+              final List<Map<String, dynamic>> history = [];
+              for (var item in rawHistory) {
+                  if (item is Map) history.add(deepCastMap(item));
+              }
+
+              // Filter out the item to remove (matching by timestamp is safest)
+              final String? targetTime = analysisData['last_updated']?.toString();
+              if (targetTime != null) {
+                  history.removeWhere((item) => item['last_updated']?.toString() == targetTime);
+              }
+
+              data['analysisHistory'] = history;
+              data['analysis_history'] = history;
+              
+              map['data'] = data;
+              map['last_updated'] = DateTime.now().toIso8601String();
+              
+              await _profileBox!.put(key, map);
+              await _profileBox!.flush();
+              debugPrint('🗑️ [PetProfileService] Analysis removed for $petName. Remaining: ${history.length}');
+          }
+      } catch (e) {
+          debugPrint('❌ [PetProfileService] removeAnalysisFromHistory failed: $e');
+      }
+  }
 }

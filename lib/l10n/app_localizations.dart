@@ -4409,6 +4409,12 @@ abstract class AppLocalizations {
   /// **'Histórico de Análises de Feridas'**
   String get petWoundHistory;
 
+  /// No description provided for @petDiseaseHistory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Histórico de Análises de Doenças'**
+  String get petDiseaseHistory;
+
   /// No description provided for @petNoWounds.
   ///
   /// In pt, this message translates to:
@@ -10700,7 +10706,7 @@ abstract class AppLocalizations {
   /// No description provided for @petFoodRestrictions.
   ///
   /// In pt, this message translates to:
-  /// **'Restrições'**
+  /// **'Restrições Alimentares'**
   String get petFoodRestrictions;
 
   /// No description provided for @petFoodRestrictionsDesc.
@@ -10882,6 +10888,480 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Precisão'**
   String get pdfPrecision;
+
+  /// No description provided for @soundAnalysisTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Vocal'**
+  String get soundAnalysisTitle;
+
+  /// No description provided for @soundAnalysisDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identifique emoções e necessidades através do latido ou miado.'**
+  String get soundAnalysisDesc;
+
+  /// No description provided for @soundRecording.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gravando...'**
+  String get soundRecording;
+
+  /// No description provided for @soundProcessing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando...'**
+  String get soundProcessing;
+
+  /// No description provided for @soundStartRecord.
+  ///
+  /// In pt, this message translates to:
+  /// **'Toque para gravar'**
+  String get soundStartRecord;
+
+  /// No description provided for @soundResultType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo'**
+  String get soundResultType;
+
+  /// No description provided for @soundResultEmotion.
+  ///
+  /// In pt, this message translates to:
+  /// **'Emoção'**
+  String get soundResultEmotion;
+
+  /// No description provided for @soundResultAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recomendação'**
+  String get soundResultAction;
+
+  /// No description provided for @soundError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao analisar'**
+  String get soundError;
+
+  /// No description provided for @soundEmotionSimple.
+  ///
+  /// In pt, this message translates to:
+  /// **'O que ele sente'**
+  String get soundEmotionSimple;
+
+  /// No description provided for @soundReasonSimple.
+  ///
+  /// In pt, this message translates to:
+  /// **'Motivo provável'**
+  String get soundReasonSimple;
+
+  /// No description provided for @soundActionTip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dica rápida'**
+  String get soundActionTip;
+
+  /// No description provided for @soundUploadBtn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Enviar Áudio'**
+  String get soundUploadBtn;
+
+  /// No description provided for @petFoodCardTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise de Rótulo'**
+  String get petFoodCardTitle;
+
+  /// No description provided for @petFoodVerdict.
+  ///
+  /// In pt, this message translates to:
+  /// **'Veredito'**
+  String get petFoodVerdict;
+
+  /// No description provided for @petFoodReason.
+  ///
+  /// In pt, this message translates to:
+  /// **'Motivo'**
+  String get petFoodReason;
+
+  /// No description provided for @petFoodTip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dica Diária'**
+  String get petFoodTip;
+
+  /// No description provided for @petFoodStart.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisar Rótulo'**
+  String get petFoodStart;
+
+  /// No description provided for @petFoodError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro na leitura'**
+  String get petFoodError;
+
+  /// No description provided for @plansTabTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Planos'**
+  String get plansTabTitle;
+
+  /// No description provided for @plansTabSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Informações sobre planos, seguros e assistência de saúde do seu pet.'**
+  String get plansTabSubtitle;
+
+  /// No description provided for @healthPlanToggle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Possui plano de saúde veterinária?'**
+  String get healthPlanToggle;
+
+  /// No description provided for @healthPlanOperator.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome do plano / operadora'**
+  String get healthPlanOperator;
+
+  /// No description provided for @healthPlanCoverage.
+  ///
+  /// In pt, this message translates to:
+  /// **'O que o plano cobre?'**
+  String get healthPlanCoverage;
+
+  /// No description provided for @healthPlanType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de atendimento'**
+  String get healthPlanType;
+
+  /// No description provided for @healthPlanNetwork.
+  ///
+  /// In pt, this message translates to:
+  /// **'Rede credenciada'**
+  String get healthPlanNetwork;
+
+  /// No description provided for @healthPlanReimbursement.
+  ///
+  /// In pt, this message translates to:
+  /// **'Reembolso'**
+  String get healthPlanReimbursement;
+
+  /// No description provided for @healthPlanValue.
+  ///
+  /// In pt, this message translates to:
+  /// **'Valor mensal do plano (opcional)'**
+  String get healthPlanValue;
+
+  /// No description provided for @healthPlanConsultations.
+  ///
+  /// In pt, this message translates to:
+  /// **'Consultas'**
+  String get healthPlanConsultations;
+
+  /// No description provided for @healthPlanExams.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exames'**
+  String get healthPlanExams;
+
+  /// No description provided for @healthPlanSurgeries.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cirurgias'**
+  String get healthPlanSurgeries;
+
+  /// No description provided for @healthPlanEmergencies.
+  ///
+  /// In pt, this message translates to:
+  /// **'Emergências'**
+  String get healthPlanEmergencies;
+
+  /// No description provided for @healthPlanHospitalization.
+  ///
+  /// In pt, this message translates to:
+  /// **'Internação'**
+  String get healthPlanHospitalization;
+
+  /// No description provided for @healthPlanVaccines.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacinas'**
+  String get healthPlanVaccines;
+
+  /// No description provided for @healthPlanHelpText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ajuda a reduzir custos com consultas, exames e emergências veterinárias.'**
+  String get healthPlanHelpText;
+
+  /// No description provided for @assistancePlanToggle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Possui plano de assistência ou reembolso?'**
+  String get assistancePlanToggle;
+
+  /// No description provided for @assistancePlanOperator.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome da empresa / plano'**
+  String get assistancePlanOperator;
+
+  /// No description provided for @assistancePlanReimbursementType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de reembolso'**
+  String get assistancePlanReimbursementType;
+
+  /// No description provided for @assistancePlanTotal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Total'**
+  String get assistancePlanTotal;
+
+  /// No description provided for @assistancePlanPartial.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parcial'**
+  String get assistancePlanPartial;
+
+  /// No description provided for @assistancePlanMaxValue.
+  ///
+  /// In pt, this message translates to:
+  /// **'Valor máximo de reembolso (mensal ou anual)'**
+  String get assistancePlanMaxValue;
+
+  /// No description provided for @assistancePlanNeedsInvoice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exige nota fiscal para reembolso?'**
+  String get assistancePlanNeedsInvoice;
+
+  /// No description provided for @assistancePlanHelpText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ideal para quem utiliza o veterinário de confiança e solicita reembolso posteriormente.'**
+  String get assistancePlanHelpText;
+
+  /// No description provided for @funeralPlanToggle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Possui plano funerário para pet?'**
+  String get funeralPlanToggle;
+
+  /// No description provided for @funeralPlanOperator.
+  ///
+  /// In pt, this message translates to:
+  /// **'Empresa / plano funerário'**
+  String get funeralPlanOperator;
+
+  /// No description provided for @funeralPlanServices.
+  ///
+  /// In pt, this message translates to:
+  /// **'Serviços incluídos'**
+  String get funeralPlanServices;
+
+  /// No description provided for @funeralPlanWake.
+  ///
+  /// In pt, this message translates to:
+  /// **'Velório'**
+  String get funeralPlanWake;
+
+  /// No description provided for @funeralPlanIndivCremation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cremação individual'**
+  String get funeralPlanIndivCremation;
+
+  /// No description provided for @funeralPlanCollCremation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cremação coletiva'**
+  String get funeralPlanCollCremation;
+
+  /// No description provided for @funeralPlanTransport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Traslado'**
+  String get funeralPlanTransport;
+
+  /// No description provided for @funeralPlanMemorial.
+  ///
+  /// In pt, this message translates to:
+  /// **'Urna ou memorial'**
+  String get funeralPlanMemorial;
+
+  /// No description provided for @funeralPlan24h.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atendimento 24h?'**
+  String get funeralPlan24h;
+
+  /// No description provided for @funeralPlanEmergencyContact.
+  ///
+  /// In pt, this message translates to:
+  /// **'Contato de emergência'**
+  String get funeralPlanEmergencyContact;
+
+  /// No description provided for @funeralPlanHelpText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Garante organização e apoio em momentos delicados.'**
+  String get funeralPlanHelpText;
+
+  /// No description provided for @lifeInsurancePlanToggle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Possui seguro de vida para o pet?'**
+  String get lifeInsurancePlanToggle;
+
+  /// No description provided for @lifeInsuranceInsurer.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seguradora'**
+  String get lifeInsuranceInsurer;
+
+  /// No description provided for @lifeInsuranceInsuredValue.
+  ///
+  /// In pt, this message translates to:
+  /// **'Valor segurado'**
+  String get lifeInsuranceInsuredValue;
+
+  /// No description provided for @lifeInsuranceCoverages.
+  ///
+  /// In pt, this message translates to:
+  /// **'Coberturas incluídas'**
+  String get lifeInsuranceCoverages;
+
+  /// No description provided for @lifeInsuranceDeath.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falecimento'**
+  String get lifeInsuranceDeath;
+
+  /// No description provided for @lifeInsuranceGraveIllness.
+  ///
+  /// In pt, this message translates to:
+  /// **'Doença grave'**
+  String get lifeInsuranceGraveIllness;
+
+  /// No description provided for @lifeInsuranceEuthanasia.
+  ///
+  /// In pt, this message translates to:
+  /// **'Eutanásia (quando indicada por veterinário)'**
+  String get lifeInsuranceEuthanasia;
+
+  /// No description provided for @lifeInsuranceEconomicValue.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pet possui valor econômico especial? (ex: competição)'**
+  String get lifeInsuranceEconomicValue;
+
+  /// No description provided for @lifeInsuranceHelpText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Indicado para pets com valor econômico ou funcional elevado.'**
+  String get lifeInsuranceHelpText;
+
+  /// No description provided for @planTitleHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde do Pet'**
+  String get planTitleHealth;
+
+  /// No description provided for @planTitleAssistance.
+  ///
+  /// In pt, this message translates to:
+  /// **'Assistência / Reembolso'**
+  String get planTitleAssistance;
+
+  /// No description provided for @planTitleFuneral.
+  ///
+  /// In pt, this message translates to:
+  /// **'Plano Funerário'**
+  String get planTitleFuneral;
+
+  /// No description provided for @planTitleLife.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seguro de Vida'**
+  String get planTitleLife;
+
+  /// No description provided for @planObservations.
+  ///
+  /// In pt, this message translates to:
+  /// **'Observações'**
+  String get planObservations;
+
+  /// No description provided for @petBodyAnalysisTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analise Corporal & Postural'**
+  String get petBodyAnalysisTitle;
+
+  /// No description provided for @petBodyAnalysisDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Avalie o bem-estar fisico e sinais de dor atraves da postura.'**
+  String get petBodyAnalysisDesc;
+
+  /// No description provided for @petBodyHealthScore.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nivel de Bem-Estar'**
+  String get petBodyHealthScore;
+
+  /// No description provided for @petBodySignals.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais Observados'**
+  String get petBodySignals;
+
+  /// No description provided for @petBodyAdvice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dica de Cuidado'**
+  String get petBodyAdvice;
+
+  /// No description provided for @petBodyRelaxed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Relaxado & Saudavel'**
+  String get petBodyRelaxed;
+
+  /// No description provided for @petBodyDiscomfort.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais de Desconforto'**
+  String get petBodyDiscomfort;
+
+  /// No description provided for @petBodyPain.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais de Dor ou Estresse'**
+  String get petBodyPain;
+
+  /// No description provided for @petBodyProcessing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Lendo Linguagem Corporal...'**
+  String get petBodyProcessing;
+
+  /// No description provided for @petBodyError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Falha na analise postural'**
+  String get petBodyError;
+
+  /// No description provided for @petBodyDeleteConfirm.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir esta analise corporal?'**
+  String get petBodyDeleteConfirm;
 }
 
 class _AppLocalizationsDelegate

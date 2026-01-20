@@ -1,3 +1,4 @@
+import 'package:uuid/uuid.dart';
 import 'pet_analysis_result.dart';
 import 'analise_ferida_model.dart';
 import 'analise_ferida_model.dart';
@@ -7,6 +8,7 @@ import '../../../core/utils/json_cast.dart';
 /// Extended Pet Profile Model with bio-information
 class PetProfileExtended {
   // Identidade Biológica
+  final String id; // UUID
   final String petName;
   final String? especie;
   final String? raca;
@@ -47,12 +49,20 @@ class PetProfileExtended {
   final String observacoesGaleria;
   final String observacoesPrac;
   
+  // Planos e Seguros (V200)
+  final Map<String, dynamic>? healthPlan;
+  final Map<String, dynamic>? assistancePlan;
+  final Map<String, dynamic>? funeralPlan;
+  final Map<String, dynamic>? lifeInsurance;
+  final String observacoesPlanos;
+  
   // Metadata
   final DateTime lastUpdated;
   final String? imagePath;
   final Map<String, dynamic>? rawAnalysis; // Store complete analysis data
 
   PetProfileExtended({
+    required this.id,
     required this.petName,
     this.especie,
     this.raca,
@@ -82,6 +92,11 @@ class PetProfileExtended {
     this.observacoesNutricao = '',
     this.observacoesGaleria = '',
     this.observacoesPrac = '',
+    this.healthPlan,
+    this.assistancePlan,
+    this.funeralPlan,
+    this.lifeInsurance,
+    this.observacoesPlanos = '',
     required this.lastUpdated,
     this.imagePath,
     this.rawAnalysis,
@@ -92,7 +107,7 @@ class PetProfileExtended {
   factory PetProfileExtended.fromJson(Map<String, dynamic> json) {
     try {
       return PetProfileExtended(
-
+      id: (json['id'] ?? json['pet_id'] ?? '').toString(),
       petName: (json['pet_name'] ?? json['name'] ?? '').toString(),
       especie: json['especie'] as String?,
       raca: json['raca'] as String?,
@@ -133,6 +148,11 @@ class PetProfileExtended {
       observacoesNutricao: (json['observacoes_nutricao'] ?? '') as String,
       observacoesGaleria: (json['observacoes_galeria'] ?? '') as String,
       observacoesPrac: (json['observacoes_prac'] ?? '') as String,
+      healthPlan: json['health_plan'] != null ? Map<String, dynamic>.from(json['health_plan']) : null,
+      assistancePlan: json['assistance_plan'] != null ? Map<String, dynamic>.from(json['assistance_plan']) : null,
+      funeralPlan: json['funeral_plan'] != null ? Map<String, dynamic>.from(json['funeral_plan']) : null,
+      lifeInsurance: json['life_insurance'] != null ? Map<String, dynamic>.from(json['life_insurance']) : null,
+      observacoesPlanos: (json['observacoes_planos'] ?? '') as String,
       lastUpdated: json['last_updated'] != null
           ? DateTime.parse(json['last_updated'] as String)
           : DateTime.now(),
@@ -216,6 +236,7 @@ class PetProfileExtended {
      if (result.perfilComportamental.nivelEnergia <= 2) nivelAtiv = 'Sedentário';
      
      return PetProfileExtended(
+         id: (result.toJson()['id'] ?? const Uuid().v4()).toString(),
          petName: result.petName ?? '',
          especie: _normalizeSpecies(result.especie),
          raca: _formatBreedWithLineage(result),
@@ -242,6 +263,7 @@ class PetProfileExtended {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'pet_name': petName,
       if (especie != null) 'especie': especie,
       if (raca != null) 'raca': raca,
@@ -273,6 +295,11 @@ class PetProfileExtended {
       'observacoes_nutricao': observacoesNutricao,
       'observacoes_galeria': observacoesGaleria,
       'observacoes_prac': observacoesPrac,
+      'health_plan': healthPlan,
+      'assistance_plan': assistancePlan,
+      'funeral_plan': funeralPlan,
+      'life_insurance': lifeInsurance,
+      'observacoes_planos': observacoesPlanos,
       'last_updated': lastUpdated.toIso8601String(),
       if (imagePath != null) 'image_path': imagePath,
       if (rawAnalysis != null) ...{
@@ -338,6 +365,11 @@ class PetProfileExtended {
     String? observacoesNutricao,
     String? observacoesGaleria,
     String? observacoesPrac,
+    Map<String, dynamic>? healthPlan,
+    Map<String, dynamic>? assistancePlan,
+    Map<String, dynamic>? funeralPlan,
+    Map<String, dynamic>? lifeInsurance,
+    String? observacoesPlanos,
     DateTime? lastUpdated,
     String? imagePath,
     Map<String, dynamic>? rawAnalysis,
@@ -345,6 +377,7 @@ class PetProfileExtended {
     String? porte,
   }) {
     return PetProfileExtended(
+      id: this.id,
       petName: petName ?? this.petName,
       especie: especie ?? this.especie,
       raca: raca ?? this.raca,
@@ -374,6 +407,11 @@ class PetProfileExtended {
       observacoesNutricao: observacoesNutricao ?? this.observacoesNutricao,
       observacoesGaleria: observacoesGaleria ?? this.observacoesGaleria,
       observacoesPrac: observacoesPrac ?? this.observacoesPrac,
+      healthPlan: healthPlan ?? this.healthPlan,
+      assistancePlan: assistancePlan ?? this.assistancePlan,
+      funeralPlan: funeralPlan ?? this.funeralPlan,
+      lifeInsurance: lifeInsurance ?? this.lifeInsurance,
+      observacoesPlanos: observacoesPlanos ?? this.observacoesPlanos,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       imagePath: imagePath ?? this.imagePath,
       rawAnalysis: rawAnalysis ?? this.rawAnalysis,

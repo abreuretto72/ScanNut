@@ -195,6 +195,7 @@ class DataSeedService {
   Future<void> _createEvent(PetEventService service, String petName, EventType type, DateTime date, bool completed) async {
        final event = PetEvent(
           id: _uniqueId('evt'),
+          petId: petName,
           petName: petName,
           title: 'Teste V52: ${type.toString().split('.').last}',
           type: type,

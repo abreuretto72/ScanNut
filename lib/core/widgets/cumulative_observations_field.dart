@@ -12,6 +12,8 @@ class CumulativeObservationsField extends StatefulWidget {
   final Function(String) onChanged;
   final IconData? icon;
   final Color? accentColor;
+  final TextEditingController? controller;
+  final String? label;
 
   const CumulativeObservationsField({
     Key? key,
@@ -20,6 +22,8 @@ class CumulativeObservationsField extends StatefulWidget {
     required this.onChanged,
     this.icon,
     this.accentColor,
+    this.controller,
+    this.label,
   }) : super(key: key);
 
   @override
@@ -39,7 +43,7 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialValue);
+    _controller = widget.controller ?? TextEditingController(text: widget.initialValue);
     
     _speech = stt.SpeechToText();
     _initSpeech();
@@ -55,7 +59,9 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 
@@ -176,12 +182,13 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
             Icon(widget.icon ?? Icons.history_edu, color: widget.accentColor ?? const Color(0xFF00E676), size: 20),
             const SizedBox(width: 8),
             Text(
-              AppLocalizations.of(context)!.petObservationsHistory, 
+              widget.label ?? AppLocalizations.of(context)!.petObservationsHistory, 
               style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)
             ),
           ],
         ),
         const SizedBox(height: 8),
+
         Text(
           '${AppLocalizations.of(context)!.petRegisterObservations} (${widget.sectionName})', 
           style: GoogleFonts.poppins(color: Colors.white60, fontSize: 11)

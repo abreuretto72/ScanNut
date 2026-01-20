@@ -446,6 +446,12 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
              'Estímulo Mental': widget.analysis.lifestyle.estimuloMental['necessidade_estimulo_mental'] ?? 'N/A',
              'Adestramento': widget.analysis.lifestyle.treinamento['dificuldade_adestramento'] ?? 'N/A',
           }),
+          _buildAccordion('behavior', 'Perfil Comportamental', Icons.psychology, {
+             'Personalidade': widget.analysis.perfilComportamental.personalidade ?? 'N/A',
+             'Comportamento Social': widget.analysis.perfilComportamental.comportamentoSocial ?? 'N/A',
+             'Energia': widget.analysis.perfilComportamental.descricaoEnergia ?? 'N/A',
+             'Drive Ancestral': widget.analysis.perfilComportamental.driveAncestral,
+          }),
           if (widget.analysis.identificacao.curvaCrescimento.isNotEmpty)
              _buildAccordion('crescimento', l10n.petSectionGrowth, Icons.trending_up, {
                  'Peso 3 Meses': widget.analysis.identificacao.curvaCrescimento['peso_3_meses'] ?? 'N/A',
@@ -607,7 +613,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
          decoration: BoxDecoration(
              color: AppDesign.surfaceDark,
              borderRadius: BorderRadius.circular(12),
-             border: Border.all(color: Colors.white.withOpacity(0.05)),
+             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
          ),
          child: Theme(
              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -621,7 +627,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
                  },
                  leading: Container(
                      padding: const EdgeInsets.all(8),
-                     decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                     decoration: BoxDecoration(color: AppDesign.petPink.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                      child: Icon(icon, color: AppDesign.petPink, size: 20),
                  ),
                  title: Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 14)),

@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../../core/services/history_service.dart';
 import '../models/pet_profile_extended.dart';
 import '../../../core/utils/json_cast.dart';
+import 'package:uuid/uuid.dart';
 
 import '../services/pet_profile_service.dart';
 import 'widgets/edit_pet_form.dart';
@@ -698,6 +699,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
       MaterialPageRoute(
         builder: (context) => EditPetForm(
           existingProfile: loaded ?? PetProfileExtended(
+            id: data['id'] ?? data['pet_id'] ?? const Uuid().v4(),
             petName: petName,
             raca: data['breed'] ?? data['identificacao']?['raca_predominante'],
             nivelAtividade: (data['perfil_comportamental']?['nivel_energia'] is int) 

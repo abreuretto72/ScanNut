@@ -6,19 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-
-import '../../../core/theme/app_design.dart';
-import '../../../core/utils/snackbar_helper.dart';
-import '../../../features/pet/services/pet_profile_service.dart';
-
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'media_manager_screen.dart';
 
@@ -58,6 +45,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   
   // FILTERS (3D)
   String? _selectedPetName;
+  String? _selectedPetId;
   final Map<String, bool> _categories = {
     'Análises': true,
     'Cardápios': true,
@@ -103,18 +91,12 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
        final authService = SimpleAuthService();
        final cipher = authService.encryptionCipher;
 
-       // 🛡️ REQUISITO: Se não houver cipher e as boxes forem criptografadas, 
-       // o Hive jogará erro se tentarmos abrir. Mas o loop abaixo protege isso.
-       
        for (final name in boxes) {
          try {
-           // 1. Verifica se a box está aberta (mais rápido)
            if (Hive.isBoxOpen(name)) {
                 totalKeys += Hive.box(name).length;
            } else {
-                // 2. Se não estiver aberta, verifica se existe no disco
                 if (await Hive.boxExists(name)) {
-                   // 3. Só tenta abrir se tivermos a chave (cipher)
                    if (cipher != null) {
                       final box = await Hive.openBox(name, encryptionCipher: cipher);
                       totalKeys += box.length;
@@ -202,7 +184,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
               _buildStatsDashboard(),
               const SizedBox(height: 32),
               
-              _buildSmartArchivingCard(), // Moved up as main action
+              _buildSmartArchivingCard(), 
                
               const SizedBox(height: 16),
               _buildAttachmentManagerCard(),
@@ -212,15 +194,13 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
               const SizedBox(height: 12),
               _buildDangerZone(),
                
-              const SizedBox(height: 100), // Increased padding
+              const SizedBox(height: 100), 
             ],
           ),
         ),
       ),
     );
   }
-
-  // --- WIDGETS ---
 
   Widget _buildStatsDashboard() {
      return Column(
@@ -285,6 +265,10 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
             
             // FILTERS PREVIEW
             _buildFilterRow('QUEM', _selectedPetName ?? 'Todos os Pets', Icons.pets),
+            if (_selectedPetId != null && _selectedPetId != _selectedPetName) ...[
+               const SizedBox(height: 4),
+               _buildFilterRow('ID', _selectedPetId!.substring(0, 8) + '...', Icons.fingerprint),
+            ],
             const SizedBox(height: 8),
             _buildFilterRow('O QUÊ', _categories.entries.where((e)=>e.value).length.toString() + ' Categorias', Icons.category),
             const SizedBox(height: 8),
@@ -309,7 +293,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
             ),
          ],
        ),
-     );
+    );
   }
 
   Widget _buildAttachmentManagerCard() {
@@ -319,7 +303,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
         child: Container(
            padding: const EdgeInsets.all(16),
            decoration: BoxDecoration(
-              color: const Color(0xFFFFD1DC).withOpacity(0.7), // Slightly lighter pink
+              color: const Color(0xFFFFD1DC).withOpacity(0.7), 
               borderRadius: BorderRadius.circular(16),
            ),
            child: Row(
@@ -354,12 +338,9 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
      );
   }
 
-  // --- DANGER ZONE (Ported Logic) ---
-
   Widget _buildDangerZone() {
      return Column(
         children: [
-           // 1. FOOD
            _buildDomainDeleteCard(
               title: 'ALIMENTOS', icon: Icons.restaurant, color: Colors.orange,
               actions: [
@@ -367,8 +348,6 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
               ]
            ),
            const SizedBox(height: 16),
-           
-           // 2. PLANTS
            _buildDomainDeleteCard(
               title: 'PLANTAS', icon: Icons.local_florist, color: Colors.green,
               actions: [
@@ -376,8 +355,6 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
               ]
            ),
            const SizedBox(height: 16),
-           
-           // 3. PETS
            _buildDomainDeleteCard(
               title: 'PETS', icon: Icons.pets, color: AppDesign.petPink,
               actions: [
@@ -385,8 +362,6 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
               ]
            ),
            const SizedBox(height: 16),
-           
-           // 4. GENERAL
            _buildDomainDeleteCard(
               title: 'GERAL', icon: Icons.settings_backup_restore, color: Colors.grey,
               actions: [
@@ -410,7 +385,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(
-              color: Colors.red, // RED HEADER AS REQUESTED
+              color: Colors.red, 
               borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Row(
@@ -435,8 +410,6 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
     );
   }
   
-  // --- HELPERS ---
-  
   Future<void> _confirmAction(String title, Future<void> Function() action) {
      return showDialog(
         context: context,
@@ -450,9 +423,6 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
                  onPressed: () async {
                     Navigator.pop(context);
                     await action();
-                    
-                    // 🛡️ CRITICAL FIX: Se for Reset de Fábrica (CONTA COMPLETA), 
-                    // não executamos mais nada pois o app irá reiniciar/navegar.
                     if (title == 'CONTA COMPLETA') return;
 
                     if(mounted) {
@@ -481,30 +451,28 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       backgroundColor: const Color(0xFFFFD1DC),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => _FilterModalContent(
-        initialPet: _selectedPetName,
+        initialPetId: _selectedPetId,
         categories: _categories,
         initialDateRange: _customDateRange,
-        onApply: (pet, cats, range, label) {
+        onApply: (petName, petId, cats, range, label) {
           setState(() {
-            _selectedPetName = pet;
+            _selectedPetName = petName;
+            _selectedPetId = petId;
             _categories.clear();
             _categories.addAll(cats);
             _customDateRange = range;
             _timeRangeLabel = label;
           });
-          // Trigger the actual logic
           Future.delayed(const Duration(milliseconds: 300), () {
-             _executeSmartArchiving(pet, cats, range);
+             _executeSmartArchiving(petName, petId, cats, range);
           });
         },
       ),
     );
   }
 
-  Future<void> _executeSmartArchiving(String? petName, Map<String, bool> categories, DateTimeRange? dateRange) async {
-       if (petName == null) return;
-       
-       // Show Loading
+  Future<void> _executeSmartArchiving(String? petName, String? petId, Map<String, bool> categories, DateTimeRange? dateRange) async {
+       if (petName == null && petId == null) return;
        showDialog(
           context: context, 
           barrierDismissible: false,
@@ -515,30 +483,22 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
            final petEventService = PetEventService();
            await petEventService.init();
            final allEvents = petEventService.getAllEvents();
+           final targetId = petId?.trim();
+           final targetName = petName?.trim().toLowerCase();
            
-           // Filter Events
            final toDelete = allEvents.where((e) {
-               // 1. PET FILTER (Critical)
-               // Normalize both to handle case nuances
-               if (e.petName.trim().toLowerCase() != petName.trim().toLowerCase()) return false;
-               
-               // 2. DATE FILTER
+               if (targetId != null && e.petId == targetId) return true;
+               if (targetName != null && e.petName.trim().toLowerCase() == targetName) return true;
+               return false;
+           }).where((e) {
                if (dateRange != null) {
-                   // Inclusive check
                    if (e.dateTime.isBefore(dateRange.start) || e.dateTime.isAfter(dateRange.end.add(const Duration(days:1)))) {
                        return false;
                    }
                }
-               
-               // 3. CATEGORY FILTER (Optional refinement)
-               // For now, we delete ALL matching Pet+Date if categories are mostly true, or refinement needed.
-               // Assuming user selected types.
-               // We will skip strict category check for this "Fix" to ensure Pet deletion works first, 
-               // UNLESS we map correctly.
                return true;
            }).toList();
            
-           // DELETE
            int count = 0;
            for (var e in toDelete) {
                await petEventService.deleteEvent(e.id);
@@ -547,11 +507,10 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
            
            ref.invalidate(petEventServiceProvider);
            ref.invalidate(historyServiceProvider);
-           
            _calculateStorageUsage();
            
            if(mounted) {
-              Navigator.pop(context); // Close loading
+              Navigator.pop(context); 
               SnackBarHelper.showSuccess(context, 'Filtro 3D: $count registros de $petName excluídos/arquivados.');
            }
            
@@ -563,89 +522,55 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
        }
   }
   
-  Future<void> _generateArchive() async {
-     setState(() => _isGenerating = true);
-     await Future.delayed(const Duration(seconds: 2));
-     setState(() => _isGenerating = false);
-     if(mounted) SnackBarHelper.showSuccess(context, 'Arquivo Gerado e Limpeza Pronta (Simulação)');
-  }
-  
-  // --- DELETE LOGIC ---
-  
   Future<void> _clearBox(String name) async {
-     // 🛡️ V116: PRESERVE BOX STRUCTURE
-     // Use clear() instead of recreate() to maintain listeners and references
-     try {
-       final box = await HiveAtomicManager().ensureBoxOpen(name);
-       await box.clear();
-       debugPrint('🧹 [V116] Box "$name" cleared (${box.length} items removed).');
-     } catch (e) {
-       debugPrint('⚠️ [V116] Error clearing box "$name": $e');
-     }
+      try {
+        final box = await HiveAtomicManager().ensureBoxOpen(name);
+        await box.clear();
+      } catch (e) {
+        debugPrint('⚠️ Error clearing box "$name": $e');
+      }
   }
   
   Future<void> _clearHistoryByMode(String mode) async {
-     final box = await HiveAtomicManager().ensureBoxOpen('scannut_history');
-     final keys = box.keys.where((k) {
-        final v = box.get(k);
-        return v is Map && v['mode'] == mode;
-     }).toList();
-     await box.deleteAll(keys);
+      final box = await HiveAtomicManager().ensureBoxOpen('scannut_history');
+      final keys = box.keys.where((k) {
+         final v = box.get(k);
+         return v is Map && v['mode'] == mode;
+      }).toList();
+      await box.deleteAll(keys);
   }
   
   Future<void> _clearHistoryDeep(bool Function(Map) predicate) async {
-     try {
-       final box = await HiveAtomicManager().ensureBoxOpen('scannut_history');
-       final keys = box.keys.where((k) {
-          final v = box.get(k);
-          if (v is! Map) return false;
-          return predicate(v);
-       }).toList();
-       if (keys.isNotEmpty) {
-         await box.deleteAll(keys);
-         debugPrint('🧹 [DeepClean] Deleted ${keys.length} items from history.');
-       }
-     } catch (e) {
-       debugPrint('⚠️ DeepClean error: $e');
-     }
+      try {
+        final box = await HiveAtomicManager().ensureBoxOpen('scannut_history');
+        final keys = box.keys.where((k) {
+           final v = box.get(k);
+           if (v is! Map) return false;
+           return predicate(v);
+        }).toList();
+        if (keys.isNotEmpty) {
+          await box.deleteAll(keys);
+        }
+      } catch (e) {
+        debugPrint('⚠️ DeepClean error: $e');
+      }
   }
 
-  Future<void> _clearJournalByGroup(List<String> groups) async {
-     // ... (Existing implementation if needed, or rely on box clear)
-     // Since _wipePetData clears the whole 'pet_events_journal' box, this is redundant for full wipe,
-     // but useful for partial logic. Keeping it for safety.
-     try {
-       final box = await HiveAtomicManager().ensureBoxOpen('pet_events_journal');
-       final keys = box.keys.where((k) {
-          final v = box.get(k);
-          if(v is Map) return groups.contains(v['group']);
-          try { return groups.contains((v as dynamic).group); } catch(e) { return false; }
-       }).toList();
-       await box.deleteAll(keys);
-     } catch(e) {}
-  }
-   
   Future<void> _clearAgendaEvents(List<String> keywords) async {
-      // ... (keep existing)
-       try {
-            final petEventService = PetEventService();
-            await petEventService.init();
-            final allEvents = petEventService.getAllEvents();
-            final toDelete = allEvents.where((e) {
-               final t = e.type.toString().toLowerCase();
-               return keywords.any((k) => t.contains(k));
-            }).toList();
-            for(var e in toDelete) await petEventService.deleteEvent(e.id);
-            ref.invalidate(petEventServiceProvider);
-       } catch(e) { debugPrint('Agenda error: $e'); }
+        try {
+             final petEventService = PetEventService();
+             await petEventService.init();
+             final allEvents = petEventService.getAllEvents();
+             final toDelete = allEvents.where((e) {
+                final t = e.type.toString().toLowerCase();
+                return keywords.any((k) => t.contains(k));
+             }).toList();
+             for(var e in toDelete) await petEventService.deleteEvent(e.id);
+             ref.invalidate(petEventServiceProvider);
+        } catch(e) { debugPrint('Agenda error: $e'); }
   }
   
-  // V500: ATOMIC SAFE FACTORY RESET
   Future<void> _performFactoryReset() async {
-    debugPrint('🚨 [V500] INICIANDO RESET SEGURO (ATOMIC WIPE) 🚨');
-    
-    // 1. Boxes to Clear (Content only, keeping structure)
-    // Incluindo settings e user_profile pois é um RESET DE FÁBRICA aqui.
     final boxesToClear = [
       'pet_events',
       'scannut_meal_history',
@@ -667,30 +592,18 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
     ];
 
     try {
-        // 2. Clear content safely
         for (final name in boxesToClear) {
              try {
                 Box box;
                 if (Hive.isBoxOpen(name)) {
                    box = Hive.box(name);
                 } else {
-                   // Open safely just to clear. No encryption key? 
-                   // If it fails due to encryption, we might need a key.
-                   // However, for factory reset, if we can't open, we might need to deleteFile directly.
-                   // But let's try opening generic first.
-                   // Warning: opening encrypted box without key throws.
-                   // Strategy: Try standard open. If fails, skip (User will be logged out anyway).
                    box = await Hive.openBox(name);
                 }
                 await box.clear();
-                debugPrint('✅ [WIPE] Box cleared: $name');
-             } catch (e) {
-                debugPrint('⚠️ [WIPE] Could not clear $name (locked/encrypted): $e');
-                // Fallback: This is factory reset. We can ignore and let logout handle key destruction.
-             }
+             } catch (e) {}
         }
 
-        // 3. Physical Media Purge
         try {
             final ms = MediaVaultService();
             await ms.clearDomain(MediaVaultService.PETS_DIR);
@@ -698,27 +611,21 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
             await ms.clearDomain(MediaVaultService.BOTANY_DIR);
             await ms.clearDomain(MediaVaultService.WOUNDS_DIR);
             
-            // Legacy folders
             await _deleteLegacyFolder('PetPhotos');
             await _deleteLegacyFolder('nutrition_images');
             await _deleteLegacyFolder('botany_images');
-        } catch(e) { debugPrint('   ⚠️ MediaVault error: $e'); }
+        } catch(e) {}
 
-        // 4. Prevent Auto-Restore
         try {
            await PermanentBackupService().clearBackup();
         } catch (_) {}
 
-    } catch (e) {
-        debugPrint('❌ [V500] Critical error during wipe: $e');
-    }
+    } catch (e) {}
     
-    // 5. Auth Reset & Restart (No Hive.close() to prevent crashes)
     try {
-       await simpleAuthService.logout();
-    } catch(e) {
-       debugPrint('⚠️ Auth logout error: $e');
-    }
+       final authService = SimpleAuthService();
+       await authService.logout();
+    } catch(e) {}
 
     if (mounted) {
       SnackBarHelper.showSuccess(context, 'Dispositivo Resetado. Reiniciando...');
@@ -730,8 +637,6 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
     }
   }
 
-  // --- ATOMIC WIPE ACTIONS (Deep Clean) ---
-  
   Future<void> _wipeFoodData() async {
       await _clearBox('box_nutrition_human');
       await _clearBox('box_nutrition_history'); 
@@ -742,15 +647,10 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await _clearBox('recipe_history_box');
       await _clearHistoryByMode('Food');
       await _clearHistoryByMode('Recipe');
-      // 🛡️ Deep Clean: Remove Nutrition items or orphaned items (no mode, no pet)
       await _clearHistoryDeep((v) => v['mode'] == 'Food' || v['mode'] == 'Nutrition' || v['type'] == 'nutrition');
       await _clearAgendaEvents(['food']);
-      
-      // Physical
       await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR);
       await _deleteLegacyFolder('nutrition_images');
-      
-      // Invalidate history to refresh timeline
       ref.invalidate(historyServiceProvider);
   }
 
@@ -758,13 +658,9 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await _clearBox('box_plants_history');
       await _clearBox('box_botany_intel');
       await _clearHistoryByMode('Plant');
-      
-      // Physical
       await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR);
       await _deleteLegacyFolder('botany_images');
       await _deleteLegacyFolder('PlantAnalyses');
-      
-      // Invalidate history to refresh timeline
       ref.invalidate(historyServiceProvider);
   }
 
@@ -775,33 +671,14 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await _clearBox('partners_box');
       await _clearBox('muo_occurrences_box');
       await _clearHistoryByMode('Pet');
-      // 🛡️ Deep Clean: Remove ANY item linked to a Pet (even if mode is wrong)
       await _clearHistoryDeep((v) => v['mode'] == 'Pet' || (v['pet_name'] != null) || (v['petId'] != null));
-      
-      // 🛡️ V117: CLEAR ENTIRE JOURNAL
-      // Instead of filtering by groups (which can miss automatic events),
-      // clear the entire pet_events_journal box to ensure timeline is empty
       await _clearBox('pet_events_journal');
-      
-      // Physical
       await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
-      await MediaVaultService().clearDomain(MediaVaultService.WOUNDS_DIR);
       await _deleteLegacyFolder('PetPhotos');
-      await _deleteLegacyFolder('medical_docs');
-      await _deleteLegacyFolder('ExamsVault');
       
-      // 🚀 V110: ATOMIC NUCLEAR PURGE (Physical)
-      // Substitutes V107 soft reset. Forces physical deletion of the master file.
-      await PetProfileService.to.wipeAllDataPhysically();
-      
-      // 🛡️ V116: INVALIDATE PROVIDERS
-      // Since we use box.clear() instead of recreate(), listeners are preserved
-      // We just need to invalidate providers to trigger UI rebuild
       ref.invalidate(petEventServiceProvider);
       ref.invalidate(partnerServiceProvider);
       ref.invalidate(historyServiceProvider);
-      
-      debugPrint('🛡️ [V116] Pet Data Wipe Complete. Box cleared, listeners preserved.');
   }
   
   Future<void> _deleteLegacyFolder(String folderName) async {
@@ -810,23 +687,20 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
          final dir = Directory('${appDir.path}/$folderName');
          if(await dir.exists()) {
              await dir.delete(recursive: true);
-             debugPrint('🗑️ Legacy Folder Deleted: $folderName');
          }
-      } catch(e) {
-         debugPrint('⚠️ Ignored error deleting legacy $folderName: $e');
-      }
+      } catch(e) {}
   }
 }
 
 class _FilterModalContent extends StatefulWidget {
-  final String? initialPet;
+  final String? initialPetId;
   final Map<String, bool> categories;
   final DateTimeRange? initialDateRange;
-  final Function(String?, Map<String, bool>, DateTimeRange?, String) onApply;
+  final Function(String?, String?, Map<String, bool>, DateTimeRange?, String) onApply;
 
   const _FilterModalContent({
     Key? key,
-    required this.initialPet,
+    required this.initialPetId,
     required this.categories,
     required this.initialDateRange,
     required this.onApply,
@@ -837,7 +711,8 @@ class _FilterModalContent extends StatefulWidget {
 }
 
 class _FilterModalContentState extends State<_FilterModalContent> {
-  String? _selectedPet;
+  String? _selectedPetId;
+  String? _selectedPetName;
   late Map<String, bool> _localCategories;
   DateTimeRange? _dateRange;
   String _dateLabel = 'Todo o período';
@@ -845,7 +720,7 @@ class _FilterModalContentState extends State<_FilterModalContent> {
   @override
   void initState() {
     super.initState();
-    _selectedPet = widget.initialPet;
+    _selectedPetId = widget.initialPetId;
     _localCategories = Map.from(widget.categories);
     _dateRange = widget.initialDateRange;
     _updateDateLabel();
@@ -861,7 +736,7 @@ class _FilterModalContentState extends State<_FilterModalContent> {
      }
   }
 
-  bool get _isValid => _selectedPet != null && _localCategories.values.contains(true);
+  bool get _isValid => _selectedPetId != null && _localCategories.values.contains(true);
   
   Future<void> _pickDateRange() async {
      final picked = await showDateRangePicker(
@@ -917,53 +792,52 @@ class _FilterModalContentState extends State<_FilterModalContent> {
                    children: [
                       Text('QUEM (Pet)', style: GoogleFonts.poppins(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 12)),
                       const SizedBox(height: 12),
-                      FutureBuilder<List<String>>(
-                         future: PetProfileService().getAllPetNames(),
+                      FutureBuilder<Map<String, String>>(
+                         future: PetProfileService().getAllPetSummaries(),
                          builder: (context, snapshot) {
                             if (!snapshot.hasData) return const LinearProgressIndicator(color: Color(0xFFE91E63));
-                            final pets = snapshot.data!;
+                            final summaries = snapshot.data!;
                             return Container(
                                decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
-                               ),
-                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                               child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                     value: _selectedPet,
-                                     dropdownColor: Colors.white,
-                                     menuMaxHeight: 400,
-                                     hint: Row(
-                                        children: [
-                                           const Icon(Icons.pets, size: 18, color: Colors.black54),
-                                           // Use a bit more space if needed
-                                           const SizedBox(width: 8),
-                                           Text('Selecionar Pet', style: GoogleFonts.poppins(color: Colors.black54, fontSize: 14)),
-                                        ],
-                                     ),
-                                     isExpanded: true,
-                                     icon: const Icon(Icons.arrow_drop_down, color: Colors.black87),
-                                     items: pets.map((p) => DropdownMenuItem(
-                                        value: p,
-                                        child: Row(
-                                           children: [
-                                              // We don't have images easily here yet, sticking to text as primary
-                                              const Icon(Icons.pets, size: 18, color: Color(0xFFE91E63)),
-                                              const SizedBox(width: 8),
-                                              Text(p, style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.w500)),
-                                           ],
-                                        ),
-                                     )).toList(),
-                                     onChanged: (val) {
-                                        setState(() {
-                                           _selectedPet = val;
-                                        });
-                                     },
-                                  ),
-                               ),
-                            );
-                         },
-                      ),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                child: DropdownButtonHideUnderline(
+                                   child: DropdownButton<String>(
+                                      value: _selectedPetId,
+                                      dropdownColor: Colors.white,
+                                      menuMaxHeight: 400,
+                                      hint: Row(
+                                         children: [
+                                            const Icon(Icons.pets, size: 18, color: Colors.black54),
+                                            const SizedBox(width: 8),
+                                            Text('Selecionar Pet', style: GoogleFonts.poppins(color: Colors.black54, fontSize: 14)),
+                                         ],
+                                      ),
+                                      isExpanded: true,
+                                      icon: const Icon(Icons.arrow_drop_down, color: Colors.black87),
+                                      items: summaries.entries.map((e) => DropdownMenuItem(
+                                         value: e.value, 
+                                         child: Row(
+                                            children: [
+                                               const Icon(Icons.pets, size: 18, color: Color(0xFFE91E63)),
+                                               const SizedBox(width: 8),
+                                               Text(e.key, style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.w500)),
+                                            ],
+                                         ),
+                                      )).toList(),
+                                      onChanged: (val) {
+                                         setState(() {
+                                            _selectedPetId = val;
+                                            _selectedPetName = summaries.entries.firstWhere((e) => e.value == val).key;
+                                         });
+                                      },
+                                   ),
+                                ),
+                             );
+                          },
+                       ),
                       const SizedBox(height: 24),
                       Text('O QUÊ (Categorias)', style: GoogleFonts.poppins(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 12)),
                       const SizedBox(height: 12),
@@ -980,7 +854,7 @@ class _FilterModalContentState extends State<_FilterModalContent> {
                                   checkColor: Colors.white,
                                   onChanged: (val) => setState(() => _localCategories[k] = val ?? false),
                                   controlAffinity: ListTileControlAffinity.leading,
-                                  dense: true, // Reduced height
+                                  dense: true, 
                                );
                             }).toList(),
                          ),
@@ -1024,7 +898,7 @@ class _FilterModalContentState extends State<_FilterModalContent> {
                 child: ElevatedButton(
                    onPressed: _isValid ? () {
                       Navigator.pop(context);
-                      widget.onApply(_selectedPet, _localCategories, _dateRange, _dateLabel);
+                      widget.onApply(_selectedPetName, _selectedPetId, _localCategories, _dateRange, _dateLabel);
                    } : null,
                    style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,

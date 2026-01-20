@@ -49,113 +49,123 @@ class _LabExamsSectionState extends State<LabExamsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Card(
+      color: Colors.white.withOpacity(0.05),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.science, color: AppDesign.petPink, size: 20),
-            const SizedBox(width: 8),
+            Row(
+              children: [
+                const Icon(Icons.science, color: AppDesign.petPink, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  AppLocalizations.of(context)!.labExamsTitle,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Text(
-              '🧪 ${AppLocalizations.of(context)!.labExamsTitle}',
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              AppLocalizations.of(context)!.labExamsSubtitle,
+              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.labExamsSubtitle,
-          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
-        ),
-        const SizedBox(height: 16),
-        
-        // Categories
-        ...ExamCategory.all.map((category) {
-          final categoryExams = _getExamsForCategory(category.id);
-          final isExpanded = _expandedCategory == category.id;
-          
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: categoryExams.isNotEmpty 
-                    ? category.color.withOpacity(0.3)
-                    : Colors.white.withOpacity(0.05),
-              ),
-            ),
-            child: Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                key: Key(category.id),
-                initiallyExpanded: isExpanded,
-                onExpansionChanged: (expanded) {
-                  setState(() => _expandedCategory = expanded ? category.id : null);
-                },
-                leading: Icon(category.icon, color: category.color, size: 22),
-                title: Row(
-                  children: [
-                    Text(
-                      _getCategoryName(category.id, context),
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (categoryExams.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: category.color.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${categoryExams.length}',
-                          style: TextStyle(
-                            color: category.color,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+            const SizedBox(height: 16),
+            
+            // Categories
+            ...ExamCategory.all.map((category) {
+              final categoryExams = _getExamsForCategory(category.id);
+              final isExpanded = _expandedCategory == category.id;
+              
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.03),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: categoryExams.isNotEmpty 
+                        ? category.color.withOpacity(0.3)
+                        : Colors.white.withOpacity(0.05),
+                  ),
+                ),
+                child: Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    key: Key(category.id),
+                    initiallyExpanded: isExpanded,
+                    onExpansionChanged: (expanded) {
+                      setState(() => _expandedCategory = expanded ? category.id : null);
+                    },
+                    leading: Icon(category.icon, color: category.color, size: 22),
+                    title: Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            _getCategoryName(category.id, context),
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
+                        if (categoryExams.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: category.color.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${categoryExams.length}',
+                              style: TextStyle(
+                                color: category.color,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.add_circle_outline, color: AppDesign.petPink),
+                      onPressed: () => _showAddExamDialog(category),
+                      tooltip: '${AppLocalizations.of(context)!.agendaAdd} ${_getCategoryName(category.id, context)}',
+                    ),
+                    iconColor: category.color,
+                    collapsedIconColor: Colors.white30,
+                    children: [
+                      if (categoryExams.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            AppLocalizations.of(context)!.petNoDocumentsAttached,
+                            style: GoogleFonts.poppins(
+                              color: Colors.white30,
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        )
+                      else
+                        ...categoryExams.map((exam) => _buildExamCard(exam, category)),
                     ],
-                  ],
+                  ),
                 ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.add_circle_outline, color: AppDesign.petPink),
-                  onPressed: () => _showAddExamDialog(category),
-                  tooltip: '${AppLocalizations.of(context)!.agendaAdd} ${_getCategoryName(category.id, context)}',
-                ),
-                iconColor: category.color,
-                collapsedIconColor: Colors.white30,
-                children: [
-                  if (categoryExams.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        AppLocalizations.of(context)!.petNoDocumentsAttached,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white30,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    )
-                  else
-                    ...categoryExams.map((exam) => _buildExamCard(exam, category)),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ],
+              );
+            }).toList(),
+          ],
+        ),
+      ),
     );
   }
 

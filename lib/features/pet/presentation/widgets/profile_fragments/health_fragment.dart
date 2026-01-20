@@ -14,6 +14,9 @@ class HealthFragment extends StatelessWidget {
   final List<String> bathOptions;
   final List<LabExam> labExams;
   final String observacoesSaude;
+  final String petName;
+  final List<Map<String, dynamic>> analysisHistory;
+  final Function(Map<String, dynamic>)? onDeleteAnalysis;
   
   final Function(DateTime) onV10DateSelected;
   final Function(DateTime) onAntirrabicaDateSelected;
@@ -45,6 +48,9 @@ class HealthFragment extends StatelessWidget {
     required this.onAddAttachmentPrescription,
     required this.onAddAttachmentVaccine,
     required this.onDeleteAttachment,
+    required this.petName,
+    this.analysisHistory = const [],
+    this.onDeleteAnalysis,
   }) : super(key: key);
 
   @override
@@ -57,56 +63,93 @@ class HealthFragment extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        ProfileDesignSystem.buildSectionTitle('💉 ${l10n.petVaccinationHistory}'),
-        const SizedBox(height: 16),
-        
-        ProfileDesignSystem.buildDatePicker(
-          context: context,
-          label: l10n.petLastV10,
-          icon: Icons.vaccines,
-          selectedDate: dataUltimaV10,
-          onDateSelected: onV10DateSelected,
-        ),
-        
-        ProfileDesignSystem.buildDatePicker(
-          context: context,
-          label: l10n.petLastRabies,
-          icon: Icons.coronavirus,
-          selectedDate: dataUltimaAntirrabica,
-          onDateSelected: onAntirrabicaDateSelected,
+        Card(
+          color: Colors.white.withValues(alpha: 0.05),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProfileDesignSystem.buildSectionTitle('💉 ${l10n.petVaccinationHistory}'),
+                const SizedBox(height: 16),
+                
+                ProfileDesignSystem.buildDatePicker(
+                  context: context,
+                  label: l10n.petLastV10,
+                  icon: Icons.vaccines,
+                  selectedDate: dataUltimaV10,
+                  onDateSelected: onV10DateSelected,
+                ),
+                
+                ProfileDesignSystem.buildDatePicker(
+                  context: context,
+                  label: l10n.petLastRabies,
+                  icon: Icons.coronavirus,
+                  selectedDate: dataUltimaAntirrabica,
+                  onDateSelected: onAntirrabicaDateSelected,
+                ),
+              ],
+            ),
+          ),
         ),
         
         const SizedBox(height: 24),
-        ProfileDesignSystem.buildSectionTitle('🛁 ${l10n.petHygiene}'),
-        const SizedBox(height: 16),
-        
-        ProfileDesignSystem.buildOptionSelector(
-          value: frequenciaBanho,
-          label: l10n.petBathFrequency,
-          icon: Icons.water_drop,
-          options: bathOptions,
-          onChanged: (val) => onFrequenciaBanhoChanged(val!),
+        Card(
+          color: Colors.white.withValues(alpha: 0.05),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProfileDesignSystem.buildSectionTitle(l10n.petHygiene),
+                const SizedBox(height: 16),
+                
+                ProfileDesignSystem.buildOptionSelector(
+                  value: frequenciaBanho,
+                  label: l10n.petBathFrequency,
+                  icon: Icons.water_drop,
+                  options: bathOptions,
+                  onChanged: (val) => onFrequenciaBanhoChanged(val!),
+                ),
+              ],
+            ),
+          ),
         ),
 
         const SizedBox(height: 24),
         labExamsSection,
         
         const SizedBox(height: 24),
-        ProfileDesignSystem.buildSectionTitle('📄 ${l10n.petMedicalDocs}'),
-        const SizedBox(height: 8),
-        
-        AttachmentSection(
-          title: '📝 ${l10n.petPrescriptions}',
-          files: attachments['health_prescriptions'] ?? [],
-          onAdd: onAddAttachmentPrescription,
-          onDelete: onDeleteAttachment,
+        Card(
+          color: Colors.white.withValues(alpha: 0.05),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProfileDesignSystem.buildSectionTitle('📄 ${l10n.petMedicalDocs}'),
+                const SizedBox(height: 16),
+                
+                AttachmentSection(
+                  title: '📝 ${l10n.petPrescriptions}',
+                  files: attachments['health_prescriptions'] ?? [],
+                  onAdd: onAddAttachmentPrescription,
+                  onDelete: onDeleteAttachment,
+                ),
+                AttachmentSection(
+                  title: '💉 ${l10n.petVaccineCard}',
+                  files: attachments['health_vaccines'] ?? [],
+                  onAdd: onAddAttachmentVaccine,
+                  onDelete: onDeleteAttachment,
+                ),
+              ],
+            ),
+          ),
         ),
-        AttachmentSection(
-          title: '💉 ${l10n.petVaccineCard}',
-          files: attachments['health_vaccines'] ?? [],
-          onAdd: onAddAttachmentVaccine,
-          onDelete: onDeleteAttachment,
-        ),
+
 
         const SizedBox(height: 24),
         woundAnalysisHistory,

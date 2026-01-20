@@ -34,7 +34,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   static const bool FORCE_LOGIN_DEBUG = false; 
   
   // 🛡️ STRESS TEST SWITCH: Set to true to run V710 validation on startup
-  static const bool RUN_STRESS_TEST = true;
+  static const bool RUN_STRESS_TEST = false; // ❌ Desabilitado conforme solicitado
 
   @override
   void initState() {

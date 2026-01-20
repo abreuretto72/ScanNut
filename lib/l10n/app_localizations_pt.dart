@@ -2292,6 +2292,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petWoundHistory => 'Histórico de Análises de Feridas';
 
   @override
+  String get petDiseaseHistory => 'Histórico de Análises de Doenças';
+
+  @override
   String get petNoWounds => 'Nenhuma análise de ferida registrada ainda.';
 
   @override
@@ -5594,7 +5597,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get reproductiveNursing => 'Gesta/Lactante';
 
   @override
-  String get petFoodRestrictions => 'Restrições';
+  String get petFoodRestrictions => 'Restrições Alimentares';
 
   @override
   String get petFoodRestrictionsDesc =>
@@ -5707,6 +5710,254 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get pdfPrecision => 'Precisão';
+
+  @override
+  String get soundAnalysisTitle => 'Análise Vocal';
+
+  @override
+  String get soundAnalysisDesc =>
+      'Identifique emoções e necessidades através do latido ou miado.';
+
+  @override
+  String get soundRecording => 'Gravando...';
+
+  @override
+  String get soundProcessing => 'Analisando...';
+
+  @override
+  String get soundStartRecord => 'Toque para gravar';
+
+  @override
+  String get soundResultType => 'Tipo';
+
+  @override
+  String get soundResultEmotion => 'Emoção';
+
+  @override
+  String get soundResultAction => 'Recomendação';
+
+  @override
+  String get soundError => 'Erro ao analisar';
+
+  @override
+  String get soundEmotionSimple => 'O que ele sente';
+
+  @override
+  String get soundReasonSimple => 'Motivo provável';
+
+  @override
+  String get soundActionTip => 'Dica rápida';
+
+  @override
+  String get soundUploadBtn => 'Enviar Áudio';
+
+  @override
+  String get petFoodCardTitle => 'Análise de Rótulo';
+
+  @override
+  String get petFoodVerdict => 'Veredito';
+
+  @override
+  String get petFoodReason => 'Motivo';
+
+  @override
+  String get petFoodTip => 'Dica Diária';
+
+  @override
+  String get petFoodStart => 'Analisar Rótulo';
+
+  @override
+  String get petFoodError => 'Erro na leitura';
+
+  @override
+  String get plansTabTitle => 'Planos';
+
+  @override
+  String get plansTabSubtitle =>
+      'Informações sobre planos, seguros e assistência de saúde do seu pet.';
+
+  @override
+  String get healthPlanToggle => 'Possui plano de saúde veterinária?';
+
+  @override
+  String get healthPlanOperator => 'Nome do plano / operadora';
+
+  @override
+  String get healthPlanCoverage => 'O que o plano cobre?';
+
+  @override
+  String get healthPlanType => 'Tipo de atendimento';
+
+  @override
+  String get healthPlanNetwork => 'Rede credenciada';
+
+  @override
+  String get healthPlanReimbursement => 'Reembolso';
+
+  @override
+  String get healthPlanValue => 'Valor mensal do plano (opcional)';
+
+  @override
+  String get healthPlanConsultations => 'Consultas';
+
+  @override
+  String get healthPlanExams => 'Exames';
+
+  @override
+  String get healthPlanSurgeries => 'Cirurgias';
+
+  @override
+  String get healthPlanEmergencies => 'Emergências';
+
+  @override
+  String get healthPlanHospitalization => 'Internação';
+
+  @override
+  String get healthPlanVaccines => 'Vacinas';
+
+  @override
+  String get healthPlanHelpText =>
+      'Ajuda a reduzir custos com consultas, exames e emergências veterinárias.';
+
+  @override
+  String get assistancePlanToggle =>
+      'Possui plano de assistência ou reembolso?';
+
+  @override
+  String get assistancePlanOperator => 'Nome da empresa / plano';
+
+  @override
+  String get assistancePlanReimbursementType => 'Tipo de reembolso';
+
+  @override
+  String get assistancePlanTotal => 'Total';
+
+  @override
+  String get assistancePlanPartial => 'Parcial';
+
+  @override
+  String get assistancePlanMaxValue =>
+      'Valor máximo de reembolso (mensal ou anual)';
+
+  @override
+  String get assistancePlanNeedsInvoice => 'Exige nota fiscal para reembolso?';
+
+  @override
+  String get assistancePlanHelpText =>
+      'Ideal para quem utiliza o veterinário de confiança e solicita reembolso posteriormente.';
+
+  @override
+  String get funeralPlanToggle => 'Possui plano funerário para pet?';
+
+  @override
+  String get funeralPlanOperator => 'Empresa / plano funerário';
+
+  @override
+  String get funeralPlanServices => 'Serviços incluídos';
+
+  @override
+  String get funeralPlanWake => 'Velório';
+
+  @override
+  String get funeralPlanIndivCremation => 'Cremação individual';
+
+  @override
+  String get funeralPlanCollCremation => 'Cremação coletiva';
+
+  @override
+  String get funeralPlanTransport => 'Traslado';
+
+  @override
+  String get funeralPlanMemorial => 'Urna ou memorial';
+
+  @override
+  String get funeralPlan24h => 'Atendimento 24h?';
+
+  @override
+  String get funeralPlanEmergencyContact => 'Contato de emergência';
+
+  @override
+  String get funeralPlanHelpText =>
+      'Garante organização e apoio em momentos delicados.';
+
+  @override
+  String get lifeInsurancePlanToggle => 'Possui seguro de vida para o pet?';
+
+  @override
+  String get lifeInsuranceInsurer => 'Seguradora';
+
+  @override
+  String get lifeInsuranceInsuredValue => 'Valor segurado';
+
+  @override
+  String get lifeInsuranceCoverages => 'Coberturas incluídas';
+
+  @override
+  String get lifeInsuranceDeath => 'Falecimento';
+
+  @override
+  String get lifeInsuranceGraveIllness => 'Doença grave';
+
+  @override
+  String get lifeInsuranceEuthanasia =>
+      'Eutanásia (quando indicada por veterinário)';
+
+  @override
+  String get lifeInsuranceEconomicValue =>
+      'Pet possui valor econômico especial? (ex: competição)';
+
+  @override
+  String get lifeInsuranceHelpText =>
+      'Indicado para pets com valor econômico ou funcional elevado.';
+
+  @override
+  String get planTitleHealth => 'Saúde do Pet';
+
+  @override
+  String get planTitleAssistance => 'Assistência / Reembolso';
+
+  @override
+  String get planTitleFuneral => 'Plano Funerário';
+
+  @override
+  String get planTitleLife => 'Seguro de Vida';
+
+  @override
+  String get planObservations => 'Observações';
+
+  @override
+  String get petBodyAnalysisTitle => 'Analise Corporal & Postural';
+
+  @override
+  String get petBodyAnalysisDesc =>
+      'Avalie o bem-estar fisico e sinais de dor atraves da postura.';
+
+  @override
+  String get petBodyHealthScore => 'Nivel de Bem-Estar';
+
+  @override
+  String get petBodySignals => 'Sinais Observados';
+
+  @override
+  String get petBodyAdvice => 'Dica de Cuidado';
+
+  @override
+  String get petBodyRelaxed => 'Relaxado & Saudavel';
+
+  @override
+  String get petBodyDiscomfort => 'Sinais de Desconforto';
+
+  @override
+  String get petBodyPain => 'Sinais de Dor ou Estresse';
+
+  @override
+  String get petBodyProcessing => 'Lendo Linguagem Corporal...';
+
+  @override
+  String get petBodyError => 'Falha na analise postural';
+
+  @override
+  String get petBodyDeleteConfirm => 'Excluir esta analise corporal?';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).
@@ -7269,4 +7520,62 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get agendaLoadError => 'Erro ao carregar a agenda. Tente novamente.';
+
+  @override
+  String get soundAnalysisTitle => 'Análise Vocal';
+
+  @override
+  String get soundAnalysisDesc =>
+      'Identifique emoções e necessidades através do latido ou miado.';
+
+  @override
+  String get soundRecording => 'Gravando...';
+
+  @override
+  String get soundProcessing => 'Analisando...';
+
+  @override
+  String get soundStartRecord => 'Toque para gravar';
+
+  @override
+  String get soundResultType => 'Tipo';
+
+  @override
+  String get soundResultEmotion => 'Emoção';
+
+  @override
+  String get soundResultAction => 'Recomendação';
+
+  @override
+  String get soundError => 'Erro ao analisar';
+
+  @override
+  String get soundEmotionSimple => 'O que ele sente';
+
+  @override
+  String get soundReasonSimple => 'Motivo provável';
+
+  @override
+  String get soundActionTip => 'Dica rápida';
+
+  @override
+  String get soundUploadBtn => 'Enviar Áudio';
+
+  @override
+  String get petFoodCardTitle => 'Análise de Rótulo';
+
+  @override
+  String get petFoodVerdict => 'Veredito';
+
+  @override
+  String get petFoodReason => 'Motivo';
+
+  @override
+  String get petFoodTip => 'Dica Diária';
+
+  @override
+  String get petFoodStart => 'Analisar Rótulo';
+
+  @override
+  String get petFoodError => 'Erro na leitura';
 }

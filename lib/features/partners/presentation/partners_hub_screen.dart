@@ -41,15 +41,51 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   bool _loading = true;
   late String _selectedCategory; // Initialized in didChangeDependencies
 
-  List<String> get _filterCategories => [
-    AppLocalizations.of(context)!.partnersFilterAll,
-    AppLocalizations.of(context)!.partnersFilterVet,
-    AppLocalizations.of(context)!.partnersFilterPetShop,
-    AppLocalizations.of(context)!.partnersFilterPharmacy,
-    AppLocalizations.of(context)!.partnersFilterGrooming,
-    AppLocalizations.of(context)!.partnersFilterHotel,
-    AppLocalizations.of(context)!.partnersFilterLab,
-  ];
+  List<String> get _allSelectableCategories {
+    final strings = AppLocalizations.of(context)!;
+    return [
+      strings.partnersFilterAll,
+      // Health & Wellness
+      strings.catVet,
+      strings.catVetEmergency,
+      strings.catVetSpecialist,
+      strings.catPhysio,
+      strings.catHomeo,
+      strings.catNutri,
+      strings.catAnest,
+      strings.catOnco,
+      strings.catDentist,
+      strings.partnersFilterLab,
+      strings.partnersFilterPharmacy,
+      // Daily Care
+      strings.catSitter,
+      strings.partnersFilterDogWalker,
+      strings.catNanny,
+      strings.partnersFilterHotel,
+      strings.catDaycare,
+      // Grooming
+      strings.partnersFilterGrooming,
+      strings.catStylist,
+      strings.catGroomerBreed,
+      // Training
+      strings.catTrainer,
+      strings.catBehaviorist,
+      strings.catCatSultant,
+      // Retail
+      strings.catPetShop,
+      strings.partnersFilterPetShop,
+      strings.catSupplies,
+      strings.catTransport,
+      // Other
+      strings.catNgo,
+      strings.catBreeder,
+      strings.catInsurance,
+      strings.catFuneralPlan,
+      strings.catCemeterie,
+      strings.catCremation,
+      strings.catFuneral,
+    ];
+  }
 
   @override
   void initState() {
@@ -155,7 +191,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
                         isExpanded: true,
                         dropdownColor: AppDesign.surfaceDark,
                         style: const TextStyle(color: AppDesign.textPrimaryDark),
-                        items: _filterCategories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
+                        items: _allSelectableCategories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
                         onChanged: (val) => setDialogState(() => selectedReportCategory = val!),
                       ),
                     ),
@@ -358,33 +394,140 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
   }
 
   Widget _buildFilterBar() {
-    return SizedBox(
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: _filterCategories.length,
-        itemBuilder: (context, index) {
-          final category = _filterCategories[index];
-          final isSelected = _selectedCategory == category;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilterChip(
-              selected: isSelected,
-              label: Text(category, style: GoogleFonts.poppins(
-                color: isSelected ? Colors.black : AppDesign.textPrimaryDark,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              )),
-              backgroundColor: Colors.white10,
-              selectedColor: AppDesign.petPink,
-              checkmarkColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              onSelected: (selected) {
-                setState(() => _selectedCategory = category);
-              },
-            ),
-          );
+    final strings = AppLocalizations.of(context)!;
+    
+    final groups = [
+      {
+        'title': strings.catHeaderHealth,
+        'items': [
+          strings.catVet,
+          strings.catVetEmergency,
+          strings.catVetSpecialist,
+          strings.catPhysio,
+          strings.catHomeo,
+          strings.catNutri,
+          strings.catAnest,
+          strings.catOnco,
+          strings.catDentist,
+          strings.partnersFilterLab,
+          strings.partnersFilterPharmacy,
+        ]
+      },
+      {
+        'title': strings.catHeaderDaily,
+        'items': [
+          strings.catSitter,
+          strings.partnersFilterDogWalker,
+          strings.catNanny,
+          strings.partnersFilterHotel,
+          strings.catDaycare,
+        ]
+      },
+      {
+        'title': strings.catHeaderGrooming,
+        'items': [
+          strings.partnersFilterGrooming,
+          strings.catStylist,
+          strings.catGroomerBreed,
+        ]
+      },
+      {
+        'title': strings.catHeaderTraining,
+        'items': [
+          strings.catTrainer,
+          strings.catBehaviorist,
+          strings.catCatSultant,
+        ]
+      },
+      {
+        'title': strings.catHeaderRetail,
+        'items': [
+          strings.catPetShop,
+          strings.partnersFilterPetShop,
+          strings.catSupplies,
+          strings.catTransport,
+        ]
+      },
+      {
+        'title': strings.catHeaderOther,
+        'items': [
+          strings.catNgo,
+          strings.catBreeder,
+          strings.catInsurance,
+          strings.catFuneralPlan,
+          strings.catCemeterie,
+          strings.catCremation,
+          strings.catFuneral,
+        ]
+      }
+    ];
+
+    final List<DropdownMenuItem<String>> menuItems = [];
+    
+    // Add "All" option first
+    menuItems.add(DropdownMenuItem<String>(
+      value: strings.partnersFilterAll,
+      child: Text(
+        strings.partnersFilterAll,
+        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold),
+      ),
+    ));
+
+    // Add grouped categories
+    for (var g in groups) {
+      final title = g['title'] as String;
+      final items = g['items'] as List<String>;
+
+      // Header (non-selectable)
+      menuItems.add(DropdownMenuItem<String>(
+        value: "HEADER_$title",
+        enabled: false,
+        child: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: AppDesign.petPink,
+            fontSize: 13,
+          ),
+        ),
+      ));
+
+      // Category items
+      for (var item in items) {
+        menuItems.add(DropdownMenuItem<String>(
+          value: item,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: Text(item, style: GoogleFonts.poppins(fontSize: 14)),
+          ),
+        ));
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: DropdownButtonFormField<String>(
+        value: _selectedCategory,
+        dropdownColor: AppDesign.surfaceDark,
+        isExpanded: true,
+        style: const TextStyle(color: AppDesign.textPrimaryDark),
+        decoration: InputDecoration(
+          labelText: strings.partnersCategory,
+          labelStyle: const TextStyle(color: AppDesign.textSecondaryDark),
+          prefixIcon: const Icon(Icons.filter_list, color: AppDesign.petPink),
+          filled: true,
+          fillColor: Colors.white10,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        items: menuItems,
+        onChanged: (v) {
+          if (v != null && !v.startsWith("HEADER_")) {
+            setState(() => _selectedCategory = v);
+          }
         },
       ),
     );
@@ -535,15 +678,51 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
   String _errorMessage = '';
   Position? _currentPosition;
 
-  List<String> get _categories => [
-    AppLocalizations.of(context)!.partnersFilterAll,
-    AppLocalizations.of(context)!.partnersFilterVet,
-    AppLocalizations.of(context)!.partnersFilterPetShop,
-    AppLocalizations.of(context)!.partnersFilterPharmacy,
-    AppLocalizations.of(context)!.partnersFilterGrooming,
-    AppLocalizations.of(context)!.partnersFilterHotel,
-    AppLocalizations.of(context)!.partnersFilterLab,
-  ];
+  List<String> get _allSelectableCategories {
+    final strings = AppLocalizations.of(context)!;
+    return [
+      strings.partnersFilterAll,
+      // Health & Wellness
+      strings.catVet,
+      strings.catVetEmergency,
+      strings.catVetSpecialist,
+      strings.catPhysio,
+      strings.catHomeo,
+      strings.catNutri,
+      strings.catAnest,
+      strings.catOnco,
+      strings.catDentist,
+      strings.partnersFilterLab,
+      strings.partnersFilterPharmacy,
+      // Daily Care
+      strings.catSitter,
+      strings.partnersFilterDogWalker,
+      strings.catNanny,
+      strings.partnersFilterHotel,
+      strings.catDaycare,
+      // Grooming
+      strings.partnersFilterGrooming,
+      strings.catStylist,
+      strings.catGroomerBreed,
+      // Training
+      strings.catTrainer,
+      strings.catBehaviorist,
+      strings.catCatSultant,
+      // Retail
+      strings.catPetShop,
+      strings.partnersFilterPetShop,
+      strings.catSupplies,
+      strings.catTransport,
+      // Other
+      strings.catNgo,
+      strings.catBreeder,
+      strings.catInsurance,
+      strings.catFuneralPlan,
+      strings.catCemeterie,
+      strings.catCremation,
+      strings.catFuneral,
+    ];
+  }
 
   @override
   void initState() {
@@ -881,30 +1060,141 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
   }
 
   Widget _buildRadarFilterBar() {
-    return SizedBox(
-      height: 45,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategory == category;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(category, style: GoogleFonts.poppins(
-                fontSize: 11,
-                color: isSelected ? Colors.black : AppDesign.textSecondaryDark,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              )),
-              selected: isSelected,
-              selectedColor: AppDesign.petPink,
-              backgroundColor: Colors.white.withOpacity(0.05),
-              onSelected: (selected) {
-                setState(() => _selectedCategory = category);
-              },
-            ),
-          );
+    final strings = AppLocalizations.of(context)!;
+    
+    final groups = [
+      {
+        'title': strings.catHeaderHealth,
+        'items': [
+          strings.catVet,
+          strings.catVetEmergency,
+          strings.catVetSpecialist,
+          strings.catPhysio,
+          strings.catHomeo,
+          strings.catNutri,
+          strings.catAnest,
+          strings.catOnco,
+          strings.catDentist,
+          strings.partnersFilterLab,
+          strings.partnersFilterPharmacy,
+        ]
+      },
+      {
+        'title': strings.catHeaderDaily,
+        'items': [
+          strings.catSitter,
+          strings.partnersFilterDogWalker,
+          strings.catNanny,
+          strings.partnersFilterHotel,
+          strings.catDaycare,
+        ]
+      },
+      {
+        'title': strings.catHeaderGrooming,
+        'items': [
+          strings.partnersFilterGrooming,
+          strings.catStylist,
+          strings.catGroomerBreed,
+        ]
+      },
+      {
+        'title': strings.catHeaderTraining,
+        'items': [
+          strings.catTrainer,
+          strings.catBehaviorist,
+          strings.catCatSultant,
+        ]
+      },
+      {
+        'title': strings.catHeaderRetail,
+        'items': [
+          strings.catPetShop,
+          strings.partnersFilterPetShop,
+          strings.catSupplies,
+          strings.catTransport,
+        ]
+      },
+      {
+        'title': strings.catHeaderOther,
+        'items': [
+          strings.catNgo,
+          strings.catBreeder,
+          strings.catInsurance,
+          strings.catFuneralPlan,
+          strings.catCemeterie,
+          strings.catCremation,
+          strings.catFuneral,
+        ]
+      }
+    ];
+
+    final List<DropdownMenuItem<String>> menuItems = [];
+    
+    // Add "All" option first
+    menuItems.add(DropdownMenuItem<String>(
+      value: strings.partnersFilterAll,
+      child: Text(
+        strings.partnersFilterAll,
+        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold),
+      ),
+    ));
+
+    // Add grouped categories
+    for (var g in groups) {
+      final title = g['title'] as String;
+      final items = g['items'] as List<String>;
+
+      // Header (non-selectable)
+      menuItems.add(DropdownMenuItem<String>(
+        value: "HEADER_$title",
+        enabled: false,
+        child: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: AppDesign.petPink,
+            fontSize: 13,
+          ),
+        ),
+      ));
+
+      // Category items
+      for (var item in items) {
+        menuItems.add(DropdownMenuItem<String>(
+          value: item,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 12.0),
+            child: Text(item, style: GoogleFonts.poppins(fontSize: 14)),
+          ),
+        ));
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      child: DropdownButtonFormField<String>(
+        value: _selectedCategory,
+        dropdownColor: AppDesign.surfaceDark,
+        isExpanded: true,
+        style: const TextStyle(color: AppDesign.textPrimaryDark),
+        decoration: InputDecoration(
+          labelText: strings.partnersCategory,
+          labelStyle: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12),
+          prefixIcon: const Icon(Icons.filter_list, color: AppDesign.petPink, size: 20),
+          filled: true,
+          fillColor: Colors.white10,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          isDense: true,
+        ),
+        items: menuItems,
+        onChanged: (v) {
+          if (v != null && !v.startsWith("HEADER_")) {
+            setState(() => _selectedCategory = v);
+          }
         },
       ),
     );

@@ -829,6 +829,216 @@ class GeminiService {
       throw const FormatException('Invalid JSON format');
     }
   }
+
+  // --- SOUND ANALYSIS (Agente de Áudio) ---
+  Future<Map<String, dynamic>> analyzeAudio(String path) async {
+      if (_apiKey.isEmpty) {
+        throw GeminiException(
+          'API Key não configurada. Verifique o arquivo .env',
+          type: GeminiErrorType.configuration,
+        );
+      }
+      debugPrint('🎙️ [Gemini] Iniciando análise de áudio: $path');
+      try {
+        final file = File(path);
+        if (!await file.exists()) {
+             debugPrint('❌ [Gemini] Arquivo de áudio não encontrado: $path');
+             throw Exception('Audio file not found');
+        }
+        
+        final bytes = await file.readAsBytes();
+        final base64Audio = base64Encode(bytes);
+        debugPrint('📊 [Gemini] Tamanho áudio: ${bytes.length} bytes (Base64: ${base64Audio.length})');
+
+        // Use dynamic model selection
+        final model = await _findWorkingModel() ?? 'gemini-1.5-flash'; 
+
+        const prompt = "Analise este áudio de pet. Identifique o que o animal está tentando comunicar. "
+                     "NÃO use termos técnicos médicos ou biológicos. Explique de forma simples para o dono: "
+                     "1. O que ele está sentindo ('emotion_simple'); "
+                     "2. O motivo provável ('reason_simple'); "
+                     "3. O que fazer ('action_tip'). "
+                     "Retorne estritamente um JSON com estas chaves exatas.";
+
+        String mimeType = 'audio/mp4'; // Default
+        final ext = path.toLowerCase();
+        if (ext.endsWith('.mp3')) mimeType = 'audio/mpeg'; 
+        else if (ext.endsWith('.wav')) mimeType = 'audio/wav';
+        else if (ext.endsWith('.aac')) mimeType = 'audio/aac';
+        else if (ext.endsWith('.ogg')) mimeType = 'audio/ogg';
+        else if (ext.endsWith('.m4a')) mimeType = 'audio/mp4';
+
+        final requestData = {
+          'contents': [
+            {
+              'parts': [
+                {'text': prompt},
+                {
+                  'inline_data': {
+                    'mime_type': mimeType, 
+                    'data': base64Audio
+                  }
+                }
+              ]
+            }
+          ]
+        };
+
+        debugPrint('⏳ [Gemini] Enviando áudio para API (modelo: $model, mime: $mimeType, path: $path)...');
+        
+        final response = await _dio.post(
+          '/v1/models/$model:generateContent', 
+          queryParameters: {'key': _apiKey},
+          data: requestData,
+        ).timeout(const Duration(seconds: 45));
+
+        debugPrint('✅ [Gemini] Resposta recebida. Status: ${response.statusCode}');
+        
+        final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        debugPrint('📄 [Gemini] Resposta bruta ÁUDIO: $text');
+        
+        if (text == null) {
+           debugPrint('🚨 [Gemini] Resposta sem texto. Body: ${response.data}');
+           throw Exception('Empty response from AI');
+        }
+        
+        return _extractJson(text);
+      } catch (e) {
+         if (e is DioException) {
+            debugPrint('🚨 [Gemini] DioError na análise de áudio:');
+            debugPrint('   Status: ${e.response?.statusCode}');
+            debugPrint('   Body: ${e.response?.data}');
+            throw GeminiException('Erro na API (${e.response?.statusCode}): ${e.response?.data?['error']?['message'] ?? e.message}', type: GeminiErrorType.serverError);
+         }
+         debugPrint('🚨 [Gemini] Audio Analysis Error: $e');
+         throw GeminiException('Falha na análise de áudio: $e', type: GeminiErrorType.serverError);
+      }
+  }
+
+  // --- PET BODY ANALYSIS (Saúde & Postura) ---
+  Future<Map<String, dynamic>> analyzePetBody(String path) async {
+      try {
+        final file = File(path);
+        if (!await file.exists()) throw Exception('Image file not found');
+        
+        final bytes = await file.readAsBytes();
+        final base64Image = base64Encode(bytes);
+        final model = await _findWorkingModel() ?? 'gemini-1.5-flash'; 
+
+        const prompt = """
+Você é um especialista em comportamento e saúde animal. Analise esta imagem do pet usando marcadores biométricos e contextuais ESPECÍFICOS.
+
+**1. MARCADORES DE LINGUAGEM CORPORAL (Sinais Primários):**
+- **Orelhas:** Orientação (para frente = curiosidade/alerta, para trás = medo/submissão, achatadas = medo extremo/agressividade, em pé = atenção)
+- **Olhos e Pupilas:** Dilatação pupilar (dilatadas = estresse/medo/excitação, contraídas = relaxamento), visibilidade do branco do olho ("olhar de baleia" = desconforto/alerta)
+- **Focinho e Boca:** Tensão labial (lábios tensos = estresse, relaxados = calma), boca entreaberta (relaxamento), exibição de dentes (alerta/agressividade)
+- **Cauda:** Posição (entre as pernas = medo/submissão, erguida = confiança/alerta, na linha do dorso = equilíbrio/neutralidade)
+
+**2. POSTURA E TENSÃO MUSCULAR:**
+- **Eixo de Gravidade:** Peso deslocado para trás (medo/fuga/insegurança) ou para frente (curiosidade/dominância/interesse)
+- **Curvatura da Coluna:** Arqueada (possível dor/desconforto ou tentativa de parecer menor), reta (confiança/neutralidade)
+- **Rigidez Corporal:** Músculos tensos (estresse/alerta) ou relaxados (conforto/segurança)
+- **Piloreção:** Pelos arrepiados no dorso (alta excitação/defesa/medo)
+
+**3. CONTEXTO AMBIENTAL (Análise de Cena):**
+- **Interações:** Presença de outros animais, pessoas ou brinquedos e a reação do pet a esses estímulos
+- **Território:** Pet em espaço aberto (confiança) ou acuado em canto (insegurança/medo)
+- **Ambiente:** Local familiar ou desconhecido, presença de estímulos estressantes
+
+**INSTRUÇÕES DE RESPOSTA:**
+Use linguagem SIMPLES e CLARA para tutores leigos. Traduza os sinais técnicos em explicações compreensíveis.
+
+Retorne ESTRITAMENTE um JSON válido com:
+{
+  "health_score": [número de 1 a 10, onde 10 = pet completamente relaxado e saudável, 1 = sinais graves de dor/estresse],
+  "body_signals": "[descrição DETALHADA dos sinais observados, mencionando orelhas, olhos, cauda, postura, etc.]",
+  "simple_advice": "[conselho PRÁTICO e ESPECÍFICO para o tutor, baseado nos sinais identificados]"
+}
+
+**IMPORTANTE:** Se a foto for parcial ou de baixa qualidade, use o padrão comportamental da raça para sugerir o estado provável, mas SEMPRE mencione a limitação da análise.
+""";
+
+        final requestData = {
+          'contents': [
+            {
+              'parts': [
+                {'text': prompt},
+                {
+                  'inline_data': {
+                    'mime_type': 'image/jpeg', 
+                    'data': base64Image
+                  }
+                }
+              ]
+            }
+          ]
+        };
+
+        final response = await _dio.post(
+          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_apiKey',
+          data: requestData,
+        );
+
+        final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        if (text == null) throw Exception('Empty response from AI');
+        
+        return _extractJson(text);
+      } catch (e) {
+         debugPrint('🚨 [Gemini] Body Analysis Error: $e');
+         throw GeminiException('Falha na análise corporal: $e', type: GeminiErrorType.serverError);
+      }
+  }
+
+  // --- PET FOOD ANALYSIS (Agente Nutricional) ---
+  Future<Map<String, dynamic>> analyzePetFood(String path) async {
+      try {
+        final file = File(path);
+        if (!await file.exists()) throw Exception('Image file not found');
+        
+        final bytes = await file.readAsBytes();
+        final base64Image = base64Encode(bytes);
+        final model = await _findWorkingModel() ?? 'gemini-1.5-flash'; 
+
+        const prompt = "Analise a lista de ingredientes deste rótulo de ração. "
+                     "Explique para o dono do pet se ela é boa ou ruim sem usar termos técnicos ou científicos complexos. "
+                     "Se houver conservantes como BHA ou BHT, diga apenas que são 'conservantes artificiais que podem fazer mal'. "
+                     "Identifique se a carne é de boa qualidade. "
+                     "Retorne estritamente um JSON com: "
+                     "\"veredit\" (Muito Boa, Regular, Ruim), "
+                     "\"simple_reason\" (Por que ela recebeu esse veredito), "
+                     "\"daily_tip\" (Dica simples de saúde alimentar).";
+
+        final requestData = {
+          'contents': [
+            {
+              'parts': [
+                {'text': prompt},
+                {
+                  'inline_data': {
+                    'mime_type': 'image/jpeg', 
+                    'data': base64Image
+                  }
+                }
+              ]
+            }
+          ]
+        };
+
+        final response = await _dio.post(
+          '/v1/models/$model:generateContent',
+          queryParameters: {'key': _apiKey},
+          data: requestData,
+        );
+        
+        final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        if (text == null) throw Exception('Empty response from AI');
+        
+        return _extractJson(text);
+      } catch (e) {
+         debugPrint('🚨 [Gemini] Food Analysis Error: $e');
+         throw GeminiException('Falha na análise de ração: $e', type: GeminiErrorType.serverError);
+      }
+  }
 }
 
 /// Error types
@@ -882,3 +1092,4 @@ class GeminiException implements Exception {
   @override
   String toString() => userMessage;
 }
+

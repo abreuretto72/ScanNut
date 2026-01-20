@@ -168,6 +168,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                 setState(() {
                    _event = PetEvent(
                       id: updatedEvent.id,
+                      petId: _event.petId,
                       petName: _event.petName,
                       title: updatedEvent.title,
                       type: _event.type, // keep original or map

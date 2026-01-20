@@ -17,27 +17,30 @@ class UserProfileAdapter extends TypeAdapter<UserProfile> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return UserProfile(
-      userName: fields[0] as String,
-      dailyCalorieGoal: fields[1] as int,
-      weight: fields[2] as double,
-      height: fields[3] as double,
-      preferences: (fields[4] as Map).cast<String, dynamic>(),
+      id: fields[0] as String,
+      userName: fields[1] as String,
+      dailyCalorieGoal: fields[2] as int,
+      weight: fields[3] as double,
+      height: fields[4] as double,
+      preferences: (fields[5] as Map).cast<String, dynamic>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, UserProfile obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
-      ..write(obj.userName)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.dailyCalorieGoal)
+      ..write(obj.userName)
       ..writeByte(2)
-      ..write(obj.weight)
+      ..write(obj.dailyCalorieGoal)
       ..writeByte(3)
-      ..write(obj.height)
+      ..write(obj.weight)
       ..writeByte(4)
+      ..write(obj.height)
+      ..writeByte(5)
       ..write(obj.preferences);
   }
 

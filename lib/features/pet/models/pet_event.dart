@@ -61,7 +61,10 @@ class PetEvent extends HiveObject {
   String id;
 
   @HiveField(1)
-  String petName;
+  final String petId;
+
+  @HiveField(12)
+  final String petName;
 
   @HiveField(2)
   String title;
@@ -95,6 +98,7 @@ class PetEvent extends HiveObject {
 
   PetEvent({
     required this.id,
+    required this.petId,
     required this.petName,
     required this.title,
     required this.type,

@@ -136,6 +136,7 @@ class CardapioStressTest {
       else if (w > 25) size = 'Grande';
 
       return PetProfileExtended(
+          id: const Uuid().v4(),
           petName: data['pet_name'],
           raca: data['raca'],
           especie: 'Cão',

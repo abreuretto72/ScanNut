@@ -86,6 +86,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                      
                      final pEvent = PetEvent(
                         id: agEvent.id,
+                        petId: petName,
                         petName: petName,
                         title: agEvent.title,
                         type: pType,
@@ -651,7 +652,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                            DropdownMenuItem(value: null, child: Text('Todas as Categorias', style: const TextStyle(color: AppDesign.textPrimaryDark))),
                            ...EventType.values.map((type) => DropdownMenuItem(
                              value: type, 
-                              child: Text(PetEvent(id: '', petName: '', title: '', type: type, dateTime: DateTime.now()).typeLabel, style: const TextStyle(color: AppDesign.textPrimaryDark))
+                              child: Text(PetEvent(id: '', petId: '', petName: '', title: '', type: type, dateTime: DateTime.now()).typeLabel, style: const TextStyle(color: AppDesign.textPrimaryDark))
                            )),
                         ],
                         onChanged: (val) => setSheetState(() => categoryFilter = val),
@@ -677,6 +678,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                       isExpanded: true,
                       items: [
                          DropdownMenuItem(value: 'Detalhamento', child: Text('Tabela Detalhada', style: const TextStyle(color: AppDesign.textPrimaryDark))),
+                         DropdownMenuItem(value: 'Somente Agendamentos', child: Text('Somente Agendamentos', style: const TextStyle(color: AppDesign.textPrimaryDark))),
                          DropdownMenuItem(value: 'Resumo', child: Text('Apenas Resumo', style: const TextStyle(color: AppDesign.textPrimaryDark))),
                       ],
                       onChanged: (val) {
@@ -712,7 +714,13 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                           (e.dateTime.isBefore(end) || isSameDay(e.dateTime, end));
           final matchesPet = petFilter == null || e.petName == petFilter;
           final matchesCategory = categoryFilter == null || e.type == categoryFilter;
-          return inRange && matchesPet && matchesCategory;
+
+          // 🛡️ Filter Logic for "Only Appointments"
+          final matchesReportType = (reportType == 'Somente Agendamentos') 
+                 ? !e.id.startsWith('idx_') 
+                 : true;
+
+          return inRange && matchesPet && matchesCategory && matchesReportType;
       }).toList();
 
       events.sort((a, b) => a.dateTime.compareTo(b.dateTime));

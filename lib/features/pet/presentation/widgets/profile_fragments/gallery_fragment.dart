@@ -8,6 +8,7 @@ import '../../../../../core/widgets/cumulative_observations_field.dart';
 
 class GalleryFragment extends StatelessWidget {
   final List<File> docs;
+  final File? profileImage;
   final String observacoesGaleria;
   
   final Function(File) onDeleteAttachment;
@@ -18,6 +19,7 @@ class GalleryFragment extends StatelessWidget {
   const GalleryFragment({
     Key? key,
     required this.docs,
+    this.profileImage,
     required this.observacoesGaleria,
     required this.onDeleteAttachment,
     required this.onAddAttachment,
@@ -28,6 +30,8 @@ class GalleryFragment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final hasProfile = profileImage != null && profileImage!.existsSync();
+    final totalCount = docs.length + (hasProfile ? 1 : 0);
     
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -46,7 +50,7 @@ class GalleryFragment extends StatelessWidget {
         ),
         const SizedBox(height: 20),
 
-        if (docs.isEmpty)
+        if (totalCount == 0)
           Container(
             padding: const EdgeInsets.all(40),
             width: double.infinity,
@@ -73,24 +77,47 @@ class GalleryFragment extends StatelessWidget {
               mainAxisSpacing: 8,
               childAspectRatio: 1,
             ),
-            itemCount: docs.length,
+            itemCount: totalCount,
             itemBuilder: (context, index) {
-              final file = docs[index];
+              File file;
+              bool isProfile = false;
+              
+              if (hasProfile && index == 0) {
+                 file = profileImage!;
+                 isProfile = true;
+              } else {
+                 file = docs[index - (hasProfile ? 1 : 0)];
+              }
+              
               final isVideo = file.path.toLowerCase().endsWith('.mp4') || file.path.toLowerCase().endsWith('.mov');
+              
               return InkWell(
                 onTap: () {
-                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.commonFilePrefix + path.basename(file.path))));
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isProfile ? 'Foto de Perfil' : (l10n.commonFilePrefix + path.basename(file.path)))));
                 },
-                onLongPress: () => onDeleteAttachment(file),
+                onLongPress: isProfile ? null : () => onDeleteAttachment(file),
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppDesign.surfaceDark,
                     borderRadius: BorderRadius.circular(8),
                     image: !isVideo ? DecorationImage(image: FileImage(file), fit: BoxFit.cover) : null,
+                    border: isProfile ? Border.all(color: AppDesign.petPink, width: 2) : null,
                   ),
-                  child: isVideo 
-                    ? const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 32))
-                    : null,
+                  child: Stack(
+                    children: [
+                       if (isVideo) 
+                         const Center(child: Icon(Icons.play_circle_fill, color: Colors.white, size: 32)),
+                       if (isProfile)
+                         Positioned(
+                           bottom: 0, left: 0, right: 0,
+                           child: Container(
+                             color: AppDesign.petPink.withOpacity(0.8),
+                             padding: const EdgeInsets.symmetric(vertical: 2),
+                             child: const Text('Perfil', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                           ),
+                         ),
+                    ],
+                  ),
                 ),
               );
             },

@@ -149,7 +149,7 @@ class PetAnalysisResult {
         idMap,
         _safeMap(json['growth_curve'])
       ),
-      perfilComportamental: PerfilComportamental.empty(),
+      perfilComportamental: PerfilComportamental.fromTotalInference(_safeMap(json['behavior'])),
       nutricao: NutricaoEStrutura.fromTotalInference(_safeMap(json['nutrition']), _safeMap(json['identification'])['size']?.toString() ?? 'Medium'),
       higiene: Grooming.fromTotalInference(_safeMap(json['grooming'])),
       saude: SaudePreventiva.fromTotalInference(_safeMap(json['health'])),
@@ -198,7 +198,8 @@ class PetAnalysisResult {
     'nutrition': nutricao.toJson(),
     'grooming': higiene.toJson(),
     'health': saude.toJson(),
-    'lifestyle': lifestyle.toJson(), // We need this
+    'lifestyle': lifestyle.toJson(), 
+    'behavior': perfilComportamental.toJson(), // Expanded Domain
   };
 }
 
@@ -522,11 +523,59 @@ class PerfilComportamental {
     final int nivelInteligencia;
     final String driveAncestral;
     final int sociabilidadeGeral;
-    PerfilComportamental({required this.nivelEnergia, required this.nivelInteligencia, required this.driveAncestral, required this.sociabilidadeGeral});
-    factory PerfilComportamental.empty() => PerfilComportamental(nivelEnergia: 0, nivelInteligencia: 0, driveAncestral: 'N/A', sociabilidadeGeral: 0);
-    factory PerfilComportamental.fromTotalInference(Map<String, dynamic> json) => PerfilComportamental.empty();
-    factory PerfilComportamental.fromJson(Map<String, dynamic> json) => PerfilComportamental.empty();
-    Map<String, dynamic> toJson() => {};
+    
+    // Expanded Fields (V_NEW)
+    final String? personalidade;
+    final String? comportamentoSocial;
+    final String? descricaoEnergia;
+
+    PerfilComportamental({
+      required this.nivelEnergia, 
+      required this.nivelInteligencia, 
+      required this.driveAncestral, 
+      required this.sociabilidadeGeral,
+      this.personalidade,
+      this.comportamentoSocial,
+      this.descricaoEnergia,
+    });
+
+    factory PerfilComportamental.empty() => PerfilComportamental(
+      nivelEnergia: 0, 
+      nivelInteligencia: 0, 
+      driveAncestral: 'N/A', 
+      sociabilidadeGeral: 0
+    );
+
+    factory PerfilComportamental.fromTotalInference(Map<String, dynamic> json) {
+       return PerfilComportamental(
+          nivelEnergia: 0, // Legacy placeholder
+          nivelInteligencia: 0, 
+          driveAncestral: 'N/A', 
+          sociabilidadeGeral: 0,
+          personalidade: json['personality']?.toString(),
+          comportamentoSocial: json['social_behavior']?.toString(),
+          descricaoEnergia: json['energy_level_desc']?.toString(),
+       );
+    }
+
+    factory PerfilComportamental.fromJson(Map<String, dynamic> json) {
+       // Support reconstruction from Hive
+       return PerfilComportamental(
+          nivelEnergia: json['nivelEnergia'] ?? 0,
+          nivelInteligencia: json['nivelInteligencia'] ?? 0,
+          driveAncestral: json['driveAncestral'] ?? 'N/A',
+          sociabilidadeGeral: json['sociabilidadeGeral'] ?? 0,
+          personalidade: json['personalidade'],
+          comportamentoSocial: json['comportamentoSocial'],
+          descricaoEnergia: json['descricaoEnergia'],
+       );
+    }
+
+    Map<String, dynamic> toJson() => {
+       'personalidade': personalidade,
+       'comportamentoSocial': comportamentoSocial,
+       'descricaoEnergia': descricaoEnergia,
+    };
 }
 
 int _toInt(dynamic value, int defaultValue) {

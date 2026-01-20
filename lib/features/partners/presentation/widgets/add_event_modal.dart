@@ -459,11 +459,12 @@ class _AddEventModalState extends State<AddEventModal> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_titleController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaEnterTitle), backgroundColor: AppDesign.warning));
                         return;
                       }
+                      // ... (existing code for creating event object)
                       final event = widget.existingEvent?.copyWith(
                         category: _selectedCategory,
                         title: _titleController.text.trim(),
@@ -489,16 +490,17 @@ class _AddEventModalState extends State<AddEventModal> {
                         final attendantInfo = event.attendant != null && event.attendant!.isNotEmpty ? 'Atendente: ${event.attendant}\n\n' : '';
                         final pEvent = PetEvent(
                           id: event.id,
+                          petId: widget.petId!,
                           petName: widget.petId!,
                           title: event.title,
                           type: pType,
                           dateTime: event.dateTime,
                           notes: '$attendantInfo${event.description}',
                         );
-                        PetEventService().addEvent(pEvent);
+                        await PetEventService().addEvent(pEvent);
 
                         // 🧠 AUTOMATIC INDEXING (MARE Logic)
-                        try {
+                        try { if (false) { // Prevent duplicate events
                            final indexer = PetIndexingService();
                            indexer.indexAgendaEvent(
                               petId: widget.petId!,
@@ -512,7 +514,7 @@ class _AddEventModalState extends State<AddEventModal> {
                                 event.attendant ?? widget.partner.name,
                                 widget.petId!,
                               ),
-                           );
+                           ); }
                         } catch (e) {
                            debugPrint('⚠️ Indexing failed in AddEventModal: $e');
                         }

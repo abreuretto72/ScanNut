@@ -10,9 +10,10 @@ import 'package:scannut/l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 
 class PetAgendaScreen extends ConsumerStatefulWidget {
+  final String petId;
   final String petName;
 
-  const PetAgendaScreen({Key? key, required this.petName}) : super(key: key);
+  const PetAgendaScreen({Key? key, required this.petId, required this.petName}) : super(key: key);
 
   @override
   ConsumerState<PetAgendaScreen> createState() => _PetAgendaScreenState();
@@ -37,7 +38,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
   void _showAddEventDialog() {
     showDialog(
       context: context,
-      builder: (context) => _AddEventDialog(petName: widget.petName),
+      builder: (context) => _AddEventDialog(petId: widget.petId, petName: widget.petName),
     );
   }
 
@@ -138,6 +139,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
               ...EventType.values.map((type) {
                 final event = PetEvent(
                   id: '',
+                  petId: '',
                   petName: '',
                   title: '',
                   type: type,
@@ -486,10 +488,11 @@ class _EventCard extends StatelessWidget {
 
 // Add Event Dialog (placeholder - will be implemented next)
 class _AddEventDialog extends ConsumerStatefulWidget {
+  final String petId;
   final String petName;
   final PetEvent? existingEvent;
 
-  const _AddEventDialog({required this.petName, this.existingEvent});
+  const _AddEventDialog({required this.petId, required this.petName, this.existingEvent});
 
   @override
   ConsumerState<_AddEventDialog> createState() => _AddEventDialogState();
@@ -601,6 +604,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
       // Update existing event
       final updatedEvent = PetEvent(
         id: widget.existingEvent!.id,
+        petId: widget.existingEvent!.petId,
         petName: widget.petName,
         title: eventTitle,
         type: _selectedType,
@@ -616,6 +620,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
       // Create new event
       final event = PetEvent(
         id: const Uuid().v4(),
+        petId: widget.petId,
         petName: widget.petName,
         title: eventTitle,
         type: _selectedType,
@@ -760,6 +765,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                             items: EventType.values.map((type) {
                               final dummyEvent = PetEvent(
                                 id: '',
+                                petId: '',
                                 petName: '',
                                 title: '',
                                 type: type,
@@ -847,6 +853,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                             items: RecurrenceType.values.map((type) {
                               final dummyEvent = PetEvent(
                                 id: '',
+                                petId: '',
                                 petName: '',
                                 title: '',
                                 type: EventType.other,
@@ -962,6 +969,7 @@ class _EventDetailsDialog extends StatelessWidget {
             showDialog(
               context: context,
               builder: (context) => _AddEventDialog(
+                petId: event.petId,
                 petName: event.petName,
                 existingEvent: event,
               ),

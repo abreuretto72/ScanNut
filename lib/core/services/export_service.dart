@@ -303,9 +303,7 @@ class ExportService {
   }) async {
     final pdf = pw.Document();
     final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
-    final int totalCount = events.length;
-    final int completedCount = events.where((e) => e.completed).length;
-    final int pendingCount = totalCount - completedCount;
+    // Totals removed as per user request
 
     pdf.addPage(
       pw.MultiPage(
@@ -314,16 +312,8 @@ class ExportService {
         header: (context) => buildHeader(strings.pdfAgendaReport, timestampStr, color: colorPet),
         footer: (context) => buildFooter(context),
         build: (context) => [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              buildIndicator('${strings.pdfTotalEvents}:', totalCount.toString(), PdfColors.black),
-              buildIndicator('${strings.pdfCompletedEvents}:', completedCount.toString(), PdfColors.green700),
-              buildIndicator('${strings.pdfPendingEvents}:', pendingCount.toString(), PdfColors.red700),
-            ],
-          ),
-          pw.SizedBox(height: 25),
-          if (reportType == 'Detalhamento')
+          // Indicators removed
+          if (reportType == 'Detalhamento' || reportType == 'Somente Agendamentos')
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
               headerDecoration: pw.BoxDecoration(color: colorPet),

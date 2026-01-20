@@ -133,7 +133,7 @@ class MediaVaultService {
   /// Securely Clones a file to the Vault with Compression (80% Quality, Max 1920x1080)
   /// Returns the NEW path.
   /// Throws exception if verification fails.
-  Future<String> secureClone(File sourceFile, String category, [String? subFolder]) async {
+  Future<String> secureClone(File sourceFile, String category, [String? subFolder, bool skipIndexing = false]) async {
       final appDir = await getApplicationSupportDirectory();
       String targetPath = '${appDir.path}/$VAULT_ROOT/$category';
       
@@ -206,7 +206,7 @@ class MediaVaultService {
       debugPrint('✅ Vault Secure Clone Success: ${destFile.path} ($length bytes)');
       
       // 🧠 AUTOMATIC INDEXING (MARE Logic)
-      if (category == MediaVaultService.PETS_DIR && subFolder != null) {
+      if (!skipIndexing && category == MediaVaultService.PETS_DIR && subFolder != null) {
           try {
               final indexer = PetIndexingService();
               await indexer.indexVaultUpload(

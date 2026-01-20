@@ -144,7 +144,8 @@ class PetEventRepository {
 
       final agendaEvent = PetEvent(
         id: model.id, // Keep same ID for easy sync/delete
-        petName: model.petId,
+        petId: model.petId,
+        petName: model.data['pet_name']?.toString() ?? model.petId,
         title: model.title,
         type: type,
         dateTime: model.timestamp,

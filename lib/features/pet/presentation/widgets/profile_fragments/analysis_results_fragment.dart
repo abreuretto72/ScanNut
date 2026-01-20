@@ -5,6 +5,9 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import '../../../../../core/theme/app_design.dart';
 import '../../../../../l10n/app_localizations.dart';
+import '../sound_analysis_card.dart';
+import '../pet_food_analysis_card.dart';
+import '../pet_body_analysis_card.dart';
 
 class AnalysisResultsFragment extends StatelessWidget {
   final List<Map<String, dynamic>> analysisHistory;
@@ -15,6 +18,8 @@ class AnalysisResultsFragment extends StatelessWidget {
   
   final String Function(BuildContext, String) tryLocalizeLabel;
   final String? Function(Map) findBreedRecursive;
+  final Function(Map<String, dynamic>)? onDeleteAnalysis;
+  final VoidCallback? onAnalysisSaved; // 🔄 Novo callback
 
   const AnalysisResultsFragment({
     Key? key,
@@ -25,6 +30,8 @@ class AnalysisResultsFragment extends StatelessWidget {
     this.existingProfileLastUpdated,
     required this.tryLocalizeLabel,
     required this.findBreedRecursive,
+    this.onDeleteAnalysis,
+    this.onAnalysisSaved, // 🔄 Novo parâmetro
   }) : super(key: key);
 
   @override
@@ -34,22 +41,38 @@ class AnalysisResultsFragment extends StatelessWidget {
     final current = currentRawAnalysis;
     final hasData = history.isNotEmpty || (current != null && current.isNotEmpty);
 
-    if (!hasData) {
-       return Center(child: Padding(
-         padding: const EdgeInsets.symmetric(vertical: 60),
-         child: Column(mainAxisSize: MainAxisSize.min, children: [
-           const Icon(Icons.analytics_outlined, size: 60, color: Colors.white24),
-           const SizedBox(height: 16),
-           Text(l10n.petHistoryEmpty, style: GoogleFonts.poppins(color: Colors.white54)),
-         ]),
-       ));
-    }
+    // Empty check moved inside Column
+
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(24),
       child: Column(
-      children: List.generate(history.length + (current != null && current.isNotEmpty && history.isEmpty ? 1 : 0) + 1, (index) {
+        children: [
+          SoundAnalysisCard(
+            petName: petName,
+            analysisHistory: analysisHistory,
+            onDeleteAnalysis: onDeleteAnalysis,
+          ),
+          const SizedBox(height: 16),
+          PetBodyAnalysisCard(
+            petName: petName,
+            analysisHistory: analysisHistory,
+            onDeleteAnalysis: onDeleteAnalysis,
+            onAnalysisSaved: onAnalysisSaved, // 🔄 Propagar callback
+          ),
+          const SizedBox(height: 16),
+          if (!hasData)
+             Padding(
+               padding: const EdgeInsets.symmetric(vertical: 40),
+               child: Column(children: [
+                 const Icon(Icons.analytics_outlined, size: 50, color: Colors.white12),
+                 const SizedBox(height: 10),
+                 Text(l10n.petHistoryEmpty, style: GoogleFonts.poppins(color: Colors.white24)),
+               ]),
+             )
+          else
+            ...List.generate(history.length + (current != null && current.isNotEmpty && history.isEmpty ? 1 : 0) + 1, (index) {
           if (index == 0) {
               return Container(
                 margin: const EdgeInsets.only(bottom: 20),
@@ -159,7 +182,7 @@ class AnalysisResultsFragment extends StatelessWidget {
                     final k = e.key;
                     final v = e.value;
                     final lowerK = k.toLowerCase().trim();
-                    if (['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification', 'clinical_signs', 'sinais_clinicos', 'metadata'].contains(lowerK)) return false;
+                    if (['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification', 'clinical_signs', 'sinais_clinicos', 'metadata', 'temperament', 'temperamento'].contains(lowerK)) return false;
                     
                     if (v == null || v.toString().toLowerCase() == 'null') return false;
                     if (v is String && v.trim().isEmpty) return false;
@@ -202,7 +225,8 @@ class AnalysisResultsFragment extends StatelessWidget {
                 }).toList(),
             ]),
           );
-      }),
+        }),
+      ],
       ),
     );
   }

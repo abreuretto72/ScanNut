@@ -38,19 +38,27 @@ class AttachmentSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.attach_file, color: Colors.white54, size: 16),
-                  const SizedBox(width: 8),
-                  Text(title, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
-                  if (files.isNotEmpty) 
-                    Container(
-                      margin: const EdgeInsets.only(left: 8),
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: AppDesign.petPink, shape: BoxShape.circle),
-                      child: Text('${files.length}', style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(Icons.attach_file, color: Colors.white54, size: 16),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        title, 
+                        style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                ],
+                    if (files.isNotEmpty) 
+                      Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: AppDesign.petPink, shape: BoxShape.circle),
+                        child: Text('${files.length}', style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                  ],
+                ),
               ),
               IconButton( // Small Add Button
                 onPressed: onAdd,

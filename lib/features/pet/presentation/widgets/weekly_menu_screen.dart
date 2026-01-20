@@ -24,6 +24,7 @@ class WeeklyMenuScreen extends ConsumerStatefulWidget {
   // Legacy params kept for compatibility
   final List<Map<String, dynamic>> currentWeekPlan;
   final String generalGuidelines;
+  final int initialTabIndex;
 
   const WeeklyMenuScreen({
     Key? key,
@@ -31,6 +32,7 @@ class WeeklyMenuScreen extends ConsumerStatefulWidget {
     required this.raceName,
     this.currentWeekPlan = const [],
     this.generalGuidelines = '',
+    this.initialTabIndex = 0,
   }) : super(key: key);
 
   @override
@@ -49,7 +51,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTabIndex);
     _loadHistory();
   }
 

@@ -165,6 +165,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
 
       final pEvent = PetEvent(
           id: agendaEvent.id,
+          petId: widget.petId!,
           petName: widget.petId!,
           title: agendaEvent.title,
           type: pType,
@@ -299,6 +300,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                 final petEvents = _events.map((e) {
                    return PetEvent(
                       id: e['id'] ?? '',
+                      petId: widget.petId ?? 'N/A',
                       petName: widget.petId ?? 'N/A',
                       title: e['title'] ?? '',
                       type: EventType.other,

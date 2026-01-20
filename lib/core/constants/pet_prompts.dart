@@ -154,6 +154,11 @@ You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze
     "environment_type": "string (strictly in $languageName)",
     "training_intelligence": "string (in $languageName)"
   },
+  "behavior": {
+    "personality": "string (Descriptive personality traits inferred from breed/expression in $languageName)",
+    "social_behavior": "string (How they interact with humans/pets in $languageName)", 
+    "energy_level_desc": "string (Detailed description of energy needs in $languageName)"
+  },
   "metadata": {
     "reliability": "string (e.g. '98%' or 'Alta' - estimate AI confidence)"
   }

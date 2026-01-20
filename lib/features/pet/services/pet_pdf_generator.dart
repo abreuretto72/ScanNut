@@ -144,7 +144,9 @@ class PetPdfGenerator {
                         'category': p.category ?? 'Parceiro',
                         'phone': p.phone.isNotEmpty ? p.phone : (p.whatsapp ?? p.metadata['formatted_phone_number']?.toString() ?? ''),
                         'email': p.email ?? '',
-                        'address': p.address ?? ''
+                        'email': p.email ?? '',
+                        'address': p.address ?? '',
+                        'notes': (profile.partnerNotes[id] as List?)?.map((n) => n['content']?.toString() ?? '').join('; ') ?? ''
                     });
                 }
             }
@@ -166,6 +168,17 @@ class PetPdfGenerator {
                  });
             }
         }
+    }
+
+    // GENERIC ANALYSIS HISTORY IMAGES
+    final List<Map<String, dynamic>> analysisWithImages = [];
+    for (var a in profile.analysisHistory) {
+        pw.ImageProvider? img;
+        final path = a['image_path'] ?? a['photo_path'];
+        if (path != null && path.toString().isNotEmpty) {
+            img = await _safeLoadImage(path.toString());
+        }
+        analysisWithImages.add({'data': a, 'image': img});
     }
 
     // --- 2. BUILD PDF ---
@@ -196,6 +209,11 @@ class PetPdfGenerator {
                 : pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
              pw.SizedBox(height: 20),
 
+             _buildSectionTitle('PLANOS E SEGUROS', strings),
+             pw.SizedBox(height: 10),
+             _buildPlansSection(profile, strings),
+             pw.SizedBox(height: 20),
+
              _buildSectionTitle(strings.pdfHealthSection, strings),
              _buildVaccineTable(profile, strings),
              pw.SizedBox(height: 10),
@@ -220,6 +238,14 @@ class PetPdfGenerator {
                 }).toList()
              else
                 pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+             pw.SizedBox(height: 20),
+
+             _buildSectionTitle('HISTÓRICO DE ANÁLISES (IA)', strings),
+             pw.SizedBox(height: 10),
+             if (analysisWithImages.isNotEmpty)
+                  ...analysisWithImages.map((e) => _buildGeneralAnalysisItem(e['data'], strings, image: e['image'])).toList()
+             else
+                  pw.Text('Sem informação', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
              pw.SizedBox(height: 20),
 
              _buildSectionTitle('EXAMES LABORATORIAIS', strings),
@@ -284,6 +310,8 @@ class PetPdfGenerator {
            _buildTableRow('Idade', profile.idadeExata ?? noInfo),
            _buildTableRow('Peso', '${profile.pesoAtual ?? noInfo} kg (Ideal: ${profile.pesoIdeal ?? noInfo} kg)'),
            _buildTableRow('Sexo / Castrado', '${_localizeSex(profile.sex, strings)} / ${profile.statusReprodutivo ?? noInfo}'),
+           if (profile.microchip != null && profile.microchip!.isNotEmpty)
+                _buildTableRow('Microchip', profile.microchip!),
            _buildTableRow('Nível de Atividade', profile.nivelAtividade ?? noInfo),
            _buildTableRow('Frequência de Banho', profile.frequenciaBanho ?? noInfo),
       ]);
@@ -306,21 +334,26 @@ class PetPdfGenerator {
   
   pw.Widget _buildPartnersTable(List<Map<String, String>> partners) {
       return pw.Table(border: pw.TableBorder.all(color: PdfColors.grey300), children: [
-          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.grey200), children: [
-             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Nome', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
-             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Especialidade', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
-             pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Contato', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
-          ]),
-           ...partners.map((p) => pw.TableRow(children: [
-              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(p['name']!, style: const pw.TextStyle(fontSize: 9))),
-              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(p['category']!, style: const pw.TextStyle(fontSize: 9))),
-              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                  if (p['phone']!.isNotEmpty) pw.Text('Tel: ${p['phone']}', style: pw.TextStyle(fontSize: 9)),
-                  if (p['email']!.isNotEmpty) pw.Text('Email: ${p['email']}', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-                  if (p['address']!.isNotEmpty) pw.Text(p['address']!, style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic)),
-              ])),
-           ]))
-      ]);
+           pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.grey200), children: [
+              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Nome', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
+              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Especialidade', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
+              pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('Contato / Notas', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9))),
+           ]),
+            ...partners.map((p) => pw.TableRow(children: [
+               pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(p['name']!, style: const pw.TextStyle(fontSize: 9))),
+               pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(p['category']!, style: const pw.TextStyle(fontSize: 9))),
+               pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                   if (p['phone']!.isNotEmpty) pw.Text('Tel: ${p['phone']}', style: pw.TextStyle(fontSize: 9)),
+                   if (p['email']!.isNotEmpty) pw.Text('Email: ${p['email']}', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                   if (p['address']!.isNotEmpty) pw.Text(p['address']!, style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic)),
+                   if (p['notes'] != null && p['notes']!.isNotEmpty) 
+                       pw.Padding(
+                           padding: const pw.EdgeInsets.only(top: 4),
+                           child: pw.Text('Notas: ${p['notes']}', style: pw.TextStyle(fontSize: 8, color: PdfColors.blueGrey800, fontStyle: pw.FontStyle.italic))
+                       )
+               ])),
+            ]))
+       ]);
   }
   
   pw.Widget _buildNotesSection(PetProfileExtended profile, AppLocalizations strings) {
@@ -353,7 +386,7 @@ class PetPdfGenerator {
       if (profile.weightHistory.isEmpty) return pw.Text('Histórico de Peso: Sem informação', style: const pw.TextStyle(fontSize: 10));
       return pw.Row(children: [
          pw.Text('Histórico de Peso (${profile.weightHistory.length} registros): ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-         pw.Text(profile.weightHistory.take(3).map((e) => '${e['weight']}kg').join(' → '), style: const pw.TextStyle(fontSize: 10)),
+         pw.Text(profile.weightHistory.take(10).map((e) => '${e['weight']}kg').join(' → '), style: const pw.TextStyle(fontSize: 10)),
       ]);
   }
 
@@ -455,8 +488,21 @@ class PetPdfGenerator {
       final diet = profile.rawAnalysis?['tipo_dieta'] ?? 'Não especificada';
       final plan = profile.rawAnalysis?['plano_semanal'];
 
+      final nutritionData = profile.rawAnalysis?['nutrition'];
+      String? kcal;
+      if (nutritionData != null && nutritionData is Map) {
+          final kA = nutritionData['kcal_adult'] ?? nutritionData['kcal_adulto'];
+          if (kA != null) kcal = '$kA kcal/dia';
+      }
+
       return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-          pw.Text('Tipo de Dieta: $diet', style: const pw.TextStyle(fontSize: 10)),
+          pw.Row(children: [
+             pw.Text('Tipo de Dieta: $diet', style: const pw.TextStyle(fontSize: 10)),
+             if (kcal != null) ...[
+                 pw.SizedBox(width: 20),
+                 pw.Text('Meta Calórica Estimada: $kcal', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.green700)),
+             ]
+          ]),
           if (plan != null && plan is List && plan.isNotEmpty) ...[
               pw.SizedBox(height: 10),
               pw.Text('PLANO SEMANAL', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
@@ -589,5 +635,193 @@ class PetPdfGenerator {
           }
           return e;
       }).toList();
-  }
+   }
+
+   pw.Widget _buildPlansSection(PetProfileExtended profile, AppLocalizations strings) {
+       final activePlans = [];
+       if (profile.healthPlan?['active'] == true) activePlans.add({'type': 'health', 'data': profile.healthPlan});
+       if (profile.assistancePlan?['active'] == true) activePlans.add({'type': 'assistance', 'data': profile.assistancePlan});
+       if (profile.funeralPlan?['active'] == true) activePlans.add({'type': 'funeral', 'data': profile.funeralPlan});
+       if (profile.lifeInsurance?['active'] == true) activePlans.add({'type': 'life', 'data': profile.lifeInsurance});
+
+       if (activePlans.isEmpty && profile.observacoesPlanos.isEmpty) {
+           return pw.Text('Sem planos ativos ou observações.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700));
+       }
+
+       return pw.Column(
+           crossAxisAlignment: pw.CrossAxisAlignment.start,
+           children: [
+               ...activePlans.map((p) {
+                   final type = p['type'] as String;
+                   final data = p['data'] as Map<String, dynamic>;
+                   
+                   String title = '';
+                   List<String> details = [];
+
+                   if (type == 'health') {
+                       title = 'SAÚDE VETERINÁRIA';
+                       final name = data['name'] ?? '-';
+                       details.add('Operadora: $name');
+                       if (data['monthly_value'] != null) details.add('Mensalidade: R\$ ${data['monthly_value']}');
+                       
+                       String planType = data['type'] == 'reimbursement' ? 'Reembolso' : 'Rede Credenciada';
+                       details.add('Tipo: $planType');
+
+                       List<String> coverage = [];
+                       if (data['covers_consults'] == true) coverage.add('Consultas');
+                       if (data['covers_exams'] == true) coverage.add('Exames');
+                       if (data['covers_surgeries'] == true) coverage.add('Cirurgias');
+                       if (data['covers_emergencies'] == true) coverage.add('Emergências');
+                       if (data['covers_hospitalization'] == true) coverage.add('Internação');
+                       if (data['covers_vaccines'] == true) coverage.add('Vacinas');
+                       if (coverage.isNotEmpty) details.add('Cobertura: ${coverage.join(", ")}');
+                   } 
+                   else if (type == 'assistance') {
+                       title = 'ASSISTÊNCIA / REEMBOLSO';
+                       final name = data['name'] ?? '-';
+                       details.add('Operadora: $name');
+                       if (data['max_value'] != null) details.add('Limite Máximo: R\$ ${data['max_value']}');
+                       
+                       String rType = data['reimbursement_type'] == 'partial' ? 'Parcial' : 'Total';
+                       details.add('Reembolso: $rType');
+                       if (data['needs_invoice'] == true) details.add('Exige Nota Fiscal: Sim');
+                   }
+                   else if (type == 'funeral') {
+                       title = 'PLANO FUNERÁRIO';
+                       final name = data['name'] ?? '-';
+                       details.add('Operadora: $name');
+                       if (data['emergency_contact'] != null) details.add('Contato 24h: ${data['emergency_contact']}');
+                       if (data['support_24h'] == true) details.add('Suporte 24h: Sim');
+
+                       List<String> svcs = [];
+                       if (data['incl_wake'] == true) svcs.add('Velório');
+                       if (data['incl_crem_indiv'] == true) svcs.add('Cremação Indiv.');
+                       if (data['incl_crem_coll'] == true) svcs.add('Cremação Coletiva');
+                       if (data['incl_transport'] == true) svcs.add('Translado');
+                       if (data['incl_memorial'] == true) svcs.add('Memorial');
+                       if (svcs.isNotEmpty) details.add('Serviços: ${svcs.join(", ")}');
+                   }
+                   else if (type == 'life') {
+                       title = 'SEGURO DE VIDA';
+                       final name = data['insurer'] ?? '-';
+                       details.add('Seguradora: $name');
+                       if (data['insured_value'] != null) details.add('Capital Segurado: R\$ ${data['insured_value']}');
+                       if (data['has_economic_value'] == true) details.add('Possui Valor Econômico: Sim');
+
+                       List<String> covs = [];
+                       if (data['cov_death'] == true) covs.add('Morte Acidental/Natural');
+                       if (data['cov_illness'] == true) covs.add('Doenças Graves');
+                       if (data['cov_euthanasia'] == true) covs.add('Eutanásia');
+                       if (covs.isNotEmpty) details.add('Coberturas: ${covs.join(", ")}');
+                   }
+
+                   return pw.Container(
+                       margin: const pw.EdgeInsets.only(bottom: 12),
+                       padding: const pw.EdgeInsets.all(8),
+                       decoration: pw.BoxDecoration(
+                           color: PdfColors.grey100,
+                           borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                           border: pw.Border.all(color: PdfColors.grey300),
+                       ),
+                       child: pw.Column(
+                           crossAxisAlignment: pw.CrossAxisAlignment.start,
+                           children: [
+                               pw.Text(title, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: colorAccent)),
+                               pw.SizedBox(height: 4),
+                               ...details.map((d) => pw.Padding(
+                                   padding: const pw.EdgeInsets.only(bottom: 2),
+                                   child: pw.Text(d, style: const pw.TextStyle(fontSize: 9))
+                               )).toList(),
+                           ]
+                       )
+                   );
+               }).toList(),
+               if (profile.observacoesPlanos.isNotEmpty) ...[
+                   pw.SizedBox(height: 10),
+                   pw.Text('Observações de Planos:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                   pw.Text(profile.observacoesPlanos, style: const pw.TextStyle(fontSize: 10)),
+               ]
+           ]
+       );
+   }
+
+   pw.Widget _buildGeneralAnalysisItem(Map<String, dynamic> data, AppLocalizations strings, {pw.ImageProvider? image}) {
+        final rawType = data['analysis_type']?.toString().toLowerCase() ?? '';
+        
+        final typeMap = {
+            'food_label': 'ANÁLISE DE RAÇÃO',
+            'vocal_analysis': 'ANÁLISE VOCAL',
+            'behavior': 'COMPORTAMENTO',
+            'nutrition': 'NUTRIÇÃO',
+            'body_analysis': 'ANÁLISE CORPORAL',
+        };
+        final type = typeMap[rawType] ?? (data['analysis_type']?.toString().toUpperCase() ?? 'ANÁLISE');
+
+        String dateStr = '-';
+        if (data['last_updated'] != null) {
+           try {
+              final dt = DateTime.parse(data['last_updated'].toString());
+              dateStr = DateFormat.yMd(strings.localeName).add_Hm().format(dt);
+           } catch (_) {}
+        }
+        
+        final ignoredKeys = ['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification', 'clinical_signs', 'sinais_clinicos', 'metadata', 'temperament', 'temperamento', 'image_path', 'photo_path'];
+        
+        final keyLocalization = {
+            'veredit': 'Veredito',
+            'simple_reason': 'Motivo',
+            'daily_tip': 'Dica',
+            'emotion_simple': 'Emoção',
+            'reason_simple': 'Causa Provável',
+            'action_tip': 'O que fazer',
+            'original_filename': 'Arquivo',
+            'health_score': 'Score de Saúde',
+            'body_signals': 'Sinais Corporais',
+            'simple_advice': 'Orientação',
+        };
+
+        final entries = data.entries.where((e) {
+            if (ignoredKeys.contains(e.key.toLowerCase())) return false;
+            if (e.value == null || e.value.toString() == 'null' || e.value.toString().trim().isEmpty) return false;
+            return true;
+        }).toList();
+
+        return pw.Container(
+          margin: const pw.EdgeInsets.only(bottom: 12),
+          padding: const pw.EdgeInsets.all(8),
+          decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              if (image != null) 
+                 pw.Container(
+                    width: 70, 
+                    height: 70, 
+                    margin: const pw.EdgeInsets.only(right: 12),
+                    child: pw.Image(image, fit: pw.BoxFit.contain)
+                 ),
+              pw.Expanded(
+                 child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start, 
+                    children: [
+                        pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                             pw.Text(type, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: colorAccent)),
+                             pw.Text(dateStr, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                        ]),
+                        pw.Divider(color: PdfColors.grey200, thickness: 0.5),
+                        ...entries.map((e) {
+                             final label = keyLocalization[e.key] ?? e.key;
+                             final val = e.value.toString().replaceAll('{', '').replaceAll('}', ''); 
+                             return pw.Padding(padding: const pw.EdgeInsets.only(bottom: 2), child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                                 pw.Container(width: 80, child: pw.Text('$label: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.grey800))),
+                                 pw.Expanded(child: pw.Text(val, style: const pw.TextStyle(fontSize: 9))),
+                             ]));
+                        }).toList()
+                    ]
+                 )
+              )
+            ]
+          )
+        );
+   }
 }
