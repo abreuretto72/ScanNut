@@ -152,11 +152,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             children: [
               const Icon(Icons.fingerprint, color: AppDesign.success),
               const SizedBox(width: 10),
-              Text('Acesso Rápido', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(l10n.homeBiometricTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
             ],
           ),
           content: Text(
-            'Detectamos que seu dispositivo suporta biometria. Deseja ativar o acesso rápido para entrar no ScanNut sem digitar senha?',
+            l10n.homeBiometricBody,
             style: GoogleFonts.poppins(color: Colors.white70),
           ),
           actions: [
@@ -170,10 +170,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 await simpleAuthService.setBiometricEnabled(true);
                 if (mounted) {
                    Navigator.pop(context);
-                   AppFeedback.showSuccess(context, 'Acesso rápido ativado!');
+                   AppFeedback.showSuccess(context, l10n.homeBiometricSuccess);
                 }
               },
-              child: Text('Ativar Agora', style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: Text(l10n.homeBiometricAction, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -321,7 +321,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       
     } catch (e, stackTrace) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
-       if (mounted) AppFeedback.showError(context, 'Erro na captura: $e');
+       if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorCapturePrefix}$e');
     }
   }
 
@@ -341,7 +341,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       }
     } catch (e) {
       debugPrint('❌ Error picking from gallery: $e');
-      if (mounted) AppFeedback.showError(context, 'Erro ao abrir galeria: $e');
+      if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorGalleryPrefix}$e');
     }
   }
 
@@ -449,7 +449,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
       } catch (e) {
            debugPrint('❌❌❌ ERROR in _processCapturedImage: $e');
-           if (mounted) AppFeedback.showError(context, 'Erro no processamento: $e');
+           if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorProcessingPrefix}$e');
       }
   }
 
@@ -484,7 +484,12 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         if (state.data is FoodAnalysisModel) {
           // 🛡️ V231: Auto-Save Food Analysis to History
           final foodData = state.data as FoodAnalysisModel;
-          _handleSave('Food', data: foodData);
+          final success = await _handleSave('Food', data: foodData);
+          
+          if (!success) {
+             debugPrint('🛑 Save failed, halting navigation to let user see error.');
+             return; 
+          }
 
           if (_capturedImage != null) {
             Navigator.push(
@@ -509,7 +514,12 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         } else if (state.data is PlantAnalysisModel) {
           // 🛡️ V231: Auto-Save Plant Analysis to History
           final plantData = state.data as PlantAnalysisModel;
-          _handleSave('Plant', data: plantData);
+          final success = await _handleSave('Plant', data: plantData);
+          
+          if (!success) {
+            debugPrint('🛑 Save failed, stopping plant flow.');
+            return;
+          }
 
           _showResultSheet(
             context,
@@ -552,7 +562,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         debugPrint('❌ ERRO NA NAVEGAÇÃO: $e');
         debugPrint('📚 STACKTRACE: $stackTrace');
         if (mounted) {
-           AppFeedback.showError(context, "Erro de Navegação: $e");
+           AppFeedback.showError(context, "${AppLocalizations.of(context)!.errorNavigationPrefix}$e");
         }
     }
     if (state is AnalysisError) {
@@ -591,13 +601,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     });
   }
 
-  Future<void> _handleSave(String type, {dynamic data}) async {
+  Future<bool> _handleSave(String type, {dynamic data}) async {
     final state = ref.read(analysisNotifierProvider);
     // Prioritize passed data, fallback to provider (though provider is likely reset)
     final activeData = data ?? (state is AnalysisSuccess ? state.data : null);
 
     if (activeData == null) {
-      return;
+      return false;
     }
 
     if (type == 'Pet' && activeData is PetAnalysisResult) {
@@ -616,7 +626,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         } catch (e) {
             debugPrint('Error saving pet: $e');
         }
-         if (!mounted) return;
+         if (!mounted) return true;
         AppFeedback.showSuccess(context, AppLocalizations.of(context)!.petSavedSuccess(petName));
 
         // Auto-Navigation Logic for Diagnosis Mode
@@ -659,9 +669,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 debugPrint('Navigation error: $e');
             }
         }
+        return true;
       } else {
-         if (!mounted) return;
+         if (!mounted) return false;
         AppFeedback.showError(context, AppLocalizations.of(context)!.errorPetNameNotFound);
+        return false;
       }
     } else {
         // Handle saving for Food or Plant
@@ -690,18 +702,41 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 imagePath: _capturedImage?.path
             );
 
-            if (!mounted) return;
+            if (!mounted) return true;
             AppFeedback.showSuccess(context, AppLocalizations.of(context)!.savedSuccess(type));
-        } catch (e) {
+            return true;
+        } catch (e, stack) {
             debugPrint('❌ Save error for $type: $e');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: AppDesign.error),
-            );
+            debugPrint(stack.toString());
+            
+            // 🛑 SHOW PERSISTENT ERROR DIALOG
+            if (mounted) {
+              await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(AppLocalizations.of(context)!.errorSaveHiveTitle),
+                  content: SingleChildScrollView(
+                    child: Text(
+                      AppLocalizations.of(context)!.errorSaveHiveBody(e.toString()),
+                      style: const TextStyle(fontSize: 12, fontFamily: 'Courier'),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(AppLocalizations.of(context)!.commonUnderstand),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return false;
         }
     }
     
     // Reset state after saving (already reset, but harmless)
-    ref.read(analysisNotifierProvider.notifier).reset();
+    // ref.read(analysisNotifierProvider.notifier).reset(); // Unreachable or needs to be before return
+    // return true; // Handled above
   }
 
   void _handleShop() {
@@ -715,6 +750,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   }
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     _checkSingleActiveTab();
     if (_isLoading) {
       return const Scaffold(
@@ -773,11 +809,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        _currentIndex == 0 ? "Otimizando Dieta..." :
-                        _currentIndex == 1 ? "Identificando Planta..." :
-                        _petMode == 1 ? "Iniciando Triagem Clínica..." :
-                        _petMode == 2 ? "Analisando Amostra Coprológica..." :
-                        "Identificando seu PET...",
+                        _currentIndex == 0 ? l10n.loadingMsgDiet :
+                        _currentIndex == 1 ? l10n.loadingMsgPlant :
+                        _petMode == 1 ? l10n.loadingMsgClinical :
+                        _petMode == 2 ? l10n.loadingMsgStool :
+                        l10n.loadingMsgPetId,
                         style: GoogleFonts.poppins(
                           color: Colors.black, // PRETO PURO (Requested)
                           fontWeight: FontWeight.bold,
@@ -787,7 +823,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        "Por favor, aguarde.",
+                        l10n.loadingMsgWait,
                         style: GoogleFonts.poppins(
                           color: Colors.black54, 
                           fontSize: 12,
@@ -1072,7 +1108,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                           );
                         } catch (e) {
                           debugPrint('❌ Error opening Nutrition module: $e');
-                          AppFeedback.showError(context, 'Erro ao abrir módulo de nutrição: $e');
+                          AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorNavigationPrefix}$e');
                         }
                       },
                     ),

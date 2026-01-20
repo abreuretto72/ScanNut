@@ -57,7 +57,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: _generateHistoryPdf,
-            tooltip: 'Gerar Relatório do Histórico',
+            tooltip: l10n.tooltipHistoryReport,
           ),
         ],
       ),
@@ -342,9 +342,10 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
         ),
       );
     } catch (e, stack) {
+       final l10n = AppLocalizations.of(context)!;
        debugPrint('❌ [History] Error parsing history item: $e');
        debugPrint(stack.toString());
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Erro ao processar dados salvos.')));
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.errorMetadataMissing)));
     }
   }
 
@@ -368,8 +369,9 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
     return value;
   }
   Future<void> _generateHistoryPdf() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_items.isEmpty) {
-       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sem histórico para gerar relatório.')));
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.msgNoHistoryToExport)));
        return;
     }
 
@@ -391,7 +393,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
              context,
              MaterialPageRoute(
                builder: (context) => PdfPreviewScreen(
-                 title: 'Relatório Alimentar - ${DateFormat('dd/MM').format(DateTime.now())}',
+                 title: l10n.pdfTitleFoodHistory(DateFormat('dd/MM').format(DateTime.now())),
                  buildPdf: (format) async {
                    final doc = await ExportService().generateFoodHistoryReport(
                      items: selectedItems,

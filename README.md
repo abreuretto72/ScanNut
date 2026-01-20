@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.5.5  
+**Versão:** 1.5.6  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -41,6 +41,17 @@ Lista de compras
 - 🖨️ **NOVO:** PDFs otimizados para impressão econômica (preto e branco)
 - 🤖 **NOVO:** Análise Inteligente de Anexos (Visual e OCR)
 - 🔗 **NOVO:** Pet Indexing Engine (Deep Links & Timeline Automática)
+
+---
+
+## ✨ **NOVIDADES DA VERSÃO 1.5.6**
+
+### **💉 Carteira de Vacinação Inteligente**
+- **Gestão Unificada:** Novo card de monitoramento de vacinas integrado ao Perfil de Saúde.
+- **Protocolos Específicos:** Lista dinâmica de vacinas essenciais baseada na espécie (V8/V10, Antirrábica para cães; V4/V5, FIV/FeLV para gatos).
+- **Rastreabilidade Total:** Integração com o `PetEventService` para um histórico imutável de imunização.
+- **Relatórios Enriquecidos:** Geração de PDFs incluindo tabela completa de histórico vacinal e status atualizado.
+- **Migração Automática:** Sistema inteligente que detecta e converte datas antigas de vacinação para o novo formato de eventos sem perda de dados.
 
 ---
 

@@ -37,6 +37,7 @@ class NutritionFragment extends StatelessWidget {
   final Widget weeklyPlanSection;
   final VoidCallback onAddAttachment;
   final Function(File) onDeleteAttachment;
+  final VoidCallback? onAnalysisSaved;
 
   const NutritionFragment({
     Key? key,
@@ -64,6 +65,7 @@ class NutritionFragment extends StatelessWidget {
     required this.onDeleteAttachment,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
+    this.onAnalysisSaved,
   }) : super(key: key);
 
   @override
@@ -80,6 +82,7 @@ class NutritionFragment extends StatelessWidget {
           petName: petName,
           analysisHistory: analysisHistory,
           onDeleteAnalysis: onDeleteAnalysis,
+          onAnalysisSaved: onAnalysisSaved,
         ),
         const SizedBox(height: 24),
         Card(

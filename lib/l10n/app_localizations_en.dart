@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get splashPoweredBy => 'Powered by AI Vision';
 
   @override
+  String get developed_by => 'Developed by';
+
+  @override
   String get tabFood => 'Food';
 
   @override
@@ -65,7 +68,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeHintPetBreed => 'Point camera at the pet';
 
   @override
-  String get homeHintPetHealth => 'Point camera at the pet\'s wound';
+  String get homeHintPetHealth => 'Point camera at the pet\'s health issue';
 
   @override
   String get settingsTitle => 'Settings';
@@ -80,7 +83,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNutrition => 'Human Nutritional Goals';
 
   @override
-  String get settingsDangerZone => 'Danger Zone';
+  String get settingsDangerZone => 'DANGER ZONE';
 
   @override
   String get pdfReportTitle => 'Report';
@@ -822,7 +825,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get instructionPetBody => 'Point camera at your pet\'s full body';
 
   @override
-  String get instructionPetWound => 'Point camera at your pet\'s wound';
+  String get instructionPetWound => 'Point camera at your pet\'s health issue';
 
   @override
   String get tooltipNutritionHistory => 'Nutrition History';
@@ -1201,7 +1204,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get foodDeleteConfirmContent => 'This action cannot be undone.';
 
   @override
-  String get commonUnderstand => 'Understood';
+  String get commonUnderstand => 'I UNDERSTAND';
 
   @override
   String get commonClose => 'Close';
@@ -1607,7 +1610,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get regenerateSuccess => 'Weekly menu redone!';
 
   @override
-  String get planError => 'Error loading menu';
+  String get planError => 'Meal plan error';
 
   @override
   String get tryAgain => 'Try Again';
@@ -1645,7 +1648,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creatingProfile => 'Basic profile created automatically.';
 
   @override
-  String get planCreatedSuccess => 'Menu created successfully!';
+  String get planCreatedSuccess => 'Plan created successfully!';
 
   @override
   String get openingConfig => 'Opening configuration...';
@@ -2089,22 +2092,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plantMaxSize => 'Max Size';
 
   @override
-  String get plantNeedSun => 'LIGHT';
+  String get plantNeedSun => 'Sun Requirements';
 
   @override
-  String get plantNeedWater => 'WATER';
+  String get plantNeedWater => 'Water Requirements';
 
   @override
-  String get plantNeedSoil => 'SOIL';
+  String get plantNeedSoil => 'Soil & Nutrition';
 
   @override
   String get plantSeasonAdjust => 'Seasonal Adjustments';
 
   @override
-  String get seasonWinter => 'Winter (Dormancy)';
+  String get seasonWinter => 'Winter';
 
   @override
-  String get seasonSummer => 'Summer (Growth)';
+  String get seasonSummer => 'Summer';
 
   @override
   String get plantClinicalDiagnosis => 'Clinical Diagnosis';
@@ -2145,7 +2148,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noInformation => 'No information';
 
   @override
-  String get directSoilWatering => 'Direct watering';
+  String get directSoilWatering => 'Direct soil watering';
 
   @override
   String get asNeeded => 'As needed';
@@ -2503,16 +2506,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petSectionObservedSigns => 'Observed Signs';
 
   @override
-  String get petSectionNutrition => 'Nutrition & Diet';
+  String get petSectionNutrition => 'Nutrition';
 
   @override
-  String get petSectionGrooming => 'Grooming & Hygiene';
+  String get petSectionGrooming => 'Grooming';
 
   @override
   String get petSectionHealth => 'Preventive Health';
 
   @override
-  String get petSectionLifestyle => 'Lifestyle & Education';
+  String get petSectionLifestyle => 'Lifestyle';
 
   @override
   String get petInsightSpecialist => 'Specialist Insight';
@@ -2642,7 +2645,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petReliabilityHigh => 'High';
 
   @override
-  String get petNotIdentified => 'Not identified';
+  String get petNotIdentified => 'Pet not identified';
 
   @override
   String get petNotEstimated => 'Not estimated';
@@ -3509,7 +3512,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Professional Recommendation';
 
   @override
-  String get pdfDossierTitle => '360º Pet Dossier';
+  String get pdfDossierTitle => 'Pet Dossier';
 
   @override
   String get pdfSectionIdentity => '1. IDENTITY AND PROFILE';
@@ -5581,41 +5584,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petAddRestriction => 'Add restriction';
 
   @override
-  String get petDossierTitle => 'Veterinary 360º Analysis';
+  String get petDossierTitle => 'Veterinary Dossier 360°';
 
   @override
   String get petDossierDisclaimer =>
-      'AI-generated content. Use as reference. Does not substitute professional veterinary evaluation.';
+      'This report is based on AI image analysis and does not replace professional veterinary consultation.';
 
   @override
-  String get petDossierAnalyzedImage => 'Imagem Analisada';
+  String get petDossierAnalyzedImage => 'Analyzed Image';
 
   @override
-  String get petDossierViewFull => 'Expandir';
+  String get petDossierViewFull => 'View full';
 
   @override
-  String get petDossierSignals => 'Sinais';
+  String get petDossierSignals => 'Signals';
 
   @override
-  String get petDossierRisk => 'Risco';
+  String get petDossierRisk => 'Risk';
 
   @override
-  String get petDossierPrecision => 'Precisão';
+  String get petDossierPrecision => 'Precision';
 
   @override
   String get petDossierStatus => 'Status';
 
   @override
-  String get petSectionIdentity => 'Visual Identification';
+  String get petSectionIdentity => 'Identity';
 
   @override
   String get petSectionPreventive => 'Preventive Health';
 
   @override
-  String get petSectionGrowth => 'Curva de Crescimento';
+  String get petSectionGrowth => 'Growth';
 
   @override
-  String get petActionViewProfile => 'Ver Perfil do Pet';
+  String get petActionViewProfile => 'View Full Profile';
 
   @override
   String get petActionSharePDF => 'Compartilhar PDF';
@@ -5933,4 +5936,797 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petBodyDeleteConfirm => 'Excluir esta analise corporal?';
+
+  @override
+  String get labelSun => 'Sun';
+
+  @override
+  String get labelWater => 'Water';
+
+  @override
+  String get labelSoil => 'Soil';
+
+  @override
+  String get pdfClinicalNotes => 'CLINICAL ANALYSIS DETAILS';
+
+  @override
+  String get pdfPlansInsurance => 'PLANS AND INSURANCE';
+
+  @override
+  String get pdfNoInfo => 'No information';
+
+  @override
+  String get pdfGeneralAnalysisHistory => 'ANALYSIS HISTORY (AI)';
+
+  @override
+  String get pdfLabExams => 'LAB EXAMS';
+
+  @override
+  String get pdfDietType => 'Diet Type';
+
+  @override
+  String get pdfCaloricGoal => 'Estimated Caloric Goal';
+
+  @override
+  String get pdfWeeklyPlan => 'WEEKLY PLAN';
+
+  @override
+  String get pdfDay => 'Day';
+
+  @override
+  String get pdfMeal => 'Meal';
+
+  @override
+  String get pdfBrandSuggestions => 'BRAND SUGGESTIONS (INFORMATIVE)';
+
+  @override
+  String get pdfLegalDisclaimer =>
+      '⚠️ LEGAL DISCLAIMER: Always consult a veterinarian before changing diet. These suggestions are based on pet profile and do not replace a physical consultation.';
+
+  @override
+  String get pdfKnownAllergies => 'KNOWN ALLERGIES';
+
+  @override
+  String get pdfPossibleDiagnosis => 'Diagnosis';
+
+  @override
+  String get pdfPossibleCauses => 'Causes';
+
+  @override
+  String get pdfPartnerName => 'Name';
+
+  @override
+  String get pdfPartnerSpecialty => 'Specialty';
+
+  @override
+  String get pdfPartnerContact => 'Contact / Notes';
+
+  @override
+  String get pdfPartnerPhone => 'Tel';
+
+  @override
+  String get pdfPartnerEmail => 'Email';
+
+  @override
+  String get pdfPartnerNotes => 'Notes';
+
+  @override
+  String get pdfRadarTitle => 'GEO RADAR - SCANNUT';
+
+  @override
+  String get pdfRadarResults => 'NEARBY RESULTS';
+
+  @override
+  String get pdfDistanceLabel => 'DISTANCE';
+
+  @override
+  String get pdfAddressLabel => 'ADDRESS';
+
+  @override
+  String get pdfDateLabel => 'Date';
+
+  @override
+  String get pdfShoppingListTitle => 'SHOPPING LIST';
+
+  @override
+  String get pdfToxicPetsCats => 'TOXIC: CATS AND DOGS';
+
+  @override
+  String get pdfToxicCats => 'TOXIC: CATS';
+
+  @override
+  String get pdfToxicDogs => 'TOXIC: DOGS';
+
+  @override
+  String get pdfToxicAnimals => 'TOXIC: ANIMALS (PETS)';
+
+  @override
+  String get pdfToxicHumans => 'TOXIC: HUMANS';
+
+  @override
+  String get pdfCareLegendTitle => 'CARE LEGEND (REQUIREMENTS)';
+
+  @override
+  String get pdfCareLegendLevels => 'Filling levels:';
+
+  @override
+  String get pdfCareLegendDescription =>
+      '1/4 Filled = Low | 2/4 Filled = Medium | Fully Filled = High';
+
+  @override
+  String get errorCapturePrefix => 'Capture error: ';
+
+  @override
+  String get errorGalleryPrefix => 'Error opening gallery: ';
+
+  @override
+  String get errorProcessingPrefix => 'Processing error: ';
+
+  @override
+  String get errorNavigationPrefix => 'Navigation Error: ';
+
+  @override
+  String get pdfClinicalHistorySection => 'Clinical History and Wounds';
+
+  @override
+  String get commonGeneral => 'General';
+
+  @override
+  String get pdfDiagnoses => 'Diagnoses';
+
+  @override
+  String get pdfRecommendation => 'Recommendation';
+
+  @override
+  String get pdfFooterBranding => 'ScanNut App - Animal Intelligence';
+
+  @override
+  String get petUnknownBreed => 'Unknown Breed';
+
+  @override
+  String get plantNoSpecificDiagnosis => 'No specific diagnosis.';
+
+  @override
+  String pdfShoppingListDescription(Object week) {
+    return 'This consolidated list refers to the items needed for $week. Amounts summed and organized by sector.';
+  }
+
+  @override
+  String get planSaveError => 'Could not save the menu. Please try again.';
+
+  @override
+  String get plantAnalysisList => 'Go to analysis list';
+
+  @override
+  String get commonAlert => 'ALERT';
+
+  @override
+  String get commonGreen => 'Green';
+
+  @override
+  String get commonYellow => 'Yellow';
+
+  @override
+  String get commonRed => 'Red';
+
+  @override
+  String get foodInNatura => 'Unprocessed';
+
+  @override
+  String get commonNone => 'None';
+
+  @override
+  String petClinicalSignsCount(Object count) {
+    return '$count signs identified';
+  }
+
+  @override
+  String get deepAnalysisTitle => 'Deep Analysis 360°';
+
+  @override
+  String get labelIdentification => 'Identification';
+
+  @override
+  String get labelBreed => 'Breed';
+
+  @override
+  String get labelOriginRegion => 'Origin Region';
+
+  @override
+  String get labelMorphologyType => 'Morphology Type';
+
+  @override
+  String get labelLineage => 'Lineage';
+
+  @override
+  String get labelSize => 'Size';
+
+  @override
+  String get labelLifespan => 'Lifespan';
+
+  @override
+  String get labelGrowthCurve => 'Growth Curve';
+
+  @override
+  String get labelNutrition => 'Nutrition';
+
+  @override
+  String get labelKcalPuppy => 'Kcal Puppy';
+
+  @override
+  String get labelKcalAdult => 'Kcal Adulto';
+
+  @override
+  String get labelKcalSenior => 'Kcal Senior';
+
+  @override
+  String get kcalPerDay => 'Kcal/day';
+
+  @override
+  String get labelTargetNutrients => 'Target Nutrients';
+
+  @override
+  String get labelWeight => 'Weight';
+
+  @override
+  String get labelHeight => 'Height';
+
+  @override
+  String get labelCoat => 'Coat';
+
+  @override
+  String get labelColor => 'Color';
+
+  @override
+  String get labelTemperament => 'Temperament';
+
+  @override
+  String get labelEnergyLevel => 'Energy Level';
+
+  @override
+  String get labelSocialBehavior => 'Social Behavior';
+
+  @override
+  String get labelClinicalSigns => 'Clinical Signs';
+
+  @override
+  String get labelGrooming => 'Grooming & Hygiene';
+
+  @override
+  String get labelCoatType => 'Coat Type';
+
+  @override
+  String get labelGroomingFrequency => 'Grooming Frequency';
+
+  @override
+  String get labelHealth => 'Health';
+
+  @override
+  String get labelPredispositions => 'Predispositions';
+
+  @override
+  String get labelPreventiveCheckup => 'Preventive Checkup';
+
+  @override
+  String get labelLifestyle => 'Lifestyle';
+
+  @override
+  String get labelTrainingIntelligence => 'Intelligence / Training';
+
+  @override
+  String get labelEnvironmentType => 'Ideal Environment';
+
+  @override
+  String get labelActivityLevel => 'Activity Level';
+
+  @override
+  String get labelPersonality => 'Personality';
+
+  @override
+  String get labelEyes => 'Eyes';
+
+  @override
+  String get labelSkin => 'Skin';
+
+  @override
+  String get labelDental => 'Dental';
+
+  @override
+  String get labelOral => 'Oral';
+
+  @override
+  String get labelStool => 'Stool';
+
+  @override
+  String get labelWounds => 'Wounds';
+
+  @override
+  String get pdfPlantDossierTitle => 'Botanical Dossier';
+
+  @override
+  String get errorGeneratingPdf => 'Error generating PDF';
+
+  @override
+  String get plantSunFull => 'Full Sun';
+
+  @override
+  String get plantSunPartial => 'Partial Shade';
+
+  @override
+  String get plantSunShade => 'Full Shade';
+
+  @override
+  String get plantSunIndirect => 'Indirect Light';
+
+  @override
+  String get tabDiagnosis => 'Diagnosis';
+
+  @override
+  String get tabBiometrics => 'Biometrics';
+
+  @override
+  String get tabEvolution => 'Evolution';
+
+  @override
+  String get sectionVisualDesc => 'Visual Description';
+
+  @override
+  String get sectionObservedFeatures => 'Observed Features';
+
+  @override
+  String get sectionClinicalSigns => 'Clinical Signs';
+
+  @override
+  String get sectionProbableDiagnosis => 'Probable Diagnosis';
+
+  @override
+  String get noDiagnosisListed => 'No diagnosis listed';
+
+  @override
+  String get sectionRecommendation => 'Recommendation';
+
+  @override
+  String get sectionDepthAnalysis => 'In-Depth Analysis';
+
+  @override
+  String get analysis3DUnavailable => '3D Analysis unavailable';
+
+  @override
+  String get sectionDetailedBiometrics => 'Detailed Biometrics';
+
+  @override
+  String get noBiometricsListed => 'No biometrics listed';
+
+  @override
+  String get analysisFirstRecord => 'This is the first analysis record';
+
+  @override
+  String get paywallPerMonth => 'per month';
+
+  @override
+  String get petProfileIncomplete => 'Pet profile incomplete';
+
+  @override
+  String pdfFoodAnalysisTitle(Object name) {
+    return 'Complete Nutritional Analysis';
+  }
+
+  @override
+  String pdfErrorGeneration(Object error) {
+    return 'Error generating PDF';
+  }
+
+  @override
+  String get tooltipSavedRecipes => 'Saved recipes';
+
+  @override
+  String get tooltipAutoSaved => 'Auto-saved';
+
+  @override
+  String get historyTitleRecipes => 'Recipe History';
+
+  @override
+  String get tooltipExportPdf => 'Export PDF';
+
+  @override
+  String historyErrorLoading(Object error) {
+    return 'Error loading history';
+  }
+
+  @override
+  String get historyEmptyRecipes => 'No recipes saved yet';
+
+  @override
+  String get btnViewDetails => 'View Details';
+
+  @override
+  String labelMainIngredient(Object name) {
+    return 'Main Ingredient';
+  }
+
+  @override
+  String get labelFortnightly => 'Fortnightly';
+
+  @override
+  String get labCategoryBlood => 'Blood Test';
+
+  @override
+  String get labCategoryUrine => 'Urine Test';
+
+  @override
+  String get labCategoryFeces => 'Fecal Test';
+
+  @override
+  String get labCategoryImaging => 'Imaging Test';
+
+  @override
+  String get btnGoToList => 'Go to list';
+
+  @override
+  String get tooltipGenerateRecipes => 'Generate recipes';
+
+  @override
+  String get foodConsultingChef => 'Consulting chef...';
+
+  @override
+  String get analysisSavedSuccess => 'Analysis saved successfully!';
+
+  @override
+  String errorSaving(String error) {
+    return 'Error saving: $error';
+  }
+
+  @override
+  String get msgNoHistoryToExport => 'No history to export';
+
+  @override
+  String get pdfTitleRecipeBook => 'Recipe Book';
+
+  @override
+  String get dialogClearHistoryTitle => 'Clear History?';
+
+  @override
+  String get dialogClearHistoryBody =>
+      'This will remove all saved recipes. This action cannot be undone.';
+
+  @override
+  String get homeBiometricTitle => 'Biometrics';
+
+  @override
+  String get homeBiometricBody => 'Authenticate to continue';
+
+  @override
+  String get homeBiometricSuccess => 'Authentication successful';
+
+  @override
+  String get homeBiometricAction => 'Authenticate';
+
+  @override
+  String get errorSaveHiveTitle => 'Save Error';
+
+  @override
+  String errorSaveHiveBody(String error) {
+    return 'Could not save: $error';
+  }
+
+  @override
+  String get loadingMsgDiet => 'Analyzing diet...';
+
+  @override
+  String get loadingMsgPlant => 'Analyzing plant...';
+
+  @override
+  String get loadingMsgClinical => 'Analyzing clinical signs...';
+
+  @override
+  String get loadingMsgStool => 'Analyzing stool...';
+
+  @override
+  String get loadingMsgPetId => 'Identifying pet...';
+
+  @override
+  String get loadingMsgWait => 'Please wait...';
+
+  @override
+  String get errorGoogleAuth => 'Google authentication error';
+
+  @override
+  String errorGoogleAuthDetailMsg(String errorMessage) {
+    return 'Details: $errorMessage';
+  }
+
+  @override
+  String errorSearchFailed(String error) {
+    return 'Search failed: $error';
+  }
+
+  @override
+  String get radarTapToChangeRadius => 'Tap to change radius';
+
+  @override
+  String get diagnosticTrace => 'Diagnostic trace';
+
+  @override
+  String get tooltipHistoryReport => 'History report';
+
+  @override
+  String get errorMetadataMissing => 'Metadata missing';
+
+  @override
+  String pdfTitleFoodHistory(String date) {
+    return 'Food History - $date';
+  }
+
+  @override
+  String get logsCopied => 'Logs copied';
+
+  @override
+  String get actionCopy => 'Copy';
+
+  @override
+  String get viewTechDetails => 'View technical details';
+
+  @override
+  String get petTypeHealth => 'Health';
+
+  @override
+  String get petTypeID => 'Identification';
+
+  @override
+  String get errorOpenAnalysis => 'Error opening analysis';
+
+  @override
+  String get petNoName => 'No name';
+
+  @override
+  String get titleBotanyIntelligence => 'Botany Intelligence';
+
+  @override
+  String get petSelectRecordType => 'Select record type';
+
+  @override
+  String get petShowAll => 'Show all';
+
+  @override
+  String get vaccineV8V10 => 'DHPP (V8/V10)';
+
+  @override
+  String get vaccineRabies => 'Rabies';
+
+  @override
+  String get vaccineFlu => 'Flu';
+
+  @override
+  String get vaccineGiardia => 'Giardia';
+
+  @override
+  String get vaccineLeishmania => 'Leishmaniasis';
+
+  @override
+  String get vaccineV3V4V5 => 'FVRCP (V3/V4)';
+
+  @override
+  String get vaccineFivFelv => 'FIV/FeLV';
+
+  @override
+  String get vaccinationGuideTitle => 'Vaccination Guide';
+
+  @override
+  String get vaccinationMandatory => 'Core Vaccines';
+
+  @override
+  String get vaccinationOptional => 'Non-Core / Optional';
+
+  @override
+  String get vaccinationHelpBody =>
+      'Check the table below to understand which vaccines are essential for your pet\'s health.';
+
+  @override
+  String get pdfFooterText => 'Developed by Multiverso Digital Copyright 2026';
+
+  @override
+  String vet360ReportTitle(String petName) {
+    return 'Veterinary Record 360° - $petName';
+  }
+
+  @override
+  String get labelProfile => 'Profile';
+
+  @override
+  String get labelPhone => 'Phone';
+
+  @override
+  String get labelEmail => 'Email';
+
+  @override
+  String get labelNotes => 'Notes';
+
+  @override
+  String get petRegimeLabel => 'Regime';
+
+  @override
+  String get settingsSectionAccount => 'Account';
+
+  @override
+  String get settingsChangePassword => 'Change password';
+
+  @override
+  String get settingsKeepSignedIn => 'Keep signed in';
+
+  @override
+  String get settingsKeepSignedInSubOn => 'Enabled';
+
+  @override
+  String get settingsKeepSignedInSubOff => 'Disabled';
+
+  @override
+  String get settingsMsgSessionKept => 'Session kept';
+
+  @override
+  String get settingsMsgLoginRequired => 'Login required';
+
+  @override
+  String get settingsUseBiometrics => 'Use biometrics';
+
+  @override
+  String get settingsBiometricsOn => 'Enabled';
+
+  @override
+  String get settingsBiometricsOff => 'Disabled';
+
+  @override
+  String get settingsSectionPreferences => 'Preferences';
+
+  @override
+  String get settingsLabelAutomatic => 'Automatic';
+
+  @override
+  String get settingsSectionBackup => 'Backup';
+
+  @override
+  String get settingsActionRestore => 'Restore';
+
+  @override
+  String get settingsWipeSuccess => 'Data wiped successfully';
+
+  @override
+  String settingsWipeError(Object error) {
+    return 'Error wiping data: $error';
+  }
+
+  @override
+  String get settingsWipeConfirmBody =>
+      'Are you sure you want to wipe all data?';
+
+  @override
+  String get settingsActionWipeAll => 'Wipe all';
+
+  @override
+  String get categoryGeneral => 'General';
+
+  @override
+  String get commonDays => 'days';
+
+  @override
+  String get diagnosisAllergy => 'Allergy';
+
+  @override
+  String get diagnosisAnemia => 'Anemia';
+
+  @override
+  String get diagnosisDermatitis => 'Dermatitis';
+
+  @override
+  String get diagnosisDysbiosis => 'Dysbiosis';
+
+  @override
+  String get diagnosisFracture => 'Fracture';
+
+  @override
+  String get diagnosisGingivitis => 'Gingivitis';
+
+  @override
+  String get diagnosisInfection => 'Infection';
+
+  @override
+  String get diagnosisInflammation => 'Inflammation';
+
+  @override
+  String get diagnosisMass => 'Mass';
+
+  @override
+  String get diagnosisObesity => 'Obesity';
+
+  @override
+  String get diagnosisOverweight => 'Overweight';
+
+  @override
+  String get diagnosisPain => 'Pain';
+
+  @override
+  String get diagnosisParasites => 'Parasites';
+
+  @override
+  String get diagnosisPlaque => 'Plaque';
+
+  @override
+  String get diagnosisTartar => 'Tartar';
+
+  @override
+  String get diagnosisTumor => 'Tumor';
+
+  @override
+  String get diagnosisUnderweight => 'Underweight';
+
+  @override
+  String errorGeneratePdf(Object error) {
+    return 'Error generating PDF';
+  }
+
+  @override
+  String errorLoadDetails(Object error) {
+    return 'Error loading details';
+  }
+
+  @override
+  String get errorNoPlantsToExport => 'No plants to export';
+
+  @override
+  String get errorPdfGeneration => 'PDF generation error';
+
+  @override
+  String get labelSafe => 'Safe';
+
+  @override
+  String get labelToxicCats => 'Toxic to cats';
+
+  @override
+  String get labelToxicDogs => 'Toxic to dogs';
+
+  @override
+  String get labelToxicDogsCats => 'Toxic to dogs and cats';
+
+  @override
+  String get pdfCauses => 'Causes';
+
+  @override
+  String get petDietLabel => 'Diet';
+
+  @override
+  String get petFoodTypeLabel => 'Food Type';
+
+  @override
+  String get petProfileIncompleteBody =>
+      'Complete the pet profile to generate the nutrition plan';
+
+  @override
+  String get petProfileIncompleteTitle => 'Incomplete Profile';
+
+  @override
+  String petSelectedDays(Object count) {
+    return 'Selected days';
+  }
+
+  @override
+  String get statusCritical => 'Critical';
+
+  @override
+  String get statusHealthy => 'Healthy';
+
+  @override
+  String get statusWarning => 'Warning';
+
+  @override
+  String get tooltipFengShui => 'Feng Shui';
+
+  @override
+  String get tooltipGeneratePdf => 'Generate PDF';
+
+  @override
+  String get unitKcalPerDay => 'kcal/day';
+
+  @override
+  String errorAutoSave(String error) {
+    return 'Auto-save error: $error';
+  }
 }

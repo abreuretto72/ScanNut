@@ -149,14 +149,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         case ScannutMode.food:
           final foodAnalysis = FoodAnalysisModel.fromJson(jsonResponse);
           
-          // AUTO-SAVE: Immediately persist food analysis
-          try {
-            await NutritionService().saveFoodAnalysis(foodAnalysis, imageFile);
-            debugPrint('✅ [AnalysisNotifier] Food Analysis Auto-Saved.');
-          } catch (e) {
-            debugPrint('⚠️ [AnalysisNotifier] Auto-Save Warning: $e');
-            // Don't block UI flow for save error, but log it
-          }
+          // AUTO-SAVE: Removed to prevent duplication (Handled by HomeView)
+          // debugPrint('✅ [AnalysisNotifier] Food Analysis Ready.');
 
           state = AnalysisSuccess<FoodAnalysisModel>(foodAnalysis);
           break;

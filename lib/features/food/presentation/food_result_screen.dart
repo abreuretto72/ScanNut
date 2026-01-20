@@ -89,7 +89,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           context,
           MaterialPageRoute(
             builder: (context) => PdfPreviewScreen(
-              title: 'Análise Nutricional: ${widget.analysis.identidade.nome}',
+              title: AppLocalizations.of(context)!.pdfFoodAnalysisTitle(widget.analysis.identidade.nome),
               buildPdf: (format) async {
                 final pdf = await ExportService().generateFoodAnalysisReport(
                   analysis: _analysis,
@@ -105,7 +105,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       debugPrint("Erro ao gerar PDF: $e");
       if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red),
+              SnackBar(content: Text(AppLocalizations.of(context)!.pdfErrorGeneration(e.toString())), backgroundColor: Colors.red),
           );
       }
     }
@@ -131,14 +131,14 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                   onPressed: _generatePDF,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.menu_book, color: Colors.orange),
+                  icon: const Icon(Icons.menu_book, color: Colors.white),
                   onPressed: _onRecipeClick,
-                  tooltip: 'Receitas Salvas',
+                  tooltip: AppLocalizations.of(context)!.tooltipSavedRecipes,
                 ),
                 IconButton(
                   icon: const Icon(Icons.check_circle, color: AppDesign.foodOrange), // Synced with Food Domain
                   onPressed: null, // No action needed
-                  tooltip: 'Salvo Automaticamente',
+                  tooltip: AppLocalizations.of(context)!.tooltipAutoSaved,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -277,7 +277,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 elevation: 0,
               ),
               child: Text(
-                "Ir para a lista de análises",
+                AppLocalizations.of(context)!.btnGoToList,
                 style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
               ),
             ),
@@ -487,7 +487,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                   IconButton(
                      icon: const Icon(Icons.refresh_rounded, color: Colors.orangeAccent),
                      onPressed: _generateMoreRecipes,
-                     tooltip: 'Gerar novas receitas',
+                     tooltip: AppLocalizations.of(context)!.tooltipGenerateRecipes,
                      padding: EdgeInsets.zero,
                      constraints: const BoxConstraints(),
                   )
@@ -497,7 +497,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           if (_isGeneratingRecipes)
              Padding(
                 padding: const EdgeInsets.only(bottom: 20),
-                child: Text('Consultando chef IA...', style: GoogleFonts.poppins(color: Colors.orangeAccent, fontSize: 12, fontStyle: FontStyle.italic)),
+                child: Text(AppLocalizations.of(context)!.foodConsultingChef, style: GoogleFonts.poppins(color: Colors.orangeAccent, fontSize: 12, fontStyle: FontStyle.italic)),
              ),
 
           ..._analysis.receitas.map((r) => _buildRecipeCard(r)),
@@ -577,10 +577,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.analysis.identidade.statusProcessamento.toUpperCase(), 
+                  _translateStatus(widget.analysis.identidade.statusProcessamento).toUpperCase(), 
                   style: GoogleFonts.poppins(color: statusColor, fontSize: 13, fontWeight: FontWeight.bold)
                 ),
-                Text("${AppLocalizations.of(context)!.labelTrafficLight}: ${widget.analysis.identidade.semaforoSaude}", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                Text("${AppLocalizations.of(context)!.labelTrafficLight}: ${_translateStatus(widget.analysis.identidade.semaforoSaude)}", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
@@ -779,7 +779,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('✅ Análise salva no histórico!'),
+            content: Text(AppLocalizations.of(context)!.analysisSavedSuccess),
             backgroundColor: AppDesign.foodOrange,
             duration: const Duration(seconds: 2),
           ),
@@ -789,7 +789,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       debugPrint('❌ Error saving to history: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context)!.errorSaving(e.toString())), backgroundColor: Colors.red),
         );
       }
     }
@@ -1002,4 +1002,30 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   }
 
   TextStyle get _sectionTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
+
+  String _translateStatus(String status) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (status.toLowerCase().trim()) {
+      case 'in natura':
+      case 'unprocessed':
+      case 'natural':
+        return l10n.foodInNatura;
+      case 'verde':
+      case 'green':
+        return l10n.commonGreen;
+      case 'amarelo':
+      case 'yellow':
+        return l10n.commonYellow;
+      case 'vermelho':
+      case 'red':
+      case 'rojo':
+        return l10n.commonRed;
+      case 'nenhum':
+      case 'none':
+      case 'ninguno':
+        return l10n.commonNone;
+      default:
+        return status;
+    }
+  }
 }

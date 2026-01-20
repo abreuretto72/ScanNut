@@ -27,13 +27,16 @@ class WeeklyMealPlanAdapter extends TypeAdapter<WeeklyMealPlan> {
       metadata: fields[7] as NutrientMetadata,
       templateName: fields[8] as String?,
       createdAt: fields[9] as DateTime,
+      recommendedBrands: (fields[10] as List?)?.cast<dynamic>(),
+      foodType: fields[11] as String?,
+      goal: fields[12] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WeeklyMealPlan obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -53,7 +56,13 @@ class WeeklyMealPlanAdapter extends TypeAdapter<WeeklyMealPlan> {
       ..writeByte(8)
       ..write(obj.templateName)
       ..writeByte(9)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(10)
+      ..write(obj.recommendedBrands)
+      ..writeByte(11)
+      ..write(obj.foodType)
+      ..writeByte(12)
+      ..write(obj.goal);
   }
 
   @override

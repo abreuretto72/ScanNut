@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
+import 'brand_suggestion.dart'; // 🛡️ NEW: Import BrandSuggestion
 
 part 'weekly_meal_plan.g.dart';
 
@@ -35,6 +36,15 @@ class WeeklyMealPlan {
   @HiveField(9)
   final DateTime createdAt;
 
+  @HiveField(10)
+  final List<dynamic>? recommendedBrands; // 🛡️ UPDATED: List<dynamic> for backward compatibility (String vs BrandSuggestion)
+
+  @HiveField(11)
+  final String? foodType; // 'kibble', 'natural', 'mixed' - Filtro original persistido
+
+  @HiveField(12)
+  final String? goal; // Objetivo original (ex: 'obesity', 'renal') - Filtro original persistido
+
   WeeklyMealPlan({
     required this.id,
     required this.petId,
@@ -46,6 +56,9 @@ class WeeklyMealPlan {
     required this.metadata,
     this.templateName,
     required this.createdAt,
+    this.recommendedBrands,
+    this.foodType,
+    this.goal,
   });
 
   factory WeeklyMealPlan.create({
@@ -56,6 +69,9 @@ class WeeklyMealPlan {
     required List<DailyMealItem> meals,
     required NutrientMetadata metadata,
     String? templateName,
+    List<dynamic>? recommendedBrands, // Accept dynamic list
+    String? foodType,
+    String? goal,
   }) {
     // Calculate end date (Sunday of the week)
     // Assuming startDate is ideally Monday, but we can enforce logic elsewhere.
@@ -72,7 +88,35 @@ class WeeklyMealPlan {
       metadata: metadata,
       templateName: templateName,
       createdAt: DateTime.now(),
+      recommendedBrands: recommendedBrands,
+      foodType: foodType,
+      goal: goal,
     );
+  }
+
+  // 🛡️ Robust Getter: Handles both old String list and new BrandSuggestion list
+  List<BrandSuggestion> get safeRecommendedBrands {
+    if (recommendedBrands == null) return [];
+    
+    return recommendedBrands!.map((item) {
+      if (item is BrandSuggestion) return item;
+      
+      // Handle Map (if Hive returns Maps for objects)
+      if (item is Map) {
+         try {
+           return BrandSuggestion.fromJson(Map<String, dynamic>.from(item));
+         } catch (e) {
+           // Fallback if parsing fails
+           return BrandSuggestion(brand: item.toString(), reason: 'Recomendação baseada no perfil.');
+         }
+      }
+
+      // Legacy Fallback: String -> BrandSuggestion
+      return BrandSuggestion(
+        brand: item.toString(),
+        reason: 'Marca selecionada por critérios de qualidade Super Premium para o perfil do pet.',
+      );
+    }).toList();
   }
 }
 

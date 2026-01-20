@@ -33,7 +33,7 @@ class SnackBarHelper {
           borderRadius: BorderRadius.circular(12),
         ),
         margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 2),
         action: SnackBarAction(
           label: 'OK',
           textColor: Colors.white,

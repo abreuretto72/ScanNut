@@ -183,9 +183,7 @@ class ExportService {
   /// RIGOROUS FOOTER: Consistent across all reports
   pw.Widget buildFooter(pw.Context context, {AppLocalizations? strings}) {
 
-    final pageText = strings != null 
-        ? strings.pdfPage(context.pageNumber, context.pagesCount)
-        : 'Página ${context.pageNumber} de ${context.pagesCount}';
+    final pageText = strings?.pdfPage(context.pageNumber, context.pagesCount) ?? 'Página ${context.pageNumber} de ${context.pagesCount}';
 
     return pw.Column(
       children: [
@@ -309,7 +307,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfAgendaReport, timestampStr, color: colorPet),
+        header: (context) => buildHeader(strings.pdfAgendaReport, timestampStr, color: colorPet, dateLabel: strings.pdfDateLabel),
         footer: (context) => buildFooter(context),
         build: (context) => [
           // Indicators removed
@@ -353,7 +351,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfPartnersGuide, timestampStr, color: colorPet),
+        header: (context) => buildHeader(strings.pdfPartnersGuide, timestampStr, color: colorPet, dateLabel: strings.pdfDateLabel),
         footer: (context) => buildFooter(context),
         build: (context) => [
           pw.Row(
@@ -397,13 +395,13 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader('RADAR GEO - SCANNUT', timestampStr, color: colorPet, dateLabel: strings.pdfDate),
+        header: (context) => buildHeader(strings.pdfRadarTitle, timestampStr, color: colorPet, dateLabel: strings.pdfDateLabel),
         footer: (context) => buildFooter(context, strings: strings),
         build: (context) => [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              buildIndicator('${strings.pdfStatus}:', 'RESULTADOS PRÓXIMOS', colorPet),
+              buildIndicator('${strings.pdfStatus}:', strings.pdfRadarResults, colorPet),
               buildIndicator('${strings.pdfTotalFound}:', partners.length.toString(), colorPet),
             ],
           ),
@@ -415,9 +413,9 @@ class ExportService {
             cellStyle: const pw.TextStyle(fontSize: 7.5, color: PdfColors.black),
             headers: [
                 strings.pdfEstablishment.toUpperCase(), 
-                strings.distanceLabel?.toUpperCase() ?? 'DISTÂNCIA', 
-                strings.ratingLabel?.toUpperCase() ?? 'AVALIAÇÃO', 
-                strings.pdfFieldAddress?.toUpperCase() ?? 'ENDEREÇO', 
+                strings.pdfDistanceLabel.toUpperCase(), 
+                strings.ratingLabel?.toUpperCase() ?? (strings.localeName == 'pt' ? 'AVALIAÇÃO' : 'RATING'), 
+                strings.pdfAddressLabel.toUpperCase(), 
                 strings.pdfPhone.toUpperCase()
             ],
             data: partners.map((p) {
@@ -448,6 +446,7 @@ class ExportService {
     String? dailyKcal,
     String? period, // Added period
     Map<String, List<Map<String, dynamic>>>? shoppingLists,
+    List<dynamic>? recommendedBrands, // NEW: Brand suggestions (can be String or BrandSuggestion)
   }) async {
     debugPrint('🚀 [V62-TRACE] Iniciando build do PDF: Nome do Pet: $petName');
     debugPrint('🎨 [V62-TRACE] Carregando cores do tema de Domínio Pet: Rosa Pastel (#FFD1DC)');
@@ -460,22 +459,8 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader(strings.pdfNutritionSection, timestampStr, color: colorPet),
-        footer: (context) => pw.Column(
-          children: [
-            pw.Divider(thickness: 0.5, color: PdfColors.black),
-            pw.SizedBox(height: 5),
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                pw.Text('Gerado por ScanNut - Governança Pet & Inteligência Artificial', 
-                       style: pw.TextStyle(fontSize: 7, fontStyle: pw.FontStyle.italic, color: PdfColors.black)),
-                pw.Text('${strings.pdfPage(context.pageNumber, context.pagesCount)}', 
-                       style: const pw.TextStyle(fontSize: 7, color: PdfColors.black)),
-              ],
-            ),
-          ],
-        ),
+        header: (context) => buildHeader(strings.pdfNutritionSection, timestampStr, color: colorPet, dateLabel: strings.pdfDateLabel),
+        footer: (context) => _buildFooter(context, strings),
         build: (context) {
           final List<pw.Widget> content = [];
           
@@ -652,6 +637,109 @@ class ExportService {
                   pw.Text('${strings.pdfFieldGeneralGuidelines}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.black)),
                   pw.SizedBox(height: 6),
                   pw.Text(guidelines, style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
+                ],
+              ),
+            ));
+          }
+
+          // NEW: Brand Suggestions Section
+          if (recommendedBrands != null && recommendedBrands.isNotEmpty) {
+            content.add(pw.SizedBox(height: 20));
+            content.add(pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
+                 color: PdfColor.fromHex('#E8F5E9'), // Light green background
+                 border: pw.Border.all(color: PdfColor.fromHex('#4CAF50'), width: 1.0),
+                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Row(
+                    children: [
+                      pw.Container(
+                        width: 16,
+                        height: 16,
+                        decoration: pw.BoxDecoration(
+                          color: PdfColor.fromHex('#4CAF50'),
+                          shape: pw.BoxShape.circle,
+                        ),
+                        child: pw.Center(
+                          child: pw.Text('i', style: pw.TextStyle(color: PdfColors.white, fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                        ),
+                      ),
+                      pw.SizedBox(width: 8),
+                      pw.Text(strings.pdfBrandSuggestions, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColor.fromHex('#2E7D32'))),
+                    ],
+                  ),
+                  pw.SizedBox(height: 10),
+                  ...recommendedBrands.map((item) {
+                    // 🛡️ Handle both legacy (String) and new (BrandSuggestion) formats
+                    String brandName;
+                    String? reason;
+                    
+                    if (item is String) {
+                      brandName = item;
+                      reason = null;
+                    } else if (item is Map) {
+                      brandName = item['brand']?.toString() ?? item['marca']?.toString() ?? '';
+                      reason = item['reason']?.toString() ?? item['por_que_escolhemos']?.toString();
+                    } else {
+                      // BrandSuggestion object
+                      brandName = (item as dynamic).brand ?? ''; // Cast to dynamic or typed if possible
+                      reason = (item as dynamic).reason;
+                    }
+                    
+                    return pw.Padding(
+                      padding: const pw.EdgeInsets.only(bottom: 8, left: 24),
+                      child: pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('• ', style: pw.TextStyle(fontSize: 10, color: PdfColor.fromHex('#4CAF50'), fontWeight: pw.FontWeight.bold)),
+                          pw.Expanded(
+                            child: pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                // Brand name in bold green
+                                pw.Text(
+                                  brandName, 
+                                  style: pw.TextStyle(
+                                    fontSize: 10, 
+                                    color: PdfColor.fromHex('#2E7D32'),
+                                    fontWeight: pw.FontWeight.bold,
+                                  ),
+                                ),
+                                if (reason != null && reason.isNotEmpty) ...[
+                                  pw.SizedBox(height: 2),
+                                  // Technical justification in italic
+                                  pw.Text(
+                                    reason,
+                                    style: pw.TextStyle(
+                                      fontSize: 9,
+                                      color: PdfColors.grey800,
+                                      fontStyle: pw.FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                  pw.SizedBox(height: 10),
+                  pw.Container(
+                    padding: const pw.EdgeInsets.all(8),
+                    decoration: pw.BoxDecoration(
+                      color: PdfColor.fromHex('#FFF9C4'), // Light yellow for disclaimer
+                      borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                    ),
+                    child: pw.Text(
+                      strings.pdfLegalDisclaimer,
+                      style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic, color: PdfColors.black),
+                    ),
+                  ),
                 ],
               ),
             ));
@@ -851,11 +939,11 @@ class ExportService {
            pw.MultiPage(
              pageFormat: PdfPageFormat.a4,
              margin: const pw.EdgeInsets.all(35),
-             header: (context) => buildHeader('LISTA DE COMPRAS${weekLabel.toUpperCase()}', timestampStr, color: colorFood),
+             header: (context) => buildHeader('${strings?.pdfShoppingListTitle ?? 'LISTA DE COMPRAS'}${weekLabel.toUpperCase()}', timestampStr, color: colorFood),
              footer: (context) => buildFooter(context, strings: strings),
              build: (context) => [
                pw.Text(
-                 'Esta lista consolidada refere-se aos itens necessários para a ${weekShopping.weekLabel}. Quantidades somadas e organizadas por setor.',
+                 strings?.pdfShoppingListDescription(weekShopping.weekLabel) ?? 'Esta lista consolidada refere-se aos itens necessários para a ${weekShopping.weekLabel}. Quantidades somadas e organizadas por setor.',
                  style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
                ),
                pw.SizedBox(height: 15),
@@ -970,34 +1058,58 @@ class ExportService {
         footer: (context) => buildFooter(context, strings: strings),
         build: (context) => [
           // Header with image and basic info
+          // Safety & Toxicity Header Block
           if (analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_pets'] == true ||
               analysis.segurancaBiofilia.segurancaDomestica['toxica_para_pets'] == true ||
               analysis.segurancaBiofilia.segurancaDomestica['toxica_para_criancas'] == true ||
-              analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_children'] == true)
-            pw.Container(
-              margin: const pw.EdgeInsets.only(bottom: 20),
-              padding: const pw.EdgeInsets.all(10),
-              decoration: pw.BoxDecoration(
-                color: PdfColors.red50,
-                border: pw.Border.all(color: PdfColors.red, width: 2),
-                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
-              ),
-              child: pw.Row(
-                children: [
-                   pw.Text('⚠️', style: const pw.TextStyle(fontSize: 24)),
-                   pw.SizedBox(width: 10),
-                   pw.Expanded(
-                     child: pw.Column(
-                       crossAxisAlignment: pw.CrossAxisAlignment.start,
-                       children: [
-                         pw.Text(strings.toxicityWarning.toUpperCase(), style: pw.TextStyle(color: PdfColors.red900, fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                         pw.Text(analysis.segurancaBiofilia.segurancaDomestica['toxicity_details'] ?? analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao'] ?? strings.plantDangerPets, style: const pw.TextStyle(color: PdfColors.red900, fontSize: 10)),
-                       ],
-                     ),
-                   ),
-                ],
-              ),
-            ),
+              analysis.segurancaBiofilia.segurancaDomestica['is_toxic_to_children'] == true) ...[
+            
+            // Logic to determine Specific Toxicity Label
+            (() {
+               String label = strings.toxicityWarning.toUpperCase(); // Default generic
+               final sec = analysis.segurancaBiofilia.segurancaDomestica;
+               final details = (sec['toxicity_details'] ?? sec['sintomas_ingestao'] ?? '').toString().toLowerCase();
+               final bool toxicKids = sec['toxica_para_criancas'] == true || sec['is_toxic_to_children'] == true;
+
+               // Specific Detection
+               if (details.contains('gato') && details.contains('cão')) {
+                  label = strings.pdfToxicPetsCats;
+               } else if (details.contains('gato') || details.contains('felino')) {
+                  label = strings.pdfToxicCats;
+               } else if (details.contains('cão') || details.contains('cachorro') || details.contains('canino')) {
+                  label = strings.pdfToxicDogs;
+               } else if (sec['toxica_para_pets'] == true || sec['is_toxic_to_pets'] == true || details.contains('animais') || details.contains('pets')) {
+                  label = strings.pdfToxicAnimals;
+               } else if (toxicKids) {
+                  label = strings.pdfToxicHumans;
+               }
+               
+               return pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 20),
+                  padding: const pw.EdgeInsets.all(10),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.red50,
+                    border: pw.Border.all(color: PdfColors.red, width: 2),
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                  ),
+                  child: pw.Row(
+                    children: [
+                       pw.Text('⚠️', style: const pw.TextStyle(fontSize: 24)),
+                       pw.SizedBox(width: 10),
+                       pw.Expanded(
+                         child: pw.Column(
+                           crossAxisAlignment: pw.CrossAxisAlignment.start,
+                           children: [
+                             pw.Text(label, style: pw.TextStyle(color: PdfColors.red900, fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                             pw.Text(analysis.segurancaBiofilia.segurancaDomestica['toxicity_details'] ?? analysis.segurancaBiofilia.segurancaDomestica['sintomas_ingestao'] ?? strings.plantDangerPets, style: const pw.TextStyle(color: PdfColors.red900, fontSize: 10)),
+                           ],
+                         ),
+                       ),
+                    ],
+                  ),
+               );
+            })(),
+          ],
             
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -1058,24 +1170,46 @@ class ExportService {
 
           // 3. GUIA DE SOBREVIVÊNCIA (HARDWARE)
           buildSectionHeader('3. ${strings.tabHardware} (${strings.labelTrafficLight})', color: colorPlant),
+          
           pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                pw.Text(strings.plantNeedSun, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                pw.Row(
+                  children: [
+                    _buildCareIcon('sun', _parsePlantCareLevel(analysis.sobrevivencia.luminosidade['type'] ?? analysis.sobrevivencia.luminosidade['tipo'], 'sun')),
+                    pw.SizedBox(width: 5),
+                    pw.Text(strings.labelSun?.toUpperCase() ?? strings.plantNeedSun, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                  ]
+                ),
+                pw.SizedBox(height: 4),
                 pw.Text(analysis.sobrevivencia.luminosidade['type'] ?? analysis.sobrevivencia.luminosidade['tipo'] ?? strings.noInformation),
                 pw.Text(analysis.sobrevivencia.luminosidade['explanation'] ?? analysis.sobrevivencia.luminosidade['explicacao'] ?? '', style: const pw.TextStyle(fontSize: 8)),
               ])),
               pw.SizedBox(width: 20),
               pw.Expanded(child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                pw.Text(strings.plantNeedWater, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                pw.Row(
+                  children: [
+                    _buildCareIcon('water', _parsePlantCareLevel(analysis.sobrevivencia.regimeHidrico['frequency'] ?? analysis.sobrevivencia.regimeHidrico['frequencia_ideal'], 'water')),
+                    pw.SizedBox(width: 5),
+                    pw.Text(strings.labelWater?.toUpperCase() ?? strings.plantNeedWater, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                  ]
+                ),
+                pw.SizedBox(height: 4),
                 pw.Text(analysis.sobrevivencia.regimeHidrico['frequency'] ?? analysis.sobrevivencia.regimeHidrico['frequencia_ideal'] ?? strings.noInformation),
                 pw.Text(analysis.sobrevivencia.regimeHidrico['thirst_signs'] ?? analysis.sobrevivencia.regimeHidrico['sinais_sede'] ?? '', style: const pw.TextStyle(fontSize: 8)),
               ])),
             ]
           ),
           pw.SizedBox(height: 10),
-          pw.Text('${strings.plantNeedSoil} & ${strings.tabNutrition}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          pw.Row(
+            children: [
+               _buildCareIcon('soil', _parsePlantCareLevel(analysis.sobrevivencia.soloENutricao['type'] ?? analysis.sobrevivencia.soloENutricao['tipo'], 'soil')),
+               pw.SizedBox(width: 5),
+               pw.Text('${strings.labelSoil?.toUpperCase() ?? strings.plantNeedSoil} & ${strings.tabNutrition}:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+            ]
+          ),
+          pw.SizedBox(height: 4),
           pw.Text('${strings.plantSubstrate}: ${analysis.sobrevivencia.soloENutricao['soil_type'] ?? analysis.sobrevivencia.soloENutricao['composicao_substrato'] ?? strings.noInformation}'),
           pw.Text('${strings.plantFertilizer}: ${analysis.sobrevivencia.soloENutricao['fertilizer'] ?? analysis.sobrevivencia.soloENutricao['adubo_recomendado'] ?? strings.noInformation}'),
           if (analysis.sobrevivencia.soloENutricao['ideal_ph'] != null)
@@ -1115,10 +1249,156 @@ class ExportService {
           pw.Text('${strings.plantFlowerColor}: ${analysis.estetica.corDasFlores}'),
           pw.Text('${strings.plantGrowth}: ${analysis.estetica.velocidadeCrescimento}'),
           pw.Text('${strings.plantMaxSize}: ${analysis.estetica.tamanhoMaximo}'),
+
+          // 📚 CARE LEGEND (Requested)
+          _buildCareLegend(strings),
         ],
       ),
     );
     return pdf;
+  }
+
+  pw.Widget _buildCareLegend(AppLocalizations strings) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(top: 20),
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.grey100,
+        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        border: pw.Border.all(color: PdfColors.grey300),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(strings.pdfCareLegendTitle, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green900)),
+          pw.SizedBox(height: 10),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              _buildLegendItem('sun', strings.plantNeedSun, 'Nível de intensidade de luz solar necessária.', PdfColors.orange),
+              _buildLegendItem('water', strings.plantNeedWater, 'Frequência de hidratação do solo.', PdfColors.blue),
+              _buildLegendItem('soil', strings.plantNeedSoil, 'Riqueza e drenagem do substrato.', PdfColors.brown),
+            ],
+          ),
+          pw.SizedBox(height: 10),
+          pw.Divider(color: PdfColors.grey300, thickness: 0.5),
+          pw.SizedBox(height: 5),
+          pw.Text(strings.pdfCareLegendLevels, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8)),
+          pw.Text(strings.pdfCareLegendDescription, style: const pw.TextStyle(fontSize: 8)),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildLegendItem(String type, String title, String desc, PdfColor color) {
+    return pw.Expanded(
+      child: pw.Row(
+        children: [
+          _buildCareIcon(type, 3, size: 15),
+          pw.SizedBox(width: 8),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(title, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: color)),
+              pw.SizedBox(width: 100, child: pw.Text(desc, style: const pw.TextStyle(fontSize: 7))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildCareIcon(String type, int level, {double size = 15}) {
+    PdfColor color;
+    if (type == 'sun') {
+      color = PdfColors.orange;
+    } else if (type == 'water') {
+      color = PdfColors.blue;
+    } else {
+      color = PdfColors.brown;
+    }
+
+    double fillRatio = 0.25;
+    if (level == 2) fillRatio = 0.5;
+    if (level >= 3) fillRatio = 1.0;
+
+    return pw.CustomPaint(
+      size: PdfPoint(size, size),
+      painter: (PdfGraphics canvas, PdfPoint size) {
+        // --- 1. SET STROKE STYLE ---
+        canvas
+          ..setLineWidth(1)
+          ..setStrokeColor(color);
+
+        // --- 2. DEFINE SHAPE PATH ---
+        // Note: PDF coordinate system (0,0) is BOTTOM-LEFT.
+        // UI coordinate system (0,0) is TOP-LEFT.
+        // To match UI:
+        // Top Edge in UI (Y=0) is Y=size.y in PDF.
+        // Bottom Edge in UI (Y=height) is Y=0 in PDF.
+
+        void definePath() {
+          if (type == 'sun') {
+            canvas.drawEllipse(size.x / 2, size.y / 2, size.x / 2, size.y / 2);
+          } else if (type == 'soil') {
+            // Rounded square simulation or simple rect
+            canvas.drawRect(0, 0, size.x, size.y);
+          } else {
+            // Cup (Trapezoid from UI)
+            // UI: top (15% to 85%), bottom (30% to 70%)
+            // PDF: top Y=size.y, bottom Y=0
+            canvas
+              ..moveTo(size.x * 0.30, 0)        // Bottom Left
+              ..lineTo(size.x * 0.70, 0)        // Bottom Right
+              ..lineTo(size.x * 0.85, size.y)   // Top Right
+              ..lineTo(size.x * 0.15, size.y)   // Top Left
+              ..closePath();
+          }
+        }
+
+        // --- 3. DRAW OUTLINE ---
+        definePath();
+        canvas.strokePath();
+
+        // --- 4. DRAW FILL (FROM BOTTOM) ---
+        if (fillRatio > 0) {
+          canvas
+            ..saveContext()
+            ..setFillColor(color);
+
+          definePath();
+          canvas.clipPath();
+
+          // Fill rectangle from Y=0 to Y=fillRatio * size.y
+          canvas.drawRect(0, 0, size.x, size.y * fillRatio);
+          canvas.fillPath();
+
+          canvas.restoreContext();
+        }
+      },
+    );
+  }
+
+  int _parsePlantCareLevel(String? value, String type) {
+    if (value == null) return 1;
+    final s = value.toLowerCase();
+
+    if (type == 'sun') {
+      if (s.contains('pleno') || s.contains('full') || s.contains('direta')) return 3;
+      if (s.contains('meia') || s.contains('partial') || s.contains('indireta')) return 2;
+      return 1;
+    }
+    if (type == 'water') {
+      if (s.contains('abundante') || s.contains('high') || s.contains('frequente') || s.contains('muito')) return 3;
+      if (s.contains('moderada') || s.contains('average') || s.contains('regular') || s.contains('semanal')) return 2;
+      return 1;
+    }
+    if (type == 'soil') {
+      if (s.contains('rico') || s.contains('rich') || s.contains('fértil')) return 3;
+      if (s.contains('drenado') || s.contains('drain') || s.contains('arenoso')) return 1;
+      return 2;
+    }
+    return 1;
   }
 
   // 📝 TRANSLATION MAP (English AI Keys -> Portuguese PDF)
@@ -3174,7 +3454,32 @@ class ExportService {
 
        // Determine toxicity info
        final isToxic = item.toxicityStatus != 'safe';
-       final toxicityLabel = isToxic ? 'TÓXICA' : 'SEGURA';
+       String toxicityLabel = item.toxicityStatus == 'harmful_pets' ? 'TÓXICA: ANIMAIS' : 'POTENCIALMENTE TÓXICA';
+       
+       if (isToxic) {
+          final meta = item.rawMetadata;
+          if (meta != null && meta['seguranca_biofilia'] != null) {
+             final sec = meta['seguranca_biofilia']['seguranca_domestica'];
+             if (sec != null) {
+                final details = (sec['sintomas_ingestao'] ?? sec['toxicity_details'] ?? '').toString().toLowerCase();
+                final bool toxicPets = sec['toxica_para_pets'] == true || sec['is_toxic_to_pets'] == true;
+                final bool toxicKids = sec['toxica_para_criancas'] == true || sec['is_toxic_to_children'] == true;
+                
+                // Specific Detection
+                if (details.contains('gato') && details.contains('cão')) {
+                   toxicityLabel = 'TÓXICA: CÃES E GATOS';
+                } else if (details.contains('gato') || details.contains('felino')) {
+                   toxicityLabel = 'TÓXICA: GATOS';
+                } else if (details.contains('cão') || details.contains('cachorro') || details.contains('canino')) {
+                   toxicityLabel = 'TÓXICA: CÃES';
+                } else if (toxicPets || details.contains('animais') || details.contains('pets')) {
+                   toxicityLabel = 'TÓXICA: ANIMAIS';
+                } else if (toxicKids) {
+                   toxicityLabel = 'TÓXICA: HUMANOS';
+                }
+             }
+          }
+       }
        final toxicityColor = isToxic ? PdfColors.red : PdfColors.green;
 
        pdf.addPage(
@@ -3278,9 +3583,18 @@ class ExportService {
                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
                    border: pw.Border.all(color: PdfColors.red300),
                  ),
-                 child: pw.Text(
-                   'ATENÇÃO: Esta planta apresenta toxicidade. Mantenha fora do alcance de crianças e animais de estimação. Em caso de ingestão, procure atendimento médico imediatamente.',
-                   style: const pw.TextStyle(fontSize: 10, height: 1.5, color: PdfColors.black),
+                 child: pw.Column(
+                   crossAxisAlignment: pw.CrossAxisAlignment.start,
+                   children: [
+                      pw.Text(
+                       'ATENÇÃO: Esta planta apresenta toxicidade.',
+                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.red900),
+                      ),
+                      pw.Text(
+                       _getBotanyHistoryToxicityText(item),
+                       style: const pw.TextStyle(fontSize: 10, height: 1.5, color: PdfColors.black)
+                      ),
+                   ],
                  ),
                ),
                pw.SizedBox(height: 20),
@@ -3302,50 +3616,57 @@ class ExportService {
              ),
              pw.SizedBox(height: 20),
 
-             // Care Needs
-             buildSectionHeader("NECESSIDADES DE CUIDADO", color: colorPlant),
-             pw.Container(
-               padding: const pw.EdgeInsets.all(12),
-               decoration: pw.BoxDecoration(
-                 color: PdfColors.grey100,
-                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
-                 border: pw.Border.all(color: PdfColors.grey300),
-               ),
-               child: pw.Column(
-                 crossAxisAlignment: pw.CrossAxisAlignment.start,
-                 children: [
-                   if (item.lightWaterSoilNeeds['luz'] != null)
-                     pw.Padding(
-                       padding: const pw.EdgeInsets.only(bottom: 6),
-                       child: pw.Row(
-                         children: [
-                           pw.Text('☀️ Luz: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                           pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['luz']!, style: const pw.TextStyle(fontSize: 10))),
-                         ],
-                       ),
-                     ),
-                   if (item.lightWaterSoilNeeds['agua'] != null)
-                     pw.Padding(
-                       padding: const pw.EdgeInsets.only(bottom: 6),
-                       child: pw.Row(
-                         children: [
-                           pw.Text('💧 Água: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                           pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['agua']!, style: const pw.TextStyle(fontSize: 10))),
-                         ],
-                       ),
-                     ),
-                   if (item.lightWaterSoilNeeds['solo'] != null)
-                     pw.Row(
-                       children: [
-                         pw.Text('🌱 Solo: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                         pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['solo']!, style: const pw.TextStyle(fontSize: 10))),
-                       ],
-                     ),
-                 ],
-               ),
-             ),
-             pw.SizedBox(height: 20),
-          ],
+              // Care Needs
+              buildSectionHeader("NECESSIDADES DE CUIDADO", color: colorPlant),
+              pw.Container(
+                padding: const pw.EdgeInsets.all(12),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                  borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
+                  border: pw.Border.all(color: PdfColors.grey300),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    if (item.lightWaterSoilNeeds['luz'] != null)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(bottom: 6),
+                        child: pw.Row(
+                          children: [
+                            _buildCareIcon('sun', _parsePlantCareLevel(item.lightWaterSoilNeeds['luz'], 'sun'), size: 10),
+                            pw.SizedBox(width: 5),
+                            pw.Text('${strings.labelSun}: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                            pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['luz']!, style: const pw.TextStyle(fontSize: 10))),
+                          ],
+                        ),
+                      ),
+                    if (item.lightWaterSoilNeeds['agua'] != null)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(bottom: 6),
+                        child: pw.Row(
+                          children: [
+                            _buildCareIcon('water', _parsePlantCareLevel(item.lightWaterSoilNeeds['agua'], 'water'), size: 10),
+                            pw.SizedBox(width: 5),
+                            pw.Text('${strings.labelWater}: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                            pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['agua']!, style: const pw.TextStyle(fontSize: 10))),
+                          ],
+                        ),
+                      ),
+                    if (item.lightWaterSoilNeeds['solo'] != null)
+                      pw.Row(
+                        children: [
+                          _buildCareIcon('soil', _parsePlantCareLevel(item.lightWaterSoilNeeds['solo'], 'soil'), size: 10),
+                          pw.SizedBox(width: 5),
+                          pw.Text('${strings.labelSoil}: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                          pw.Expanded(child: pw.Text(item.lightWaterSoilNeeds['solo']!, style: const pw.TextStyle(fontSize: 10))),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 20),
+              _buildCareLegend(strings),
+           ],
         ),
       );
     }
@@ -3426,7 +3747,7 @@ class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
-        header: (context) => buildHeader('${strings.petDossierTitle.toUpperCase()} - 360º', timestampStr, color: colorPet),
+        header: (context) => buildHeader('${strings.petDossierTitle.toUpperCase()} - $petName', timestampStr, color: colorPet),
         footer: (context) => buildFooter(context, strings: strings),
         build: (context) => [
           // 🛡️ V116: IDENTITY BLOCK
@@ -3793,7 +4114,24 @@ class ExportService {
     );
   }
 
-  /// 8. HUMAN FOOD ANALYSIS REPORT (SCANNUT STANDARD V135)
+  pw.Widget _buildSafeBullet(String text, {double fontSize = 9, PdfColor? color}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 2),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Container(
+             width: 4, height: 4, 
+             margin: const pw.EdgeInsets.only(top: 3, right: 6),
+             decoration: pw.BoxDecoration(color: color ?? PdfColors.black, shape: pw.BoxShape.circle)
+          ),
+          pw.Expanded(child: pw.Text(text, style: pw.TextStyle(fontSize: fontSize, color: PdfColors.black)))
+        ]
+      )
+    );
+  }
+
+  /// 8. HUMAN FOOD ANALYSIS REPORT (SCANNUT STANDARD V136)
   Future<pw.Document> generateFoodAnalysisReport({
     required FoodAnalysisModel analysis,
     File? imageFile,
@@ -3807,12 +4145,12 @@ class ExportService {
       foodImage = await safeLoadImage(imageFile.path);
     }
     
-    // 🛡️ V135: HUMAN FOOD DATA EXTRACTION
+    // 🛡️ V136: DATA EXTRACTION & SAFETY
     final String dishName = analysis.identidade.nome;
     final String processing = analysis.identidade.statusProcessamento;
     final String trafficLight = analysis.identidade.semaforoSaude;
-    final String? weight = analysis.identidade.estimativaPeso; // New V135
-    final String? method = analysis.identidade.metodoPreparo;  // New V135
+    final String? weight = analysis.identidade.estimativaPeso;
+    final String? method = analysis.identidade.metodoPreparo;
     
     final int kcal = analysis.macros.calorias100g;
     final String carbs = analysis.macros.carboidratosLiquidos;
@@ -3826,7 +4164,7 @@ class ExportService {
         header: (context) => buildHeader('${strings.pdfFoodTitle} - 360º', timestampStr, color: colorFood),
         footer: (context) => buildFooter(context, strings: strings),
         build: (context) => [
-          // HEADER IMAGE & TITLE
+          // 1. HEADER IMAGE & BASIC INFO
           pw.Row(
              crossAxisAlignment: pw.CrossAxisAlignment.start,
              children: [
@@ -3849,13 +4187,13 @@ class ExportService {
                    child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                         pw.Text(dishName.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 20, color: PdfColors.black)),
+                         pw.Text(dishName.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.black)),
                          pw.SizedBox(height: 5),
                          pw.Text('$processing • $trafficLight', style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
                          if (weight != null)
-                            pw.Text('Peso Est.: $weight', style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+                            pw.Text('Peso Est.: $weight', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
                          if (method != null)
-                            pw.Text('Preparo: $method', style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+                            pw.Text('Preparo: $method', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
                       ]
                    )
                 )
@@ -3864,9 +4202,9 @@ class ExportService {
           
           pw.SizedBox(height: 20),
           
-          // MACROS GRID
+          // 2. MACROS GRID
           buildSectionHeader(strings.pdfDetailedNutrition, color: colorFood),
-          pw.SizedBox(height: 10),
+          pw.SizedBox(height: 5),
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
@@ -3879,7 +4217,7 @@ class ExportService {
           
           pw.SizedBox(height: 20),
           
-          // ANALYSIS
+          // 3. IA VERDICT & PROS/CONS
           buildSectionHeader(strings.pdfExSummary, color: colorFood),
           pw.Container(
              padding: const pw.EdgeInsets.all(12),
@@ -3892,25 +4230,181 @@ class ExportService {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                    pw.Text('VEREDITO DA IA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
-                   pw.SizedBox(height: 4),
                    pw.Text(analysis.analise.vereditoIa, style: const pw.TextStyle(fontSize: 10)),
                    pw.SizedBox(height: 8),
                    if (analysis.analise.pontosPositivos.isNotEmpty) ...[
                       pw.Text('PONTOS POSITIVOS:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
-                      ...analysis.analise.pontosPositivos.map((e) => pw.Bullet(text: e, style: const pw.TextStyle(fontSize: 9))),
+                      ...analysis.analise.pontosPositivos.map((e) => _buildSafeBullet(e, color: PdfColors.green700)),
                    ],
                    if (analysis.analise.pontosNegativos.isNotEmpty) ...[
                       pw.SizedBox(height: 8),
                       pw.Text('PONTOS DE ATENÇÃO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.red700)),
-                      ...analysis.analise.pontosNegativos.map((e) => pw.Bullet(text: e, style: const pw.TextStyle(fontSize: 9))),
+                      ...analysis.analise.pontosNegativos.map((e) => _buildSafeBullet(e, color: PdfColors.red700)),
                    ]
                 ]
              )
           ),
+
+          pw.SizedBox(height: 20),
+
+          // 4. BIOHACKING & PERFORMANCE
+          buildSectionHeader((strings.foodBiohacking ?? 'BIOHACKING').toUpperCase(), color: colorFood),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+               pw.Expanded(
+                 child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                    pw.Text('BENEFÍCIOS AO CORPO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    ...analysis.performance.pontosPositivosCorpo.map((e) => _buildSafeBullet(e, color: colorFood)),
+                    pw.SizedBox(height: 10),
+                    pw.Text('ATENÇÃO AO CORPO:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    if (analysis.performance.pontosAtencaoCorpo.isEmpty)
+                       pw.Text(' - Nenhum ponto crítico.', style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic))
+                    else
+                       ...analysis.performance.pontosAtencaoCorpo.map((e) => _buildSafeBullet(e, color: PdfColors.orange)),
+                 ])
+               ),
+               pw.SizedBox(width: 15),
+               pw.Expanded(
+                 child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                    buildIndicator(strings.foodSatietyIndex ?? 'Saciedade', '${analysis.performance.indiceSaciedade}/10', PdfColors.teal),
+                    pw.SizedBox(height: 10),
+                    pw.Text('FOCO & ENERGIA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    pw.Text(analysis.performance.impactoFocoEnergia, style: const pw.TextStyle(fontSize: 9)),
+                    pw.SizedBox(height: 10),
+                    pw.Text('MOMENTO IDEAL:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    pw.Text(analysis.performance.momentoIdealConsumo, style: const pw.TextStyle(fontSize: 9)),
+                 ])
+               ),
+            ]
+          ),
+
+          pw.SizedBox(height: 20),
+
+          // 5. SAFETY & MICROS
+          pw.Row(
+             crossAxisAlignment: pw.CrossAxisAlignment.start,
+             children: [
+                pw.Expanded(
+                   child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                       buildSectionHeader(strings.foodSafetyBio ?? 'SEGURANÇA', color: colorFood),
+                       if (analysis.identidade.alertaCritico.isNotEmpty && analysis.identidade.alertaCritico != 'Nenhum')
+                          pw.Container(
+                             padding: const pw.EdgeInsets.all(8),
+                             decoration: pw.BoxDecoration(color: PdfColors.red50, border: pw.Border.all(color: PdfColors.red)),
+                             child: pw.Text('⚠️ ${analysis.identidade.alertaCritico}', style: pw.TextStyle(color: PdfColors.red900, fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                          ),
+                       pw.SizedBox(height: 5),
+                       pw.Text('BIOQUÍMICA:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                       pw.Text(analysis.identidade.bioquimicaAlert, style: const pw.TextStyle(fontSize: 9)),
+                   ])
+                ),
+                pw.SizedBox(width: 15),
+                pw.Expanded(
+                   child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                       buildSectionHeader((strings.featureMicrosTitle ?? 'MICRONUTRIENTES').toUpperCase(), color: colorFood),
+                       pw.Text('SINERGIA NUTRICIONAL:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                       pw.Text(analysis.micronutrientes.sinergiaNutricional, style: const pw.TextStyle(fontSize: 9)),
+                       pw.SizedBox(height: 5),
+                       pw.Wrap(
+                          spacing: 4, runSpacing: 4,
+                          children: analysis.micronutrientes.lista.map((m) {
+                             return pw.Container(
+                                padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                decoration: pw.BoxDecoration(color: PdfColors.grey200, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2))),
+                                child: pw.Text('${m.nome} (${m.percentualDv ?? "?"}%)', style: const pw.TextStyle(fontSize: 8))
+                             );
+                          }).toList()
+                       )
+                   ])
+                ),
+             ]
+          ),
+
+          pw.SizedBox(height: 20),
+
+          // 6. CULINARY INTELLIGENCE
+          buildSectionHeader(strings.recipesCulinaryIntel ?? 'GASTRONOMIA', color: colorFood),
+          pw.Row(
+             children: [
+                pw.Expanded(child: _buildReportRow('Dica do Expert:', analysis.gastronomia.dicaEspecialista)),
+                pw.SizedBox(width: 10),
+                pw.Expanded(child: _buildReportRow('Smart Swap:', analysis.gastronomia.smartSwap)),
+             ]
+          ),
+          pw.SizedBox(height: 5),
+          _buildReportRow('Preservação:', analysis.gastronomia.preservacaoNutrientes),
+
+          if (analysis.receitas.isNotEmpty) ...[
+             pw.SizedBox(height: 10),
+             pw.Text((strings.recipesQuick ?? 'RECEITAS SUGERIDAS').toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+             pw.SizedBox(height: 5),
+             ...analysis.receitas.map((r) => pw.Container(
+                margin: const pw.EdgeInsets.only(bottom: 6),
+                padding: const pw.EdgeInsets.all(6),
+                decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
+                child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                   pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                      pw.Text(r.nome, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                      pw.Text(r.tempoPreparo, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+                   ]),
+                   pw.Text(r.instrucoes, style: const pw.TextStyle(fontSize: 8), maxLines: 2),
+                ])
+             )),
+          ]
         ]
       ),
     );
     return pdf;
+  }
+
+  String _getBotanyHistoryToxicityText(BotanyHistoryItem item) {
+    String warning = 'Mantenha fora do alcance de crianças e animais de estimação. Em caso de ingestão, procure atendimento médico imediatamente.';
+    final meta = item.rawMetadata;
+    if (meta != null && meta['seguranca_biofilia'] != null) {
+      final sec = meta['seguranca_biofilia']['seguranca_domestica'];
+      if (sec != null) {
+        final details = (sec['sintomas_ingestao'] ?? sec['toxicity_details'] ?? '').toString().toLowerCase();
+        if (details.contains('gato') && details.contains('cão')) {
+          warning = 'ALERTA: Esta planta é TÓXICA para CÃES e GATOS. Mantenha em locais inacessíveis (prateleiras altas ou suspensas).';
+        } else if (details.contains('gato') || details.contains('felino')) {
+          warning = 'ALERTA: Esta planta é TÓXICA para GATOS. Evite tê-la em casa se possuir felinos, pois o contato pode causar insuficiência renal grave.';
+        } else if (details.contains('cão') || details.contains('cachorro')) {
+          warning = 'ALERTA: Esta planta é TÓXICA para CÃES. Mantenha fora do alcance do seu cachorro.';
+        }
+      }
+    }
+    return warning;
+  }
+
+  pw.Widget _buildFooter(pw.Context context, AppLocalizations l10n) {
+    final fontSize = 9.0;
+    
+    return pw.Container(
+      alignment: pw.Alignment.centerRight,
+      margin: const pw.EdgeInsets.only(top: 10),
+      child: pw.Column(
+        children: [
+          pw.Divider(thickness: 0.5, color: PdfColors.black),
+          pw.SizedBox(height: 5),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              // Left: Author & Copyright
+              pw.Text(
+                '${l10n.developed_by} Multiverso Digital Copyright 2026',
+                style: pw.TextStyle(fontSize: fontSize), 
+              ),
+              // Right: Pagination
+              pw.Text(
+                '${context.pageNumber} / ${context.pagesCount}',
+                style: pw.TextStyle(fontSize: fontSize),
+              ),
+            ],
+          ),
+        ]
+      )
+    );
   }
 }
 

@@ -207,7 +207,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
                       _buildDietDropdown(l10n),
                       
                       const SizedBox(height: 12),
-                      _buildSectionTitle('TIPO DE ALIMENTO'), // TODO: Localize
+                      _buildSectionTitle(l10n.petFoodTypeLabel),
                        const SizedBox(height: 8),
                       _buildFoodTypeDropdown(l10n),
 
@@ -256,7 +256,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
                       const SizedBox(height: 16),
                       if (_endDate != null)
                         Text(
-                          '${(_endDate!.difference(_startDate).inDays + 1)} dias selecionados',
+                          l10n.petSelectedDays((_endDate!.difference(_startDate).inDays + 1).toString()),
                           style: GoogleFonts.poppins(color: colorDeepPink, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                       const SizedBox(height: 16),

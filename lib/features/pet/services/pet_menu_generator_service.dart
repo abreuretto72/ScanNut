@@ -9,6 +9,7 @@ import '../../pet/services/pet_shopping_list_service.dart';
 import '../../pet/models/meal_plan_request.dart';
 import '../../../core/utils/json_cast.dart';
 import 'package:scannut/features/pet/services/pet_profile_service.dart';
+import '../models/brand_suggestion.dart'; // 🛡️ NEW: Import BrandSuggestion
 
 final petMenuGeneratorProvider = Provider<PetMenuGeneratorService>((ref) {
   final geminiService = ref.watch(geminiServiceProvider);
@@ -161,10 +162,11 @@ RIGID RULES:
 4. Language: EXCLUSIVELY ${request.locale}.
 5. Response Format: PURE JSON ONLY. No markdown blocks, NO COMMENTS (// or /*), no prefix/suffix text.
 6. CHECK ALLERGIES: If the pet is allergic to an item in the Pool or History, DISCARD IT immediately.
+7. RECOMMENDATIONS: If any meal in the plan contains "Commercial Kibble", "Dry Food", "Ração" or "Wet Food", you MUST include a list of 2-3 high-quality commercial brand suggestions in the "marcas_sugeridas" field. 
+   🛡️ CRITICAL: For EACH brand, provide a technical justification (max 2 lines) explaining WHY this brand is suitable for the pet's specific goal (e.g., "Contains L-carnitine to aid fat burning for weight loss" or "Hydrolyzed protein for sensitive digestion"). The justification MUST reference the pet's current dietary goal or health condition.
 $rigidFoodRule
 
 INSTRUCTIONS:
-// ... (continue)
 - Calculate Daily Energy Needs (MER) based on size, weight, and activity.
 - Suggest daily meals consisting of balanced Proteins, Carbohydrates, and Fiber.
 - Handle allergies and restrictions strictly.
@@ -175,9 +177,22 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
 {
   "diet_type": "$dietLabel",
   "nutritional_goal": "Maintenance...",
+  "marcas_sugeridas": ["Brand A", "Brand B"],
   "weeks": [
     {
-      "week_start": "YYYY-MM-DD",
+      "week_number": 1,
+      "start_date": "2024-01-01",
+      "end_date": "2024-01-07",
+      "marcas_sugeridas": [
+        {
+          "marca": "Premier Pet - Linha Light",
+          "por_que_escolhemos": "Contém L-carnitina que auxilia na queima de gordura, ideal para o objetivo de emagrecimento do pet."
+        },
+        {
+          "marca": "Royal Canin - Weight Control",
+          "por_que_escolhemos": "Baixo índice glicêmico e fibras que promovem saciedade, respeitando a restrição calórica necessária."
+        }
+      ],
       "days": [
         {
           "date": "YYYY-MM-DD",
@@ -291,6 +306,29 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
                 }
            }
 
+           // 🛡️ UPDATED: Parse brand suggestions with justifications
+           final List<BrandSuggestion> recommendedBrands = [];
+           final marcasSugeridas = rawResult['marcas_sugeridas'];
+           
+           if (marcasSugeridas != null && marcasSugeridas is List) {
+             for (var item in marcasSugeridas) {
+               try {
+                 if (item is Map<String, dynamic>) {
+                   // New format with justifications
+                   recommendedBrands.add(BrandSuggestion.fromJson(item));
+                 } else if (item is String) {
+                   // Legacy format: just brand name
+                   recommendedBrands.add(BrandSuggestion(
+                     brand: item,
+                     reason: 'Marca selecionada por critérios de qualidade Super Premium para o perfil do pet.',
+                   ));
+                 }
+               } catch (e) {
+                 debugPrint('⚠️ [PetMenu] Error parsing brand suggestion: $e');
+               }
+             }
+           }
+
            final plan = WeeklyMealPlan.create(
                petId: request.petId,
                startDate: weekStart,
@@ -298,7 +336,10 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
                nutritionalGoal: rawResult['nutritional_goal'] ?? 'Health',
                meals: dailyItems,
                metadata: meta,
-               templateName: 'AI Generated'
+               templateName: 'AI Generated',
+               recommendedBrands: recommendedBrands,
+               foodType: request.foodType.id, // 🛡️ BLINDAGEM: Persiste filtro original
+               goal: request.dietType.id, // 🛡️ BLINDAGEM: Persiste objetivo original
            );
 
            // SAVE PLAN (Calendar)
@@ -351,8 +392,12 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
     }
   }
 
-  // 🔄 RECYCLE FEATURE (Phase 9 - Granular Updates)
-  Future<DailyMealItem?> regenerateSingleMeal(DailyMealItem meal, String petId) async {
+  // 🔄 RECYCLE FEATURE (Phase 9 - Granular Updates) + 🛡️ BLINDAGEM DE FILTROS
+  Future<DailyMealItem?> regenerateSingleMeal(
+    DailyMealItem meal, 
+    String petId, 
+    {String? foodType, String? goal} // 🛡️ NEW: Filtros originais persistidos
+  ) async {
       try {
            final profileService = PetProfileService();
            await profileService.init();
@@ -363,12 +408,27 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
            final species = pData['especie']?.toString() ?? 'Pet';
            final restrictions = (pData['restricoes'] as List?)?.join(', ') ?? 'None';
 
+           // 🛡️ BLINDAGEM: Determina restrições de tipo de comida
+           String foodTypeInstruction = '';
+           if (foodType == 'kibble') {
+             foodTypeInstruction = '\n🛡️ FILTER ENFORCEMENT: ONLY suggest COMMERCIAL KIBBLE (dry/wet food). NO home-cooked meals.';
+           } else if (foodType == 'natural') {
+             foodTypeInstruction = '\n🛡️ FILTER ENFORCEMENT: ONLY suggest NATURAL/HOME-COOKED ingredients. NO commercial kibble.';
+           } else if (foodType == 'mixed') {
+             foodTypeInstruction = '\n🛡️ FILTER ENFORCEMENT: You can suggest EITHER kibble OR natural food, but maintain variety.';
+           }
+
+           // 🛡️ BLINDAGEM: Adiciona contexto do objetivo
+           String goalContext = goal != null && goal.isNotEmpty 
+             ? '\nNUTRITIONAL GOAL: $goal (e.g., weight loss, renal support, etc.)'
+             : '';
+
            final prompt = """
 Act as a Veterinary Nutritionist.
 TASK: REPLACE this specific meal with a DIFFERENT, healthy alternative.
 TARGET: $species
 ALLERGIES (CRITICAL): $allergies
-RESTRICTIONS: $restrictions
+RESTRICTIONS: $restrictions$goalContext$foodTypeInstruction
 
 CURRENT MEAL (TO AVOID):
 "${meal.description}"
@@ -378,6 +438,7 @@ INSTRUCTIONS:
 - Ensure ingredients are safe for $species.
 - Maintain similar caloric density.
 - Do NOT repeat the ingredients from the current meal.
+- STRICTLY FOLLOW the food type filter above.
 - Return ONLY JSON.
 
 OUTPUT STRUCTURE:

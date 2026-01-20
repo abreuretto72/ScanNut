@@ -838,11 +838,10 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
         setState(() {
           _isLoading = false;
           if (isAuthError) {
-             _errorMessage = 'Erro de Autenticação Google (ApiException 10).\n'
-                             'Verifique as credenciais SHA-1 no console do Firebase.\n\n'
-                             'Detalhes: $technicalDetails';
+             _errorMessage = '${AppLocalizations.of(context)!.errorGoogleAuth}\n\n'
+                             '${AppLocalizations.of(context)!.errorGoogleAuthDetailMsg(technicalDetails)}';
           } else {
-             _errorMessage = 'Erro ao buscar dados: $e';
+             _errorMessage = AppLocalizations.of(context)!.errorSearchFailed(e.toString());
           }
         });
       }
@@ -916,9 +915,9 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                   'Radar Explorer (${ref.watch(settingsProvider).partnerSearchRadius.toInt()}km)', 
                                   style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 18, fontWeight: FontWeight.bold)
                                 ),
-                                const Text(
-                                  'Toque para alterar o raio de busca', 
-                                  style: TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w500)
+                                Text(
+                                  AppLocalizations.of(context)!.radarTapToChangeRadius, 
+                                  style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w500)
                                 ),
                               ],
                             ),
@@ -966,7 +965,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                            ElevatedButton.icon(
                              onPressed: _startDiscovery,
                              icon: const Icon(Icons.refresh, size: 18),
-                             label: const Text('Tentar Novamente'),
+                             label: Text(AppLocalizations.of(context)!.tryAgain),
                               style: ElevatedButton.styleFrom(backgroundColor: Colors.white10),
                            ),
                            const SizedBox(height: 12),
@@ -976,7 +975,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                  context: context,
                                  builder: (context) => AlertDialog(
                                    backgroundColor: AppDesign.surfaceDark,
-                                   title: const Text('Trace de Diagnóstico', style: TextStyle(color: AppDesign.textPrimaryDark)),
+                                   title: Text(AppLocalizations.of(context)!.diagnosticTrace, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                                    content: SizedBox(
                                      width: double.maxFinite,
                                      child: SingleChildScrollView(
@@ -984,20 +983,20 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                      ),
                                    ),
                                    actions: [
-                                     TextButton(onPressed: () => Navigator.pop(context), child: const Text('Fechar')),
+                                     TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.commonClose)),
                                      TextButton(
                                        onPressed: () {
                                          Clipboard.setData(ClipboardData(text: authTrace.getTraceAsString()));
-                                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logs copiados!')));
+                                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.logsCopied)));
                                        }, 
-                                       child: const Text('Copiar')
+                                       child: Text(AppLocalizations.of(context)!.actionCopy)
                                      ),
                                    ],
                                  ),
                                );
                              },
                              icon: const Icon(Icons.bug_report_outlined, size: 18, color: AppDesign.petPink),
-                             label: const Text('Ver Detalhes Técnicos', style: TextStyle(color: AppDesign.petPink)),
+                             label: Text(AppLocalizations.of(context)!.viewTechDetails, style: const TextStyle(color: AppDesign.petPink)),
                            ),
                          ],
                        ),

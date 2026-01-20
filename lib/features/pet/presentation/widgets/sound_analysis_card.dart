@@ -22,9 +22,11 @@ class SoundAnalysisCard extends StatefulWidget {
     required this.petName,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
+    this.onAnalysisSaved,
   }) : super(key: key);
 
   final Function(Map<String, dynamic>)? onDeleteAnalysis;
+  final VoidCallback? onAnalysisSaved;
 
   @override
   State<SoundAnalysisCard> createState() => _SoundAnalysisCardState();
@@ -185,6 +187,10 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
        
        await service.addEvent(event);
        debugPrint('✅ [SoundAnalysis] Auto-saved to Hive (History & Events).');
+       
+       if (widget.onAnalysisSaved != null) {
+         widget.onAnalysisSaved!();
+       }
     } catch (e) {
        debugPrint('❌ [SoundAnalysis] Save failed: $e');
     }

@@ -44,8 +44,24 @@ class HiveAtomicManager {
   /// 🛡️ PROTEÇÃO TOTAL: Garante que a box esteja aberta antes de qualquer operação
   Future<Box<T>> ensureBoxOpen<T>(String boxName, {HiveCipher? cipher}) async {
     if (Hive.isBoxOpen(boxName)) {
-      final box = Hive.box<T>(boxName);
-      return box;
+      try {
+        // Try to retrieve strictly typed
+        final box = Hive.box<T>(boxName);
+        if (box.isOpen) return box;
+      } catch (e) {
+        debugPrint('⚠️ [V115-HIVE] Type conflict for $boxName. Attempting to resolve by closing... Error: $e');
+        try {
+          // Force close the mismatched box by using dynamic to bypass type check
+          // If Hive.box<T> fails, Hive.box(boxName) (dynamic) usually works for closing
+          final dynamicBox = Hive.box(boxName);
+          await dynamicBox.close();
+          debugPrint('✅ [V115-HIVE] Mismatched box closed successfully.');
+        } catch (closeError) {
+           debugPrint('⚠️ [V115-HIVE] Cleanup failed: $closeError');
+           // If it fails to close, it might be in a very bad state or not actually open.
+           // We will proceed to try opening it again, which might throw, but it's our best bet.
+        }
+      }
     }
 
     debugPrint('🛡️ [V115-HIVE] Auto-cura: Abrindo box sob demanda: $boxName');

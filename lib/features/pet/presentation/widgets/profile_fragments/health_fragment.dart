@@ -6,6 +6,7 @@ import '../../../models/lab_exam.dart';
 import 'profile_design_system.dart';
 import 'attachment_section.dart';
 import 'dart:io';
+import '../vaccination_card.dart';
 
 class HealthFragment extends StatelessWidget {
   final DateTime? dataUltimaV10;
@@ -17,6 +18,9 @@ class HealthFragment extends StatelessWidget {
   final String petName;
   final List<Map<String, dynamic>> analysisHistory;
   final Function(Map<String, dynamic>)? onDeleteAnalysis;
+  
+  final String species;
+  final String petId;
   
   final Function(DateTime) onV10DateSelected;
   final Function(DateTime) onAntirrabicaDateSelected;
@@ -51,6 +55,8 @@ class HealthFragment extends StatelessWidget {
     required this.petName,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
+    required this.species,
+    required this.petId,
   }) : super(key: key);
 
   @override
@@ -63,35 +69,13 @@ class HealthFragment extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle('💉 ${l10n.petVaccinationHistory}'),
-                const SizedBox(height: 16),
-                
-                ProfileDesignSystem.buildDatePicker(
-                  context: context,
-                  label: l10n.petLastV10,
-                  icon: Icons.vaccines,
-                  selectedDate: dataUltimaV10,
-                  onDateSelected: onV10DateSelected,
-                ),
-                
-                ProfileDesignSystem.buildDatePicker(
-                  context: context,
-                  label: l10n.petLastRabies,
-                  icon: Icons.coronavirus,
-                  selectedDate: dataUltimaAntirrabica,
-                  onDateSelected: onAntirrabicaDateSelected,
-                ),
-              ],
-            ),
-          ),
+        // Smart Vaccination Card (Replaces Legacy DatePickers)
+        VaccinationCard(
+            petId: petId,
+            petName: petName,
+            species: species,
+            legacyV10Date: dataUltimaV10,
+            legacyRabiesDate: dataUltimaAntirrabica,
         ),
         
         const SizedBox(height: 24),

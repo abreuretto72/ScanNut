@@ -113,12 +113,13 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
         });
       }
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
+          SnackBar(content: Text('${l10n.commonError}: $e')),
         );
       }
     }
@@ -170,7 +171,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
        context,
        MaterialPageRoute(
          builder: (context) => PdfPreviewScreen(
-           title: 'Relatório Vet 360 - ${result.petName ?? "Pet"}',
+           title: l10n.vet360ReportTitle(result.petName ?? "Pet"),
            buildPdf: (format) async {
              final generator = PetPdfGenerator();
              
@@ -292,6 +293,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
   Future<void> _performAutoSave(PetAnalysisResult result) async {
     if (_isSaving) return;
+    final l10n = AppLocalizations.of(context)!;
     try {
       if (mounted) setState(() => _isSaving = true);
       final profileService = PetProfileService();
@@ -426,10 +428,10 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       try {
         final indexer = PetIndexingService();
         String displayType = result.analysisType;
-        if (displayType == 'stool_analysis') displayType = 'Fezes';
-        if (displayType == 'wound_analysis') displayType = 'Feridas';
-        if (displayType == 'identification') displayType = 'Identificação';
-        if (displayType == 'diagnosis') displayType = 'Diagnóstico';
+        if (displayType == 'stool_analysis') displayType = l10n.labCategoryFeces;
+        if (displayType == 'wound_analysis') displayType = l10n.petWoundHistory;
+        if (displayType == 'identification') displayType = l10n.guideIdentity;
+        if (displayType == 'diagnosis') displayType = l10n.petDiagnosis;
 
         await indexer.indexAiAnalysis(
           petId: result.petName ?? 'Unknown', 
@@ -450,7 +452,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       debugPrint("❌ Auto-Save failed: $e");
       if (mounted) {
          ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('Falha no salvamento automático: $e'), backgroundColor: AppDesign.warning)
+           SnackBar(content: Text(l10n.errorAutoSave(e.toString())), backgroundColor: AppDesign.warning)
          );
       }
     } finally {

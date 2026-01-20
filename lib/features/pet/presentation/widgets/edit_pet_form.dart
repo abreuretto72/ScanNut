@@ -19,6 +19,8 @@ import '../../../../core/enums/scannut_mode.dart';
 import '../../models/pet_profile_extended.dart';
 import '../../services/pet_pdf_generator.dart'; // 🛡️ NEW PDF GENERATOR
 import '../../models/analise_ferida_model.dart'; // 🛡️ Import for Health History
+import '../../services/pet_event_service.dart';
+import '../../models/pet_event.dart';
 
 import '../../services/pet_vision_service.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -299,6 +301,11 @@ class _EditPetFormState extends State<EditPetForm>
         rawAnalysis: _currentRawAnalysis,
         reliability: _reliability,
         porte: _porte,
+        healthPlan: _healthPlan,
+        assistancePlan: _assistancePlan,
+        funeralPlan: _funeralPlan,
+        lifeInsurance: _lifeInsurance,
+        observacoesPlanos: _observacoesPlanosController.text,
         );
 
        await widget.onSave(profile);
@@ -1315,6 +1322,8 @@ class _EditPetFormState extends State<EditPetForm>
          l.petBathWeekly,
          l.petBathMonthly
       ]),
+      petId: _nameController.text.trim(),
+      species: _especie ?? '',
       labExams: _labExams,
       observacoesSaude: _observacoesSaude,
       onV10DateSelected: (date) { setState(() => _dataUltimaV10 = date); _onUserInteractionGeneric(); },
@@ -1398,6 +1407,7 @@ class _EditPetFormState extends State<EditPetForm>
       onDeleteAttachment: _deleteAttachment,
       analysisHistory: _analysisHistory,
       onDeleteAnalysis: _handleDeleteAnalysis,
+      onAnalysisSaved: _reloadAnalysisHistory,
     );
   }
 
@@ -1830,7 +1840,28 @@ class _EditPetFormState extends State<EditPetForm>
                    _currentRawAnalysis!['agendaEvents'] = data['agendaEvents'];
                }
 
-               debugPrint('HIVE: Dados recarregados e fundidos com sucesso (Wound History + Linked Partners + Raw Data).');
+                // 🛡️ [V_REFRESH] General Analysis History
+                final hist = data['analysisHistory'] ?? data['analysis_history'];
+                if (hist is List && mounted) {
+                    setState(() {
+                         _analysisHistory = List<Map<String, dynamic>>.from(
+                             hist.map((e) => Map<String, dynamic>.from(e as Map))
+                         );
+                    });
+                }
+                
+                // 🛡️ [V_REFRESH] Plans & Insurance
+                if (mounted) {
+                    setState(() {
+                        _healthPlan = data['health_plan'];
+                        _assistancePlan = data['assistance_plan'];
+                        _funeralPlan = data['funeral_plan'];
+                        _lifeInsurance = data['life_insurance'];
+                        _observacoesPlanosController.text = data['observacoes_planos'] ?? '';
+                    });
+                }
+
+                debugPrint('HIVE: Dados recarregados e fundidos com sucesso.');
           }
       } catch (e) {
           debugPrint('ERRO RECARREGANDO DADOS: $e');
@@ -3099,10 +3130,36 @@ class _EditPetFormState extends State<EditPetForm>
                     return pdf.save();
                 }
 
+                // Fetch detailed vaccination history
+                Map<String, DateTime>? vaccinationData;
+                try {
+                  await PetEventService.ensureReady();
+                  final events = PetEventService().getEventsByPet(profile.petName);
+                  final vaccineEvents = events.where((e) => e.type == EventType.vaccine).toList();
+                  
+                  if (vaccineEvents.isNotEmpty) {
+                    vaccinationData = {};
+                    // Sort by date descending to get latest
+                    vaccineEvents.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+                    
+                    // Populate map with latest date for each vaccine title
+                    // Note: This relies on the title being the vaccine name. 
+                    // Since VaccinationCard saves the localized title, this matches what we display.
+                    for (var event in vaccineEvents) {
+                       if (!vaccinationData.containsKey(event.title)) {
+                         vaccinationData[event.title] = event.dateTime;
+                       }
+                    }
+                  }
+                } catch (e) {
+                  debugPrint('⚠️ Error fetching vaccination data for PDF: $e');
+                }
+
                 final pdf = await PetPdfGenerator().generateReport(
                   profile: profile,
                   strings: AppLocalizations.of(context)!,
                   manualGallery: _attachments['gallery'], // Pass manual gallery
+                  vaccinationData: vaccinationData,
                 );
                 return pdf.save();
               },

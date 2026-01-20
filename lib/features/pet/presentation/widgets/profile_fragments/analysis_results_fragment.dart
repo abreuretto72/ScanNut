@@ -6,7 +6,6 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../../core/theme/app_design.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../sound_analysis_card.dart';
-import '../pet_food_analysis_card.dart';
 import '../pet_body_analysis_card.dart';
 
 class AnalysisResultsFragment extends StatelessWidget {
@@ -53,13 +52,14 @@ class AnalysisResultsFragment extends StatelessWidget {
             petName: petName,
             analysisHistory: analysisHistory,
             onDeleteAnalysis: onDeleteAnalysis,
+            onAnalysisSaved: onAnalysisSaved,
           ),
           const SizedBox(height: 16),
           PetBodyAnalysisCard(
             petName: petName,
             analysisHistory: analysisHistory,
             onDeleteAnalysis: onDeleteAnalysis,
-            onAnalysisSaved: onAnalysisSaved, // 🔄 Propagar callback
+            onAnalysisSaved: onAnalysisSaved,
           ),
           const SizedBox(height: 16),
           if (!hasData)

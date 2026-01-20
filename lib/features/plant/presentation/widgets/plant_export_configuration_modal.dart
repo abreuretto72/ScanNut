@@ -267,7 +267,7 @@ class _PlantExportConfigurationModalState extends State<PlantExportConfiguration
       finalItems = finalItems.where((i) => _selectedIds.contains(i.id)).toList();
     }
     
-    Navigator.pop(context);
+    // Caller handles closing
     widget.onGenerate(finalItems);
   }
 }

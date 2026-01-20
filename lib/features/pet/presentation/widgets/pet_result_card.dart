@@ -89,7 +89,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("ENTENDI", style: GoogleFonts.poppins(color: AppDesign.info, fontWeight: FontWeight.bold)),
+              child: Text(AppLocalizations.of(context)!.commonUnderstand, style: GoogleFonts.poppins(color: AppDesign.info, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -113,8 +113,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     // 🛡️ Source of Truth: Use Profile if available
     final raca = widget.petProfile?.raca ?? widget.analysis.raca;
     
-    if (raca.toLowerCase() == 'vira-lata' || raca.toLowerCase() == 'srd' || raca.toLowerCase().contains('sem raça')) {
-       return AppLocalizations.of(context)!.breedMixed;
+    if (raca.toLowerCase() == 'vira-lata' || raca.toLowerCase() == 'srd' || raca.toLowerCase().contains('sem raça') || raca.toLowerCase() == 'unknown breed') {
+       return AppLocalizations.of(context)!.petUnknownBreed;
     }
     return raca;
   }
@@ -200,7 +200,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
           final pet = widget.analysis;
           if (pet.analysisType == 'diagnosis') {
              return [
-               pw.Header(level: 0, child: pw.Text("ScanNut - ${l10n.pdfDiagnosisTriage}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.red))),
+               pw.Header(level: 0, child: pw.Text("ScanNut ${l10n.pdfDiagnosisTriage}", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.red))),
                pw.SizedBox(height: 10),
                if (image != null) pw.Center(child: pw.Image(image, height: 200)),
                pw.SizedBox(height: 20),
@@ -208,7 +208,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                pw.Row(
                  children: [
                    pw.Text("${l10n.pdfFieldUrgency}: ", style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                   pw.Text(pet.urgenciaNivel, style: pw.TextStyle(
+                   pw.Text(_translateStatus(pet.urgenciaNivel, l10n), style: pw.TextStyle(
                      color: pet.urgenciaNivel.toLowerCase().contains('vermelho') || 
                             pet.urgenciaNivel.toLowerCase().contains('red') || 
                             pet.urgenciaNivel.toLowerCase().contains('rojo') ? PdfColors.red : PdfColors.black,
@@ -245,7 +245,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 borderRadius: pw.BorderRadius.circular(8),
               ),
               child: pw.Text(
-                "🐾 ${widget.petName ?? l10n.petNotIdentified}",
+                l10n.vet360ReportTitle(widget.petName ?? l10n.petNotIdentified),
                 style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 18,
@@ -646,7 +646,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             // === SEÇÃO 6: HISTÓRICO CLÍNICO & FERIDAS (Unified) ===
             if (history.isNotEmpty) ...[
                 pw.SizedBox(height: 20),
-                pw.Text("Histórico Clínico e Feridas", style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
+                pw.Text(l10n.pdfClinicalHistorySection, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
                 pw.Divider(color: PdfColors.red900),
                 
                 ...history.asMap().entries.map((entry) {
@@ -683,7 +683,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                                             pw.Row(
                                               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                                               children: [
-                                                 pw.Text((h.categoria ?? 'Geral').toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.pink900)),
+                                                 pw.Text((h.categoria ?? l10n.commonGeneral).toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11, color: PdfColors.pink900)),
                                                  pw.Text(dateLabel, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
                                               ] 
                                             ),
@@ -692,7 +692,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                                             if (h.diagnosticosProvaveis.isNotEmpty)
                                                 pw.Padding(
                                                   padding: const pw.EdgeInsets.only(bottom: 4),
-                                                  child: pw.Text("Diagnósticos: ${h.diagnosticosProvaveis.join(', ')}", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
+                                                  child: pw.Text("${l10n.pdfDiagnoses}: ${h.diagnosticosProvaveis.join(', ')}", style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
                                                 ),
                                             
                                             // Detalhes (Achados)
@@ -703,7 +703,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                                             if (h.recomendacao.isNotEmpty)
                                                 pw.Padding(
                                                     padding: const pw.EdgeInsets.only(top: 4),
-                                                    child: pw.Text("Recomendação: ${h.recomendacao}", maxLines: 3, style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic, color: PdfColors.grey700))
+                                                    child: pw.Text("${l10n.pdfRecommendation}: ${h.recomendacao}", maxLines: 3, style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic, color: PdfColors.grey700))
                                                 ),
                                         ]
                                     )
@@ -718,7 +718,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               title: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                   pw.Text("ScanNut App - Inteligência Animal", style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey)),
+                   pw.Text(l10n.pdfFooterBranding, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey)),
                    pw.SizedBox(height: 4),
                    pw.Text(
                      l10n.pdfDisclaimer,
@@ -1023,11 +1023,11 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                      tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                      leading: const Icon(Icons.medical_services_outlined, color: AppDesign.warning),
                      title: Text(
-                        "DETALHAMENTO CLÍNICO", // TODO: Localize key
+                        l10n.labelClinicalSigns.toUpperCase(),
                         style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
                      ),
                      subtitle: Text(
-                        "${effectiveSigns.length} sinais identificados",
+                        l10n.petClinicalSignsCount(effectiveSigns.length),
                         style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
                      ),
                      children: effectiveSigns.entries.where((e) {
@@ -1036,7 +1036,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                      }).map((e) {
                          IconData icon = Icons.help_outline;
                          Color color = Colors.white70;
-                         String label = e.key.toUpperCase().replaceAll('_', ' ');
+                         String label = _translateKey(e.key.toString(), l10n);
                          final k = e.key.toLowerCase();
 
                          // Icon Mapping
@@ -1155,7 +1155,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
               const Icon(Icons.fingerprint, color: AppDesign.petPink),
               const SizedBox(width: 8),
               Text(
-                "CARACTERÍSTICAS FÍSICAS",
+                l10n.pdfIdentitySection.toUpperCase(),
                 style: GoogleFonts.poppins(
                   fontSize: 14, 
                   fontWeight: FontWeight.bold, 
@@ -1190,8 +1190,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     final l10n = AppLocalizations.of(context)!;
     final isDiag = widget.analysis.analysisType == 'diagnosis';
     
+    final rawCare = widget.analysis.orientacaoImediata;
     final homeCare = isDiag 
-        ? widget.analysis.orientacaoImediata 
+        ? (rawCare == 'Consulte um Vet.' ? l10n.petConsultVetCare : rawCare) 
         : (widget.analysis.nutricao.nutrientesAlvo.isNotEmpty 
             ? "${l10n.petSupplementation}: ${widget.analysis.nutricao.nutrientesAlvo.join(', ')}" 
             : l10n.petCheckup);
@@ -1263,7 +1264,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                         
                         // FULL RECOMMENDATION TEXT
                         Text(
-                           "ORIENTAÇÃO VETERINÁRIA & HOME CARE:", // TODO: Localize
+                           l10n.petImmediateOrientation.toUpperCase(),
                            style: GoogleFonts.poppins(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
@@ -1892,10 +1893,81 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
           const SizedBox(width: 8),
           SizedBox(
             width: 55,
-            child: Text("Kcal/dia", style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11), textAlign: TextAlign.left),
+            child: Text(AppLocalizations.of(context)!.kcalPerDay, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11), textAlign: TextAlign.left),
           ),
         ],
       ),
     );
+  }
+
+  String _translateKey(String key, AppLocalizations l10n) {
+    final upper = key.toUpperCase().replaceAll(' ', '_');
+    
+    final Map<String, String> mapper = {
+      'IDENTIFICATION': l10n.labelIdentification,
+      'BREED_NAME': l10n.labelBreed,
+      'ORIGIN_REGION': l10n.labelOriginRegion,
+      'MORPHOLOGY_TYPE': l10n.labelMorphologyType,
+      'LINEAGE': l10n.labelLineage,
+      'SIZE': l10n.labelSize,
+      'LIFESPAN': l10n.labelLifespan,
+      'GROWTH_CURVE': l10n.labelGrowthCurve,
+      'NUTRITION': l10n.labelNutrition,
+      'KCAL_PUPPY': l10n.labelKcalPuppy,
+      'KCAL_ADULT': l10n.labelKcalAdult,
+      'KCAL_SENIOR': l10n.labelKcalSenior,
+      'TARGET_NUTRIENTS': l10n.labelTargetNutrients,
+      'WEIGHT': l10n.labelWeight,
+      'HEIGHT': l10n.labelHeight,
+      'COAT': l10n.labelCoat,
+      'COLOR': l10n.labelColor,
+      'TEMPERAMENT': l10n.labelTemperament,
+      'ENERGY_LEVEL': l10n.labelEnergyLevel,
+      'SOCIAL_BEHAVIOR': l10n.labelSocialBehavior,
+      'CLINICAL_SIGNS': l10n.labelClinicalSigns,
+      'GROOMING': l10n.labelGrooming,
+      'COAT_TYPE': l10n.labelCoatType,
+      'GROOMING_FREQUENCY': l10n.labelGroomingFrequency,
+      'HEALTH': l10n.labelHealth,
+      'PREDISPOSITIONS': l10n.labelPredispositions,
+      'PREVENTIVE_CHECKUP': l10n.labelPreventiveCheckup,
+      'LIFESTYLE': l10n.labelLifestyle,
+      'TRAINING_INTELLIGENCE': l10n.labelTrainingIntelligence,
+      'ENVIRONMENT_TYPE': l10n.labelEnvironmentType,
+      'ACTIVITY_LEVEL': l10n.labelActivityLevel,
+      'PERSONALITY': l10n.labelPersonality,
+      'EYES': l10n.labelEyes,
+      'SKIN': l10n.labelSkin,
+      'DENTAL': l10n.labelDental,
+      'ORAL': l10n.labelOral,
+      'STOOL': l10n.labelStool,
+      'WOUNDS': l10n.labelWounds,
+      'EYE': l10n.labelEyes,
+    };
+
+    return mapper[upper] ?? key.replaceAll('_', ' ').toUpperCase();
+  }
+
+  String _translateStatus(String status, AppLocalizations l10n) {
+    switch (status.toLowerCase().trim()) {
+      case 'verde':
+      case 'green':
+      case 'bajo':
+      case 'low':
+        return l10n.commonGreen;
+      case 'amarelo':
+      case 'yellow':
+      case 'medio':
+      case 'medium':
+        return l10n.commonYellow;
+      case 'vermelho':
+      case 'red':
+      case 'rojo':
+      case 'high':
+      case 'alta':
+        return l10n.commonRed;
+      default:
+        return status;
+    }
   }
 }

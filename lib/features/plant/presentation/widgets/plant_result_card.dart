@@ -23,6 +23,7 @@ import '../../services/botany_service.dart';
 import '../../models/botany_history_item.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../botany_history_screen.dart';
+import 'plant_level_icon.dart';
 
 class PlantResultCard extends StatefulWidget {
   final PlantAnalysisModel analysis;
@@ -120,15 +121,16 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   /// Translates luminosity values from English to Portuguese
   String _translateLuminosity(String value) {
     final normalized = value.trim().toLowerCase();
+    final l10n = AppLocalizations.of(context)!;
     
     if (normalized.contains('full sun') || normalized.contains('sol pleno')) {
-      return 'Sol Pleno';
+      return l10n.plantSunFull;
     } else if (normalized.contains('partial shade') || normalized.contains('meia sombra')) {
-      return 'Meia Sombra';
+      return l10n.plantSunPartial;
     } else if (normalized.contains('full shade') || normalized.contains('sombra total')) {
-      return 'Sombra Total';
+      return l10n.plantSunShade;
     } else if (normalized.contains('indirect light') || normalized.contains('luz indireta')) {
-      return 'Luz Indireta';
+      return l10n.plantSunIndirect;
     }
     
     // Return original if no match
@@ -136,28 +138,45 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   }
 
   Future<void> _generatePDF() async {
+    debugPrint("📄 [PLANT_PDF] Botão PDF clicado. Iniciando fluxo...");
     try {
-      Navigator.push(
+      if (widget.analysis == null) {
+         debugPrint("❌ [PLANT_PDF] Erro crítico: Objeto Analysis é nulo.");
+         throw Exception("Objeto de análise inválido.");
+      }
+
+      debugPrint("📄 [PLANT_PDF] Navegando para PdfPreviewScreen...");
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PdfPreviewScreen(
-            title: 'Dossiê Botânico: ${widget.analysis.plantName}',
+            title: '${AppLocalizations.of(context)!.pdfPlantDossierTitle}: ${widget.analysis.plantName}',
             buildPdf: (format) async {
-              final pdf = await ExportService().generatePlantAnalysisReport(
-                analysis: widget.analysis,
-                strings: AppLocalizations.of(context)!,
-                imageFile: widget.imagePath != null ? File(widget.imagePath!) : null,
-              );
-              return pdf.save();
+              debugPrint("📄 [PLANT_PDF] Callback buildPdf acionado.");
+              try {
+                final pdf = await ExportService().generatePlantAnalysisReport(
+                  analysis: widget.analysis,
+                  strings: AppLocalizations.of(context)!,
+                  imageFile: widget.imagePath != null ? File(widget.imagePath!) : null,
+                );
+                debugPrint("📄 [PLANT_PDF] Documento PDF gerado com sucesso. Salvando bytes...");
+                return pdf.save();
+              } catch (e, stack) {
+                debugPrint("❌ [PLANT_PDF] Erro fatal durante a geração interna do PDF: $e");
+                debugPrint("Stack: $stack");
+                rethrow;
+              }
             },
           ),
         ),
       );
-    } catch (e) {
-      debugPrint("Erro ao gerar PDF: $e");
+      debugPrint("📄 [PLANT_PDF] Fluxo de PDF concluído (retorno da tela).");
+    } catch (e, stack) {
+      debugPrint("❌ [PLANT_PDF] Erro ao tentar abrir tela de PDF: $e");
+      debugPrint("Stack: $stack");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: AppDesign.error),
+          SnackBar(content: Text('${AppLocalizations.of(context)!.errorGeneratingPdf}: $e'), backgroundColor: AppDesign.error),
         );
       }
     }
@@ -264,22 +283,20 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (_isToxic) ...[
-                  _buildActionButton(Icons.warning_amber_rounded, "ALERT", AppDesign.error, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
+                  _buildActionButton(Icons.warning_amber_rounded, AppLocalizations.of(context)!.commonAlert, AppDesign.error, () => _showToxicityWarning(context, widget.analysis.segurancaBiofilia.segurancaDomestica)),
                   const SizedBox(width: 12),
                 ],
                 _buildActionButton(Icons.picture_as_pdf_rounded, null, Colors.white, _generatePDF, backgroundColor: Colors.transparent),
                 const SizedBox(width: 12),
-                _buildActionButton(
-                  _isSaved ? Icons.check_circle_rounded : FontAwesomeIcons.floppyDisk, 
-                  null, 
-                  _themeColor, 
-                  () {
-                    if (!_isSaved) {
-                      setState(() => _isSaved = true);
-                      widget.onSave();
-                      HapticFeedback.heavyImpact();
-                    }
-                  }
+                
+                // AUTO-SAVE INDICATOR (ReadOnly)
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      color: _themeColor.withOpacity(0.1),
+                      shape: BoxShape.circle
+                  ),
+                  child: Icon(Icons.check_circle_rounded, color: _themeColor, size: 20)
                 ),
               ],
             ),
@@ -318,6 +335,12 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                         maxLines: 1,
                         minFontSize: 10,
                         overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 12),
+                      FittedBox(
+                         fit: BoxFit.scaleDown,
+                         alignment: Alignment.centerLeft,
+                         child: _buildCareRequirements(widget.analysis),
                       ),
                     ],
                   ),
@@ -396,7 +419,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                     elevation: 0,
                   ),
                   child: Text(
-                    "Ir para a lista de análises",
+                    AppLocalizations.of(context)!.plantAnalysisList,
                     style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                 ),
@@ -469,7 +492,10 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
             children: [
               Text(saude.condicao, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark)),
               const SizedBox(height: 8),
-              Text(saude.detalhes, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13)),
+              Text(
+                saude.detalhes.toLowerCase().contains('sem diagnóstico') ? AppLocalizations.of(context)!.plantNoSpecificDiagnosis : saude.detalhes, 
+                style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13)
+              ),
               if (!widget.analysis.isHealthy) ...[
                 const SizedBox(height: 16),
                 _buildInfoLabel(AppLocalizations.of(context)!.plantUrgency + ":", widget.analysis.urgency),
@@ -524,8 +550,8 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
             children: [
               _buildProgressBar(AppLocalizations.of(context)!.plantAirScore, ((bios.poderesBiofilicos['purificacao_ar_score'] ?? bios.poderesBiofilicos['air_purification_score'] ?? 5) as num).toDouble() / 10.0, AppDesign.success),
               const SizedBox(height: 16),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantHumidification + ":", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? 'N/A'),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantWellness + ":", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? bios.poderesBiofilicos['wellness_impact']?.toString() ?? 'N/A'),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantHumidification + ":", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? AppLocalizations.of(context)!.noInformation),
+              _buildInfoLabel(AppLocalizations.of(context)!.plantWellness + ":", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? bios.poderesBiofilicos['wellness_impact']?.toString() ?? AppLocalizations.of(context)!.noInformation),
             ],
           ),
         ),
@@ -727,6 +753,78 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     );
   }
 
+  Widget _buildCareRequirements(PlantAnalysisModel analysis) {
+    final surv = analysis.sobrevivencia;
+    
+    // Extract values
+    final sun = surv.luminosidade['type']?.toString() ?? surv.luminosidade['tipo']?.toString();
+    final water = surv.regimeHidrico['frequency']?.toString() ?? surv.regimeHidrico['frequencia_ideal']?.toString();
+    final soil = surv.soloENutricao['type']?.toString() ?? surv.soloENutricao['tipo']?.toString();
+
+    // Levels 1-3
+    final sunLevel = _parseLevel(sun, 'sun');
+    final waterLevel = _parseLevel(water, 'water');
+    final soilLevel = _parseLevel(soil, 'soil');
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        _buildCareIconWithLabel(sunLevel, PlantRequirementType.sun, AppLocalizations.of(context)!.labelSun),
+        const SizedBox(width: 20),
+        _buildCareIconWithLabel(waterLevel, PlantRequirementType.water, AppLocalizations.of(context)!.labelWater),
+        const SizedBox(width: 20),
+        _buildCareIconWithLabel(soilLevel, PlantRequirementType.soil, AppLocalizations.of(context)!.labelSoil),
+      ],
+    );
+  }
+
+  Widget _buildCareIconWithLabel(int level, PlantRequirementType type, String label) {
+    Color color;
+    switch (type) {
+      case PlantRequirementType.sun: color = Colors.orange; break;
+      case PlantRequirementType.water: color = Colors.blue; break;
+      case PlantRequirementType.soil: color = Colors.brown; break;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PlantLevelIcon(level: level, type: type, size: 24),
+        const SizedBox(height: 4),
+        Text(
+          label.toUpperCase(),
+          style: GoogleFonts.poppins(
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+            color: color.withOpacity(0.8),
+          ),
+        ),
+      ],
+    );
+  }
+
+  int _parseLevel(String? value, String type) {
+    if (value == null) return 1;
+    final s = value.toLowerCase();
+
+    if (type == 'sun') {
+      if (s.contains('pleno') || s.contains('full') || s.contains('direta')) return 3;
+      if (s.contains('meia') || s.contains('partial') || s.contains('indireta')) return 2;
+      return 1;
+    }
+    if (type == 'water') {
+      // Expanded keywords for water detection
+      if (s.contains('abundante') || s.contains('high') || s.contains('frequente') || s.contains('muito')) return 3;
+      if (s.contains('moderada') || s.contains('average') || s.contains('regular') || s.contains('semanal')) return 2;
+      return 1;
+    }
+    if (type == 'soil') {
+      if (s.contains('rico') || s.contains('rich') || s.contains('fértil')) return 3;
+      if (s.contains('drenado') || s.contains('drain') || s.contains('arenoso')) return 1;
+      return 2;
+    }
+    return 1;
+  }
 
   TextStyle get _tabTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark);
 }

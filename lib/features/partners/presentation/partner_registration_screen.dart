@@ -9,6 +9,7 @@ import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../../core/providers/settings_provider.dart'; // Add this line
+import '../../../core/services/simple_auth_service.dart'; // Add this line
 import '../../settings/settings_screen.dart';
 import '../../../core/theme/app_design.dart';
 
@@ -139,6 +140,24 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         return;
     }
 
+    // 1. 🛡️ SECURITY CHALLENGE FIRST
+    final auth = SimpleAuthService();
+    final bool isVerified = await auth.verifyIdentity(
+      reason: 'Autentique-se para excluir este parceiro'
+    );
+
+    if (!isVerified) {
+        if(mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Autenticação falhou. Exclusão cancelada.'), backgroundColor: AppDesign.error)
+            );
+        }
+        return;
+    }
+
+    if (!mounted) return;
+
+    // 2. SHOW CONFIRMATION DIALOG
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

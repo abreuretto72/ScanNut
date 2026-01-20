@@ -177,7 +177,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.planError ?? 'Não foi possível salvar o cardápio. Tente novamente.'), 
+            content: Text(l10n.planSaveError), 
             backgroundColor: AppDesign.error
           )
         );
@@ -342,7 +342,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Erro: $e'),
+                content: Text('${l10n.errorGeneric} $e'),
                 backgroundColor: AppDesign.error,
               ),
             );

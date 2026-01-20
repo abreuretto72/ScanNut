@@ -172,7 +172,8 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
          plan: consolidatedPlan,
          strings: l10n,
          shoppingLists: shoppingLists,
-         period: _selectedPlanIds.length > 1 ? l10n.petMenuGeneratePdfMulti(selectedPlans.length) : null
+         period: _selectedPlanIds.length > 1 ? l10n.petMenuGeneratePdfMulti(selectedPlans.length) : null,
+         recommendedBrands: selectedPlans.first.safeRecommendedBrands,
       );
 
       if (mounted) {
@@ -192,7 +193,8 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                       plan: consolidatedPlan,
                       strings: l10n,
                       shoppingLists: shoppingLists,
-                      period: _selectedPlanIds.length > 1 ? l10n.petMenuGeneratePdfMulti(selectedPlans.length) : null
+                      period: _selectedPlanIds.length > 1 ? l10n.petMenuGeneratePdfMulti(selectedPlans.length) : null,
+                      recommendedBrands: selectedPlans.first.safeRecommendedBrands,
                    );
                    return pdf.save();
                 },
@@ -312,10 +314,10 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                               showDialog(
                                  context: context,
                                  builder: (ctx) => AlertDialog(
-                                    title: const Text("Perfil Incompleto", style: TextStyle(color: AppDesign.textPrimaryDark)),
-                                    content: const Text(
-                                        "Complete os dados do perfil do pet para gerar o cardápio.", 
-                                        style: TextStyle(color: Colors.white70)
+                                    title: Text(l10n.petProfileIncompleteTitle, style: const TextStyle(color: AppDesign.textPrimaryDark)),
+                                    content: Text(
+                                        l10n.petProfileIncompleteBody, 
+                                        style: const TextStyle(color: Colors.white70)
                                     ),
                                     backgroundColor: AppDesign.surfaceDark,
                                     actions: [
@@ -443,6 +445,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                             plan: consolidatedPlan,
                             strings: l10n,
                             shoppingLists: shoppingLists,
+                            recommendedBrands: newPlan.safeRecommendedBrands,
                           )).save(),
                         ),
                       ),
@@ -550,7 +553,20 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                },
             ),
             title: Text(dateRange, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text('${plan.meals.length} days • Dieta: ${_getDietLabel(plan.dietType, l10n)}', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${plan.meals.length} ${l10n.commonDays} • ${l10n.petDietLabel}: ${_getDietLabel(plan.dietType, l10n)}',
+                  style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                ),
+                if (plan.foodType != null)
+                  Text(
+                    '${l10n.petRegimeLabel}: ${_getFoodTypeLabel(plan.foodType!, l10n)}',
+                    style: GoogleFonts.poppins(color: colorPastelPink, fontSize: 11, fontWeight: FontWeight.w500),
+                  ),
+              ],
+            ),
             trailing: PopupMenuButton<String>(
                icon: const Icon(Icons.more_vert, color: Colors.white54),
                color: const Color(0xFF2C2C2C),
@@ -570,7 +586,10 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                   )
                ],
             ),
-            children: plan.meals.map((day) => _buildDayItem(plan, day, l10n)).toList(),
+            children: [
+               ...plan.meals.map((day) => _buildDayItem(plan, day, l10n)).toList(),
+               _buildRacaoSuggestions(plan, l10n),
+            ],
          ),
        ),
      );
@@ -672,7 +691,8 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
         meals: newMeals,
         metadata: plan.metadata,
         templateName: plan.templateName,
-        createdAt: plan.createdAt
+        createdAt: plan.createdAt,
+        recommendedBrands: plan.recommendedBrands,
      );
      
      await MealPlanService().savePlan(updatedPlan);
@@ -765,7 +785,8 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
         meals: newMeals,
         metadata: plan.metadata,
         templateName: plan.templateName,
-        createdAt: plan.createdAt
+        createdAt: plan.createdAt,
+        recommendedBrands: plan.recommendedBrands,
      );
      
      await MealPlanService().savePlan(updatedPlan);
@@ -800,7 +821,13 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
        );
        
        try {
-          final newItem = await ref.read(petMenuGeneratorProvider).regenerateSingleMeal(day, widget.petName);
+          // 🛡️ BLINDAGEM: Passa filtros originais persistidos para garantir consistência
+          final newItem = await ref.read(petMenuGeneratorProvider).regenerateSingleMeal(
+            day, 
+            widget.petName,
+            foodType: plan.foodType,
+            goal: plan.goal,
+          );
           
           if (newItem != null) {
               if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -820,7 +847,8 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                  meals: newMeals,
                  metadata: plan.metadata,
                  templateName: plan.templateName,
-                 createdAt: plan.createdAt
+                 createdAt: plan.createdAt,
+                 recommendedBrands: plan.recommendedBrands,
               );
               
               await MealPlanService().savePlan(updatedPlan);
@@ -844,6 +872,98 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
           if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
        }
    }
+
+   Widget _buildRacaoSuggestions(WeeklyMealPlan plan, AppLocalizations l10n) {
+      if (plan.safeRecommendedBrands.isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.green.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.recommend, color: Colors.green, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Sugestões de Marcas (Informativo):", // l10n pending
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.green[300], fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...plan.safeRecommendedBrands.map((suggestion) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 🛡️ Brand name in bold green
+                        Text(
+                          suggestion.brand, 
+                          style: GoogleFonts.poppins(
+                            color: Colors.green[300], 
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        // 🛡️ Technical justification in italic
+                        Text(
+                          suggestion.safeReason,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white70, 
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            )),
+            const Divider(color: Colors.white10, height: 24),
+            Text(
+              "Consulte sempre um veterinário antes de trocar a ração. Estas sugestões são baseadas no perfil do pet e não substituem uma consulta presencial.",
+              style: GoogleFonts.poppins(fontSize: 11, fontStyle: FontStyle.italic, color: Colors.white54),
+              maxLines: 4,
+              overflow: TextOverflow.fade,
+            ),
+          ],
+        ),
+      );
+   }
+
+  String _getFoodTypeLabel(String foodType, AppLocalizations l10n) {
+     switch (foodType) {
+       case 'kibble':
+         return 'Só Ração'; // TODO: Add to l10n
+       case 'natural':
+         return 'Só Natural'; // TODO: Add to l10n
+       case 'mixed':
+         return 'Ração + Natural'; // TODO: Add to l10n
+       default:
+         return foodType;
+     }
+  }
 
   String _getDietLabel(String code, AppLocalizations l10n) {
      if (code.toLowerCase().startsWith("outra") || code.toLowerCase().startsWith("other")) return code;

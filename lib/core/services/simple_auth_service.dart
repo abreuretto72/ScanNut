@@ -478,6 +478,34 @@ class SimpleAuthService {
        return AuthResult.failed;
      }
   }
+
+  /// 🛡️ V_SEC: Verify User Identity for sensitive actions (Danger Zone)
+  Future<bool> verifyIdentity({String reason = 'Confirme sua identidade para continuar'}) async {
+    try {
+      final available = await checkBiometricsAvailable();
+      if (!available) {
+        // If no biometrics/device security, we might want to fail secure or allow. 
+        // For "Danger Zone", it implies the user OWNS the device. 
+        // If the device has NO security, we can't verify. Return true or warning?
+        // Let's return true but log warning, as we can't lock user out if they don't use phone security.
+        logger.warning('⚠️ No security hardware available for verification.');
+        return true; 
+      }
+      
+      return await _localAuth.authenticate(
+        localizedReason: reason,
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          useErrorDialogs: true,
+          biometricOnly: false, // Allow PIN/Pattern
+        ),
+      );
+    } catch (e) {
+      logger.error('Error verifying identity: $e');
+      return false;
+    }
+  }
+
   static Future<AuthResult> authenticate() async {
     return await _instance.authenticateWithBiometrics();
   }

@@ -106,7 +106,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               delegate: SliverChildListDelegate([
                 
                 // Section A: Account / Login
-                _buildSectionHeader('Conta e Login', Icons.person),
+                _buildSectionHeader(l10n.settingsSectionAccount, Icons.person),
                 _buildCardGroup([
                   // Name Field inside Card
                   Padding(
@@ -129,7 +129,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   // Change Password
                   _buildSettingsTile(
-                    title: 'Trocar senha',
+                    title: l10n.settingsChangePassword,
                     icon: Icons.lock_reset,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen())),
                   ),
@@ -137,15 +137,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
                   // Keep Signed In
                   _buildSwitchTile(
-                     title: 'Manter conectado',
-                     subtitle: simpleAuthService.getPersistSession() ? 'Você permanecerá conectado.' : 'Login exigido ao reiniciar.',
+                     title: l10n.settingsKeepSignedIn,
+                     subtitle: simpleAuthService.getPersistSession() ? l10n.settingsKeepSignedInSubOn : l10n.settingsKeepSignedInSubOff,
                      value: simpleAuthService.getPersistSession(),
                      icon: Icons.vpn_key,
                      onChanged: (val) async {
                         try {
                            await simpleAuthService.setPersistSession(val);
                            setState(() {});
-                           if (context.mounted) SnackBarHelper.showSuccess(context, val ? 'Sessão será mantida.' : 'Login será exigido.');
+                           if (context.mounted) SnackBarHelper.showSuccess(context, val ? l10n.settingsMsgSessionKept : l10n.settingsMsgLoginRequired);
                         } catch(e) { /* ignore */ }
                      },
                   ),
@@ -157,8 +157,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                      builder: (context, snapshot) {
                         if(snapshot.data != true) return const SizedBox.shrink();
                         return _buildSwitchTile(
-                           title: 'Usar biometria',
-                           subtitle: simpleAuthService.isBiometricEnabled ? 'Ativado para login.' : 'Toque para ativar.',
+                           title: l10n.settingsUseBiometrics,
+                           subtitle: simpleAuthService.isBiometricEnabled ? l10n.settingsBiometricsOn : l10n.settingsBiometricsOff,
                            value: simpleAuthService.isBiometricEnabled,
                            icon: Icons.fingerprint,
                            onChanged: (val) async {
@@ -175,7 +175,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
 
                 // Section B: Preferences
-                _buildSectionHeader('Preferências', Icons.tune),
+                _buildSectionHeader(l10n.settingsSectionPreferences, Icons.tune),
                 _buildCardGroup([
                   // Language
                   _buildDropdownTile<String?>(
@@ -183,7 +183,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                      icon: Icons.language,
                      value: settings.languageCode,
                      items: [
-                        DropdownMenuItem(value: null, child: Text('Automático', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark))),
+                        DropdownMenuItem(value: null, child: Text(l10n.settingsLabelAutomatic, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark))),
                         DropdownMenuItem(value: 'en', child: Text('English', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark))),
                         DropdownMenuItem(value: 'pt_BR', child: Text('Português (BR)', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark))),
                         DropdownMenuItem(value: 'pt_PT', child: Text('Português (PT)', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark))),
@@ -240,7 +240,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
 
                 // Section C: Backup
-                _buildSectionHeader('Backup e Dados', Icons.cloud_sync),
+                _buildSectionHeader(l10n.settingsSectionBackup, Icons.cloud_sync),
                 Container(
                    decoration: BoxDecoration(
                       color: AppDesign.surfaceDark,
@@ -458,7 +458,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               SnackBarHelper.showSuccess(context, l10n.settingsResetSuccess);
             },
             child: Text(
-              'Restaurar',
+              l10n.settingsActionRestore,
               style: GoogleFonts.poppins(color: AppDesign.error),
             ),
           ),
@@ -591,15 +591,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
          debugPrint('✅ [WIPE_TRACE] Media Vault purged.');
 
          if (!mounted) return;
-         SnackBarHelper.showSuccess(context, 'Todos os registros foram limpos com sucesso.');
+         SnackBarHelper.showSuccess(context, l10n.settingsWipeSuccess);
          
       } catch (e) {
          debugPrint('❌ [WIPE_TRACE] Critical failure: $e');
-         if(mounted) SnackBarHelper.showError(context, 'Erro ao limpar dados: $e');
+         if(mounted) SnackBarHelper.showError(context, l10n.settingsWipeError(e.toString()));
       }
   }
 
   void _showAtomicWipeDialog() {
+     final l10n = AppLocalizations.of(context)!;
      showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -608,24 +609,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                  const Icon(Icons.warning_amber_rounded, color: AppDesign.error),
                  const SizedBox(width: 8),
-                 Text('ZONA DE PERIGO', style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
+                 Text(l10n.settingsDangerZone, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
               ],
            ),
            content: Text(
-              'Deseja apagar todos os registros de histórico? Pets, diagnósticos, diários e cardápios serão removidos permanentemente.\n\nEsta ação NÃO afeta sua conta ou configurações.',
+              l10n.settingsWipeConfirmBody,
               style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
            ),
            actions: [
               TextButton(
                  onPressed: () => Navigator.pop(context),
-                 child: Text('Cancelar', style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+                 child: Text(l10n.cancel, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
               ),
               TextButton(
                  onPressed: () {
                     Navigator.pop(context);
                     _atomicWipeHistoryData();
                  },
-                 child: Text('APAGAR TUDO', style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
+                 child: Text(l10n.settingsActionWipeAll, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
               ),
            ],
         ),

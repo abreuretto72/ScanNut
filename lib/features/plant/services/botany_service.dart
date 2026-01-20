@@ -153,6 +153,13 @@ class BotanyService {
       debugPrint('🌿 [PLANT_SAVE] TRACE 4: Criando objeto BotanyHistoryItem...');
       late BotanyHistoryItem item;
       try {
+        final needs = {
+            'luz': analysis.sobrevivencia.luminosidade['type']?.toString() ?? analysis.sobrevivencia.luminosidade['tipo']?.toString() ?? 'N/A',
+            'agua': analysis.sobrevivencia.regimeHidrico['frequency']?.toString() ?? analysis.sobrevivencia.regimeHidrico['frequencia']?.toString() ?? 'N/A',
+            'solo': analysis.sobrevivencia.soloENutricao['soil_composition']?.toString() ?? analysis.sobrevivencia.soloENutricao['tipo_solo']?.toString() ?? 'N/A',
+        };
+        debugPrint('🌿 [PLANT_SAVE] TRACE 4.1: Needs map prepared: $needs');
+
         item = BotanyHistoryItem(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           timestamp: DateTime.now(),
@@ -163,27 +170,27 @@ class BotanyService {
           diseaseDiagnosis: analysis.saude.detalhes != 'N/A' ? analysis.saude.detalhes : null,
           recoveryPlan: analysis.saude.planoRecuperacao,
           survivalSemaphore: semaphore,
-          lightWaterSoilNeeds: {
-            'luz': analysis.sobrevivencia.luminosidade['type']?.toString() ?? analysis.sobrevivencia.luminosidade['tipo']?.toString() ?? 'N/A',
-            'agua': analysis.sobrevivencia.regimeHidrico['frequency']?.toString() ?? analysis.sobrevivencia.regimeHidrico['frequencia']?.toString() ?? 'N/A',
-            'solo': analysis.sobrevivencia.soloENutricao['soil_composition']?.toString() ?? analysis.sobrevivencia.soloENutricao['tipo_solo']?.toString() ?? 'N/A',
-          },
+          lightWaterSoilNeeds: needs,
           fengShuiTips: analysis.lifestyle.simbolismo,
           imagePath: savedPath,
           toxicityStatus: tox,
           locale: locale,
           rawMetadata: _sanitizeMetadata(analysis.toJson(), locale),
         );
-      } catch (e) {
+        debugPrint('🌿 [PLANT_SAVE] TRACE 4.2: Item criado com sucesso. ID=${item.id}');
+      } catch (e, s) {
          debugPrint('❌ [PLANT_SAVE] CRASH NA CRIAÇÃO DO ITEM: $e');
+         debugPrint('Stack: $s');
          throw Exception("Falha ao montar objeto da planta: $e");
       }
 
       debugPrint('🌿 [PLANT_SAVE] TRACE 5: Executando box.add()...');
       try {
         await box.add(item);
-      } catch (hiveError) {
+        debugPrint('🌿 [PLANT_SAVE] TRACE 5.1: box.add() concluído.');
+      } catch (hiveError, s) {
          debugPrint('❌ [PLANT_SAVE] ERRO DE TIPO NO HIVE: $hiveError');
+         debugPrint('Stack: $s');
          // V99 AUTO-FIX: Close and Reopen Typed
          debugPrint('🔧 [V99] Tentando resetar box Botânica...');
          if (box.isOpen) await box.close();

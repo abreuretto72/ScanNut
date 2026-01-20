@@ -7,6 +7,7 @@ import '../../../core/utils/color_helper.dart';
 import '../models/pet_analysis_result.dart';
 import '../models/pet_profile_extended.dart';
 import '../models/analise_ferida_model.dart';
+import '../../../l10n/app_localizations.dart';
 
 class DeepAnalysisPetScreen extends StatefulWidget {
   final PetAnalysisResult analysis;
@@ -47,7 +48,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Deep Analysis 360°',
+          AppLocalizations.of(context)!.deepAnalysisTitle,
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         leading: IconButton(
@@ -63,10 +64,10 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
             indicatorColor: AppDesign.petPink,
             labelColor: AppDesign.petPink,
             unselectedLabelColor: Colors.white60,
-            tabs: const [
-              Tab(text: 'Diagnóstico'),
-              Tab(text: 'Biometria'),
-              Tab(text: 'Evolução'),
+            tabs: [
+              Tab(text: AppLocalizations.of(context)!.tabDiagnosis),
+              Tab(text: AppLocalizations.of(context)!.tabBiometrics),
+              Tab(text: AppLocalizations.of(context)!.tabEvolution),
             ],
           ),
           Expanded(
@@ -110,7 +111,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.petProfile?.petName ?? widget.analysis.petName ?? 'Pet Desconhecido',
+                  widget.petProfile?.petName ?? widget.analysis.petName ?? AppLocalizations.of(context)!.petUnknown,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -141,7 +142,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
         children: [
           // 1. ANÁLISE VISUAL (NOVA SEÇÃO)
           if (widget.analysis.descricaoVisual.isNotEmpty && widget.analysis.descricaoVisual != 'N/A') ...[
-             _buildSectionTitle('Descrição Visual'),
+             _buildSectionTitle(AppLocalizations.of(context)!.sectionVisualDesc),
              Container(
                padding: const EdgeInsets.all(12),
                margin: const EdgeInsets.only(bottom: 20),
@@ -159,20 +160,20 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
 
           // 2. CARACTERÍSTICAS
           if (widget.analysis.caracteristicas.isNotEmpty && widget.analysis.caracteristicas != 'N/A') ...[
-             _buildSectionTitle('Características Observadas'),
+             _buildSectionTitle(AppLocalizations.of(context)!.sectionObservedFeatures),
              _buildBulletPoint(widget.analysis.caracteristicas),
              const SizedBox(height: 20),
           ],
           
           // 3. SINAIS CLÍNICOS (Iteração Robusta)
           if (widget.analysis.clinicalSignsDiag != null && widget.analysis.clinicalSignsDiag!.isNotEmpty) ...[
-            _buildSectionTitle('Sinais Clínicos Detalhados'),
+            _buildSectionTitle(AppLocalizations.of(context)!.sectionClinicalSigns),
             ...widget.analysis.clinicalSignsDiag!.entries.where((e) {
                  final k = e.key.toString().toLowerCase();
                  return !['identification', 'identificacao', 'pet_name', 'analysis_type', 'metadata'].contains(k);
             }).map((e) {
                  // Clean & Translate Key
-                 String label = _translateKey(e.key.toString());
+                 String label = _translateKey(e.key.toString(), AppLocalizations.of(context)!);
                  dynamic rawVal = e.value;
                  
                  if (rawVal is List) {
@@ -201,20 +202,20 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                  }
                  
                  String val = rawVal.toString();
-                 if (val == 'null' || val.trim().isEmpty) val = 'Não detectado';
+                 if (val == 'null' || val.trim().isEmpty) val = AppLocalizations.of(context)!.petNotIdentified;
                  return _buildInfoTile(label, val);
             }),
             const SizedBox(height: 20),
           ],
           
-          _buildSectionTitle('Diagnósticos Prováveis'),
+          _buildSectionTitle(AppLocalizations.of(context)!.sectionProbableDiagnosis),
           if (widget.analysis.possiveisCausas.isNotEmpty)
             ...widget.analysis.possiveisCausas.map((c) => _buildBulletPoint(c))
           else
-            const Text('Nenhum diagnóstico provável listado.', style: TextStyle(color: Colors.white70)),
+            Text(AppLocalizations.of(context)!.noDiagnosisListed, style: const TextStyle(color: Colors.white70)),
             
           const SizedBox(height: 20),
-          _buildSectionTitle('Recomendação'),
+          _buildSectionTitle(AppLocalizations.of(context)!.sectionRecommendation),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -241,7 +242,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Análise de Profundidade & Relevo'),
+          _buildSectionTitle(AppLocalizations.of(context)!.sectionDepthAnalysis),
           const SizedBox(height: 8),
           Container(
             height: 150,
@@ -254,15 +255,15 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.white10),
             ),
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.layers, size: 40, color: AppDesign.petPink),
-                  SizedBox(height: 8),
+                  const Icon(Icons.layers, size: 40, color: AppDesign.petPink),
+                  const SizedBox(height: 8),
                   Text(
-                    "Mapeamento 3D Indisponível (Beta)",
-                    style: TextStyle(color: Colors.white54),
+                    AppLocalizations.of(context)!.analysis3DUnavailable,
+                    style: const TextStyle(color: Colors.white54),
                   ),
                 ],
               ),
@@ -270,9 +271,9 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
           ),
           const SizedBox(height: 20),
 
-          _buildSectionTitle('Biometria Detalhada'),
+          _buildSectionTitle(AppLocalizations.of(context)!.sectionDetailedBiometrics),
           if (signs.isEmpty)
-             const Text('Sem dados biométricos detalhados.', style: TextStyle(color: Colors.white70)),
+             Text(AppLocalizations.of(context)!.noBiometricsListed, style: const TextStyle(color: Colors.white70)),
 
           ...signs.entries.map((e) {
              IconData icon = Icons.analytics;
@@ -300,7 +301,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
     if (history.isEmpty) {
       return Center(
         child: Text(
-          "Primeira Análise Registrada",
+          AppLocalizations.of(context)!.analysisFirstRecord,
           style: GoogleFonts.poppins(color: Colors.white70, fontSize: 16),
         ),
       );
@@ -348,7 +349,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        item.nivelRisco,
+                        _translateStatus(item.nivelRisco, AppLocalizations.of(context)!),
                         style: TextStyle(
                           color: ColorHelper.getPetThemeColor(item.nivelRisco),
                           fontWeight: FontWeight.bold,
@@ -431,71 +432,74 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
     );
   }
 
-  // 📝 TRANSLATION MAP (English AI Keys -> Portuguese UI)
-  static final Map<String, String> _keyTranslations = {
-    'IDENTIFICATION': 'IDENTIFICAÇÃO',
-    'BREED_NAME': 'RAÇA',
-    'BREED NAME': 'RAÇA',
-    'ORIGIN_REGION': 'REGIÃO DE ORIGEM',
-    'ORIGIN REGION': 'REGIÃO DE ORIGEM',
-    'MORPHOLOGY_TYPE': 'TIPO MORFOLÓGICO',
-    'MORPHOLOGY TYPE': 'TIPO MORFOLÓGICO',
-    'LINEAGE': 'LINHAGEM',
-    'SIZE': 'PORTE',
-    'LIFESPAN': 'EXPECTATIVA DE VIDA',
-    'GROWTH_CURVE': 'CURVA DE CRESCIMENTO', 
-    'GROWTH CURVE': 'CURVA DE CRESCIMENTO',
-    'NUTRITION': 'NUTRIÇÃO',
-    'KCAL_PUPPY': 'KCAL FILHOTE',
-    'KCAL PUPPY': 'KCAL FILHOTE',
-    'KCAL_ADULT': 'KCAL ADULTO', 
-    'KCAL ADULT': 'KCAL ADULTO',
-    'KCAL_SENIOR': 'KCAL SENIOR',
-    'TARGET_NUTRIENTS': 'NUTRIENTES ALVO',
-    'TARGET NUTRIENTS': 'NUTRIENTES ALVO',
-    'WEIGHT': 'PESO',
-    'HEIGHT': 'ALTURA',
-    'COAT': 'PELAGEM',
-    'COLOR': 'COR',
-    'TEMPERAMENT': 'TEMPERAMENTO',
-    'ENERGY_LEVEL': 'NÍVEL DE ENERGIA',
-    'SOCIAL_BEHAVIOR': 'COMPORTAMENTO SOCIAL',
-    'CLINICAL_SIGNS': 'SINAIS CLÍNICOS',
-    'CLINICAL SIGNS': 'SINAIS CLÍNICOS',
+  String _translateKey(String key, AppLocalizations l10n) {
+    final upper = key.toUpperCase().replaceAll(' ', '_');
     
-    // Additional Keys from Analysis
-    'GROOMING': 'CUIDADOS & HIGIENE',
-    'COAT_TYPE': 'TIPO DE PELAGEM',
-    'COAT TYPE': 'TIPO DE PELAGEM',
-    'GROOMING_FREQUENCY': 'FREQUÊNCIA DE ESCOVAÇÃO',
-    'GROOMING FREQUENCY': 'FREQUÊNCIA DE ESCOVAÇÃO',
-    'HEALTH': 'SAÚDE',
-    'PREDISPOSITIONS': 'PREDISPOSIÇÕES',
-    'PREVENTIVE_CHECKUP': 'CHECK-UP PREVENTIVO',
-    'PREVENTIVE CHECKUP': 'CHECK-UP PREVENTIVO',
-    'LIFESTYLE': 'ESTILO DE VIDA',
-    'TRAINING_INTELLIGENCE': 'INTELIGÊNCIA / TREINAMENTO',
-    'TRAINING INTELLIGENCE': 'INTELIGÊNCIA / TREINAMENTO',
-    'ENVIRONMENT_TYPE': 'AMBIENTE IDEAL',
-    'ENVIRONMENT TYPE': 'AMBIENTE IDEAL',
-    'ACTIVITY_LEVEL': 'NÍVEL DE ATIVIDADE',
-    'ACTIVITY LEVEL': 'NÍVEL DE ATIVIDADE',
-    'PERSONALITY': 'PERSONALIDADE',
-  };
+    final Map<String, String> mapper = {
+      'IDENTIFICATION': l10n.labelIdentification,
+      'BREED_NAME': l10n.labelBreed,
+      'ORIGIN_REGION': l10n.labelOriginRegion,
+      'MORPHOLOGY_TYPE': l10n.labelMorphologyType,
+      'LINEAGE': l10n.labelLineage,
+      'SIZE': l10n.labelSize,
+      'LIFESPAN': l10n.labelLifespan,
+      'GROWTH_CURVE': l10n.labelGrowthCurve,
+      'NUTRITION': l10n.labelNutrition,
+      'KCAL_PUPPY': l10n.labelKcalPuppy,
+      'KCAL_ADULT': l10n.labelKcalAdult,
+      'KCAL_SENIOR': l10n.labelKcalSenior,
+      'TARGET_NUTRIENTS': l10n.labelTargetNutrients,
+      'WEIGHT': l10n.labelWeight,
+      'HEIGHT': l10n.labelHeight,
+      'COAT': l10n.labelCoat,
+      'COLOR': l10n.labelColor,
+      'TEMPERAMENT': l10n.labelTemperament,
+      'ENERGY_LEVEL': l10n.labelEnergyLevel,
+      'SOCIAL_BEHAVIOR': l10n.labelSocialBehavior,
+      'CLINICAL_SIGNS': l10n.labelClinicalSigns,
+      'GROOMING': l10n.labelGrooming,
+      'COAT_TYPE': l10n.labelCoatType,
+      'GROOMING_FREQUENCY': l10n.labelGroomingFrequency,
+      'HEALTH': l10n.labelHealth,
+      'PREDISPOSITIONS': l10n.labelPredispositions,
+      'PREVENTIVE_CHECKUP': l10n.labelPreventiveCheckup,
+      'LIFESTYLE': l10n.labelLifestyle,
+      'TRAINING_INTELLIGENCE': l10n.labelTrainingIntelligence,
+      'ENVIRONMENT_TYPE': l10n.labelEnvironmentType,
+      'ACTIVITY_LEVEL': l10n.labelActivityLevel,
+      'PERSONALITY': l10n.labelPersonality,
+      'EYES': l10n.labelEyes,
+      'SKIN': l10n.labelSkin,
+      'DENTAL': l10n.labelDental,
+      'ORAL': l10n.labelOral,
+      'STOOL': l10n.labelStool,
+      'WOUNDS': l10n.labelWounds,
+      'EYE': l10n.labelEyes,
+    };
 
-  String _translateKey(String key) {
-    final upper = key.toUpperCase();
-    // Try exact match
-    if (_keyTranslations.containsKey(upper)) return _keyTranslations[upper]!;
-    
-    // Try with underscore/space swap
-    final withUnderscore = upper.replaceAll(' ', '_');
-    if (_keyTranslations.containsKey(withUnderscore)) return _keyTranslations[withUnderscore]!;
-    
-    final withSpace = upper.replaceAll('_', ' ');
-    if (_keyTranslations.containsKey(withSpace)) return _keyTranslations[withSpace]!;
+    return mapper[upper] ?? key.replaceAll('_', ' ').toUpperCase();
+  }
 
-    // Fallback: Just return the cleaned string
-    return withSpace; 
+  String _translateStatus(String status, AppLocalizations l10n) {
+    switch (status.toLowerCase().trim()) {
+      case 'verde':
+      case 'green':
+      case 'bajo':
+      case 'low':
+        return l10n.commonGreen;
+      case 'amarelo':
+      case 'yellow':
+      case 'medio':
+      case 'medium':
+        return l10n.commonYellow;
+      case 'vermelho':
+      case 'red':
+      case 'rojo':
+      case 'high':
+      case 'alta':
+        return l10n.commonRed;
+      default:
+        return status;
+    }
   }
 }

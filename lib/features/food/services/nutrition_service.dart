@@ -104,40 +104,66 @@ class NutritionService {
     }
 
     try {
-      final item = NutritionHistoryItem(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        timestamp: DateTime.now(),
-        foodName: analysis.identidade.nome,
-        calories: analysis.macros.calorias100g,
-        proteins: analysis.macros.proteinas,
-        carbs: analysis.macros.carboidratosLiquidos,
-        fats: analysis.macros.gordurasPerfil,
-        isUltraprocessed: analysis.identidade.statusProcessamento.toLowerCase().contains('ultra'),
-        biohackingTips: [
-          analysis.performance.impactoFocoEnergia,
-          analysis.performance.momentoIdealConsumo,
-          ...analysis.performance.pontosPositivosCorpo,
-        ],
-        recipesList: analysis.receitas.map((r) => {
+      // 🛠️ DEBUG: Log detailed payload before saving
+      debugPrint('🔍 [NutritionService] Preparing to save analysis for: ${analysis.identidade.nome}');
+      
+      try {
+        final recipesListTyped = analysis.receitas.map((r) => {
           'nome': r.nome,
           'instrucoes': r.instrucoes,
           'tempo': r.tempoPreparo,
-        }).toList(),
-        imagePath: savedPath,
-        rawMetadata: analysis.toJson(),
-      );
+        }).toList();
 
-      await box.add(item);
-      debugPrint('✅ [NutritionService] Saved item: ${item.foodName} to box (Total items: ${box.length})');
-      // Force verify save
-      debugPrint('   [Verify] Box keys: ${box.keys.toList()}');
-      
-      // 🔄 Trigger automatic permanent backup
-      PermanentBackupService().createAutoBackup().then((_) {
-        debugPrint('💾 Backup permanente atualizado após salvar comida');
-      }).catchError((e) {
-        debugPrint('⚠️ Backup automático falhou: $e');
-      });
+        debugPrint('   Recipes Count: ${recipesListTyped.length}');
+        if (recipesListTyped.isNotEmpty) {
+           debugPrint('   Sample Recipe Type: ${recipesListTyped.first.runtimeType}');
+        }
+
+        final item = NutritionHistoryItem(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          timestamp: DateTime.now(),
+          foodName: analysis.identidade.nome,
+          calories: analysis.macros.calorias100g,
+          proteins: analysis.macros.proteinas,
+          carbs: analysis.macros.carboidratosLiquidos,
+          fats: analysis.macros.gordurasPerfil,
+          isUltraprocessed: analysis.identidade.statusProcessamento.toLowerCase().contains('ultra'),
+          biohackingTips: [
+            analysis.performance.impactoFocoEnergia,
+            analysis.performance.momentoIdealConsumo,
+            ...analysis.performance.pontosPositivosCorpo,
+          ],
+          recipesList: recipesListTyped,
+          imagePath: savedPath,
+          rawMetadata: analysis.toJson(),
+        );
+
+        debugPrint('🔍 [NutritionService] Object created successfully. Attempting to add to Hive Box...');
+        debugPrint('   Box Name: $boxName | Is Open: ${box.isOpen}');
+        
+        await box.add(item);
+        
+        debugPrint('✅ [NutritionService] Saved item: ${item.foodName} to box (Total items: ${box.length})');
+        // Force verify save
+        debugPrint('   [Verify] Box keys: ${box.keys.toList()}');
+        
+        // 🔄 Trigger automatic permanent backup
+        PermanentBackupService().createAutoBackup().then((_) {
+          debugPrint('💾 Backup permanente atualizado após salvar comida');
+        }).catchError((e) {
+          debugPrint('⚠️ Backup automático falhou: $e');
+        });
+
+      } catch (innerError, innerStack) {
+         debugPrint('❌ [NutritionService] HIVE WRITE ERROR: $innerError');
+         debugPrint('   Item structure dump:');
+         // Attempt to isolate the faulty field by logging types
+         debugPrint('   - recipesList Type: ${analysis.receitas.runtimeType}');
+         debugPrint('   - rawMetadata Type: ${analysis.toJson().runtimeType}'); 
+         debugPrint(innerStack.toString());
+         rethrow;
+      }
+
     } catch (e, stack) {
       debugPrint('❌ [NutritionService] CRITICAL ERROR SAVING: $e');
       debugPrint(stack.toString());

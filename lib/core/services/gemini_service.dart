@@ -989,8 +989,13 @@ Retorne ESTRITAMENTE um JSON válido com:
       }
   }
 
-  // --- PET FOOD ANALYSIS (Agente Nutricional) ---
-  Future<Map<String, dynamic>> analyzePetFood(String path) async {
+  /// --- PET FOOD ANALYSIS (Agente Nutricional) ---
+  Future<Map<String, dynamic>> analyzePetFood(
+    String path, {
+    String? age,
+    String? breedSpecies,
+    String? weight,
+  }) async {
       try {
         final file = File(path);
         if (!await file.exists()) throw Exception('Image file not found');
@@ -999,14 +1004,34 @@ Retorne ESTRITAMENTE um JSON válido com:
         final base64Image = base64Encode(bytes);
         final model = await _findWorkingModel() ?? 'gemini-1.5-flash'; 
 
-        const prompt = "Analise a lista de ingredientes deste rótulo de ração. "
-                     "Explique para o dono do pet se ela é boa ou ruim sem usar termos técnicos ou científicos complexos. "
-                     "Se houver conservantes como BHA ou BHT, diga apenas que são 'conservantes artificiais que podem fazer mal'. "
-                     "Identifique se a carne é de boa qualidade. "
-                     "Retorne estritamente um JSON com: "
-                     "\"veredit\" (Muito Boa, Regular, Ruim), "
-                     "\"simple_reason\" (Por que ela recebeu esse veredito), "
-                     "\"daily_tip\" (Dica simples de saúde alimentar).";
+        final petContext = "Idade: ${age ?? 'Não informada'}, Espécie/Raça: ${breedSpecies ?? 'Não informada'}, Peso: ${weight ?? 'Não informado'}";
+
+        final prompt = """
+Contexto: Você é o especialista em nutrição animal do ScanNut. Analise a imagem do rótulo da ração enviada e forneça uma resposta estritamente em formato JSON.
+Parâmetros do Pet (Contexto do Usuário): $petContext.
+
+Diretrizes de Análise:
+1. Identificação Técnica: Extraia os níveis de proteína, gordura, fibras e a presença de conservantes (BHA/BHT) ou corantes artificiais.
+2. Classificação de Qualidade: Classifique a ração atual em: Super Premium, Premium ou Standard.
+3. Sugestão Inteligente: Se a ração atual possuir pontos críticos (ex: baixo nível de proteína para a idade), sugira 2 ou 3 marcas reconhecidas que melhor atendam ao perfil nutricional deste pet específico.
+4. Isenção de Responsabilidade Obrigatória: Inclua um campo de aviso reforçando que o desenvolvedor não se responsabiliza pela perda de dados ou decisões alimentares, e que a consulta ao Veterinário é indispensável.
+
+JSON Schema Invariável:
+{
+  "analise_rotulo": {
+    "marca": "Nome Identificado",
+    "qualidade": "Super Premium | Premium | Standard",
+    "nutrientes": { "proteina": "X%", "gordura": "Y%", "fibras": "Z%" },
+    "alertas": ["lista de ingredientes nocivos ou baixos"]
+  },
+  "sugestoes": [
+    { "marca": "Marca Sugerida 1", "motivo": "Por que é boa para este pet" },
+    { "marca": "Marca Sugerida 2", "motivo": "Por que é boa para este pet" }
+  ],
+  "feedback_visual": "saudavel | alerta | critico",
+  "aviso_legal": "O ScanNut apresenta sugestões informativas que não substituem o parecer do Médico Veterinário. O desenvolvedor não se responsabiliza pelos dados ou pela perda deles."
+}
+""";
 
         final requestData = {
           'contents': [
@@ -1017,7 +1042,7 @@ Retorne ESTRITAMENTE um JSON válido com:
                   'inline_data': {
                     'mime_type': 'image/jpeg', 
                     'data': base64Image
-                  }
+                   }
                 }
               ]
             }

@@ -410,7 +410,23 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
     );
   }
   
-  Future<void> _confirmAction(String title, Future<void> Function() action) {
+  Future<void> _confirmAction(String title, Future<void> Function() action) async {
+     // 1. 🛡️ SECURITY CHALLENGE FIRST
+     final auth = SimpleAuthService();
+     final bool isVerified = await auth.verifyIdentity(
+       reason: 'Autentique-se para iniciar a exclusão de $title'
+     );
+
+     if (!isVerified) {
+        if (mounted) {
+           SnackBarHelper.showError(context, 'Autenticação falhou. Ação cancelada.');
+        }
+        return;
+     }
+
+     if (!mounted) return;
+
+     // 2. SHOW CONFIRMATION DIALOG
      return showDialog(
         context: context,
         builder: (context) => AlertDialog(

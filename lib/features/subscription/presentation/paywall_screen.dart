@@ -367,7 +367,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 ),
                 if (package.packageType == PackageType.annual)
                   Text(
-                    '${(product.price / 12).toStringAsFixed(2)} / mês',
+                    '${(product.price / 12).toStringAsFixed(2)} ${l10n.paywallPerMonth}',
                      style: GoogleFonts.poppins(
                       color: Colors.white38,
                       fontSize: 10,

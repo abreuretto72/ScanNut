@@ -312,7 +312,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                   }
 
                   // 3. Sufixo de Tipo
-                  String typeSuffix = (data['analysis_type'] == 'diagnosis') ? 'Saúde' : 'ID';
+                  String typeSuffix = (data['analysis_type'] == 'diagnosis') ? l10n.petTypeHealth : l10n.petTypeID;
                   
                   subtitle = "$displayBreed • $typeSuffix";
                 } catch (e) {
@@ -352,7 +352,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       } catch (e) {
                           debugPrint('❌ Error opening deep analysis: $e');
                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(content: Text('Erro ao abrir análise: $e'))
+                             SnackBar(content: Text('${l10n.errorOpenAnalysis}: $e'))
                           );
                       }
                   },
@@ -467,12 +467,12 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    (petName.isEmpty || petName == 'Pet') ? 'Pet (Sem Nome)' : petName,
+                    (petName.isEmpty || petName == 'Pet') ? l10n.petNoName : petName,
                     style: GoogleFonts.poppins(fontSize: 20,
                       fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         Text(
-                          'Selecione o tipo de registro',
+                          l10n.petSelectRecordType,
                           style: TextStyle(color: Colors.white60, fontSize: 13),
                         ),
                       ],
@@ -489,7 +489,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       );
                     },
                     icon: const Icon(Icons.history, size: 16, color: Colors.black),
-                    label: Text("Mostrar todas", style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
+                    label: Text(l10n.petShowAll, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppDesign.petPink,
                       foregroundColor: Colors.black,

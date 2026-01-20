@@ -113,6 +113,12 @@ abstract class AppLocalizations {
   /// **'Tecnologia AI Vision'**
   String get splashPoweredBy;
 
+  /// No description provided for @developed_by.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desenvolvido por'**
+  String get developed_by;
+
   /// No description provided for @tabFood.
   ///
   /// In pt, this message translates to:
@@ -212,7 +218,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeHintPetHealth.
   ///
   /// In pt, this message translates to:
-  /// **'Aponte a câmera para a ferida do pet'**
+  /// **'Aponte a câmera para o problema do pet'**
   String get homeHintPetHealth;
 
   /// No description provided for @settingsTitle.
@@ -1658,7 +1664,7 @@ abstract class AppLocalizations {
   /// No description provided for @instructionPetWound.
   ///
   /// In pt, this message translates to:
-  /// **'Aponte a câmera para a ferida do seu pet'**
+  /// **'Aponte a câmera para o problema do seu pet'**
   String get instructionPetWound;
 
   /// No description provided for @tooltipNutritionHistory.
@@ -2348,7 +2354,7 @@ abstract class AppLocalizations {
   /// No description provided for @commonUnderstand.
   ///
   /// In pt, this message translates to:
-  /// **'Entendi'**
+  /// **'ENTENDI'**
   String get commonUnderstand;
 
   /// No description provided for @commonClose.
@@ -3110,7 +3116,7 @@ abstract class AppLocalizations {
   /// No description provided for @planError.
   ///
   /// In pt, this message translates to:
-  /// **'Erro ao carregar o cardápio'**
+  /// **'Erro no plano alimentar'**
   String get planError;
 
   /// No description provided for @tryAgain.
@@ -3182,7 +3188,7 @@ abstract class AppLocalizations {
   /// No description provided for @planCreatedSuccess.
   ///
   /// In pt, this message translates to:
-  /// **'Cardápio criado com sucesso!'**
+  /// **'Plano criado com sucesso!'**
   String get planCreatedSuccess;
 
   /// No description provided for @openingConfig.
@@ -4040,25 +4046,25 @@ abstract class AppLocalizations {
   /// No description provided for @plantNeedSun.
   ///
   /// In pt, this message translates to:
-  /// **'Luminosidade'**
+  /// **'Necessidade de Sol'**
   String get plantNeedSun;
 
   /// No description provided for @plantNeedWater.
   ///
   /// In pt, this message translates to:
-  /// **'Rega'**
+  /// **'Necessidade de Água'**
   String get plantNeedWater;
 
   /// No description provided for @plantNeedSoil.
   ///
   /// In pt, this message translates to:
-  /// **'Solo'**
+  /// **'Solo & Nutrição'**
   String get plantNeedSoil;
 
   /// No description provided for @plantSeasonAdjust.
   ///
   /// In pt, this message translates to:
-  /// **'Ajuste Sazonal'**
+  /// **'Ajustes Sazonais'**
   String get plantSeasonAdjust;
 
   /// No description provided for @seasonWinter.
@@ -4142,7 +4148,7 @@ abstract class AppLocalizations {
   /// No description provided for @noInformation.
   ///
   /// In pt, this message translates to:
-  /// **'Sem informação'**
+  /// **'Sem informações'**
   String get noInformation;
 
   /// No description provided for @directSoilWatering.
@@ -4850,13 +4856,13 @@ abstract class AppLocalizations {
   /// No description provided for @petSectionNutrition.
   ///
   /// In pt, this message translates to:
-  /// **'Nutrição & Dieta'**
+  /// **'Nutrição'**
   String get petSectionNutrition;
 
   /// No description provided for @petSectionGrooming.
   ///
   /// In pt, this message translates to:
-  /// **'Grooming & Higiene'**
+  /// **'Higiene'**
   String get petSectionGrooming;
 
   /// No description provided for @petSectionHealth.
@@ -4868,7 +4874,7 @@ abstract class AppLocalizations {
   /// No description provided for @petSectionLifestyle.
   ///
   /// In pt, this message translates to:
-  /// **'Lifestyle & Educação'**
+  /// **'Estilo de Vida'**
   String get petSectionLifestyle;
 
   /// No description provided for @petInsightSpecialist.
@@ -5126,7 +5132,7 @@ abstract class AppLocalizations {
   /// No description provided for @petNotIdentified.
   ///
   /// In pt, this message translates to:
-  /// **'Não identificado'**
+  /// **'Pet não identificado'**
   String get petNotIdentified;
 
   /// No description provided for @petNotEstimated.
@@ -5786,7 +5792,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfWeightHistory.
   ///
   /// In pt, this message translates to:
-  /// **'Histórico de Pesagens'**
+  /// **'Histórico de Peso'**
   String get pdfWeightHistory;
 
   /// No description provided for @pdfType.
@@ -6710,7 +6716,7 @@ abstract class AppLocalizations {
   /// No description provided for @petConsultVetCare.
   ///
   /// In pt, this message translates to:
-  /// **'Cuidados Veterinários'**
+  /// **'Consulte um Vet.'**
   String get petConsultVetCare;
 
   /// No description provided for @pdfFieldObservations.
@@ -6776,7 +6782,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdfDossierTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Dossiê 360º de Pet'**
+  /// **'Dossiê do Pet'**
   String get pdfDossierTitle;
 
   /// No description provided for @pdfSectionIdentity.
@@ -10724,13 +10730,13 @@ abstract class AppLocalizations {
   /// No description provided for @petDossierTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Análise Veterinária 360°'**
+  /// **'Dossiê Veterinário 360°'**
   String get petDossierTitle;
 
   /// No description provided for @petDossierDisclaimer.
   ///
   /// In pt, this message translates to:
-  /// **'Conteúdo gerado por IA. Use como referência. Não substitui avaliação veterinária.'**
+  /// **'Este relatório é baseado em análise de imagem por IA e não substitui consulta veterinária profissional.'**
   String get petDossierDisclaimer;
 
   /// No description provided for @petDossierAnalyzedImage.
@@ -10742,7 +10748,7 @@ abstract class AppLocalizations {
   /// No description provided for @petDossierViewFull.
   ///
   /// In pt, this message translates to:
-  /// **'Expandir'**
+  /// **'Ver completo'**
   String get petDossierViewFull;
 
   /// No description provided for @petDossierSignals.
@@ -10772,7 +10778,7 @@ abstract class AppLocalizations {
   /// No description provided for @petSectionIdentity.
   ///
   /// In pt, this message translates to:
-  /// **'Identificação Visual'**
+  /// **'Identidade'**
   String get petSectionIdentity;
 
   /// No description provided for @petSectionPreventive.
@@ -10784,13 +10790,13 @@ abstract class AppLocalizations {
   /// No description provided for @petSectionGrowth.
   ///
   /// In pt, this message translates to:
-  /// **'Curva de Crescimento'**
+  /// **'Crescimento'**
   String get petSectionGrowth;
 
   /// No description provided for @petActionViewProfile.
   ///
   /// In pt, this message translates to:
-  /// **'Ver Perfil do Pet'**
+  /// **'Ver Perfil Completo'**
   String get petActionViewProfile;
 
   /// No description provided for @petActionSharePDF.
@@ -11362,6 +11368,1512 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Excluir esta analise corporal?'**
   String get petBodyDeleteConfirm;
+
+  /// No description provided for @labelSun.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sol'**
+  String get labelSun;
+
+  /// No description provided for @labelWater.
+  ///
+  /// In pt, this message translates to:
+  /// **'Rega'**
+  String get labelWater;
+
+  /// No description provided for @labelSoil.
+  ///
+  /// In pt, this message translates to:
+  /// **'Solo'**
+  String get labelSoil;
+
+  /// No description provided for @pdfClinicalNotes.
+  ///
+  /// In pt, this message translates to:
+  /// **'DETALHES DA ANÁLISE CLÍNICA'**
+  String get pdfClinicalNotes;
+
+  /// No description provided for @pdfPlansInsurance.
+  ///
+  /// In pt, this message translates to:
+  /// **'PLANOS E SEGUROS'**
+  String get pdfPlansInsurance;
+
+  /// No description provided for @pdfNoInfo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem informação'**
+  String get pdfNoInfo;
+
+  /// No description provided for @pdfGeneralAnalysisHistory.
+  ///
+  /// In pt, this message translates to:
+  /// **'HISTÓRICO DE ANÁLISES (IA)'**
+  String get pdfGeneralAnalysisHistory;
+
+  /// No description provided for @pdfLabExams.
+  ///
+  /// In pt, this message translates to:
+  /// **'EXAMES LABORATORIAIS'**
+  String get pdfLabExams;
+
+  /// No description provided for @pdfDietType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Dieta'**
+  String get pdfDietType;
+
+  /// No description provided for @pdfCaloricGoal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Meta Calórica Estimada'**
+  String get pdfCaloricGoal;
+
+  /// No description provided for @pdfWeeklyPlan.
+  ///
+  /// In pt, this message translates to:
+  /// **'PLANO SEMANAL'**
+  String get pdfWeeklyPlan;
+
+  /// No description provided for @pdfDay.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dia'**
+  String get pdfDay;
+
+  /// No description provided for @pdfMeal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Refeição'**
+  String get pdfMeal;
+
+  /// No description provided for @pdfBrandSuggestions.
+  ///
+  /// In pt, this message translates to:
+  /// **'SUGESTÕES DE MARCAS (INFORMATIVO)'**
+  String get pdfBrandSuggestions;
+
+  /// No description provided for @pdfLegalDisclaimer.
+  ///
+  /// In pt, this message translates to:
+  /// **'⚠️ AVISO LEGAL: Consulte sempre um veterinário antes de trocar a ração. Estas sugestões são baseadas no perfil do pet e não substituem uma consulta presencial.'**
+  String get pdfLegalDisclaimer;
+
+  /// No description provided for @pdfKnownAllergies.
+  ///
+  /// In pt, this message translates to:
+  /// **'ALERGIAS CONHECIDAS'**
+  String get pdfKnownAllergies;
+
+  /// No description provided for @pdfPossibleDiagnosis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diagnósticos'**
+  String get pdfPossibleDiagnosis;
+
+  /// No description provided for @pdfPossibleCauses.
+  ///
+  /// In pt, this message translates to:
+  /// **'Causas'**
+  String get pdfPossibleCauses;
+
+  /// No description provided for @pdfPartnerName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome'**
+  String get pdfPartnerName;
+
+  /// No description provided for @pdfPartnerSpecialty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Especialidade'**
+  String get pdfPartnerSpecialty;
+
+  /// No description provided for @pdfPartnerContact.
+  ///
+  /// In pt, this message translates to:
+  /// **'Contato / Notas'**
+  String get pdfPartnerContact;
+
+  /// No description provided for @pdfPartnerPhone.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tel'**
+  String get pdfPartnerPhone;
+
+  /// No description provided for @pdfPartnerEmail.
+  ///
+  /// In pt, this message translates to:
+  /// **'Email'**
+  String get pdfPartnerEmail;
+
+  /// No description provided for @pdfPartnerNotes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Notas'**
+  String get pdfPartnerNotes;
+
+  /// No description provided for @pdfRadarTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'RADAR GEO - SCANNUT'**
+  String get pdfRadarTitle;
+
+  /// No description provided for @pdfRadarResults.
+  ///
+  /// In pt, this message translates to:
+  /// **'RESULTADOS PRÓXIMOS'**
+  String get pdfRadarResults;
+
+  /// No description provided for @pdfDistanceLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'DISTÂNCIA'**
+  String get pdfDistanceLabel;
+
+  /// No description provided for @pdfAddressLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'ENDEREÇO'**
+  String get pdfAddressLabel;
+
+  /// No description provided for @pdfDateLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Data'**
+  String get pdfDateLabel;
+
+  /// No description provided for @pdfShoppingListTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'LISTA DE COMPRAS'**
+  String get pdfShoppingListTitle;
+
+  /// No description provided for @pdfToxicPetsCats.
+  ///
+  /// In pt, this message translates to:
+  /// **'TÓXICA: CÃES E GATOS'**
+  String get pdfToxicPetsCats;
+
+  /// No description provided for @pdfToxicCats.
+  ///
+  /// In pt, this message translates to:
+  /// **'TÓXICA: GATOS'**
+  String get pdfToxicCats;
+
+  /// No description provided for @pdfToxicDogs.
+  ///
+  /// In pt, this message translates to:
+  /// **'TÓXICA: CÃES'**
+  String get pdfToxicDogs;
+
+  /// No description provided for @pdfToxicAnimals.
+  ///
+  /// In pt, this message translates to:
+  /// **'TÓXICA: ANIMAIS (PETS)'**
+  String get pdfToxicAnimals;
+
+  /// No description provided for @pdfToxicHumans.
+  ///
+  /// In pt, this message translates to:
+  /// **'TÓXICA: HUMANOS'**
+  String get pdfToxicHumans;
+
+  /// No description provided for @pdfCareLegendTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'LEGENDA DE CUIDADOS (REQUISITOS)'**
+  String get pdfCareLegendTitle;
+
+  /// No description provided for @pdfCareLegendLevels.
+  ///
+  /// In pt, this message translates to:
+  /// **'Níveis de preenchimento:'**
+  String get pdfCareLegendLevels;
+
+  /// No description provided for @pdfCareLegendDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'1/4 Preenchido = Baixo | 2/4 Preenchido = Médio | Totalmente Preenchido = Alto'**
+  String get pdfCareLegendDescription;
+
+  /// No description provided for @errorCapturePrefix.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro na captura: '**
+  String get errorCapturePrefix;
+
+  /// No description provided for @errorGalleryPrefix.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao abrir galeria: '**
+  String get errorGalleryPrefix;
+
+  /// No description provided for @errorProcessingPrefix.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro no processamento: '**
+  String get errorProcessingPrefix;
+
+  /// No description provided for @errorNavigationPrefix.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro de Navegação: '**
+  String get errorNavigationPrefix;
+
+  /// No description provided for @pdfClinicalHistorySection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Histórico Clínico e Feridas'**
+  String get pdfClinicalHistorySection;
+
+  /// No description provided for @commonGeneral.
+  ///
+  /// In pt, this message translates to:
+  /// **'Geral'**
+  String get commonGeneral;
+
+  /// No description provided for @pdfDiagnoses.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diagnósticos'**
+  String get pdfDiagnoses;
+
+  /// No description provided for @pdfRecommendation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recomendação'**
+  String get pdfRecommendation;
+
+  /// No description provided for @pdfFooterBranding.
+  ///
+  /// In pt, this message translates to:
+  /// **'ScanNut App - Inteligência Animal'**
+  String get pdfFooterBranding;
+
+  /// No description provided for @petUnknownBreed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Raça Desconhecida'**
+  String get petUnknownBreed;
+
+  /// No description provided for @plantNoSpecificDiagnosis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem diagnóstico específico.'**
+  String get plantNoSpecificDiagnosis;
+
+  /// No description provided for @pdfShoppingListDescription.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esta lista consolidada refere-se aos itens necessários para a {week}. Quantidades somadas e organizadas por setor.'**
+  String pdfShoppingListDescription(Object week);
+
+  /// No description provided for @planSaveError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível salvar o cardápio. Tente novamente.'**
+  String get planSaveError;
+
+  /// No description provided for @plantAnalysisList.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ir para a lista de análises'**
+  String get plantAnalysisList;
+
+  /// No description provided for @commonAlert.
+  ///
+  /// In pt, this message translates to:
+  /// **'ALERTA'**
+  String get commonAlert;
+
+  /// No description provided for @commonGreen.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verde'**
+  String get commonGreen;
+
+  /// No description provided for @commonYellow.
+  ///
+  /// In pt, this message translates to:
+  /// **'Amarelo'**
+  String get commonYellow;
+
+  /// No description provided for @commonRed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vermelho'**
+  String get commonRed;
+
+  /// No description provided for @foodInNatura.
+  ///
+  /// In pt, this message translates to:
+  /// **'In natura'**
+  String get foodInNatura;
+
+  /// No description provided for @commonNone.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum'**
+  String get commonNone;
+
+  /// No description provided for @petClinicalSignsCount.
+  ///
+  /// In pt, this message translates to:
+  /// **'{count} sinais identificados'**
+  String petClinicalSignsCount(Object count);
+
+  /// No description provided for @deepAnalysisTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Profunda 360°'**
+  String get deepAnalysisTitle;
+
+  /// No description provided for @labelIdentification.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificação'**
+  String get labelIdentification;
+
+  /// No description provided for @labelBreed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Raça'**
+  String get labelBreed;
+
+  /// No description provided for @labelOriginRegion.
+  ///
+  /// In pt, this message translates to:
+  /// **'Região de Origem'**
+  String get labelOriginRegion;
+
+  /// No description provided for @labelMorphologyType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo Morfológico'**
+  String get labelMorphologyType;
+
+  /// No description provided for @labelLineage.
+  ///
+  /// In pt, this message translates to:
+  /// **'Linhagem'**
+  String get labelLineage;
+
+  /// No description provided for @labelSize.
+  ///
+  /// In pt, this message translates to:
+  /// **'Porte'**
+  String get labelSize;
+
+  /// No description provided for @labelLifespan.
+  ///
+  /// In pt, this message translates to:
+  /// **'Expectativa de Vida'**
+  String get labelLifespan;
+
+  /// No description provided for @labelGrowthCurve.
+  ///
+  /// In pt, this message translates to:
+  /// **'Curva de Crescimento'**
+  String get labelGrowthCurve;
+
+  /// No description provided for @labelNutrition.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutrição'**
+  String get labelNutrition;
+
+  /// No description provided for @labelKcalPuppy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Kcal Filhote'**
+  String get labelKcalPuppy;
+
+  /// No description provided for @labelKcalAdult.
+  ///
+  /// In pt, this message translates to:
+  /// **'Kcal Adulto'**
+  String get labelKcalAdult;
+
+  /// No description provided for @labelKcalSenior.
+  ///
+  /// In pt, this message translates to:
+  /// **'Kcal Sênior'**
+  String get labelKcalSenior;
+
+  /// No description provided for @kcalPerDay.
+  ///
+  /// In pt, this message translates to:
+  /// **'Kcal/dia'**
+  String get kcalPerDay;
+
+  /// No description provided for @labelTargetNutrients.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nutrientes Alvo'**
+  String get labelTargetNutrients;
+
+  /// No description provided for @labelWeight.
+  ///
+  /// In pt, this message translates to:
+  /// **'Peso'**
+  String get labelWeight;
+
+  /// No description provided for @labelHeight.
+  ///
+  /// In pt, this message translates to:
+  /// **'Altura'**
+  String get labelHeight;
+
+  /// No description provided for @labelCoat.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pelagem'**
+  String get labelCoat;
+
+  /// No description provided for @labelColor.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cor'**
+  String get labelColor;
+
+  /// No description provided for @labelTemperament.
+  ///
+  /// In pt, this message translates to:
+  /// **'Temperamento'**
+  String get labelTemperament;
+
+  /// No description provided for @labelEnergyLevel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nível de Energia'**
+  String get labelEnergyLevel;
+
+  /// No description provided for @labelSocialBehavior.
+  ///
+  /// In pt, this message translates to:
+  /// **'Comportamento Social'**
+  String get labelSocialBehavior;
+
+  /// No description provided for @labelClinicalSigns.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais Clínicos'**
+  String get labelClinicalSigns;
+
+  /// No description provided for @labelGrooming.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cuidados & Higiene'**
+  String get labelGrooming;
+
+  /// No description provided for @labelCoatType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Pelagem'**
+  String get labelCoatType;
+
+  /// No description provided for @labelGroomingFrequency.
+  ///
+  /// In pt, this message translates to:
+  /// **'Frequência de Escovação'**
+  String get labelGroomingFrequency;
+
+  /// No description provided for @labelHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde'**
+  String get labelHealth;
+
+  /// No description provided for @labelPredispositions.
+  ///
+  /// In pt, this message translates to:
+  /// **'Predisposições'**
+  String get labelPredispositions;
+
+  /// No description provided for @labelPreventiveCheckup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Check-up Preventivo'**
+  String get labelPreventiveCheckup;
+
+  /// No description provided for @labelLifestyle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Estilo de Vida'**
+  String get labelLifestyle;
+
+  /// No description provided for @labelTrainingIntelligence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inteligência / Treinamento'**
+  String get labelTrainingIntelligence;
+
+  /// No description provided for @labelEnvironmentType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ambiente Ideal'**
+  String get labelEnvironmentType;
+
+  /// No description provided for @labelActivityLevel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nível de Atividade'**
+  String get labelActivityLevel;
+
+  /// No description provided for @labelPersonality.
+  ///
+  /// In pt, this message translates to:
+  /// **'Personalidade'**
+  String get labelPersonality;
+
+  /// No description provided for @labelEyes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Olhos'**
+  String get labelEyes;
+
+  /// No description provided for @labelSkin.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pele'**
+  String get labelSkin;
+
+  /// No description provided for @labelDental.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dental'**
+  String get labelDental;
+
+  /// No description provided for @labelOral.
+  ///
+  /// In pt, this message translates to:
+  /// **'Oral'**
+  String get labelOral;
+
+  /// No description provided for @labelStool.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fezes'**
+  String get labelStool;
+
+  /// No description provided for @labelWounds.
+  ///
+  /// In pt, this message translates to:
+  /// **'Feridas'**
+  String get labelWounds;
+
+  /// No description provided for @pdfPlantDossierTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dossiê Botânico'**
+  String get pdfPlantDossierTitle;
+
+  /// No description provided for @errorGeneratingPdf.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao gerar PDF'**
+  String get errorGeneratingPdf;
+
+  /// No description provided for @plantSunFull.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sol Pleno'**
+  String get plantSunFull;
+
+  /// No description provided for @plantSunPartial.
+  ///
+  /// In pt, this message translates to:
+  /// **'Meia Sombra'**
+  String get plantSunPartial;
+
+  /// No description provided for @plantSunShade.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sombra Total'**
+  String get plantSunShade;
+
+  /// No description provided for @plantSunIndirect.
+  ///
+  /// In pt, this message translates to:
+  /// **'Luz Indireta'**
+  String get plantSunIndirect;
+
+  /// No description provided for @tabDiagnosis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diagnóstico'**
+  String get tabDiagnosis;
+
+  /// No description provided for @tabBiometrics.
+  ///
+  /// In pt, this message translates to:
+  /// **'Biometria'**
+  String get tabBiometrics;
+
+  /// No description provided for @tabEvolution.
+  ///
+  /// In pt, this message translates to:
+  /// **'Evolução'**
+  String get tabEvolution;
+
+  /// No description provided for @sectionVisualDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Descrição Visual'**
+  String get sectionVisualDesc;
+
+  /// No description provided for @sectionObservedFeatures.
+  ///
+  /// In pt, this message translates to:
+  /// **'Características Observadas'**
+  String get sectionObservedFeatures;
+
+  /// No description provided for @sectionClinicalSigns.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sinais Clínicos'**
+  String get sectionClinicalSigns;
+
+  /// No description provided for @sectionProbableDiagnosis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diagnóstico Provável'**
+  String get sectionProbableDiagnosis;
+
+  /// No description provided for @noDiagnosisListed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum diagnóstico listado'**
+  String get noDiagnosisListed;
+
+  /// No description provided for @sectionRecommendation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recomendação'**
+  String get sectionRecommendation;
+
+  /// No description provided for @sectionDepthAnalysis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise em Profundidade'**
+  String get sectionDepthAnalysis;
+
+  /// No description provided for @analysis3DUnavailable.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise 3D indisponível'**
+  String get analysis3DUnavailable;
+
+  /// No description provided for @sectionDetailedBiometrics.
+  ///
+  /// In pt, this message translates to:
+  /// **'Biometria Detalhada'**
+  String get sectionDetailedBiometrics;
+
+  /// No description provided for @noBiometricsListed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma biometria listada'**
+  String get noBiometricsListed;
+
+  /// No description provided for @analysisFirstRecord.
+  ///
+  /// In pt, this message translates to:
+  /// **'Este é o primeiro registro de análise'**
+  String get analysisFirstRecord;
+
+  /// No description provided for @paywallPerMonth.
+  ///
+  /// In pt, this message translates to:
+  /// **'por mês'**
+  String get paywallPerMonth;
+
+  /// No description provided for @petProfileIncomplete.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil do pet incompleto'**
+  String get petProfileIncomplete;
+
+  /// No description provided for @pdfFoodAnalysisTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise Nutricional Completa'**
+  String pdfFoodAnalysisTitle(Object name);
+
+  /// No description provided for @pdfErrorGeneration.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao gerar PDF'**
+  String pdfErrorGeneration(Object error);
+
+  /// No description provided for @tooltipSavedRecipes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Receitas salvas'**
+  String get tooltipSavedRecipes;
+
+  /// No description provided for @tooltipAutoSaved.
+  ///
+  /// In pt, this message translates to:
+  /// **'Salvo automaticamente'**
+  String get tooltipAutoSaved;
+
+  /// No description provided for @historyTitleRecipes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Histórico de Receitas'**
+  String get historyTitleRecipes;
+
+  /// No description provided for @tooltipExportPdf.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exportar PDF'**
+  String get tooltipExportPdf;
+
+  /// No description provided for @historyErrorLoading.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao carregar histórico'**
+  String historyErrorLoading(Object error);
+
+  /// No description provided for @historyEmptyRecipes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma receita salva ainda'**
+  String get historyEmptyRecipes;
+
+  /// No description provided for @btnViewDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver Detalhes'**
+  String get btnViewDetails;
+
+  /// No description provided for @labelMainIngredient.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ingrediente Principal'**
+  String labelMainIngredient(Object name);
+
+  /// No description provided for @labelFortnightly.
+  ///
+  /// In pt, this message translates to:
+  /// **'Quinzenal'**
+  String get labelFortnightly;
+
+  /// No description provided for @labCategoryBlood.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exame de Sangue'**
+  String get labCategoryBlood;
+
+  /// No description provided for @labCategoryUrine.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exame de Urina'**
+  String get labCategoryUrine;
+
+  /// No description provided for @labCategoryFeces.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exame de Fezes'**
+  String get labCategoryFeces;
+
+  /// No description provided for @labCategoryImaging.
+  ///
+  /// In pt, this message translates to:
+  /// **'Exame de Imagem'**
+  String get labCategoryImaging;
+
+  /// No description provided for @btnGoToList.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ir para a lista'**
+  String get btnGoToList;
+
+  /// No description provided for @tooltipGenerateRecipes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar receitas'**
+  String get tooltipGenerateRecipes;
+
+  /// No description provided for @foodConsultingChef.
+  ///
+  /// In pt, this message translates to:
+  /// **'Consultando chef...'**
+  String get foodConsultingChef;
+
+  /// No description provided for @analysisSavedSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Análise salva com sucesso!'**
+  String get analysisSavedSuccess;
+
+  /// No description provided for @errorSaving.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao salvar: {error}'**
+  String errorSaving(String error);
+
+  /// No description provided for @msgNoHistoryToExport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhum histórico para exportar'**
+  String get msgNoHistoryToExport;
+
+  /// No description provided for @pdfTitleRecipeBook.
+  ///
+  /// In pt, this message translates to:
+  /// **'Caderno de Receitas'**
+  String get pdfTitleRecipeBook;
+
+  /// No description provided for @dialogClearHistoryTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpar Histórico?'**
+  String get dialogClearHistoryTitle;
+
+  /// No description provided for @dialogClearHistoryBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Isso removerá todas as receitas salvas. Esta ação não pode ser desfeita.'**
+  String get dialogClearHistoryBody;
+
+  /// No description provided for @homeBiometricTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Biometria'**
+  String get homeBiometricTitle;
+
+  /// No description provided for @homeBiometricBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Autentique-se para continuar'**
+  String get homeBiometricBody;
+
+  /// No description provided for @homeBiometricSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Autenticação bem-sucedida'**
+  String get homeBiometricSuccess;
+
+  /// No description provided for @homeBiometricAction.
+  ///
+  /// In pt, this message translates to:
+  /// **'Autenticar'**
+  String get homeBiometricAction;
+
+  /// No description provided for @errorSaveHiveTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao Salvar'**
+  String get errorSaveHiveTitle;
+
+  /// No description provided for @errorSaveHiveBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível salvar: {error}'**
+  String errorSaveHiveBody(String error);
+
+  /// No description provided for @loadingMsgDiet.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando dieta...'**
+  String get loadingMsgDiet;
+
+  /// No description provided for @loadingMsgPlant.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando planta...'**
+  String get loadingMsgPlant;
+
+  /// No description provided for @loadingMsgClinical.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando sinais clínicos...'**
+  String get loadingMsgClinical;
+
+  /// No description provided for @loadingMsgStool.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando fezes...'**
+  String get loadingMsgStool;
+
+  /// No description provided for @loadingMsgPetId.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificando pet...'**
+  String get loadingMsgPetId;
+
+  /// No description provided for @loadingMsgWait.
+  ///
+  /// In pt, this message translates to:
+  /// **'Aguarde...'**
+  String get loadingMsgWait;
+
+  /// No description provided for @errorGoogleAuth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro de autenticação Google'**
+  String get errorGoogleAuth;
+
+  /// No description provided for @errorGoogleAuthDetailMsg.
+  ///
+  /// In pt, this message translates to:
+  /// **'Detalhes: {errorMessage}'**
+  String errorGoogleAuthDetailMsg(String errorMessage);
+
+  /// No description provided for @errorSearchFailed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Busca falhou: {error}'**
+  String errorSearchFailed(String error);
+
+  /// No description provided for @radarTapToChangeRadius.
+  ///
+  /// In pt, this message translates to:
+  /// **'Toque para alterar o raio'**
+  String get radarTapToChangeRadius;
+
+  /// No description provided for @diagnosticTrace.
+  ///
+  /// In pt, this message translates to:
+  /// **'Rastreamento de diagnóstico'**
+  String get diagnosticTrace;
+
+  /// No description provided for @tooltipHistoryReport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Relatório do histórico'**
+  String get tooltipHistoryReport;
+
+  /// No description provided for @errorMetadataMissing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Metadados ausentes'**
+  String get errorMetadataMissing;
+
+  /// No description provided for @pdfTitleFoodHistory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Histórico Alimentar - {date}'**
+  String pdfTitleFoodHistory(String date);
+
+  /// No description provided for @logsCopied.
+  ///
+  /// In pt, this message translates to:
+  /// **'Logs copiados'**
+  String get logsCopied;
+
+  /// No description provided for @actionCopy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Copiar'**
+  String get actionCopy;
+
+  /// No description provided for @viewTechDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver detalhes técnicos'**
+  String get viewTechDetails;
+
+  /// No description provided for @petTypeHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saúde'**
+  String get petTypeHealth;
+
+  /// No description provided for @petTypeID.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificação'**
+  String get petTypeID;
+
+  /// No description provided for @errorOpenAnalysis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao abrir análise'**
+  String get errorOpenAnalysis;
+
+  /// No description provided for @petNoName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sem nome'**
+  String get petNoName;
+
+  /// No description provided for @titleBotanyIntelligence.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inteligência Botânica'**
+  String get titleBotanyIntelligence;
+
+  /// No description provided for @petSelectRecordType.
+  ///
+  /// In pt, this message translates to:
+  /// **'Selecione o tipo de registro'**
+  String get petSelectRecordType;
+
+  /// No description provided for @petShowAll.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mostrar todos'**
+  String get petShowAll;
+
+  /// No description provided for @vaccineV8V10.
+  ///
+  /// In pt, this message translates to:
+  /// **'V8/V10 (Polivalente)'**
+  String get vaccineV8V10;
+
+  /// No description provided for @vaccineRabies.
+  ///
+  /// In pt, this message translates to:
+  /// **'Antirrábica'**
+  String get vaccineRabies;
+
+  /// No description provided for @vaccineFlu.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gripe'**
+  String get vaccineFlu;
+
+  /// No description provided for @vaccineGiardia.
+  ///
+  /// In pt, this message translates to:
+  /// **'Giárdia'**
+  String get vaccineGiardia;
+
+  /// No description provided for @vaccineLeishmania.
+  ///
+  /// In pt, this message translates to:
+  /// **'Leishmaniose'**
+  String get vaccineLeishmania;
+
+  /// No description provided for @vaccineV3V4V5.
+  ///
+  /// In pt, this message translates to:
+  /// **'V3/V4/V5 (Polivalente)'**
+  String get vaccineV3V4V5;
+
+  /// No description provided for @vaccineFivFelv.
+  ///
+  /// In pt, this message translates to:
+  /// **'FIV/FeLV'**
+  String get vaccineFivFelv;
+
+  /// No description provided for @vaccinationGuideTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Guia de Vacinação'**
+  String get vaccinationGuideTitle;
+
+  /// No description provided for @vaccinationMandatory.
+  ///
+  /// In pt, this message translates to:
+  /// **'Obrigatórias'**
+  String get vaccinationMandatory;
+
+  /// No description provided for @vaccinationOptional.
+  ///
+  /// In pt, this message translates to:
+  /// **'Eventuais / Opcionais'**
+  String get vaccinationOptional;
+
+  /// No description provided for @vaccinationHelpBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verifique a tabela abaixo para entender quais vacinas são essenciais para a saúde do seu pet.'**
+  String get vaccinationHelpBody;
+
+  /// No description provided for @pdfFooterText.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desenvolvido por Multiverso Digital Copyright 2026'**
+  String get pdfFooterText;
+
+  /// No description provided for @vet360ReportTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Prontuário Veterinário 360° - {petName}'**
+  String vet360ReportTitle(String petName);
+
+  /// No description provided for @labelProfile.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil'**
+  String get labelProfile;
+
+  /// No description provided for @labelPhone.
+  ///
+  /// In pt, this message translates to:
+  /// **'Telefone'**
+  String get labelPhone;
+
+  /// No description provided for @labelEmail.
+  ///
+  /// In pt, this message translates to:
+  /// **'E-mail'**
+  String get labelEmail;
+
+  /// No description provided for @labelNotes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Observações'**
+  String get labelNotes;
+
+  /// No description provided for @petRegimeLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Regime'**
+  String get petRegimeLabel;
+
+  /// No description provided for @settingsSectionAccount.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conta'**
+  String get settingsSectionAccount;
+
+  /// No description provided for @settingsChangePassword.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alterar senha'**
+  String get settingsChangePassword;
+
+  /// No description provided for @settingsKeepSignedIn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Manter conectado'**
+  String get settingsKeepSignedIn;
+
+  /// No description provided for @settingsKeepSignedInSubOn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ativado'**
+  String get settingsKeepSignedInSubOn;
+
+  /// No description provided for @settingsKeepSignedInSubOff.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desativado'**
+  String get settingsKeepSignedInSubOff;
+
+  /// No description provided for @settingsMsgSessionKept.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sessão mantida'**
+  String get settingsMsgSessionKept;
+
+  /// No description provided for @settingsMsgLoginRequired.
+  ///
+  /// In pt, this message translates to:
+  /// **'Login necessário'**
+  String get settingsMsgLoginRequired;
+
+  /// No description provided for @settingsUseBiometrics.
+  ///
+  /// In pt, this message translates to:
+  /// **'Usar biometria'**
+  String get settingsUseBiometrics;
+
+  /// No description provided for @settingsBiometricsOn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ativado'**
+  String get settingsBiometricsOn;
+
+  /// No description provided for @settingsBiometricsOff.
+  ///
+  /// In pt, this message translates to:
+  /// **'Desativado'**
+  String get settingsBiometricsOff;
+
+  /// No description provided for @settingsSectionPreferences.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preferências'**
+  String get settingsSectionPreferences;
+
+  /// No description provided for @settingsLabelAutomatic.
+  ///
+  /// In pt, this message translates to:
+  /// **'Automático'**
+  String get settingsLabelAutomatic;
+
+  /// No description provided for @settingsSectionBackup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Backup'**
+  String get settingsSectionBackup;
+
+  /// No description provided for @settingsActionRestore.
+  ///
+  /// In pt, this message translates to:
+  /// **'Restaurar'**
+  String get settingsActionRestore;
+
+  /// No description provided for @settingsWipeSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados apagados com sucesso'**
+  String get settingsWipeSuccess;
+
+  /// No description provided for @settingsWipeError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao apagar dados: {error}'**
+  String settingsWipeError(Object error);
+
+  /// No description provided for @settingsWipeConfirmBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tem certeza que deseja apagar todos os dados?'**
+  String get settingsWipeConfirmBody;
+
+  /// No description provided for @settingsActionWipeAll.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apagar tudo'**
+  String get settingsActionWipeAll;
+
+  /// No description provided for @categoryGeneral.
+  ///
+  /// In pt, this message translates to:
+  /// **'Geral'**
+  String get categoryGeneral;
+
+  /// No description provided for @commonDays.
+  ///
+  /// In pt, this message translates to:
+  /// **'dias'**
+  String get commonDays;
+
+  /// No description provided for @diagnosisAllergy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Alergia'**
+  String get diagnosisAllergy;
+
+  /// No description provided for @diagnosisAnemia.
+  ///
+  /// In pt, this message translates to:
+  /// **'Anemia'**
+  String get diagnosisAnemia;
+
+  /// No description provided for @diagnosisDermatitis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dermatite'**
+  String get diagnosisDermatitis;
+
+  /// No description provided for @diagnosisDysbiosis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Disbiose'**
+  String get diagnosisDysbiosis;
+
+  /// No description provided for @diagnosisFracture.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fratura'**
+  String get diagnosisFracture;
+
+  /// No description provided for @diagnosisGingivitis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gengivite'**
+  String get diagnosisGingivitis;
+
+  /// No description provided for @diagnosisInfection.
+  ///
+  /// In pt, this message translates to:
+  /// **'Infecção'**
+  String get diagnosisInfection;
+
+  /// No description provided for @diagnosisInflammation.
+  ///
+  /// In pt, this message translates to:
+  /// **'Inflamação'**
+  String get diagnosisInflammation;
+
+  /// No description provided for @diagnosisMass.
+  ///
+  /// In pt, this message translates to:
+  /// **'Massa'**
+  String get diagnosisMass;
+
+  /// No description provided for @diagnosisObesity.
+  ///
+  /// In pt, this message translates to:
+  /// **'Obesidade'**
+  String get diagnosisObesity;
+
+  /// No description provided for @diagnosisOverweight.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sobrepeso'**
+  String get diagnosisOverweight;
+
+  /// No description provided for @diagnosisPain.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dor'**
+  String get diagnosisPain;
+
+  /// No description provided for @diagnosisParasites.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parasitas'**
+  String get diagnosisParasites;
+
+  /// No description provided for @diagnosisPlaque.
+  ///
+  /// In pt, this message translates to:
+  /// **'Placa'**
+  String get diagnosisPlaque;
+
+  /// No description provided for @diagnosisTartar.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tártaro'**
+  String get diagnosisTartar;
+
+  /// No description provided for @diagnosisTumor.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tumor'**
+  String get diagnosisTumor;
+
+  /// No description provided for @diagnosisUnderweight.
+  ///
+  /// In pt, this message translates to:
+  /// **'Abaixo do peso'**
+  String get diagnosisUnderweight;
+
+  /// No description provided for @errorGeneratePdf.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao gerar PDF'**
+  String errorGeneratePdf(Object error);
+
+  /// No description provided for @errorLoadDetails.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao carregar detalhes'**
+  String errorLoadDetails(Object error);
+
+  /// No description provided for @errorNoPlantsToExport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nenhuma planta para exportar'**
+  String get errorNoPlantsToExport;
+
+  /// No description provided for @errorPdfGeneration.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro na geração do PDF'**
+  String get errorPdfGeneration;
+
+  /// No description provided for @labelSafe.
+  ///
+  /// In pt, this message translates to:
+  /// **'Seguro'**
+  String get labelSafe;
+
+  /// No description provided for @labelToxicCats.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tóxico para gatos'**
+  String get labelToxicCats;
+
+  /// No description provided for @labelToxicDogs.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tóxico para cães'**
+  String get labelToxicDogs;
+
+  /// No description provided for @labelToxicDogsCats.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tóxico para cães e gatos'**
+  String get labelToxicDogsCats;
+
+  /// No description provided for @pdfCauses.
+  ///
+  /// In pt, this message translates to:
+  /// **'Causas'**
+  String get pdfCauses;
+
+  /// No description provided for @petDietLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dieta'**
+  String get petDietLabel;
+
+  /// No description provided for @petFoodTypeLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Alimento'**
+  String get petFoodTypeLabel;
+
+  /// No description provided for @petProfileIncompleteBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Complete o perfil do pet para gerar o plano nutricional'**
+  String get petProfileIncompleteBody;
+
+  /// No description provided for @petProfileIncompleteTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perfil Incompleto'**
+  String get petProfileIncompleteTitle;
+
+  /// No description provided for @petSelectedDays.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dias selecionados'**
+  String petSelectedDays(Object count);
+
+  /// No description provided for @statusCritical.
+  ///
+  /// In pt, this message translates to:
+  /// **'Crítico'**
+  String get statusCritical;
+
+  /// No description provided for @statusHealthy.
+  ///
+  /// In pt, this message translates to:
+  /// **'Saudável'**
+  String get statusHealthy;
+
+  /// No description provided for @statusWarning.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atenção'**
+  String get statusWarning;
+
+  /// No description provided for @tooltipFengShui.
+  ///
+  /// In pt, this message translates to:
+  /// **'Feng Shui'**
+  String get tooltipFengShui;
+
+  /// No description provided for @tooltipGeneratePdf.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar PDF'**
+  String get tooltipGeneratePdf;
+
+  /// No description provided for @unitKcalPerDay.
+  ///
+  /// In pt, this message translates to:
+  /// **'kcal/dia'**
+  String get unitKcalPerDay;
+
+  /// No description provided for @errorAutoSave.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro no salvamento automático: {error}'**
+  String errorAutoSave(String error);
 }
 
 class _AppLocalizationsDelegate

@@ -59,7 +59,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text('Livro de Receitas da IA', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(AppLocalizations.of(context)!.historyTitleRecipes, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -70,7 +70,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: () => _showExportModal(context),
-            tooltip: 'Exportar PDF',
+            tooltip: AppLocalizations.of(context)!.tooltipExportPdf,
           )
         ],
       ),
@@ -79,7 +79,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
           : _hasError
             ? Center(child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text('Erro ao carregar receitas:\n$_errorMessage\n\nTente reiniciar.', textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.redAccent)),
+                child: Text(AppLocalizations.of(context)!.historyErrorLoading(_errorMessage), textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.redAccent)),
               ))
             : ValueListenableBuilder<Box<RecipeHistoryItem>>(
               valueListenable: Hive.box<RecipeHistoryItem>(RecipeService.boxName).listenable(),
@@ -96,7 +96,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                           Icon(Icons.restaurant_menu, size: 60, color: AppDesign.foodOrange.withValues(alpha: 0.5)),
                           const SizedBox(height: 16),
                           Text(
-                            'Suas receitas sugeridas pela IA\naparecerão aqui.',
+                            AppLocalizations.of(context)!.historyEmptyRecipes,
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(color: Colors.white54, fontSize: 16),
                           ),
@@ -182,7 +182,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                       onTap: () => _showFullRecipe(recipe),
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
-                        child: Text('Ver Detalhes >', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
+                        child: Text(AppLocalizations.of(context)!.btnViewDetails, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
                       ),
                     ),
                   )
@@ -212,7 +212,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                        child: Image.file(File(recipe.imagePath!), width: double.infinity, height: 200, fit: BoxFit.cover),
                     ),
                   const SizedBox(height: 16),
-                  Text('Ingrediente Principal: ${recipe.foodName}', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.labelMainIngredient(recipe.foodName), style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
                   const SizedBox(height: 16),
                   Text(recipe.instructions, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
             ],
@@ -221,7 +221,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Fechar', style: GoogleFonts.poppins(color: Colors.white)),
+            child: Text(AppLocalizations.of(context)!.commonClose, style: GoogleFonts.poppins(color: Colors.white)),
           ),
         ],
       ),
@@ -236,7 +236,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
     allItems.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     if (allItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nenhuma receita para exportar!')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.msgNoHistoryToExport)));
       return;
     }
 
@@ -278,7 +278,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => PdfPreviewScreen(
-                  title: 'Livro de Receitas IA',
+                  title: AppLocalizations.of(context)!.pdfTitleRecipeBook,
                   buildPdf: (format) async => doc.save(),
                 ),
               ),
@@ -293,7 +293,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
             
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Erro ao gerar PDF. Tente novamente.'))
+                SnackBar(content: Text(AppLocalizations.of(context)!.pdfErrorGeneration(e.toString())))
               );
             }
           }
@@ -307,11 +307,11 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Limpar Histórico?', style: GoogleFonts.poppins(color: Colors.white)),
-        content: Text('Isso apagará todas as receitas salvas.', style: GoogleFonts.poppins(color: Colors.white70)),
+        title: Text(AppLocalizations.of(context)!.dialogClearHistoryTitle, style: GoogleFonts.poppins(color: Colors.white)),
+        content: Text(AppLocalizations.of(context)!.dialogClearHistoryBody, style: GoogleFonts.poppins(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Limpar', style: TextStyle(color: Colors.red))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.commonCancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(AppLocalizations.of(context)!.commonDelete, style: const TextStyle(color: Colors.red))),
         ],
       ),
     );
