@@ -413,9 +413,12 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   Future<void> _confirmAction(String title, Future<void> Function() action) async {
      // 1. 🛡️ SECURITY CHALLENGE FIRST
      final auth = SimpleAuthService();
-     final bool isVerified = await auth.verifyIdentity(
-       reason: 'Autentique-se para iniciar a exclusão de $title'
-     );
+      final bool isVerified = await auth.verifyIdentity(
+        reason: 'Autentique-se para iniciar a exclusão de $title'
+      );
+      
+      // Wait for OS dialog animation to fully close
+      await Future.delayed(const Duration(milliseconds: 500));
 
      if (!isVerified) {
         if (mounted) {

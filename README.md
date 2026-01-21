@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.5.6  
+**Versão:** 1.5.7  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -29,7 +29,7 @@ Lista de compras
 #### **3. Triagem Veterinária (Pets)**
 - 🐕 Identificação de raça e perfil biológico
 - 🩺 Análise visual de feridas e lesões
-- 📋 Prontuário completo do pet
+- 📋 Prontuário completo de pets
 - 💉 Controle de vacinas e eventos
 - 🍖 **Plano alimentar personalizado (exclusivo via Pet Profile)**
   - Geração segura e controlada
@@ -41,6 +41,15 @@ Lista de compras
 - 🖨️ **NOVO:** PDFs otimizados para impressão econômica (preto e branco)
 - 🤖 **NOVO:** Análise Inteligente de Anexos (Visual e OCR)
 - 🔗 **NOVO:** Pet Indexing Engine (Deep Links & Timeline Automática)
+
+---
+
+## ✨ **NOVIDADES DA VERSÃO 1.5.7**
+
+### **💉 Melhorias no Cartão de Vacinas**
+- **Estilo Visual:** Cores e ícones ajustados para o domínio Pet (Rosa).
+- **Guia de Vacinação Detalhado:** Inclusão de frequências recomendadas e melhor contraste nos badges de status (obrigatório/opcional).
+- **PDF Completo:** O relatório em PDF agora inclui uma tabela detalhada de vacinas esperadas vs. aplicadas, personalizada por espécie (Cão/Gato).
 
 ---
 

@@ -181,7 +181,7 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.info_outline, color: AppDesign.accent, size: 20),
+                icon: const Icon(Icons.info_outline, color: AppDesign.petPink, size: 20),
                 onPressed: () => _showHelpDialog(context, l10n),
                 tooltip: l10n.vaccinationGuideTitle,
               ),
@@ -310,20 +310,20 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
     final isDog = widget.species.toLowerCase().contains('cão') || widget.species.toLowerCase().contains('dog');
     
     final List<Map<String, dynamic>> items = isDog ? [
-      {'name': l10n.vaccineV8V10, 'type': 'mandatory', 'desc': 'Essencial. Protege contra Cinomose, Parvovirose, etc.'},
-      {'name': l10n.vaccineRabies, 'type': 'mandatory', 'desc': 'Obrigatória por lei.'},
-      {'name': l10n.vaccineGiardia, 'type': 'optional', 'desc': 'Recomendada para cães que convivem em grupos.'},
-      {'name': l10n.vaccineFlu, 'type': 'optional', 'desc': 'Importante em invernos ou creches.'},
-      {'name': l10n.vaccineLeishmania, 'type': 'optional', 'desc': 'Essencial em áreas endêmicas.'},
+      {'name': l10n.vaccineV8V10, 'type': 'mandatory', 'desc': 'Essencial. Protege contra Cinomose, Parvovirose, etc.', 'freq': 'Anual (Reforço). Filhotes: 3 doses.'},
+      {'name': l10n.vaccineRabies, 'type': 'mandatory', 'desc': 'Obrigatória por lei.', 'freq': 'Anual.'},
+      {'name': l10n.vaccineGiardia, 'type': 'optional', 'desc': 'Recomendada para cães que convivem em grupos.', 'freq': 'Anual (2 doses iniciais).'},
+      {'name': l10n.vaccineFlu, 'type': 'optional', 'desc': 'Importante em invernos ou creches.', 'freq': 'Anual.'},
+      {'name': l10n.vaccineLeishmania, 'type': 'optional', 'desc': 'Essencial em áreas endêmicas.', 'freq': 'Anual (Protocolo Específico).'},
     ] : [
-      {'name': l10n.vaccineV3V4V5, 'type': 'mandatory', 'desc': 'Essencial. Rinotraqueíte, Calicivirose, Panleucopenia.'},
-      {'name': l10n.vaccineRabies, 'type': 'mandatory', 'desc': 'Obrigatória por lei.'},
-      {'name': l10n.vaccineFivFelv, 'type': 'optional', 'desc': 'Recomendada para gatos com acesso à rua.'},
+      {'name': l10n.vaccineV3V4V5, 'type': 'mandatory', 'desc': 'Essencial. Rinotraqueíte, Calicivirose, Panleucopenia.', 'freq': 'Anual (Reforço).'},
+      {'name': l10n.vaccineRabies, 'type': 'mandatory', 'desc': 'Obrigatória por lei.', 'freq': 'Anual.'},
+      {'name': l10n.vaccineFivFelv, 'type': 'optional', 'desc': 'Recomendada para gatos com acesso à rua.', 'freq': 'Anual.'},
     ];
 
     return items.map((item) {
        final isMandatory = item['type'] == 'mandatory';
-       final color = isMandatory ? Colors.green : Colors.blue;
+       final color = isMandatory ? AppDesign.petPink : Colors.blue;
        
        return Container(
          margin: const EdgeInsets.only(bottom: 8),
@@ -351,7 +351,11 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
                    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
                    child: Text(
                      isMandatory ? l10n.vaccinationMandatory : l10n.vaccinationOptional,
-                     style: GoogleFonts.poppins(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)
+                     style: GoogleFonts.poppins(
+                       color: isMandatory ? Colors.black : Colors.white,
+                       fontSize: 9, 
+                       fontWeight: FontWeight.bold
+                     )
                    ),
                  ),
                ],
@@ -359,8 +363,13 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
              const SizedBox(height: 4),
              Text(
                item['desc'],
-               style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11),
-             ),
+                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Frequência: ${item['freq']}',
+                style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w600),
+              ),
            ],
          ),
        );
@@ -419,12 +428,12 @@ class _VaccineRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: hasDate 
-                  ? (date!.isBefore(DateTime.now().subtract(const Duration(days: 365))) ? Colors.red.withValues(alpha: 0.2) : Colors.green.withValues(alpha: 0.2)) 
+                  ? (date!.isBefore(DateTime.now().subtract(const Duration(days: 365))) ? Colors.red.withValues(alpha: 0.2) : AppDesign.petPink.withValues(alpha: 0.2)) 
                   : Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                   color: hasDate 
-                      ? (date!.isBefore(DateTime.now().subtract(const Duration(days: 365))) ? Colors.red : Colors.green) 
+                      ? (date!.isBefore(DateTime.now().subtract(const Duration(days: 365))) ? Colors.red : AppDesign.petPink) 
                       : Colors.white24
               ),
             ),

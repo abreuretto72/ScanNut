@@ -415,20 +415,81 @@ class PetPdfGenerator {
   
   pw.Widget _buildVaccineTable(PetProfileExtended profile, AppLocalizations strings, Map<String, DateTime>? vaccinationData) {
       final rows = <pw.TableRow>[
-          pw.TableRow(children: [pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(strings.pdfFieldEvent, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10))), pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(strings.pdfDate, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)))]),
+          pw.TableRow(
+              decoration: pw.BoxDecoration(color: colorPrimary),
+              children: [
+                  pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(strings.pdfFieldEvent, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: colorText))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(strings.pdfDate, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: colorText)))
+              ]
+          ),
       ];
 
-      // Use dynamic data if available, otherwise fallback to legacy
-      if (vaccinationData != null && vaccinationData.isNotEmpty) {
+      // 1. Determine Species & Expected Vaccines
+      final species = profile.especie?.toLowerCase() ?? '';
+      final isDog = species.contains('cão') || species.contains('dog') || species.contains('cachorro');
+      
+      final dogKeys = ['vaccineV8V10', 'vaccineRabies', 'vaccineFlu', 'vaccineGiardia', 'vaccineLeishmania'];
+      final catKeys = ['vaccineV3V4V5', 'vaccineRabies', 'vaccineFivFelv'];
+      
+      final expectedKeys = isDog ? dogKeys : catKeys;
+
+      // Map keys to Localized Titles
+      final keyToLabel = {
+          'vaccineV8V10': strings.vaccineV8V10,
+          'vaccineRabies': strings.vaccineRabies,
+          'vaccineFlu': strings.vaccineFlu,
+          'vaccineGiardia': strings.vaccineGiardia,
+          'vaccineLeishmania': strings.vaccineLeishmania,
+          'vaccineV3V4V5': strings.vaccineV3V4V5,
+          'vaccineFivFelv': strings.vaccineFivFelv,
+      };
+
+      // 2. Build rows for Expected Vaccines
+      final processedTitles = <String>{};
+
+      for (var key in expectedKeys) {
+          final label = keyToLabel[key] ?? key;
+          processedTitles.add(label);
+          
+          DateTime? date;
+          // Strategy: event titles are generally localized. We match exact string.
+          // If null, check case-insensitive match from vaccinationData keys
+          if (vaccinationData != null) {
+              if (vaccinationData.containsKey(label)) {
+                  date = vaccinationData[label];
+              } else {
+                  // Try fuzzy match
+                  final match = vaccinationData.keys.firstWhere(
+                      (k) => k.toLowerCase().trim() == label.toLowerCase().trim(), 
+                      orElse: () => ''
+                  );
+                  if (match.isNotEmpty) date = vaccinationData[match];
+              }
+          }
+           
+          // Fallback legacy for specific keys if data missing
+          if (date == null) {
+              if (key == 'vaccineV8V10' || key == 'vaccineV3V4V5') date = profile.dataUltimaV10;
+              if (key == 'vaccineRabies') date = profile.dataUltimaAntirrabica;
+          }
+
+          rows.add(_buildTableRow(
+              label, 
+              date != null ? DateFormat.yMd(strings.localeName).format(date) : strings.pdfPending
+          ));
+      }
+
+      // 3. Add any EXTRA vaccines found in vaccinationData but not in expected list
+      if (vaccinationData != null) {
           vaccinationData.forEach((key, date) {
-              rows.add(_buildTableRow(key, DateFormat.yMd(strings.localeName).format(date)));
+              // Check if already key-matched or title-matched
+              final normalizedKey = key.toLowerCase().trim();
+              bool alreadyShown = processedTitles.any((t) => t.toLowerCase().trim() == normalizedKey);
+              
+              if (!alreadyShown) {
+                  rows.add(_buildTableRow(key, DateFormat.yMd(strings.localeName).format(date)));
+              }
           });
-      } else {
-          // Legacy Fallback
-          final v10Date = profile.dataUltimaV10 != null ? DateFormat.yMd(strings.localeName).format(profile.dataUltimaV10!) : strings.pdfPending;
-          final rabDate = profile.dataUltimaAntirrabica != null ? DateFormat.yMd(strings.localeName).format(profile.dataUltimaAntirrabica!) : strings.pdfPending;
-          rows.add(_buildTableRow(strings.petLastV10, v10Date));
-          rows.add(_buildTableRow(strings.petLastRabies, rabDate));
       }
 
       return pw.Table(border: pw.TableBorder.all(color: PdfColors.grey300), children: rows);
