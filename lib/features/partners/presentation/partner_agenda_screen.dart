@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:permission_handler/permission_handler.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import '../../../core/theme/app_design.dart';
 import '../../../core/models/partner_model.dart';
 import '../models/agenda_event.dart';
-import '../../pet/services/pet_event_service.dart';
 import '../../pet/services/pet_event_service.dart';
 import '../../pet/models/pet_event.dart';
 import '../../../core/services/export_service.dart';
@@ -29,12 +23,12 @@ class PartnerAgendaScreen extends StatefulWidget {
   // Requirement says: "automatically load id_pet and id_partner".
 
   const PartnerAgendaScreen({
-    Key? key,
+    super.key,
     required this.partner,
     required this.initialEvents,
     required this.onSave,
     this.petId,
-  }) : super(key: key);
+  });
 
   @override
   State<PartnerAgendaScreen> createState() => _PartnerAgendaScreenState();
@@ -48,7 +42,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
   
   // Voice
   late stt.SpeechToText _speech;
-  bool _isListening = false;
+  final bool _isListening = false;
 
   @override
   void initState() {
@@ -80,8 +74,9 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                     String category = 'extras';
                     final typeStr = pEvent.type.toString().split('.').last.toLowerCase();
                     
-                    if (typeStr == 'vaccine') category = 'vacina';
-                    else if (typeStr == 'medication') category = 'remedios';
+                    if (typeStr == 'vaccine') {
+                      category = 'vacina';
+                    } else if (typeStr == 'medication') category = 'remedios';
                     else if (typeStr == 'veterinary') category = 'consulta';
                     else if (typeStr == 'grooming') category = 'estetica';
                     else if (typeStr == 'bath') category = 'banho';
@@ -153,8 +148,9 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       
       // Map back to PetEvent
       EventType pType = EventType.other;
-      if (agendaEvent.category == EventCategory.vacina) pType = EventType.vaccine;
-      else if (agendaEvent.category == EventCategory.banho) pType = EventType.bath;
+      if (agendaEvent.category == EventCategory.vacina) {
+        pType = EventType.vaccine;
+      } else if (agendaEvent.category == EventCategory.banho) pType = EventType.bath;
       else if (agendaEvent.category == EventCategory.tosa) pType = EventType.grooming;
       else if (agendaEvent.category == EventCategory.remedios) pType = EventType.medication;
       else if (agendaEvent.category == EventCategory.consulta || 
@@ -226,9 +222,9 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
         maxChildSize: 0.95,
         expand: false,
         builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppDesign.surfaceDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: AddEventModal(
             selectedDate: event.dateTime,

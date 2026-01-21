@@ -16,13 +16,13 @@ class LabExamsSection extends StatefulWidget {
   final VoidCallback onMarkDirty;
 
   const LabExamsSection({
-    Key? key,
+    super.key,
     required this.exams,
     required this.onAddExam,
     required this.onDeleteExam,
     required this.onExplainExam,
     required this.onMarkDirty,
-  }) : super(key: key);
+  });
 
   @override
   State<LabExamsSection> createState() => _LabExamsSectionState();
@@ -162,7 +162,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -243,8 +243,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     value: 'view',
                     child: Row(
                       children: [
-                        Icon(Icons.visibility, color: Colors.white70, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.visibility, color: Colors.white70, size: 18),
+                        const SizedBox(width: 8),
                         Text(AppLocalizations.of(context)!.commonView, style: const TextStyle(color: Colors.white70)),
                       ],
                     ),
@@ -253,8 +253,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, color: Colors.red, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.delete, color: Colors.red, size: 18),
+                        const SizedBox(width: 8),
                         Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.red)),
                       ],
                     ),

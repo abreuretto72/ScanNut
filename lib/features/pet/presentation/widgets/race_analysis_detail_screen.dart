@@ -9,10 +9,10 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
   final String petName;
 
   const RaceAnalysisDetailScreen({
-    Key? key,
+    super.key,
     required this.raceAnalysis,
     required this.petName,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +253,7 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(child: Text(curiosidade.toString(), style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)))
                   ])
-              )).toList(),
+              )),
             ],
 
             const SizedBox(height: 40),
@@ -276,12 +276,14 @@ class RaceAnalysisDetailScreen extends StatelessWidget {
          crossAxisAlignment: CrossAxisAlignment.start,
          children: map.entries.map((e) {
             final val = e.value;
-            if (val is Map) return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (val is Map) {
+              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                  Text(e.key.toString().toUpperCase(), style: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 12)),
                  const SizedBox(height: 4),
                  _buildGenericMapCard(val),
                  const SizedBox(height: 8),
             ]);
+            }
             
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),

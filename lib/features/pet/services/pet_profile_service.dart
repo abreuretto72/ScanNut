@@ -11,7 +11,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'pet_event_service.dart';
-import '../models/pet_profile_extended.dart';
 import '../models/analise_ferida_model.dart';
 
 import '../../../core/utils/json_cast.dart';
@@ -38,6 +37,15 @@ class PetProfileService {
     // 🛡️ PROTEÇÃO: Se não passar cipher, tenta pegar o global do SimpleAuthService
     final effectiveCipher = cipher ?? SimpleAuthService().encryptionCipher;
     
+    // 🛡️ [V200-FIX] PREVENT PREMATURE ACCESS (DATA LOSS PROTECTION)
+    // If we don't have a cipher, we cannot open the encrypted box safely.
+    // Attempting to do so triggers HiveError, which previously triggered Atomic Reset (Nuke).
+    if (effectiveCipher == null) {
+        debugPrint('🛑 [PetProfileService] Init aborted: No encryption cipher available (User locked).');
+        _profileBox = null;
+        return;
+    }
+
     // 🛡️ [V105] ATOMIC MANAGER DELEGATION
     // We delegate the opening to the Atomic Manager which handles 
     // "Closed unexpectedly", "File not found", and "Zombie" states.
@@ -277,8 +285,10 @@ class PetProfileService {
       }
       
       final petId = profileData['id'] ?? const Uuid().v4();
-      final key = _normalizeKey(petId);
+      final key = _normalizeKey(petId.toString());
       
+      debugPrint('💾 [HIVE_TRACE] saveOrUpdateProfile: Target Key="$key" (Derived from ID: ${profileData['id']})');
+
       if (profileData['id'] == null) {
           profileData['id'] = petId;
       }
@@ -286,6 +296,61 @@ class PetProfileService {
       debugPrint('💾 [PetProfileService] Saving profile for key: "$key" (Display: $petName)...');
       debugPrint('   [PetProfileService] Image Path: ${profileData['image_path']}');
       
+      // 🛡️ [V_FIX] SMART MERGE: historico_analise_feridas (Health Domain)
+      // Prevent stale UI state (missing new items) from overwriting the DB.
+      // This logic treats saveOrUpdateProfile as "Append/Update Only" for history.
+      // Deletions must be done via specific atomic methods (which update DB first).
+      try {
+          final existing = _profileBox!.get(key);
+          if (existing != null && existing is Map) {
+              final existingData = existing['data'] as Map?;
+              if (existingData != null) {
+                  final List<dynamic> existingHistoryRaw = existingData['historico_analise_feridas'] ?? [];
+                  final List<dynamic> newHistoryRaw = profileData['historico_analise_feridas'] ?? [];
+
+                  // Helper to generate unique ID for an item
+                  String getItemId(dynamic item) {
+                      if (item == null) return 'null';
+                      final m = item as Map;
+                      // Support snake_case (DB), camelCase (Model JSON), and legacy keys
+                      final date = m['date'] ?? m['data_analise'] ?? m['dataAnalise'] ?? 'unknown_date';
+                      final path = m['imagePath'] ?? m['imagemRef'] ?? 'no_image';
+                      return '${date.toString()}_${path.toString()}';
+                  }
+
+                  final newIds = newHistoryRaw.map((e) => getItemId(e)).toSet();
+                  final List<dynamic> mergedHistory = List.from(newHistoryRaw);
+                  bool restoredItems = false;
+
+                  debugPrint('🔍 [PET_TRACE] Smart Merge: UI=${newHistoryRaw.length} items, Disk=${existingHistoryRaw.length} items');
+
+                  for (var oldItem in existingHistoryRaw) {
+                      final oldId = getItemId(oldItem);
+                      if (!newIds.contains(oldId)) {
+                          mergedHistory.add(oldItem);
+                          restoredItems = true;
+                          debugPrint('   [PET_TRACE] Restoring missing item from disk: $oldId');
+                      }
+                  }
+
+                  if (restoredItems) {
+                      debugPrint('🛡️ [Smart Merge] Restored ${mergedHistory.length - newHistoryRaw.length} items from disk.');
+                      // Re-sort by date (descending)
+                      mergedHistory.sort((a, b) {
+                          try {
+                              final dA = DateTime.tryParse((a['date'] ?? a['data_analise'] ?? a['dataAnalise']).toString()) ?? DateTime(2000);
+                              final dB = DateTime.tryParse((b['date'] ?? b['data_analise'] ?? b['dataAnalise']).toString()) ?? DateTime(2000);
+                              return dB.compareTo(dA);
+                          } catch (_) { return 0; }
+                      });
+                      profileData['historico_analise_feridas'] = mergedHistory;
+                  }
+              }
+          }
+      } catch (e) {
+          debugPrint('⚠️ [PetProfileService] Smart merge error: $e');
+      }
+
       await _profileBox!.put(key, {
         'id': petId,
         'pet_name': petName.trim(), 
@@ -294,7 +359,7 @@ class PetProfileService {
         'data': profileData,
       });
       await _profileBox!.flush();
-      debugPrint('✅ [PetProfileService] HIVE SUCCESS: Objeto ["$key"] persistido no disco.');
+      debugPrint('✅ [HIVE_TRACE] Profile SAVED successfully to Key="$key".');
     
     // 🔄 Trigger automatic permanent backup
     PermanentBackupService().createAutoBackup().then((_) {
@@ -307,10 +372,37 @@ class PetProfileService {
     }
   }
 
+  /// 🛡️ [V_FIX] HELPER: Resolve Key by ID or Name
+  /// Searches for the actual disk key (UUID) if a name is provided.
+  Future<String?> _resolveEntryKey(String idOrName) async {
+      debugPrint('🔍 [HIVE_TRACE] _resolveEntryKey: Searching for "$idOrName"...');
+      final key = _normalizeKey(idOrName);
+      if (_profileBox?.containsKey(key) ?? false) {
+           debugPrint('   [HIVE_TRACE] Direct match found for key "$key"');
+           return key;
+      }
+
+      debugPrint('🔍 [PET_TRACE] Key "$idOrName" not found. Searching by name matching...');
+      final allKeys = _profileBox!.keys;
+      for (var k in allKeys) {
+          final entry = _profileBox!.get(k);
+          if (entry is Map) {
+              final name = entry['pet_name']?.toString().toLowerCase();
+              if (name == idOrName.toLowerCase()) {
+                  debugPrint('   [PET_TRACE] Match found! Name "$idOrName" -> Key "$k"');
+                  return k.toString();
+              }
+          }
+      }
+      return null;
+  }
+
   /// Get pet profile by ID or Name (Compatibility layer)
   Future<Map<String, dynamic>?> getProfile(String idOrName) async {
     try {
-      final key = _normalizeKey(idOrName);
+      debugPrint('📖 [HIVE_TRACE] getProfile: Request for "$idOrName"');
+      final key = await _resolveEntryKey(idOrName) ?? _normalizeKey(idOrName);
+      debugPrint('   [HIVE_TRACE] Resolved Key: "$key"');
       var profile = _profileBox?.get(key);
       
       if (profile == null) {
@@ -365,13 +457,22 @@ class PetProfileService {
     }
   }
 
-  /// Check if pet profile exists
-  Future<bool> hasProfile(String petName) async {
-    final key = _normalizeKey(petName);
-    return _profileBox?.containsKey(key) ?? false;
+  /// Check if pet profile exists [UUID_AWARE]
+  Future<bool> hasProfile(String idOrName) async {
+    final key = await _resolveEntryKey(idOrName);
+    return key != null;
   }
 
   /// Get all pet names with V105 STRICT GHOST CHECK
+  /// Get all pet IDs and names for selection dialogs [UUID_SAFE]
+  Future<List<Map<String, String>>> getAllPetIdsWithNames() async {
+    final profiles = await getAllProfiles();
+    return profiles.map((p) => {
+      'id': (p['id'] ?? p['pet_id'] ?? '').toString(),
+      'name': (p['pet_name'] ?? 'Pet').toString(),
+    }).toList();
+  }
+
   Future<List<String>> getAllPetNames() async {
     final profiles = await getAllProfiles();
     return profiles.map((p) => p['pet_name'] as String).toList();
@@ -409,6 +510,7 @@ class PetProfileService {
           profiles.add(map);
         }
       }
+      debugPrint('📜 [HIVE_TRACE] getAllProfiles returned ${profiles.length} items. Keys in box: ${safeBox.keys.toList()}');
       return profiles;
     } catch (e) {
       debugPrint('❌ Error getting all profiles: $e');
@@ -474,10 +576,10 @@ class PetProfileService {
   }
 
   /// Update Linked Partners (Atomic Patch)
-  Future<void> updateLinkedPartners(String petName, List<String> linkedPartnerIds) async {
+  Future<void> updateLinkedPartners(String idOrName, List<String> linkedPartnerIds) async {
       try {
           await init(); // Ensure open
-          final key = _normalizeKey(petName);
+          final key = await _resolveEntryKey(idOrName) ?? _normalizeKey(idOrName);
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
@@ -493,7 +595,7 @@ class PetProfileService {
               await _profileBox!.flush();
               debugPrint('HIVE_OK: Vínculo persistido no disco. IDs: $linkedPartnerIds');
           } else {
-              debugPrint('⚠️ Cannot update partners: Profile not found for $petName');
+              debugPrint('⚠️ Cannot update partners: Profile not found for $idOrName');
           }
       } catch (e, stack) {
           debugPrint('❌ Error updating linked partners: $e\n$stack');
@@ -504,7 +606,7 @@ class PetProfileService {
   Future<void> updateAgendaEvents(String petName, List<Map<String, dynamic>> events) async {
       try {
           await init();
-          final key = _normalizeKey(petName);
+          final key = await _resolveEntryKey(petName) ?? _normalizeKey(petName);
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
@@ -531,7 +633,7 @@ class PetProfileService {
   Future<void> updatePartnerNotes(String petName, Map<String, List<Map<String, dynamic>>> notes) async {
       try {
           await init();
-          final key = _normalizeKey(petName);
+          final key = await _resolveEntryKey(petName) ?? _normalizeKey(petName);
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
@@ -561,7 +663,7 @@ class PetProfileService {
   }) async {
       try {
           await init();
-          final key = _normalizeKey(petName);
+          final key = await _resolveEntryKey(petName) ?? _normalizeKey(petName);
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
@@ -601,12 +703,12 @@ class PetProfileService {
 
   /// Add Wound Analysis to History (Atomic Append)
   Future<void> saveWoundAnalysis({
-    required String petName,
+    required String petId,
     required Map<String, dynamic> analysisData,
   }) async {
       try {
           await init();
-          final key = _normalizeKey(petName);
+          final key = await _resolveEntryKey(petId) ?? _normalizeKey(petId);
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
@@ -635,9 +737,9 @@ class PetProfileService {
               
               await _profileBox!.put(key, map);
               await _profileBox!.flush();
-              debugPrint('HIVE_OK: Wound analysis saved for $petName. Total entries: ${history.length}');
+              debugPrint('HIVE_OK: Wound analysis saved for $petId. Total entries: ${history.length}');
           } else {
-              debugPrint('⚠️ Cannot save wound analysis: Profile not found for $petName');
+              debugPrint('⚠️ Cannot save wound analysis: Profile not found for $petId');
           }
       } catch (e, stack) {
           debugPrint('❌ Error saving wound analysis: $e\n$stack');
@@ -645,34 +747,46 @@ class PetProfileService {
   }
 
   /// 🛡️ V170: Save Detailed Health Analysis (Atomic Append)
-  Future<void> saveDetailedAnalysis(String petName, AnaliseFeridaModel analysis) async {
+  Future<void> saveDetailedAnalysis(String petId, AnaliseFeridaModel analysis) async {
     try {
       await init();
-      final key = _normalizeKey(petName);
-      final entry = _profileBox?.get(key);
+      final key = await _resolveEntryKey(petId) ?? _normalizeKey(petId);
+      var entry = _profileBox?.get(key);
+
+      // 🛡️ SELF-HEALING: Create skeleton if profile is missing during clinical save
+      if (entry == null) {
+          debugPrint('🚑 [V_FIX] Profile $petId not found. Creating auto-skeleton...');
+          final isUuid = petId.contains('-');
+          await saveOrUpdateProfile(isUuid ? 'Pet' : petId, {
+              'id': isUuid ? petId : const Uuid().v4(),
+              'pet_name': isUuid ? 'Pet' : petId,
+              'historico_analise_feridas': [analysis.toJson()],
+          });
+          return;
+      }
 
       if (entry != null) {
-        final map = deepCastMap(entry);
-        final data = deepCastMap(map['data']);
-        
-        // Load existing history
-        final List<dynamic> existingRaw = data['historico_analise_feridas'] ?? [];
-        final List<Map<String, dynamic>> history = [];
-        
-        for (var item in existingRaw) {
-             if (item is Map) history.add(deepCastMap(item));
-        }
+          final map = deepCastMap(entry);
+          final data = deepCastMap(map['data']);
+          
+          // Load existing history
+          final List<dynamic> existingRaw = data['historico_analise_feridas'] ?? [];
+          final List<Map<String, dynamic>> history = [];
+          
+          for (var item in existingRaw) {
+               if (item is Map) history.add(deepCastMap(item));
+          }
 
-        // Add new analysis
-        history.insert(0, analysis.toJson()); // Most recent first
-        
-        data['historico_analise_feridas'] = history;
-        map['data'] = data;
-        map['last_updated'] = DateTime.now().toIso8601String();
+          // Add new analysis
+          history.insert(0, analysis.toJson()); // Most recent first
+          
+          data['historico_analise_feridas'] = history;
+          map['data'] = data;
+          map['last_updated'] = DateTime.now().toIso8601String();
 
-        await _profileBox!.put(key, map);
-        await _profileBox!.flush();
-        debugPrint('✅ [V170] Analysis persisted in historico_analise_feridas. Total: ${history.length}');
+          await _profileBox!.put(key, map);
+          await _profileBox!.flush();
+          debugPrint('✅ [UUID_OK] Analysis persisted in historico_analise_feridas (Key: $key). Total: ${history.length}');
       }
     } catch (e, stack) {
       debugPrint('❌ Error saving detailed analysis: $e\n$stack');
@@ -681,12 +795,12 @@ class PetProfileService {
 
   /// Delete Wound Analysis from History
   Future<void> deleteWoundAnalysis({
-    required String petName,
+    required String petId,
     required String analysisDate,
   }) async {
       try {
           await init();
-          final key = _normalizeKey(petName);
+          final key = await _resolveEntryKey(petId) ?? _normalizeKey(petId);
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
@@ -706,9 +820,9 @@ class PetProfileService {
               
               await _profileBox!.put(key, map);
               await _profileBox!.flush();
-              debugPrint('HIVE_OK: Wound analysis deleted for $petName. Remaining entries: ${history.length}');
+              debugPrint('HIVE_OK: Wound analysis deleted (Key: $key). Remaining entries: ${history.length}');
           } else {
-              debugPrint('⚠️ Cannot delete wound analysis: Profile not found for $petName');
+              debugPrint('⚠️ Cannot delete wound analysis: Profile not found for key $key');
           }
       } catch (e, stack) {
           debugPrint('❌ Error deleting wound analysis: $e\n$stack');
@@ -716,43 +830,11 @@ class PetProfileService {
   }
 
   /// Add a general analysis to the pet history (Sound, Food, etc.)
-  Future<void> addAnalysisToHistory(String petName, Map<String, dynamic> analysisData) async {
+  Future<void> addAnalysisToHistory(String petId, Map<String, dynamic> analysisData) async {
       try {
           await init();
-          String key = _normalizeKey(petName);
-          var entry = _profileBox?.get(key);
-          
-          // 🛡️ FALLBACK: Se busca direta falhar, procurar por nome no conteúdo
-          if (entry == null) {
-             debugPrint('🔍 [PetProfileService] addAnalysis: Key lookup failed for "$petName". Searching by content...');
-             final all = await getAllProfiles();
-             final match = all.firstWhere(
-                 (p) => p['pet_name']?.toString().toLowerCase() == petName.toLowerCase(),
-                 orElse: () => {}
-             );
-             
-             if (match.isNotEmpty) {
-                 final realId = match['id'];
-                 // Se achou pelo ID nos dados, usa esse ID como chave (se for consistente com a chave do Hive)
-                 // Mas precisamos saber a CHAVE do Hive. getAllProfiles retorna o MAP.
-                 // A chave do Hive geralmente é o ID se migrado.
-                 
-                 // Vamos iterar nas chaves para achar a correta
-                 final hiveKey = _profileBox!.keys.firstWhere((k) {
-                    final curr = _profileBox!.get(k);
-                    if (curr is Map) {
-                       return curr['pet_name']?.toString().toLowerCase() == petName.toLowerCase();
-                    }
-                    return false;
-                 }, orElse: () => null);
-                 
-                 if (hiveKey != null) {
-                    key = hiveKey;
-                    entry = _profileBox!.get(key);
-                    debugPrint('✅ [PetProfileService] Found correct key via fallback: "$key"');
-                 }
-             }
-          }
+          final key = await _resolveEntryKey(petId) ?? _normalizeKey(petId);
+          final entry = _profileBox?.get(key);
           
           if (entry != null) {
               final map = deepCastMap(entry);
@@ -780,9 +862,9 @@ class PetProfileService {
               
               await _profileBox!.put(key, map);
               await _profileBox!.flush();
-              debugPrint('✅ [PetProfileService] Analysis history updated for $petName (Key: $key). Total: ${history.length}');
+              debugPrint('✅ [PetProfileService] Analysis history updated for $petId (Key: $key). Total: ${history.length}');
           } else {
-             debugPrint('❌ [PetProfileService] Profile NOT FOUND for addAnalysis: "$petName"');
+             debugPrint('❌ [PetProfileService] Profile NOT FOUND for addAnalysis: "$petId"');
           }
       } catch (e) {
           debugPrint('❌ [PetProfileService] addAnalysisToHistory failed: $e');
@@ -790,10 +872,10 @@ class PetProfileService {
   }
 
   /// Remove a specific analysis from the pet history
-  Future<void> removeAnalysisFromHistory(String petName, Map<String, dynamic> analysisData) async {
+  Future<void> removeAnalysisFromHistory(String petId, Map<String, dynamic> analysisData) async {
       try {
           await init();
-          final key = _normalizeKey(petName);
+          final key = await _resolveEntryKey(petId) ?? _normalizeKey(petId);
           final entry = _profileBox?.get(key);
           
           if (entry != null) {
@@ -820,7 +902,7 @@ class PetProfileService {
               
               await _profileBox!.put(key, map);
               await _profileBox!.flush();
-              debugPrint('🗑️ [PetProfileService] Analysis removed for $petName. Remaining: ${history.length}');
+              debugPrint('🗑️ [PetProfileService] Analysis removed for $petId. Remaining: ${history.length}');
           }
       } catch (e) {
           debugPrint('❌ [PetProfileService] removeAnalysisFromHistory failed: $e');

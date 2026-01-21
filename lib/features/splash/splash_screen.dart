@@ -18,7 +18,7 @@ import '../pet/services/meal_plan_service.dart';
 import '../pet/services/cardapio_stress_test.dart';
 
 class SplashScreen extends ConsumerStatefulWidget { // Changed
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   ConsumerState<SplashScreen> createState() => _SplashScreenState(); // Changed
@@ -173,7 +173,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -309,7 +309,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                         height: 30,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(const Color(0xFFFF69B4)),
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF69B4)),
                         ),
                       ),
                     ),

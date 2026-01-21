@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 class CustomErrorScreen extends StatelessWidget {
   final FlutterErrorDetails? details;
 
-  const CustomErrorScreen({Key? key, this.details}) : super(key: key);
+  const CustomErrorScreen({super.key, this.details});
 
   @override
   Widget build(BuildContext context) {

@@ -4,24 +4,26 @@ import 'package:image_picker/image_picker.dart';
 import 'package:scannut/core/theme/app_design.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import 'package:scannut/core/services/gemini_service.dart';
-import 'package:scannut/features/pet/services/pet_event_service.dart';
-import 'package:scannut/features/pet/models/pet_event.dart';
 import 'package:scannut/core/services/media_vault_service.dart';
 import 'package:scannut/features/pet/services/pet_profile_service.dart';
+import 'package:scannut/features/pet/services/pet_indexing_service.dart'; // 🧠 Indexing Service
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
+import '../../../../core/services/image_deduplication_service.dart';
 
 class PetFoodAnalysisCard extends StatefulWidget {
+  final String? petId; // 🛡️ UUID Link
   final String petName;
   final List<Map<String, dynamic>> analysisHistory;
   
   const PetFoodAnalysisCard({
-    Key? key, 
+    super.key, 
+    this.petId,
     required this.petName,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
     this.onAnalysisSaved,
-  }) : super(key: key);
+  });
 
   final Function(Map<String, dynamic>)? onDeleteAnalysis;
   final VoidCallback? onAnalysisSaved;
@@ -45,8 +47,27 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
     });
 
     try {
+      // 🛡️ [V180] Deduplication Check
+      final deduplication = ImageDeduplicationService();
+      final imageFile = File(path);
+      final hash = await deduplication.calculateHash(imageFile);
+      
+      if (hash.isNotEmpty) {
+          final existing = await deduplication.checkDeduplication(hash);
+          if (existing != null) {
+              debugPrint('🚫 [PetFood] [DEDUPLICATION] Match found. Stopping.');
+              if (mounted) {
+                  setState(() {
+                      _errorMessage = strings?.error_image_already_analyzed ?? 'Imagem já analisada.';
+                      _isProcessing = false;
+                  });
+              }
+              return;
+          }
+      }
+
       // 1. Fetch Pet Context
-      final profileMap = await PetProfileService().getProfile(widget.petName);
+      final profileMap = await PetProfileService().getProfile(widget.petId ?? widget.petName);
       String? age;
       String? breedSpecies;
       String? weight;
@@ -76,6 +97,16 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
       }
       
       await _autoSave(result, path);
+      
+      // 🛡️ [V180] Register hash on success
+      if (hash.isNotEmpty) {
+          await deduplication.registerProcessedImage(
+              hash: hash,
+              type: 'pet_food_label',
+              petId: widget.petId,
+              petName: widget.petName,
+          );
+      }
 
     } catch (e) {
       debugPrint('🚨 [PetFood] Analysis failed: $e');
@@ -111,7 +142,8 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
        String finalPath = tempPath;
        
        if (await file.exists()) {
-           finalPath = await vault.secureClone(file, MediaVaultService.PETS_DIR, widget.petName);
+           // 🛡️ Skip automatic indexing (4th param = true) to avoid duplicate VAULT_UPLOAD event
+           finalPath = await vault.secureClone(file, MediaVaultService.PETS_DIR, widget.petName, true);
        }
 
        // 2. Prepare data for general history
@@ -130,29 +162,43 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
           'data': data, 
        };
 
-       await PetProfileService().addAnalysisToHistory(widget.petName, analysisForHistory);
+       await PetProfileService().addAnalysisToHistory(widget.petId ?? widget.petName, analysisForHistory);
 
        // 3. Save to PetEvents
-       final service = PetEventService();
-       await service.init();
-       if (!service.box.isOpen) await service.init();
-       
+       // 3. Save to Unified Timeline via Indexing Service
        final quality = data['analise_rotulo']?['qualidade'] ?? 'N/A';
        final marca = data['analise_rotulo']?['marca'] ?? 'Desconhecida';
-       final feedback = data['feedback_visual'] ?? 'alerta';
+       
+       final filename = p.basename(tempPath);
+       final feedback = data['feedback_visual'] ?? 'Info indisponível'; 
+       final sugestoes = data['sugestoes'] as List<dynamic>? ?? [];
+       String suggestionText = '';
+       if (sugestoes.isNotEmpty) {
+          final sName = sugestoes.first['marka'] ?? sugestoes.first['marca'] ?? '';
+          if (sName.toString().isNotEmpty) suggestionText = '\nSugestão: $sName'; 
+       }
 
-       final event = PetEvent(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          petId: widget.petName,
-          petName: widget.petName, 
-          title: 'Análise de Ração: $marca ($quality)',
-          type: EventType.food, 
-          dateTime: DateTime.now(),
-          notes: 'Feedback: $feedback\n\nMarca detectada: $marca',
+       // Resumo Conciso (Max 5 linhas)
+       final summary = 'Arquivo: $filename\nMarca: $marca\nQualidade: $quality\nStatus: $feedback$suggestionText';
+
+       await PetIndexingService().indexOccurrence(
+          petId: widget.petId ?? widget.petName,
+          petName: widget.petName,
+          group: 'food',
+          type: 'Análise de Rótulo',
+          title: 'Análise Rótulo: $marca',
+          localizedTitle: 'Análise Rótulo: $marca',
+          localizedNotes: summary,
+          extraData: {
+             'quality': quality,
+             'brand': marca,
+             'file_name': filename,
+             'source': 'food_label',
+             'image_path': finalPath
+          }
        );
        
-       await service.addEvent(event);
-       debugPrint('✅ [PetFood] Auto-saved with UUID & New Structure.');
+       debugPrint('✅ [PetFood] Auto-saved to Unified Timeline.');
        
        if (widget.onAnalysisSaved != null) {
          widget.onAnalysisSaved!();
@@ -214,7 +260,7 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
                   children: [
                     Row(
                       children: [
-                         Icon(Icons.restaurant, color: AppDesign.petPink),
+                         const Icon(Icons.restaurant, color: AppDesign.petPink),
                          const SizedBox(width: 8),
                          Text(
                            strings?.petFoodCardTitle ?? 'Análise de Rótulo',
@@ -306,7 +352,7 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
                    const SizedBox(height: 12),
                    ...widget.analysisHistory
                        .where((a) => a['analysis_type'] == 'food_label')
-                       .map((a) => _buildFoodHistoryItem(a)).toList(),
+                       .map((a) => _buildFoodHistoryItem(a)),
                 ]
             ],
           ),
@@ -363,7 +409,7 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
             ...alertas.map((a) => Padding(
               padding: const EdgeInsets.only(bottom: 2),
               child: Text('• $a', style: const TextStyle(color: Colors.white70, fontSize: 13)),
-            )).toList(),
+            )),
           ],
         ],
       );
@@ -408,7 +454,7 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
                 Text(s['motivo'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12)),
               ],
             ),
-          )).toList(),
+          )),
         ],
       );
   }

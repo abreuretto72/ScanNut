@@ -11,32 +11,18 @@ import 'core/providers/settings_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'core/services/history_service.dart';
 import 'core/services/file_upload_service.dart';
 import 'core/services/simple_auth_service.dart';
 import 'core/services/permanent_backup_service.dart';
 import 'core/services/media_vault_service.dart';
 import 'core/services/hive_init_service.dart';
 
-import 'core/services/meal_history_service.dart';
 import 'features/pet/models/pet_event.dart';
-import 'features/pet/services/pet_event_service.dart';
 import 'features/pet/models/vaccine_status.dart';
-import 'features/pet/services/vaccine_status_service.dart';
-import 'features/pet/services/pet_profile_service.dart';
-import 'features/pet/services/pet_health_service.dart';
-import 'features/pet/services/meal_plan_service.dart';
 import 'features/pet/models/weekly_meal_plan.dart';
-import 'features/food/services/nutrition_service.dart';
-import 'features/plant/services/botany_service.dart';
-import 'features/food/services/workout_service.dart';
-import 'core/services/user_profile_service.dart';
+import 'features/pet/models/brand_suggestion.dart';
 import 'core/services/subscription_service.dart';
 import 'nutrition/nutrition_hive_adapters.dart';
-import 'nutrition/data/datasources/nutrition_profile_service.dart';
-import 'nutrition/data/datasources/weekly_plan_service.dart';
-import 'nutrition/data/datasources/meal_log_service.dart';
-import 'nutrition/data/datasources/shopping_list_service.dart';
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -81,6 +67,7 @@ void main() async {
     if (!Hive.isAdapterRegistered(5)) Hive.registerAdapter(RecurrenceTypeAdapter());
     if (!Hive.isAdapterRegistered(6)) Hive.registerAdapter(PetEventAdapter());
     if (!Hive.isAdapterRegistered(7)) Hive.registerAdapter(VaccineStatusAdapter());
+    if (!Hive.isAdapterRegistered(15)) Hive.registerAdapter(BrandSuggestionAdapter());
     
     // Register Nutrition module adapters (TypeIds 24-30)
     NutritionHiveAdapters.registerAdapters();
@@ -167,7 +154,7 @@ void main() async {
 }
 
 class ScanNutApp extends ConsumerWidget {
-  const ScanNutApp({Key? key}) : super(key: key);
+  const ScanNutApp({super.key});
 
   Locale? _resolveLocale(String? code) {
     if (code == null) return null;

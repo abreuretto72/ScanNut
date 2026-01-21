@@ -1,37 +1,26 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/providers/settings_provider.dart';
-import '../../core/services/history_service.dart';
 import '../../core/utils/snackbar_helper.dart';
 import '../../core/theme/app_design.dart';
-import '../../core/providers/partner_provider.dart';
 import '../../core/models/user_profile.dart';
 import '../../core/services/user_profile_service.dart';
 import '../../l10n/app_localizations.dart';
-import '../../features/food/services/nutrition_service.dart';
-import '../../features/plant/services/botany_service.dart';
 import '../../core/services/simple_auth_service.dart';
-import '../../nutrition/presentation/controllers/nutrition_providers.dart';
-import '../../core/providers/vaccine_status_provider.dart';
-import '../../core/providers/pet_event_provider.dart';
 import 'widgets/local_backup_widget.dart';
 import '../../core/utils/app_logger.dart';
 import 'screens/diagnostics_screen.dart';
 import 'screens/auth_certificates_screen.dart';
 import 'screens/change_password_screen.dart';
 import '../../core/services/media_vault_service.dart';
-import '../../features/pet/models/pet_event.dart';
-import '../../features/pet/services/pet_event_service.dart';
-import 'screens/data_archiving_screen.dart';
 import 'package:uuid/uuid.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -308,14 +297,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                leading: const Icon(Icons.bug_report, color: Colors.purple),
                                title: Text('Diagnósticos', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
                                trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppDesign.textSecondaryDark),
-                               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DiagnosticsScreen())),
+                               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiagnosticsScreen())),
                             ),
                             const Divider(height: 1, color: Colors.white10),
                             ListTile(
                                leading: const Icon(Icons.security, color: Colors.purple),
                                title: Text('Certificados & Auth', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
                                trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppDesign.textSecondaryDark),
-                               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AuthCertificatesScreen())),
+                               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AuthCertificatesScreen())),
                             ),
                             const Divider(height: 1, color: Colors.white10),
                             ListTile(
@@ -397,7 +386,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         subtitle: Text(subtitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
         value: value,
         onChanged: onChanged,
-        activeColor: AppDesign.accent,
+        activeThumbColor: AppDesign.accent,
      );
   }
 
@@ -418,7 +407,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
      );
   }
 
-  Widget _buildDangerTile({required String title, required String subtitle, required VoidCallback onTap, bool isLast = false}) {
+  Widget _buildDangerTile({required String title, required String subtitle, required VoidCallback onTap}) {
      return ListTile(
         title: Text(title, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 11)),
@@ -563,6 +552,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             'weekly_plans',         // Nutrition plans
             'shopping_list',        // Nutrition list
             'cached_feed',          // Social feed cache
+            'processed_images_box', // Image hashes
          ];
 
          // 2. Clear Boxes Atomically (Keep Box Open)
@@ -720,7 +710,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _clearHistoryByMode(String mode) async {
     try {
-      final boxName = 'scannut_history';
+      const boxName = 'scannut_history';
       Box box;
       if (Hive.isBoxOpen(boxName)) {
         box = Hive.box(boxName);
@@ -744,7 +734,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _clearJournalByGroup(List<String> groups) async {
     try {
-      final boxName = 'pet_events_journal';
+      const boxName = 'pet_events_journal';
       Box box;
       // We might need to register adapters if opening raw, but usually main.dart handles it.
       // If box is closed, opening it generic might fail if adapters are missing.

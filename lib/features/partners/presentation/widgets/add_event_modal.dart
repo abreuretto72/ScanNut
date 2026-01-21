@@ -25,7 +25,7 @@ class AddEventModal extends StatefulWidget {
   final bool isReadOnly;
 
   const AddEventModal({
-    Key? key,
+    super.key,
     required this.selectedDate,
     required this.scrollController,
     required this.partner,
@@ -34,7 +34,7 @@ class AddEventModal extends StatefulWidget {
     required this.onSave,
     required this.speech,
     this.isReadOnly = false,
-  }) : super(key: key);
+  });
 
   @override
   State<AddEventModal> createState() => _AddEventModalState();
@@ -277,7 +277,7 @@ class _AddEventModalState extends State<AddEventModal> {
                           children: [
                             Icon(category.icon, color: category.color, size: 18),
                             const SizedBox(width: 12),
-                            Expanded(child: Text(category.label, style: TextStyle(color: AppDesign.textPrimaryDark))),
+                            Expanded(child: Text(category.label, style: const TextStyle(color: AppDesign.textPrimaryDark))),
                           ],
                         ),
                       );
@@ -360,7 +360,7 @@ class _AddEventModalState extends State<AddEventModal> {
                   hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                   filled: true,
                   fillColor: Colors.white10,
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white10)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
                   focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.petPink)),
                   contentPadding: const EdgeInsets.all(16),
                 ),
@@ -381,7 +381,7 @@ class _AddEventModalState extends State<AddEventModal> {
                       hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                       filled: true,
                       fillColor: Colors.white10,
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.white10)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.petPink)),
                       contentPadding: const EdgeInsets.all(16),
                     ),
@@ -415,7 +415,7 @@ class _AddEventModalState extends State<AddEventModal> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.attach_file, color: AppDesign.petPink, size: 18),
+                            const Icon(Icons.attach_file, color: AppDesign.petPink, size: 18),
                             const SizedBox(width: 8),
                             Text(AppLocalizations.of(context)!.agendaAttachmentsFull, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13, fontWeight: FontWeight.w600)),
                           ],

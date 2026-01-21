@@ -25,11 +25,11 @@ class PartnersHubScreen extends ConsumerStatefulWidget {
   final String? petName;
 
   const PartnersHubScreen({
-    Key? key, 
+    super.key, 
     this.isSelectionMode = false,
     this.petId,
     this.petName,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<PartnersHubScreen> createState() => _PartnersHubScreenState();
@@ -507,7 +507,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: DropdownButtonFormField<String>(
-        value: _selectedCategory,
+        initialValue: _selectedCategory,
         dropdownColor: AppDesign.surfaceDark,
         isExpanded: true,
         style: const TextStyle(color: AppDesign.textPrimaryDark),
@@ -539,7 +539,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.handshake_outlined, size: 80, color: Colors.white24),
+            const Icon(Icons.handshake_outlined, size: 80, color: Colors.white24),
             const SizedBox(height: 16),
             Text(
               _selectedCategory == AppLocalizations.of(context)!.partnersFilterAll
@@ -897,7 +897,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => SettingsScreen()),
+                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
                       ).then((_) => _startDiscovery()); // Re-search if settings changed
                     },
                     borderRadius: BorderRadius.circular(12),
@@ -1172,7 +1172,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
       child: DropdownButtonFormField<String>(
-        value: _selectedCategory,
+        initialValue: _selectedCategory,
         dropdownColor: AppDesign.surfaceDark,
         isExpanded: true,
         style: const TextStyle(color: AppDesign.textPrimaryDark),

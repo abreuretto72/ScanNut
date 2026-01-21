@@ -14,7 +14,6 @@ import '../../models/pet_event_model.dart';
 import '../../models/attachment_model.dart';
 import '../../services/pet_event_repository.dart';
 import '../../services/pet_profile_service.dart';
-import '../../../../core/models/partner_model.dart';
 import '../../../../core/services/partner_service.dart';
 import '../../../partners/presentation/partner_registration_screen.dart';
 import '../../../../core/services/file_upload_service.dart';
@@ -22,6 +21,7 @@ import '../../../../core/services/gemini_service.dart';
 import '../../../../core/services/media_vault_service.dart';
 import '../../../../core/enums/scannut_mode.dart';
 import 'attachment_analysis_dialog.dart';
+import '../../../../core/services/image_deduplication_service.dart';
 
 class PetEventBottomSheet extends StatefulWidget {
   final String petId;
@@ -29,11 +29,11 @@ class PetEventBottomSheet extends StatefulWidget {
   final String groupLabel;
 
   const PetEventBottomSheet({
-    Key? key,
+    super.key,
     required this.petId,
     required this.groupId,
     required this.groupLabel,
-  }) : super(key: key);
+  });
 
   @override
   State<PetEventBottomSheet> createState() => _PetEventBottomSheetState();
@@ -50,10 +50,10 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
   
   DateTime _eventDate = DateTime.now();
   String? _selectedSubtype;
-  bool _includeInPdf = true;
+  final bool _includeInPdf = true;
   bool _isSaving = false;
   bool _showValidationError = false; // Validation state
-  bool _showDetails = false;
+  final bool _showDetails = false;
   bool _isAnalyzing = false; // Controls the analysis overlay
   
   final List<AttachmentModel> _attachments = [];
@@ -104,8 +104,9 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     File? file;
     
     try {
-      if (kind == 'camera') file = await service.pickFromCamera();
-      else if (kind == 'gallery') file = await service.pickFromGallery();
+      if (kind == 'camera') {
+        file = await service.pickFromCamera();
+      } else if (kind == 'gallery') file = await service.pickFromGallery();
       else if (kind == 'file') file = await service.pickPdfFile();
       
       if (file == null) return;
@@ -606,9 +607,9 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
       if (_isAnalyzing)
         Positioned.fill(
           child: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.black,
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
             ),
             child: Center(
               child: Column(
@@ -1108,7 +1109,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
         const SizedBox(height: 12),
         
         DropdownButtonFormField<String>(
-          value: selectedEventType,
+          initialValue: selectedEventType,
           decoration: InputDecoration(
             filled: true,
             fillColor: AppDesign.backgroundDark,
@@ -1177,7 +1178,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                   )
                 : null,
             value: isEmergency || isEmergencyEvent,
-            activeColor: Colors.red,
+            activeThumbColor: Colors.red,
             onChanged: isEmergencyEvent 
                 ? null // Disable toggle for emergency events
                 : (val) {
@@ -1205,7 +1206,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
       children: [
         Expanded(
           child: DropdownButtonFormField<String>(
-            value: partners.any((p) => p.id == selectedId) ? selectedId : null,
+            initialValue: partners.any((p) => p.id == selectedId) ? selectedId : null,
             dropdownColor: AppDesign.surfaceDark,
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: InputDecoration(
@@ -1300,7 +1301,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     return SwitchListTile(
       title: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
       value: _dynamicData[key] ?? false,
-      activeColor: AppDesign.petPink,
+      activeThumbColor: AppDesign.petPink,
       onChanged: (val) => setState(() => _dynamicData[key] = val),
       contentPadding: EdgeInsets.zero,
     );
@@ -1449,6 +1450,28 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
     setState(() => _isAnalyzing = true);
 
     try {
+      // 🛡️ [V180] Deduplication Check
+      final deduplication = ImageDeduplicationService();
+      final imageFile = File(attachment.path);
+      final hash = await deduplication.calculateHash(imageFile);
+      
+      if (hash.isNotEmpty) {
+          final existing = await deduplication.checkDeduplication(hash);
+          if (existing != null) {
+              debugPrint('🚫 [EventAttachment] [DEDUPLICATION] Match found. Stopping.');
+              if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(l10n.error_image_already_analyzed),
+                          backgroundColor: Colors.red,
+                      )
+                  );
+                  setState(() => _isAnalyzing = false);
+              }
+              return;
+          }
+      }
+
       final gemini = GeminiService();
       final file = File(attachment.path);
       
@@ -1467,6 +1490,19 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
         },
       );
       
+      // 🛡️ [V180] Register hash on success
+      if (hash.isNotEmpty) {
+          await deduplication.registerProcessedImage(
+              hash: hash,
+              type: mode.toString(),
+              petId: widget.petId,
+              extraMetadata: {
+                'groupId': widget.groupId,
+                'origin': 'event_attachment',
+              }
+          );
+      }
+      
       final resultString = jsonEncode(result);
       String? sidecarFilePath;
 
@@ -1484,8 +1520,9 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
         final vault = MediaVaultService();
         // Determine category for backup mirroring
         String category = MediaVaultService.PETS_DIR;
-        if (widget.groupId.contains('food')) category = MediaVaultService.FOOD_DIR;
-        else if (widget.groupId.contains('health')) category = MediaVaultService.WOUNDS_DIR;
+        if (widget.groupId.contains('food')) {
+          category = MediaVaultService.FOOD_DIR;
+        } else if (widget.groupId.contains('health')) category = MediaVaultService.WOUNDS_DIR;
         
         final safePetName = widget.petId.replaceAll(RegExp(r'\s+'), '_').toLowerCase();
         

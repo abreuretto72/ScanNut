@@ -83,16 +83,22 @@ class HistoryService {
      await box.deleteAt(index);
   }
 
-  static Future<void> deletePet(String petName) async {
+  static Future<void> deletePet(String idOrName) async {
     final box = await getBox();
-    final key = 'pet_${petName.toLowerCase().trim()}';
+    final key = idOrName.contains('-') ? 'pet_$idOrName' : 'pet_${idOrName.toLowerCase().trim()}';
+    
     if (box.containsKey(key)) {
       await box.delete(key);
     } else {
        // Fallback: search by value if ID key pattern mismatch
        final keyToDelete = box.keys.firstWhere((k) {
          final val = box.get(k);
-         return val is Map && val['pet_name'] == petName;
+         if (val is! Map) return false;
+         
+         final name = val['pet_name']?.toString().toLowerCase().trim();
+         final id = val['pet_id']?.toString() ?? val['id']?.toString().replaceAll('pet_', '');
+         
+         return name == idOrName.toLowerCase().trim() || id == idOrName;
        }, orElse: () => null);
        
        if (keyToDelete != null) {
@@ -105,36 +111,42 @@ class HistoryService {
     await addScan(mode, analysis, imagePath: imagePath);
   }
 
-  static Future<void> addScan(String mode, Map<String, dynamic> data, {String? imagePath, String? thumbnailPath, String? petName}) async {
+  static Future<void> addScan(String mode, Map<String, dynamic> data, {String? imagePath, String? thumbnailPath, String? petName, String? petId}) async {
     try {
       final box = await getBox();
       final entry = {
         'timestamp': DateTime.now().toIso8601String(),
         'mode': mode,
         'data': data,
+        'pet_name': petName ?? data['pet_name'] ?? data['name'],
+        'pet_id': petId ?? data['pet_id'] ?? data['id'],
         if (imagePath != null) 'image_path': imagePath,
         if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
-        if (petName != null) 'pet_name': petName,
-        if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
       };
+      
+      debugPrint('💾 [AUDIT-SAVE] Gravando no Hive History: mode=$mode, petId=${entry['pet_id']}, petName=${entry['pet_name']}');
+      
       await box.add(entry);
       await box.flush(); // Ensure persistence
+      debugPrint('✅ [AUDIT-SAVE] Sucesso na persistência do scan.');
     } catch (e) {
-      debugPrint('❌ Error adding scan to history: $e');
+      debugPrint('❌ [AUDIT-SAVE] Falha ao gravar scan no histórico: $e');
     }
   }
 
 
-  Future<void> savePetAnalysis(String petName, Map<String, dynamic> analysis, {String? imagePath}) async {
+  Future<void> savePetAnalysis(String petName, Map<String, dynamic> analysis, {String? imagePath, String? petId}) async {
     try {
       final box = await getBox();
-      final key = 'pet_${petName.toLowerCase().trim()}';
+      // 🛡️ UUID Priority Logic
+      final key = petId != null ? 'pet_$petId' : 'pet_${petName.toLowerCase().trim()}';
       
       final entry = {
-        'id': key,
+        'id': petId ?? key,
         'timestamp': DateTime.now().toIso8601String(),
         'mode': 'Pet',
         'pet_name': petName,
+        'pet_id': petId, // Store explicit ID reference
         'data': analysis,
         if (imagePath != null) 'image_path': imagePath,
       };
@@ -183,8 +195,11 @@ class HistoryService {
     final plantBoxes = ['box_botany_intel', 'box_plants_history'];
     for(var b in plantBoxes) {
       try {
-        if (Hive.isBoxOpen(b)) await Hive.box(b).clear();
-        else await Hive.deleteBoxFromDisk(b);
+        if (Hive.isBoxOpen(b)) {
+          await Hive.box(b).clear();
+        } else {
+          await Hive.deleteBoxFromDisk(b);
+        }
       } catch (e) { debugPrint('Error clearing $b: $e'); }
     }
 
@@ -213,8 +228,11 @@ class HistoryService {
     final foodBoxes = ['box_nutrition_human', 'nutrition_weekly_plans', 'meal_log', 'nutrition_shopping_list', 'scannut_meal_history'];
     for(var b in foodBoxes) {
       try {
-        if (Hive.isBoxOpen(b)) await Hive.box(b).clear();
-        else await Hive.deleteBoxFromDisk(b);
+        if (Hive.isBoxOpen(b)) {
+          await Hive.box(b).clear();
+        } else {
+          await Hive.deleteBoxFromDisk(b);
+        }
       } catch (e) { debugPrint('Error clearing $b: $e'); }
     }
 
@@ -268,7 +286,8 @@ class HistoryService {
       'workout_plans',
       'partners_box',
       'pet_health_records',
-      'pet_events_journal'
+      'pet_events_journal',
+      'processed_images_box'
     ];
 
     for (var name in boxes) {

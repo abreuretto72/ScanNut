@@ -6,7 +6,6 @@ import '../../../core/theme/app_design.dart';
 import '../../../core/utils/color_helper.dart';
 import '../models/pet_analysis_result.dart';
 import '../models/pet_profile_extended.dart';
-import '../models/analise_ferida_model.dart';
 import '../../../l10n/app_localizations.dart';
 
 class DeepAnalysisPetScreen extends StatefulWidget {
@@ -15,11 +14,11 @@ class DeepAnalysisPetScreen extends StatefulWidget {
   final PetProfileExtended? petProfile;
 
   const DeepAnalysisPetScreen({
-    Key? key,
+    super.key,
     required this.analysis,
     required this.imagePath,
     this.petProfile,
-  }) : super(key: key);
+  });
 
   @override
   State<DeepAnalysisPetScreen> createState() => _DeepAnalysisPetScreenState();
@@ -192,7 +191,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                                         Expanded(child: Text(item.toString(), style: const TextStyle(color: Colors.white70, fontSize: 13))),
                                     ],
                                 ),
-                            )).toList(),
+                            )),
                             const SizedBox(height: 12),
                         ],
                      );

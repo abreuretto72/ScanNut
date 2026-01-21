@@ -1,11 +1,3 @@
-/// ============================================================================
-/// 🚫 MODELO BLINDADO E CONGELADO - NÃO ALTERAR
-/// Este modelo é a base da análise de IA para alimentos.
-/// Chaves JSON (English) devem ser mantidas para compatibilidade com o prompt.
-/// Data de Congelamento: 01/01/2026
-/// ============================================================================
-
-import 'package:flutter/foundation.dart';
 
 /// Nota: Este modelo é referido internamente como "FoodModel" nos planos de blindagem.
 class FoodAnalysisModel {

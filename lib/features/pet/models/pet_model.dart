@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 /// ARQUITETURA DE DADOS DO PET (PROTOCOLO SCANNUT)
 /// 4 Conjuntos de Dados Vinculados, indexados pela Chave Primária `petName`.

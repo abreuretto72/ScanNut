@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../core/theme/app_design.dart';
 import '../../services/pet_profile_service.dart';
 
 /// ANTI-GRAVITY — REPARAÇÃO ESTÉTICA: FILTRO PDF PET (V63)
@@ -9,7 +8,7 @@ import '../../services/pet_profile_service.dart';
 class Filter3DModal extends StatefulWidget {
   final String? initialPetName;
 
-  const Filter3DModal({Key? key, this.initialPetName}) : super(key: key);
+  const Filter3DModal({super.key, this.initialPetName});
 
   @override
   State<Filter3DModal> createState() => _Filter3DModalState();

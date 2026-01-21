@@ -14,13 +14,13 @@ class VaccinationCard extends ConsumerStatefulWidget {
   final String species; // "Cão", "Gato", etc.
 
   const VaccinationCard({
-    Key? key,
+    super.key,
     required this.petId,
     required this.petName,
     required this.species,
     this.legacyV10Date,
     this.legacyRabiesDate,
-  }) : super(key: key);
+  });
 
   final DateTime? legacyV10Date;
   final DateTime? legacyRabiesDate;
@@ -207,7 +207,7 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
     
     return eventProvider.when(
       loading: () => const CircularProgressIndicator(),
-      error: (_,__) => Text('Error loading data'),
+      error: (_,__) => const Text('Error loading data'),
       data: (service) {
         final events = service.getEventsByPet(widget.petName);
         
@@ -412,8 +412,7 @@ class _VaccineRow extends StatelessWidget {
                       onPrimary: Colors.white,
                       surface: Colors.grey,
                       onSurface: Colors.white,
-                    ),
-                    dialogBackgroundColor: Colors.grey[900],
+                    ), dialogTheme: DialogThemeData(backgroundColor: Colors.grey[900]),
                   ),
                   child: child!,
                 );

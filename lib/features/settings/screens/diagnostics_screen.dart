@@ -7,7 +7,7 @@ import '../../../core/utils/app_logger.dart';
 import '../../../l10n/app_localizations.dart';
 
 class DiagnosticsScreen extends StatefulWidget {
-  const DiagnosticsScreen({Key? key}) : super(key: key);
+  const DiagnosticsScreen({super.key});
 
   @override
   State<DiagnosticsScreen> createState() => _DiagnosticsScreenState();

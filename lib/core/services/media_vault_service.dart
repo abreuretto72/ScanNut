@@ -3,10 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import '../services/history_service.dart';
-import '../../features/plant/models/botany_history_item.dart';
-import '../../features/food/models/nutrition_history_item.dart';
 import '../../features/pet/services/pet_indexing_service.dart';
 
 /// 🔐 MEDIA VAULT SERVICE
@@ -322,9 +318,7 @@ class MediaVaultService {
           // Try to go up/out if possible, but safe default is App External
       }
       
-      if (root == null) {
-          root = await getApplicationDocumentsDirectory();
-      }
+      root ??= await getApplicationDocumentsDirectory();
       
       final backup = Directory('${root.path}/ScanNut_Safe_Backup'); // Updated as per "Intervention" prompt
       if (!await backup.exists()) await backup.create();

@@ -12,10 +12,10 @@ class PdfPreviewScreen extends StatelessWidget {
   final Future<Uint8List> Function(PdfPageFormat format) buildPdf;
 
   const PdfPreviewScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.buildPdf,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

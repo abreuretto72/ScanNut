@@ -39,11 +39,9 @@ import '../../pet/presentation/widgets/edit_pet_form.dart';
 import '../../food/presentation/widgets/result_card.dart';
 import '../../food/presentation/food_result_screen.dart';
 import '../../plant/presentation/widgets/plant_result_card.dart';
-import '../../pet/presentation/widgets/pet_result_card.dart';
 import '../../pet/presentation/pet_result_screen.dart';
 import '../../pet/presentation/widgets/pet_selection_dialog.dart';
 import '../../pet/presentation/pet_history_screen.dart';
-import '../../pet/services/pet_profile_service.dart';
 import '../../partners/presentation/partners_hub_screen.dart';
 import '../../partners/presentation/global_agenda_screen.dart';
 import 'widgets/app_drawer.dart';
@@ -53,7 +51,7 @@ import '../../food/presentation/nutrition_history_screen.dart';
 import '../../plant/presentation/botany_history_screen.dart';
 
 class HomeView extends ConsumerStatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({super.key});
 
   @override
   ConsumerState<HomeView> createState() => _HomeViewState();
@@ -61,11 +59,14 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver {
   String? _petName; // stores pet name entered by user
+  String? _petId; // 🛡️ UUID Link
   CameraController? _controller;
   List<CameraDescription>? _cameras;
-  int _currentIndex = -1; // -1: None selected, 0: Food, 1: Plant, 2: Pet
-  int _petMode = 0; // 0: Identification, 1: Diagnosis
+  int _currentIndex = -1; // -1 = Dashboard / No mode
+  int _petMode = 0; // 0 = Identification, 1 = Diagnosis, 2 = Stool (if supported)
   bool _isCameraInitialized = false;
+  bool _isInitializingCamera = false; // 🛡️ Lock Atômico
+  bool _isProcessingAnalysis = false; // 🛡️ V231: Analysis Guard
   File? _capturedImage;
   bool _isLoading = true;
 
@@ -94,7 +95,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     if (state == AppLifecycleState.inactive) {
       cameraController.dispose();
     } else if (state == AppLifecycleState.resumed) {
-      _initCamera();
+      // 🛡️ Só reinicia se houver um modo ativo
+      if (_currentIndex != -1) {
+        _initCamera();
+      }
     }
   }
 
@@ -231,40 +235,79 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   }
 
   Future<void> _initCamera() async {
-    final granted = await PermissionHelper.requestCameraPermission(context);
-    if (granted) {
-      try {
+    // 🛡️ Atomic Guard: Prevent parallel initialization attempts
+    if (_isInitializingCamera || (_controller != null && _controller!.value.isInitialized)) {
+      debugPrint('🛡️ [Camera] Initialization already in progress or completed. Bailing out.');
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isInitializingCamera = true;
+      });
+    }
+
+    try {
+      final granted = await PermissionHelper.requestCameraPermission(context);
+      if (granted) {
+        if (!mounted) return;
+        
+        debugPrint('📸 [Camera] Starting initialization sequence...');
         _cameras = await availableCameras();
+        
         if (_cameras != null && _cameras!.isNotEmpty) {
+          // Dispose previous controller if any (safety)
+          if (_controller != null) {
+            await _controller!.dispose();
+          }
+
           _controller = CameraController(
             _cameras![0],
             ResolutionPreset.medium,
             enableAudio: false,
+            imageFormatGroup: ImageFormatGroup.jpeg,
           );
+
           await _controller!.initialize();
-          await _controller!.setFlashMode(FlashMode.off);
+          
+          if (_controller != null) {
+            await _controller!.setFlashMode(FlashMode.off);
+          }
+
           if (mounted) {
             setState(() {
               _isCameraInitialized = true;
             });
           }
+          debugPrint('✅ [Camera] Initialization successful.');
         }
-      } catch (e) {
-        debugPrint('Camera initialization error: $e');
-        if (mounted) {
-          AppFeedback.showError(context, '${AppLocalizations.of(context)!.cameraError}$e');
-        }
+      } else {
+         // Reset current index if permission denied
+         if (mounted) {
+           final l10n = AppLocalizations.of(context)!;
+           AppFeedback.showError(context, l10n.cameraPermission);
+         }
+         setState(() {
+           _currentIndex = -1;
+         });
       }
-    } else {
-       // Reset current index if permission denied
-       if (mounted) {
-         // Show localized permission error
-         final l10n = AppLocalizations.of(context)!;
-         AppFeedback.showError(context, l10n.cameraPermission);
-       }
-       setState(() {
-         _currentIndex = -1;
-       });
+    } catch (e) {
+      debugPrint('❌ [Camera] Initialization error: $e');
+      
+      // 🛡️ V230: SILENT FAIL FOR TRANSIENT ERRORS (Avoids "Resource Busy" spam)
+      final errorStr = e.toString().toLowerCase();
+      final isResourceBusy = errorStr.contains('resource_busy') || errorStr.contains('multiple_init') || errorStr.contains('busy') || errorStr.contains('used');
+      final isPermissionError = errorStr.contains('permissiondenied') || errorStr.contains('access denied');
+
+      if (mounted && !isResourceBusy && !isPermissionError) {
+        AppFeedback.showError(context, '${AppLocalizations.of(context)!.cameraError} (${e.toString().split(':').last.trim()})');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isInitializingCamera = false;
+        });
+      }
     }
   }
   Future<void> _disposeCamera() async {
@@ -319,7 +362,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       
       await _processCapturedImage(File(image.path));
       
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
        if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorCapturePrefix}$e');
     }
@@ -374,15 +417,23 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
              
              if (selectedPet == null) {
                debugPrint('❌ _process: User cancelled pet selection');
-               // Re-init camera if we cancelled? Or just valid exit.
                return; 
              }
-             setState(() => _petName = selectedPet == '<NOVO>' ? null : selectedPet);
+             if (selectedPet == '<NOVO>') {
+                setState(() {
+                  _petId = null;
+                  _petName = null;
+                });
+             }
+             // Else: _petId and _petName are already updated inside _showPetSelectionDialog
           } else if (capturedMode == 2 && capturedPetMode == 0) { // ID
              debugPrint('🐾 _process: Prompting for pet name...');
              final name = await _promptPetName();
              if (name == null || name.trim().isEmpty) return;
-             setState(() => _petName = name.trim());
+             setState(() {
+                _petId = null; // New ID identification has no ID yet
+                _petName = name.trim();
+             });
           }
 
           // 4. Injeção na IA Gemini
@@ -392,8 +443,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             case 0: mode = ScannutMode.food; break;
             case 1: mode = ScannutMode.plant; break;
             case 2: 
-              if (capturedPetMode == 0) mode = ScannutMode.petIdentification;
-              else mode = ScannutMode.petDiagnosis; // 🛡️ V144: Unified Health Mode (Includes Stool)
+              if (capturedPetMode == 0) {
+                mode = ScannutMode.petIdentification;
+              } else {
+                mode = ScannutMode.petDiagnosis; // 🛡️ V144: Unified Health Mode (Includes Stool)
+              }
               break;
             default: mode = ScannutMode.petIdentification; break;
           }
@@ -424,27 +478,49 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           }
 
           String localeCode = Localizations.localeOf(context).toString();
-          if (localeCode.toLowerCase().contains('en')) localeCode = 'en_US';
+        // 🛡️ [V231] Atomic Analysis Guard
+      if (_isProcessingAnalysis) {
+        debugPrint('⚠️ [HomeView] Analysis already in progress. Ignoring duplicate trigger.');
+        return;
+      }
 
-          // Trigger
-          await ref.read(analysisNotifierProvider.notifier).analyzeImage(
-            imageFile: optimizedImage, 
-            mode: mode,
+      setState(() {
+        _isProcessingAnalysis = true;
+      });
+
+      try {
+          // 2. Initialize analysis notifier
+          ref.read(analysisNotifierProvider.notifier).reset(); 
+          
+          // 3. Analyze based on mode
+          final resultState = await ref.read(analysisNotifierProvider.notifier).analyzeImage(
+            imageFile: optimizedImage,
+            mode: _currentIndex == 0 ? ScannutMode.food : 
+                  _currentIndex == 1 ? ScannutMode.plant :
+                  (_petMode == 1 ? ScannutMode.petDiagnosis : ScannutMode.petIdentification),
             petName: _petName,
+            petId: _petId,
             excludedBases: excludedIngredients,
             locale: localeCode,
             contextData: contextData,
           );
-          
-          final resultState = ref.read(analysisNotifierProvider);
-          
-          // Critical Fix: Reset to remove overlay
-          ref.read(analysisNotifierProvider.notifier).reset();
 
-          if (!context.mounted) return;
-          await Future.delayed(const Duration(milliseconds: 100));
+          // 🛡️ V230: Master Analysis Flow Control
+          // Snapshot the state before reset to prevent race conditions in listeners
+          final stateSnapshot = resultState;
           
-          await _handleAnalysisResult(resultState);
+          // Reset internal loading state immediately
+          ref.read(analysisNotifierProvider.notifier).reset(); 
+
+          // 4. Handle Result (Navigation, Saving, etc.)
+          await _handleAnalysisResult(stateSnapshot, optimizedImage);
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessingAnalysis = false;
+          });
+        }
+      }
           debugPrint('🎉 _process: END SUCCESS');
 
       } catch (e) {
@@ -475,30 +551,30 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
   }
 
-  Future<void> _handleAnalysisResult([AnalysisState? injectedState]) async {
+  Future<void> _handleAnalysisResult(AnalysisState snapshot, File? image) async {
     // Use injected state if provided (from _onCapture), otherwise read from provider
-    final state = injectedState ?? ref.read(analysisNotifierProvider);
+    final state = snapshot;
 
     try {
       if (state is AnalysisSuccess) {
         if (state.data is FoodAnalysisModel) {
           // 🛡️ V231: Auto-Save Food Analysis to History
           final foodData = state.data as FoodAnalysisModel;
-          final success = await _handleSave('Food', data: foodData);
+          final success = await _handleSave('Food', data: foodData, image: image);
           
           if (!success) {
              debugPrint('🛑 Save failed, halting navigation to let user see error.');
              return; 
           }
 
-          if (_capturedImage != null) {
+          if (image != null) {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => FoodResultScreen(
                   analysis: foodData,
-                  imageFile: _capturedImage,
-                  onSave: () => _handleSave('Food', data: foodData),
+                  imageFile: image,
+                  onSave: () => _handleSave('Food', data: foodData, image: image),
                 ),
               ),
             );
@@ -507,14 +583,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               context,
               ResultCard(
                 analysis: foodData,
-                onSave: () => _handleSave('Food', data: foodData),
+                onSave: () => _handleSave('Food', data: foodData, image: image),
               ),
             );
           }
         } else if (state.data is PlantAnalysisModel) {
           // 🛡️ V231: Auto-Save Plant Analysis to History
           final plantData = state.data as PlantAnalysisModel;
-          final success = await _handleSave('Plant', data: plantData);
+          final success = await _handleSave('Plant', data: plantData, image: image);
           
           if (!success) {
             debugPrint('🛑 Save failed, stopping plant flow.');
@@ -525,36 +601,32 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             context,
             PlantResultCard(
               analysis: plantData,
-              imagePath: _capturedImage?.path,
-              onSave: () => _handleSave('Plant', data: plantData),
+              imagePath: image?.path,
+              onSave: () => _handleSave('Plant', data: plantData, image: image),
               onShop: () => _handleShop(),
             ),
           );
         } else if (state.data is PetAnalysisResult) {
-
           final petAnalysis = state.data as PetAnalysisResult;
 
-          // If in diagnosis mode, we rely on PetResultScreen for auto-save
-          // to avoid double entries (Legacy vs Structured).
-          if (_petMode == 1) {
-            debugPrint('🏥 [Home] Health mode: Handing off to PetResultScreen for unified save.');
-          }
-
+          // 🛡️ V231: UNIFIED PET FLOW
+          // Always rely on PetResultScreen for saving to avoid double entries.
+          // We pass the existing analysis so it doesn't re-trigger Gemini/Groq.
           
-          // Clean up state before navigation
-          ref.read(analysisNotifierProvider.notifier).reset();
-
-          // Navigate to Full Screen Result
-          if (mounted) {
+          if (image != null) {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => PetResultScreen(
-                  imageFile: _capturedImage!,
+                  imageFile: image,
                   existingResult: petAnalysis,
+                  mode: _petMode == 1 ? ScannutMode.petDiagnosis : ScannutMode.petIdentification,
                 ),
               ),
             );
+          } else {
+             // Fallback for gallery without file (unlikely here but safe)
+             AppFeedback.showError(context, AppLocalizations.of(context)!.error_image_not_found);
           }
         }
       }
@@ -576,6 +648,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         case 'analysisErrorInvalidCategory': errorMessage = l10n.analysisErrorInvalidCategory; break;
         case 'errorBadPhoto': errorMessage = l10n.errorBadPhoto; break;
         case 'errorAiTimeout': errorMessage = l10n.errorAiTimeout; break;
+        case 'error_image_already_analyzed': errorMessage = l10n.error_image_already_analyzed; break;
         default: errorMessage = state.message;
       }
 
@@ -601,38 +674,35 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     });
   }
 
-  Future<bool> _handleSave(String type, {dynamic data}) async {
+  Future<bool> _handleSave(String type, {dynamic data, File? image}) async {
     final state = ref.read(analysisNotifierProvider);
-    // Prioritize passed data, fallback to provider (though provider is likely reset)
     final activeData = data ?? (state is AnalysisSuccess ? state.data : null);
+    final activeImage = image ?? _capturedImage;
 
-    if (activeData == null) {
-      return false;
-    }
+    if (activeData == null) return false;
 
-    if (type == 'Pet' && activeData is PetAnalysisResult) {
-      debugPrint('💾 [HomeView] Handling Save for Pet mode...');
-      final petData = activeData;
-      final petName = petData.petName ?? _petName;
+    try {
+      if (type == 'Pet' && activeData is PetAnalysisResult) {
+        debugPrint('💾 [HomeView] Handling Save for Pet mode...');
+        final petData = activeData;
+        final petName = petData.petName ?? _petName;
 
-      if (petName != null && petName.trim().isNotEmpty) {
+        if (petName == null || petName.trim().isEmpty) {
+          if (mounted) AppFeedback.showError(context, AppLocalizations.of(context)!.errorPetNameNotFound);
+          return false;
+        }
+
         final dataMap = petData.toJson();
-        if (_capturedImage != null) {
-          dataMap['image_path'] = _capturedImage!.path;
-        }
+        if (activeImage != null) dataMap['image_path'] = activeImage.path;
+
+        await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap, petId: _petId, imagePath: activeImage?.path);
         
-        try {
-          await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap);
-        } catch (e) {
-            debugPrint('Error saving pet: $e');
-        }
-         if (!mounted) return true;
-        AppFeedback.showSuccess(context, AppLocalizations.of(context)!.petSavedSuccess(petName));
+        if (mounted) AppFeedback.showSuccess(context, AppLocalizations.of(context)!.petSavedSuccess(petName));
 
         // Auto-Navigation Logic for Diagnosis Mode
         if (_petMode == 1) { // 1 = Diagnosis
             // Close the Result Sheet
-            Navigator.of(context).pop();
+            if (Navigator.of(context).canPop()) Navigator.of(context).pop();
 
             // Load Profile and Navigate to Health Tab
             try {
@@ -671,73 +741,48 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         }
         return true;
       } else {
-         if (!mounted) return false;
-        AppFeedback.showError(context, AppLocalizations.of(context)!.errorPetNameNotFound);
-        return false;
-      }
-    } else {
-        // Handle saving for Food or Plant
-        try {
-            if (type == 'Food' && activeData is FoodAnalysisModel) {
-                await NutritionService().saveFoodAnalysis(
-                    activeData,
-                    _capturedImage
-                );
-            } else if (type == 'Plant' && activeData is PlantAnalysisModel) {
-                debugPrint("🌱 Requesting BotanyService to save plant...");
-                await BotanyService().savePlantAnalysis(
-                    activeData,
-                    _capturedImage
-                );
-            }
-            
-            // Still save to main history for backward compatibility and unified view
-            final dataJson = (activeData is FoodAnalysisModel) 
-                ? activeData.toJson()
-                : (activeData as dynamic).toJson();
-            
-            await ref.read(historyServiceProvider).saveAnalysis(
-                dataJson, 
-                type, 
-                imagePath: _capturedImage?.path
-            );
-
-            if (!mounted) return true;
-            AppFeedback.showSuccess(context, AppLocalizations.of(context)!.savedSuccess(type));
-            return true;
-        } catch (e, stack) {
-            debugPrint('❌ Save error for $type: $e');
-            debugPrint(stack.toString());
-            
-            // 🛑 SHOW PERSISTENT ERROR DIALOG
-            if (mounted) {
-              await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text(AppLocalizations.of(context)!.errorSaveHiveTitle),
-                  content: SingleChildScrollView(
-                    child: Text(
-                      AppLocalizations.of(context)!.errorSaveHiveBody(e.toString()),
-                      style: const TextStyle(fontSize: 12, fontFamily: 'Courier'),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(AppLocalizations.of(context)!.commonUnderstand),
-                    ),
-                  ],
-                ),
-              );
-            }
-            return false;
+        // Food or Plant specialized save
+        if (type == 'Food' && activeData is FoodAnalysisModel) {
+            await NutritionService().saveFoodAnalysis(activeData, activeImage);
+        } else if (type == 'Plant' && activeData is PlantAnalysisModel) {
+            await BotanyService().savePlantAnalysis(activeData, activeImage);
         }
+
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          final String translatedType = type == 'Food' ? l10n.tabFood : (type == 'Plant' ? l10n.tabPlants : type);
+          AppFeedback.showSuccess(context, l10n.savedSuccess(translatedType));
+        }
+        return true;
+      }
+    } catch (e, stack) {
+      debugPrint('❌ Error saving $type analysis: $e');
+      debugPrint(stack.toString());
+      
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.errorSaveHiveTitle),
+            content: SingleChildScrollView(
+              child: Text(
+                AppLocalizations.of(context)!.errorSaveHiveBody(e.toString()),
+                style: const TextStyle(fontSize: 12, fontFamily: 'Courier'),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(AppLocalizations.of(context)!.commonUnderstand),
+              ),
+            ],
+          ),
+        );
+      }
+      return false;
     }
-    
-    // Reset state after saving (already reset, but harmless)
-    // ref.read(analysisNotifierProvider.notifier).reset(); // Unreachable or needs to be before return
-    // return true; // Handled above
   }
+
 
   void _handleShop() {
     // Implement shop navigation
@@ -1443,7 +1488,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   }
 
   // Helper to compare configs
-  String _lastConfig = "";
+  final String _lastConfig = "";
 
   Widget _buildStaticNavItem(IconData icon, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
@@ -1478,7 +1523,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             backgroundColor: Colors.black.withOpacity(0.8),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: AppDesign.accent, width: 1)),
+                side: const BorderSide(color: AppDesign.accent, width: 1)),
             title: Text(l10n.petNamePromptTitle,
                 style: const TextStyle(color: Colors.white)),
             content: TextField(
@@ -1532,28 +1577,33 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       PetProfileService.to.clearMemoryCache(); 
       await PetProfileService.to.syncWithDisk();
       
-      final registeredPets = await PetProfileService.to.getAllPetNames();
+      final registeredPets = await PetProfileService.to.getAllPetIdsWithNames();
       
-      // 🛡️ [V106/V108] GHOST PURGE PROTOCOL
-      // We explicitly DO NOT merge pets from HistoryService.
-      // History logs may contain "Ghost Pets" (deleted from profile but remaining in logs).
-      // By restricting selection to Active Profiles only, we eliminate the crash risk.
+      // registeredPets is already sorted by the service if needed,
+      // but let's ensure it's sorted by name for display convenience
+      registeredPets.sort((a, b) => (a['name'] ?? '').toLowerCase().compareTo((b['name'] ?? '').toLowerCase()));
       
-      final allUniquePets = registeredPets.toList();
-      allUniquePets.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
-      
-      debugPrint('🔍 [V108-UI] Pets Validados (${allUniquePets.length}): $allUniquePets');
+      debugPrint('🔍 [V108-UI] Pets Validados (${registeredPets.length})');
       
       // Show dialog
-      final selectedPet = await showDialog<String>(
+      final selectedId = await showDialog<String>(
         context: context,
         barrierDismissible: false,
         builder: (context) => PetSelectionDialog(
-          registeredPets: allUniquePets,
+          registeredPets: registeredPets,
         ),
       );
       
-      return selectedPet;
+      if (selectedId != null && selectedId != '<NOVO>') {
+          // Resolve name for the UI from the selected ID
+          final pet = registeredPets.firstWhere((p) => p['id'] == selectedId, orElse: () => {});
+          setState(() {
+              _petId = selectedId;
+              _petName = pet['name'];
+          });
+      }
+      
+      return selectedId;
     } catch (e) {
       debugPrint('❌ Error loading pets for selection: $e');
       return null;
@@ -1590,7 +1640,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       };
       
       await petProfileService.saveWoundAnalysis(
-        petName: _petName!,
+        petId: _petId ?? _petName!,
         analysisData: analysisData,
       );
       

@@ -5,12 +5,12 @@ import '../../../../core/theme/app_design.dart';
 
 /// Dialog for selecting a pet from registered pets or creating a new analysis
 class PetSelectionDialog extends StatelessWidget {
-  final List<String> registeredPets;
+  final List<Map<String, String>> registeredPets; // List of {id: uuid, name: petName}
 
   const PetSelectionDialog({
-    Key? key,
+    super.key,
     required this.registeredPets,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +86,10 @@ class PetSelectionDialog extends StatelessWidget {
                     Divider(height: 1, color: Colors.white.withOpacity(0.1)),
                   
                   // Registered pets
-                  ...registeredPets.map((petName) => _buildPetOption(
+                  ...registeredPets.map((pet) => _buildPetOption(
                     context: context,
-                    petName: petName,
+                    petName: pet['name'] ?? 'Pet',
+                    petId: pet['id'] ?? '',
                     isNew: false,
                   )),
                 ],
@@ -119,11 +120,12 @@ class PetSelectionDialog extends StatelessWidget {
   Widget _buildPetOption({
     required BuildContext context,
     required String petName,
+    String? petId,
     String? displayName,
     required bool isNew,
   }) {
     return InkWell(
-      onTap: () => Navigator.of(context).pop(petName),
+      onTap: () => Navigator.of(context).pop(isNew ? '<NOVO>' : petId),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
@@ -184,7 +186,7 @@ class PetSelectionDialog extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               size: 16,
               color: Colors.white30,

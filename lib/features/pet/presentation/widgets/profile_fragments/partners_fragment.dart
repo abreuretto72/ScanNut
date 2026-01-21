@@ -24,7 +24,7 @@ class PartnersFragment extends StatelessWidget {
   final String Function(String) localizeValue;
 
   const PartnersFragment({
-    Key? key,
+    super.key,
     required this.allPartners,
     required this.linkedPartnerIds,
     required this.selectedPartnerFilter,
@@ -39,7 +39,7 @@ class PartnersFragment extends StatelessWidget {
     required this.onObservacoesChanged,
     required this.actionButtons,
     required this.localizeValue,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +112,7 @@ class PartnersFragment extends StatelessWidget {
                       ),
                       Switch(
                         value: false,
-                        activeColor: AppDesign.petPink,
+                        activeThumbColor: AppDesign.petPink,
                         onChanged: (val) {
                           if (val) onLinkStatusChanged(partner);
                         },
@@ -270,7 +270,7 @@ class PartnersFragment extends StatelessWidget {
     }
 
     return DropdownButtonFormField<String>(
-      value: selectedPartnerFilter,
+      initialValue: selectedPartnerFilter,
       dropdownColor: AppDesign.surfaceDark,
       isExpanded: true,
       style: const TextStyle(color: AppDesign.textPrimaryDark),

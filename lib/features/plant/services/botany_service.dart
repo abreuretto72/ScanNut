@@ -111,10 +111,6 @@ class BotanyService {
 
       // Determine toxicity status from analysis keywords
       debugPrint('🌿 [PLANT_SAVE] TRACE 3: Calculando flags de toxicidade...');
-      // Diagnostic checks for V99
-      if (analysis.segurancaBiofilia == null) debugPrint('⚠️ [PLANT_SAVE] WARNING: segurancaBiofilia is NULL');
-      if (analysis.saude == null) debugPrint('⚠️ [PLANT_SAVE] WARNING: saude is NULL');
-      if (analysis.sobrevivencia == null) debugPrint('⚠️ [PLANT_SAVE] WARNING: sobrevivencia is NULL');
 
       String tox = 'safe';
       try {

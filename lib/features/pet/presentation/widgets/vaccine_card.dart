@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/vaccine_status_provider.dart';
-import '../../services/vaccine_status_service.dart';
 import '../../../../core/theme/app_design.dart';
 
 class VaccineCard extends StatelessWidget {
@@ -10,7 +9,7 @@ class VaccineCard extends StatelessWidget {
   final String petName;
   final VoidCallback? onScheduleVaccine;
 
-  const VaccineCard({Key? key, required this.vaccinationProtocol, required this.petName, this.onScheduleVaccine}) : super(key: key);
+  const VaccineCard({super.key, required this.vaccinationProtocol, required this.petName, this.onScheduleVaccine});
 
   @override
   Widget build(BuildContext context) {

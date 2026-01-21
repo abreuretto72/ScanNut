@@ -322,6 +322,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get onboardingGetStarted => 'Começar';
 
   @override
+  String get error_image_already_analyzed =>
+      'Esta imagem já foi analisada recentemente.';
+
+  @override
   String get analysisErrorAiFailure =>
       'Todas as IAs falharam em analisar a imagem.';
 
@@ -866,12 +870,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String petSavedSuccess(Object petName) {
-    return 'Dossiê do $petName salvo/atualizado com sucesso!';
+    return 'Dossiê do $petName salvo com sucesso!';
   }
 
   @override
   String savedSuccess(Object type) {
-    return '$type salvo nas boxes especializadas!';
+    return '$type salvo com sucesso no histórico!';
   }
 
   @override
@@ -885,6 +889,21 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String errorSavingAnalysis(String error) {
     return 'Erro ao salvar análise: $error';
+  }
+
+  @override
+  String get errorNavigationPrefix => 'Erro de Navegação: ';
+
+  @override
+  String get error_image_not_found =>
+      'Imagem não encontrada. Verifique se a foto foi capturada corretamente.';
+
+  @override
+  String get errorSaveHiveTitle => 'Erro ao Salvar';
+
+  @override
+  String errorSaveHiveBody(String error) {
+    return 'Não foi possível salvar: $error';
   }
 
   @override
@@ -6089,9 +6108,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get errorProcessingPrefix => 'Erro no processamento: ';
 
   @override
-  String get errorNavigationPrefix => 'Erro de Navegação: ';
-
-  @override
   String get pdfClinicalHistorySection => 'Histórico Clínico e Feridas';
 
   @override
@@ -6427,14 +6443,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get homeBiometricAction => 'Autenticar';
-
-  @override
-  String get errorSaveHiveTitle => 'Erro ao Salvar';
-
-  @override
-  String errorSaveHiveBody(String error) {
-    return 'Não foi possível salvar: $error';
-  }
 
   @override
   String get loadingMsgDiet => 'Analisando dieta...';
@@ -7364,6 +7372,14 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   @override
   String errorSavingAnalysis(String error) {
     return 'Erro ao guardar análise: $error';
+  }
+
+  @override
+  String get errorSaveHiveTitle => 'Erro ao Salvar (Hive)';
+
+  @override
+  String errorSaveHiveBody(String error) {
+    return 'Ocorreu um erro ao tentar salvar o resultado.\n\nDetalhes:\n$error';
   }
 
   @override
@@ -8628,14 +8644,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get homeBiometricAction => 'Ativar Agora';
-
-  @override
-  String get errorSaveHiveTitle => 'Erro ao Salvar (Hive)';
-
-  @override
-  String errorSaveHiveBody(String error) {
-    return 'Ocorreu um erro ao tentar salvar o resultado.\n\nDetalhes:\n$error';
-  }
 
   @override
   String get loadingMsgDiet => 'Otimizando Dieta...';

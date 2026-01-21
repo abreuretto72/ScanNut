@@ -202,7 +202,9 @@ class WeeklyPlanGenerator {
                    textToCheck.contains('macarrão') || 
                    textToCheck.contains('espaguete') ||
                    textToCheck.contains('sopa') ||
-                   textToCheck.contains('risoto')) return false;
+                   textToCheck.contains('risoto')) {
+                 return false;
+               }
                
                // Bloquear carnes principais (exceto em sanduíches/wraps)
                final isSandwich = textToCheck.contains('sanduíche') || textToCheck.contains('wrap') || textToCheck.contains('torta') || textToCheck.contains('salgado') || textToCheck.contains('pão');
@@ -216,7 +218,9 @@ class WeeklyPlanGenerator {
                    r.nome.toLowerCase().contains('iogurte') || 
                    r.nome.toLowerCase().contains('mingau') ||
                    r.nome.toLowerCase().contains('tapioca') ||
-                   r.nome.toLowerCase().contains('bolo')) return false;
+                   r.nome.toLowerCase().contains('bolo')) {
+                 return false;
+               }
                
                // Bloquear lanches muito leves se for almoço principal (opcional, mas bom pra evitar "Pão com manteiga" no almoço)
                if (r.nome.toLowerCase().contains('pão') && !textToCheck.contains('hambúrguer')) return false; // Hambúrguer pode ser janta
@@ -310,8 +314,9 @@ class WeeklyPlanGenerator {
       if (item2 != null && item2.nome != item1?.nome) selectedFoods.add(item2);
       
       // Infer Dish Name
-      if (selectedFoods.any((f) => f.nome.toLowerCase().contains('iogurte'))) dishName = isEn ? 'Yogurt with Side' : 'Iogurte com Acompanhamento';
-      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('pão'))) dishName = isEn ? 'Sandwich' : 'Sanduíche';
+      if (selectedFoods.any((f) => f.nome.toLowerCase().contains('iogurte'))) {
+        dishName = isEn ? 'Yogurt with Side' : 'Iogurte com Acompanhamento';
+      } else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('pão'))) dishName = isEn ? 'Sandwich' : 'Sanduíche';
       else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('fruta'))) dishName = isEn ? 'Fruit Salad' : 'Salada de Frutas';
       else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('café'))) dishName = isEn ? 'Coffee' : 'Cafézinho';
 
@@ -385,7 +390,9 @@ class WeeklyPlanGenerator {
                    textToCheck.contains('macarrão') || 
                    textToCheck.contains('espaguete') ||
                    textToCheck.contains('sopa') ||
-                   textToCheck.contains('risoto')) return false;
+                   textToCheck.contains('risoto')) {
+                 return false;
+               }
                
                final isSandwich = textToCheck.contains('sanduíche') || textToCheck.contains('wrap') || textToCheck.contains('torta') || textToCheck.contains('salgado') || textToCheck.contains('pão');
                if (!isSandwich) {
@@ -397,7 +404,9 @@ class WeeklyPlanGenerator {
                    r.nome.toLowerCase().contains('iogurte') || 
                    r.nome.toLowerCase().contains('mingau') ||
                    r.nome.toLowerCase().contains('tapioca') ||
-                   r.nome.toLowerCase().contains('bolo')) return false;
+                   r.nome.toLowerCase().contains('bolo')) {
+                 return false;
+               }
                
                if (r.nome.toLowerCase().contains('pão') && !textToCheck.contains('hambúrguer')) return false;
                return true;

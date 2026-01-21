@@ -5,10 +5,10 @@ class AppPdfIcon extends StatelessWidget {
   final Color? color;
 
   const AppPdfIcon({
-    Key? key,
+    super.key,
     this.size = 22,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

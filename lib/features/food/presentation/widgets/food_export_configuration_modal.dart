@@ -9,10 +9,10 @@ class FoodExportConfigurationModal extends StatefulWidget {
   final Function(List<NutritionHistoryItem>) onGenerate;
 
   const FoodExportConfigurationModal({
-    Key? key,
+    super.key,
     required this.allItems,
     required this.onGenerate,
-  }) : super(key: key);
+  });
 
   @override
   State<FoodExportConfigurationModal> createState() => _FoodExportConfigurationModalState();
@@ -97,7 +97,7 @@ class _FoodExportConfigurationModalState extends State<FoodExportConfigurationMo
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text('Seleção Manual', style: GoogleFonts.poppins(color: Colors.white)),
-                activeColor: AppDesign.foodOrange,
+                activeThumbColor: AppDesign.foodOrange,
                 value: _manualSelectionMode,
                 onChanged: (val) {
                   setState(() {

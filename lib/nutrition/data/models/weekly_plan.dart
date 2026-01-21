@@ -46,6 +46,12 @@ class WeeklyPlan extends HiveObject {
   @HiveField(12)
   String? shoppingListJson; // JSON serialized WeeklyShoppingList list
 
+  @HiveField(13)
+  String? petId; // 🛡️ UUID Link
+
+  @HiveField(14)
+  String? petName; // For logging/UI
+
   WeeklyPlan({
     required this.weekStartDate,
     required this.seed,
@@ -60,11 +66,15 @@ class WeeklyPlan extends HiveObject {
     this.version = 1,
     this.status = 'active',
     this.shoppingListJson,
+    this.petId,
+    this.petName,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'petId': petId,
+      'petName': petName,
       'weekStartDate': weekStartDate.toIso8601String(),
       'endDate': endDate?.toIso8601String(),
       'periodType': periodType,
@@ -94,7 +104,9 @@ class WeeklyPlan extends HiveObject {
       criadoEm: DateTime.parse(json['criadoEm']),
       atualizadoEm: DateTime.parse(json['atualizadoEm']),
       dicasPreparo: json['dicasPreparo'],
-      shoppingListJson: json['shoppingListJson'],
+      shoppingListJson: json['shoppingListJson'] ?? json['shopping_list_json'],
+      petId: json['petId'] ?? json['pet_id'],
+      petName: json['petName'] ?? json['pet_name'],
     );
   }
 

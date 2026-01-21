@@ -31,7 +31,7 @@ class AtomicLoadingOverlay {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black26,
                   blurRadius: 20,
@@ -39,7 +39,7 @@ class AtomicLoadingOverlay {
                 ),
               ],
             ),
-            padding: EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -55,7 +55,7 @@ class AtomicLoadingOverlay {
                     ),
                   )
                 else
-                  SizedBox(
+                  const SizedBox(
                     width: 80,
                     height: 80,
                     child: CircularProgressIndicator(
@@ -65,18 +65,18 @@ class AtomicLoadingOverlay {
                       ),
                     ),
                   ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(height: 8),
-                Text(
+                const SizedBox(height: 8),
+                const Text(
                   'Aguarde...',
                   textAlign: TextAlign.center,
                   style: TextStyle(

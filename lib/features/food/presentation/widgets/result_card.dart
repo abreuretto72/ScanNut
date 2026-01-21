@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +14,7 @@ class ResultCard extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
   final VoidCallback onSave;
 
-    const ResultCard({Key? key, required this.analysis, required this.onSave}) : super(key: key);
+    const ResultCard({super.key, required this.analysis, required this.onSave});
 
   @override
   ConsumerState<ResultCard> createState() => _ResultCardState();
@@ -73,7 +72,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           child: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -129,7 +128,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    Icon(
+                                    const Icon(
                                       Icons.menu_book_rounded,
                                       color: AppDesign.textSecondaryDark,
                                       size: 20,
@@ -1211,7 +1210,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
               ],
             ),
           ),
@@ -1240,7 +1239,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppDesign.warning, size: 24),
+            const Icon(Icons.warning_amber_rounded, color: AppDesign.warning, size: 24),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -1306,7 +1305,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
               ],
             ),
           ),
@@ -1464,7 +1463,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 const SizedBox(height: 16),
 
                 // Sources
@@ -1501,7 +1500,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 const SizedBox(height: 16),
 
                 // Recommendation

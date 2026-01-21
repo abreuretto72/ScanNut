@@ -6,7 +6,7 @@ class RaceNutritionTables extends StatefulWidget {
   final List<Map<String, String>> maligna;
   final String raceName;
 
-    const RaceNutritionTables({Key? key, required this.benigna, required this.maligna, required this.raceName}) : super(key: key);
+    const RaceNutritionTables({super.key, required this.benigna, required this.maligna, required this.raceName});
 
   @override
   State<RaceNutritionTables> createState() => _RaceNutritionTablesState();

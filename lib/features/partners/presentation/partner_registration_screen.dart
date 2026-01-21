@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart'; // Add this line
-import 'dart:developer' as dev;
 import 'package:uuid/uuid.dart';
 import '../../../core/models/partner_model.dart';
 import '../../../core/services/partner_service.dart';
@@ -27,12 +26,12 @@ class PartnerRegistrationScreen extends StatefulWidget {
   final String? petName;
 
   const PartnerRegistrationScreen({
-    Key? key, 
+    super.key, 
     this.initialData, 
     this.linkedNotes,
     this.petId,
     this.petName,
-  }) : super(key: key);
+  });
 
   @override
   State<PartnerRegistrationScreen> createState() => _PartnerRegistrationScreenState();
@@ -484,7 +483,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         title: Text(AppLocalizations.of(context)!.partnerField24h, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 14)),
         subtitle: Text(AppLocalizations.of(context)!.partnerField24hSub, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 11)),
         value: _is24h,
-        activeColor: AppDesign.petPink,
+        activeThumbColor: AppDesign.petPink,
         onChanged: (v) => setState(() => _is24h = v),
         secondary: const Icon(Icons.emergency_share, color: AppDesign.error),
       ),
@@ -498,7 +497,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       style: const TextStyle(color: AppDesign.textPrimaryDark),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: AppDesign.textSecondaryDark),
+        labelStyle: const TextStyle(color: AppDesign.textSecondaryDark),
         prefixIcon: Icon(icon, color: AppDesign.petPink),
         filled: true,
         fillColor: Colors.black45,
@@ -547,7 +546,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                 : ListView.separated(
                     padding: const EdgeInsets.all(12),
                     itemCount: _notes.length,
-                    separatorBuilder: (_, __) => Divider(color: Colors.white10),
+                    separatorBuilder: (_, __) => const Divider(color: Colors.white10),
                     itemBuilder: (context, index) {
                       final note = _notes[index];
                       final date = DateTime.parse(note['date']);
@@ -685,7 +684,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                                    style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 13),
                                    decoration: InputDecoration(
                                        hintText: AppLocalizations.of(context)!.partnerTeamAddHint,
-                                       hintStyle: TextStyle(color: Colors.white24),
+                                       hintStyle: const TextStyle(color: Colors.white24),
                                        isDense: true,
                                        filled: true,
                                        fillColor: Colors.black45,
@@ -834,13 +833,13 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     }
 
     return DropdownButtonFormField<String>(
-      value: _category,
+      initialValue: _category,
       dropdownColor: AppDesign.surfaceDark,
       isExpanded: true, // Important for long names
       style: const TextStyle(color: AppDesign.textPrimaryDark),
       decoration: InputDecoration(
         labelText: AppLocalizations.of(context)!.partnerCategory,
-        labelStyle: TextStyle(color: AppDesign.textSecondaryDark),
+        labelStyle: const TextStyle(color: AppDesign.textSecondaryDark),
         prefixIcon: const Icon(Icons.category, color: AppDesign.petPink),
         filled: true,
         fillColor: Colors.black45,
@@ -1011,7 +1010,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                       ),
                       Text(
                           AppLocalizations.of(context)!.partnerRadarHint, 
-                        style: TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w500)
+                        style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w500)
                       ),
                     ],
                   ),

@@ -8,6 +8,7 @@ import 'package:scannut/features/pet/services/pet_event_service.dart';
 import 'package:scannut/features/pet/models/pet_event.dart';
 import 'package:scannut/core/services/media_vault_service.dart';
 import 'package:scannut/features/pet/services/pet_profile_service.dart';
+import 'package:scannut/features/pet/services/pet_indexing_service.dart'; // 🧠 Indexing Service
 import 'package:path/path.dart' as p;
 
 class PetBodyAnalysisCard extends StatefulWidget {
@@ -17,12 +18,12 @@ class PetBodyAnalysisCard extends StatefulWidget {
   final VoidCallback? onAnalysisSaved; // 🔄 Callback para recarregar histórico
   
   const PetBodyAnalysisCard({
-    Key? key, 
+    super.key, 
     required this.petName,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
     this.onAnalysisSaved, // 🔄 Novo parâmetro
-  }) : super(key: key);
+  });
 
   @override
   State<PetBodyAnalysisCard> createState() => _PetBodyAnalysisCardState();
@@ -160,14 +161,48 @@ class _PetBodyAnalysisCardState extends State<PetBodyAnalysisCard> {
        debugPrint('   - Image: $finalPath');
        
        // 🔄 Notificar EditPetForm para recarregar histórico
-       debugPrint('🔄 [PetBody] Chamando callback onAnalysisSaved...');
-       if (widget.onAnalysisSaved != null) {
-         widget.onAnalysisSaved!.call();
-         debugPrint('✅ [PetBody] Callback chamado com sucesso');
-       } else {
-         debugPrint('⚠️ [PetBody] Callback é NULL - não será chamado');
-       }
+        if (widget.onAnalysisSaved != null) {
+          widget.onAnalysisSaved!.call();
+          debugPrint('✅ [PetBody] Callback chamado com sucesso');
+        } else {
+          debugPrint('⚠️ [PetBody] Callback é NULL - não será chamado');
+        }
+        
        
+       // 🚨 INDEXING INJECTION (Unified Timeline)
+       debugPrint('🔍 [TRACE-BODY] STARTING UNIFIED INDEXING...');
+       try {
+           final filename = p.basename(tempPath);
+           final simpleAdvice = data['simple_advice']?.toString() ?? 'Sem recomendações.';
+           
+           // Validação ID
+           final effectivePetId = petId.isNotEmpty ? petId : widget.petName;
+           debugPrint('🔍 [TRACE-BODY] Target ID: $effectivePetId, Name: ${widget.petName}');
+
+           await PetIndexingService().indexOccurrence(
+              petId: effectivePetId,
+              petName: widget.petName,
+              group: 'health',
+              type: 'Análise Corporal',
+              title: 'Análise Corporal (Score $score/10)',
+              localizedTitle: 'Análise Corporal (Score $score/10)',
+              localizedNotes: 'Arquivo: $filename\nResumo: $simpleAdvice',
+              extraData: {
+                  'score': score.toString(),
+                  'signals': signals.toString(),
+                  'advice': simpleAdvice,
+                  'file_name': filename,
+                  'source': 'body_analysis',
+                  'image_path': finalPath,
+                  'is_automatic': true
+              }
+           );
+           debugPrint('✅ [TRACE-BODY] SUCESSO! Indexado na Timeline Unificada.');
+       } catch (idxError, stack) {
+           debugPrint('🛑 [TRACE-BODY] CRITICAL FAILURE na indexação: $idxError');
+           debugPrint('🛑 [TRACE-BODY] Stack: $stack');
+       }
+
        debugPrint('🎉 [PetBody] ========== AUTO-SAVE COMPLETO ==========');
     } catch (e) {
        debugPrint('❌ [PetBody] ERRO no save: $e');
@@ -209,7 +244,7 @@ class _PetBodyAnalysisCardState extends State<PetBodyAnalysisCard> {
                  children: [
                     Row(
                       children: [
-                         Icon(Icons.accessibility_new, color: AppDesign.petPink),
+                         const Icon(Icons.accessibility_new, color: AppDesign.petPink),
                          const SizedBox(width: 8),
                          Text(
                            strings?.petBodyAnalysisTitle ?? 'Análise Corporal',
@@ -308,7 +343,7 @@ class _PetBodyAnalysisCardState extends State<PetBodyAnalysisCard> {
                    const SizedBox(height: 12),
                    ...widget.analysisHistory
                        .where((a) => a['analysis_type'] == 'body_analysis')
-                       .map((a) => _buildHistoryItem(a)).toList(),
+                       .map((a) => _buildHistoryItem(a)),
                 ]
             ],
           ),

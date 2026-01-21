@@ -21,7 +21,7 @@ class AnalysisResultsFragment extends StatelessWidget {
   final VoidCallback? onAnalysisSaved; // 🔄 Novo callback
 
   const AnalysisResultsFragment({
-    Key? key,
+    super.key,
     required this.analysisHistory,
     required this.currentRawAnalysis,
     required this.petName,
@@ -31,7 +31,7 @@ class AnalysisResultsFragment extends StatelessWidget {
     required this.findBreedRecursive,
     this.onDeleteAnalysis,
     this.onAnalysisSaved, // 🔄 Novo parâmetro
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +148,7 @@ class AnalysisResultsFragment extends StatelessWidget {
               if (subtitle.isNotEmpty) {
                   subtitle += ' - $extractedBreed';
               } else {
-                  subtitle = extractedBreed!;
+                  subtitle = extractedBreed;
               }
           }
 
@@ -200,7 +200,7 @@ class AnalysisResultsFragment extends StatelessWidget {
                            initiallyExpanded: true,
                            title: Text(tryLocalizeLabel(context, e.key), style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                            childrenPadding: const EdgeInsets.only(left: 16, bottom: 8),
-                           children: (val as Map).entries.where((sub) => sub.value != null).map((sub) => Padding(
+                           children: (val).entries.where((sub) => sub.value != null).map((sub) => Padding(
                                padding: const EdgeInsets.only(bottom: 4),
                                child: Row(
                                    crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +222,7 @@ class AnalysisResultsFragment extends StatelessWidget {
                            ]
                        ),
                    );
-                }).toList(),
+                }),
             ]),
           );
         }),

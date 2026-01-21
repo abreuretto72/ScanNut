@@ -99,7 +99,7 @@ class PartnerService {
         currentPage++;
         logger.info('📡 Efetuando TextSearch (Página $currentPage): Query: "$query"');
         
-        final baseUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+        const baseUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
         final params = <String, String>{
           'query': query,
           'location': '$lat,$lng',

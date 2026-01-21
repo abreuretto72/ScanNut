@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/models/partner_model.dart';
-import '../../../../features/partners/presentation/partners_hub_screen.dart'; 
 
 class PartnerAgendaSheet extends StatefulWidget {
   final PartnerModel partner;
@@ -12,11 +11,11 @@ class PartnerAgendaSheet extends StatefulWidget {
   final Function(List<Map<String, dynamic>>) onSave;
 
   const PartnerAgendaSheet({
-    Key? key,
+    super.key,
     required this.partner,
     required this.initialEvents,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<PartnerAgendaSheet> createState() => _PartnerAgendaSheetState();
@@ -122,8 +121,9 @@ class _PartnerAgendaSheetState extends State<PartnerAgendaSheet> {
     final isYesterday = DateUtils.isSameDay(date, DateTime.now().subtract(const Duration(days: 1)));
     
     String label;
-    if (isToday) label = AppLocalizations.of(context)!.todayLabel;
-    else if (isYesterday) label = AppLocalizations.of(context)!.agendaYesterday; // Will add to ARB
+    if (isToday) {
+      label = AppLocalizations.of(context)!.todayLabel;
+    } else if (isYesterday) label = AppLocalizations.of(context)!.agendaYesterday; // Will add to ARB
     else label = DateFormat('dd MMMM', Localizations.localeOf(context).toString()).format(date);
 
     return Padding(
@@ -345,7 +345,7 @@ class _PartnerAgendaSheetState extends State<PartnerAgendaSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildDateHeader(key),
-                          ...events.map((e) => _buildTimelineItem(e)).toList(),
+                          ...events.map((e) => _buildTimelineItem(e)),
                           const SizedBox(height: 16),
                         ],
                       );

@@ -9,10 +9,10 @@ class RecipeExportConfigurationModal extends StatefulWidget {
   final Function(List<RecipeHistoryItem>) onGenerate;
 
   const RecipeExportConfigurationModal({
-    Key? key,
+    super.key,
     required this.allItems,
     required this.onGenerate,
-  }) : super(key: key);
+  });
 
   @override
   State<RecipeExportConfigurationModal> createState() => _RecipeExportConfigurationModalState();
@@ -93,7 +93,7 @@ class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurati
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text('Seleção Manual', style: GoogleFonts.poppins(color: Colors.white)),
-                activeColor: AppDesign.foodOrange,
+                activeThumbColor: AppDesign.foodOrange,
                 value: _manualSelectionMode,
                 onChanged: (val) {
                   setState(() {

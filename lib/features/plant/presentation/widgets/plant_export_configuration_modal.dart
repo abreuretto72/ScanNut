@@ -9,10 +9,10 @@ class PlantExportConfigurationModal extends StatefulWidget {
   final Function(List<BotanyHistoryItem>) onGenerate;
 
   const PlantExportConfigurationModal({
-    Key? key,
+    super.key,
     required this.allItems,
     required this.onGenerate,
-  }) : super(key: key);
+  });
 
   @override
   State<PlantExportConfigurationModal> createState() => _PlantExportConfigurationModalState();

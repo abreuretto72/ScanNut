@@ -10,9 +10,9 @@ class PetEventGrid extends StatelessWidget {
   final String petId;
 
   const PetEventGrid({
-    Key? key,
+    super.key,
     required this.petId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

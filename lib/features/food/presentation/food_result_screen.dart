@@ -1,31 +1,20 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../core/widgets/pro_access_wrapper.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:printing/printing.dart';
 import '../services/nutrition_service.dart';
 import '../models/food_analysis_model.dart';
-import 'widgets/result_card.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import '../../../nutrition/domain/usecases/scan_to_nutrition_mapper.dart';
 import '../../../nutrition/presentation/controllers/nutrition_providers.dart';
-import '../../../nutrition/data/models/meal_log.dart';
-import '../../../nutrition/data/models/plan_day.dart';
-import '../../../nutrition/data/models/plan_day.dart';
 import '../../../core/theme/app_design.dart';
 import 'nutrition_history_screen.dart';
 import '../../../core/services/gemini_service.dart';
@@ -41,12 +30,12 @@ class FoodResultScreen extends ConsumerStatefulWidget {
   final bool isReadOnly;
 
   const FoodResultScreen({
-    Key? key, 
+    super.key, 
     required this.analysis, 
     this.imageFile, 
     required this.onSave,
     this.isReadOnly = false,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<FoodResultScreen> createState() => _FoodResultScreenState();
@@ -874,22 +863,22 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.free_breakfast, color: AppDesign.foodOrange),
+              leading: const Icon(Icons.free_breakfast, color: AppDesign.foodOrange),
               title: Text('Café da Manhã', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'cafe'),
             ),
             ListTile(
-              leading: Icon(Icons.lunch_dining, color: AppDesign.foodOrange),
+              leading: const Icon(Icons.lunch_dining, color: AppDesign.foodOrange),
               title: Text('Almoço', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'almoco'),
             ),
             ListTile(
-              leading: Icon(Icons.cookie, color: AppDesign.foodOrange),
+              leading: const Icon(Icons.cookie, color: AppDesign.foodOrange),
               title: Text('Lanche', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'lanche'),
             ),
             ListTile(
-              leading: Icon(Icons.dinner_dining, color: AppDesign.foodOrange),
+              leading: const Icon(Icons.dinner_dining, color: AppDesign.foodOrange),
               title: Text('Jantar', style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'jantar'),
             ),
@@ -912,7 +901,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         
         final prompt = """
         Atue como um chef de cozinha criativo e saudável.
-        Gere 3 NOVAS e diferentes receitas rápidas (max 15 min) utilizando o ingrediente principal: ${fName}.
+        Gere 3 NOVAS e diferentes receitas rápidas (max 15 min) utilizando o ingrediente principal: $fName.
         Responda na língua do utilizador (Português, Inglês ou Espanhol).
         Seja criativo, fuja do óbvio.
         Retorne APENAS um JSON válido com a seguinte estrutura estrita:
@@ -948,7 +937,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
              });
              
              ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(content: Text('Receitas atualizadas! 🍳'), backgroundColor: AppDesign.foodOrange),
+               const SnackBar(content: Text('Receitas atualizadas! 🍳'), backgroundColor: AppDesign.foodOrange),
              );
 
              // ANTI-GRAVITY FORCE SAVE

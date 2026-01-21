@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'media_manager_screen.dart';
@@ -17,19 +15,13 @@ import '../../../core/services/history_service.dart';
 import '../../../core/services/data_seed_service.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../../../core/providers/partner_provider.dart';
-import '../../../core/providers/settings_provider.dart';
 import '../../../core/providers/pet_event_provider.dart';
-import '../../../core/providers/vaccine_status_provider.dart';
-import '../../../features/food/services/nutrition_service.dart';
-import '../../../features/plant/services/botany_service.dart';
-import '../../../nutrition/presentation/controllers/nutrition_providers.dart';
-import '../../pet/models/pet_event.dart'; 
 import '../../../features/pet/services/pet_event_service.dart';
 import '../../../core/services/hive_atomic_manager.dart';
 import '../../../core/services/permanent_backup_service.dart';
 
 class DataManagerScreen extends ConsumerStatefulWidget {
-  const DataManagerScreen({Key? key}) : super(key: key);
+  const DataManagerScreen({super.key});
 
   @override
   ConsumerState<DataManagerScreen> createState() => _DataManagerScreenState();
@@ -41,7 +33,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   int _dbSizeMB = 0;
   int _mediaSizeMB = 0;
   int _countOccurrences = 0;
-  int _countAnalyses = 0;
+  final int _countAnalyses = 0;
   
   // FILTERS (3D)
   String? _selectedPetName;
@@ -57,9 +49,9 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   DateTimeRange? _customDateRange;
 
   // FLOW STATE
-  bool _isGenerating = false;
+  final bool _isGenerating = false;
   File? _generatedArchive;
-  bool _isSavedConfirmed = false;
+  final bool _isSavedConfirmed = false;
 
   @override
   void initState() {
@@ -267,10 +259,10 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
             _buildFilterRow('QUEM', _selectedPetName ?? 'Todos os Pets', Icons.pets),
             if (_selectedPetId != null && _selectedPetId != _selectedPetName) ...[
                const SizedBox(height: 4),
-               _buildFilterRow('ID', _selectedPetId!.substring(0, 8) + '...', Icons.fingerprint),
+               _buildFilterRow('ID', '${_selectedPetId!.substring(0, 8)}...', Icons.fingerprint),
             ],
             const SizedBox(height: 8),
-            _buildFilterRow('O QUÊ', _categories.entries.where((e)=>e.value).length.toString() + ' Categorias', Icons.category),
+            _buildFilterRow('O QUÊ', '${_categories.entries.where((e)=>e.value).length} Categorias', Icons.category),
             const SizedBox(height: 8),
             _buildFilterRow('QUANDO', _timeRangeLabel, Icons.calendar_today),
             
@@ -584,7 +576,9 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
                 final t = e.type.toString().toLowerCase();
                 return keywords.any((k) => t.contains(k));
              }).toList();
-             for(var e in toDelete) await petEventService.deleteEvent(e.id);
+             for(var e in toDelete) {
+               await petEventService.deleteEvent(e.id);
+             }
              ref.invalidate(petEventServiceProvider);
         } catch(e) { debugPrint('Agenda error: $e'); }
   }
@@ -607,7 +601,8 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       'settings',
       'pet_events_journal',
       'box_workouts',
-      'vaccine_status'
+      'vaccine_status',
+      'processed_images_box'
     ];
 
     try {
@@ -670,6 +665,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await _clearAgendaEvents(['food']);
       await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR);
       await _deleteLegacyFolder('nutrition_images');
+      await _clearBox('processed_images_box');
       ref.invalidate(historyServiceProvider);
   }
 
@@ -680,6 +676,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR);
       await _deleteLegacyFolder('botany_images');
       await _deleteLegacyFolder('PlantAnalyses');
+      await _clearBox('processed_images_box');
       ref.invalidate(historyServiceProvider);
   }
 
@@ -694,6 +691,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       await _clearBox('pet_events_journal');
       await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
       await _deleteLegacyFolder('PetPhotos');
+      await _clearBox('processed_images_box');
       
       ref.invalidate(petEventServiceProvider);
       ref.invalidate(partnerServiceProvider);
@@ -718,12 +716,11 @@ class _FilterModalContent extends StatefulWidget {
   final Function(String?, String?, Map<String, bool>, DateTimeRange?, String) onApply;
 
   const _FilterModalContent({
-    Key? key,
     required this.initialPetId,
     required this.categories,
     required this.initialDateRange,
     required this.onApply,
-  }) : super(key: key);
+  });
 
   @override
   State<_FilterModalContent> createState() => _FilterModalContentState();

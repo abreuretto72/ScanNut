@@ -6,7 +6,6 @@
 /// ============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/theme/app_design.dart';
 
 /// Database de referência de pesos ideais por raça e porte
@@ -127,7 +126,7 @@ class PetWeightDatabase {
     required dynamic strings, // AppLocalizations
   }) {
     final ratio = currentWeight / idealWeight;
-    final suffix = 'kg'; // Fallback ou passar via settings
+    const suffix = 'kg'; // Fallback ou passar via settings
     
     if (ratio < 0.90) {
       return WeightStatus(

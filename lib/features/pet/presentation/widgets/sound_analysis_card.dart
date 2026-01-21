@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,23 +6,21 @@ import 'package:record/record.dart';
 import 'package:scannut/core/theme/app_design.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import 'package:scannut/core/services/gemini_service.dart';
-import 'package:scannut/core/services/media_vault_service.dart';
 import 'package:scannut/features/pet/services/pet_profile_service.dart';
-import 'package:scannut/features/pet/services/pet_event_service.dart';
-import 'package:scannut/features/pet/models/pet_event.dart';
 import 'package:path/path.dart' as p;
+import 'package:scannut/features/pet/services/pet_indexing_service.dart'; // 🧠 Indexing Service
 
 class SoundAnalysisCard extends StatefulWidget {
   final String petName;
   final List<Map<String, dynamic>> analysisHistory;
   
   const SoundAnalysisCard({
-    Key? key, 
+    super.key, 
     required this.petName,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
     this.onAnalysisSaved,
-  }) : super(key: key);
+  });
 
   final Function(Map<String, dynamic>)? onDeleteAnalysis;
   final VoidCallback? onAnalysisSaved;
@@ -166,27 +163,35 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
        
        await PetProfileService().addAnalysisToHistory(widget.petName, analysisForHistory);
 
-       // 2. Save to Events
-       final service = PetEventService();
-       await service.init();
-       if (!service.box.isOpen) await service.init();
        
        final emotion = data['emotion_simple'] ?? data['emotional_state'] ?? '?';
        final reason = data['reason_simple'] ?? '';
        final action = data['action_tip'] ?? data['recommended_action'] ?? '';
 
-       final event = PetEvent(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          petId: widget.petName,
-          petName: widget.petName, 
-          title: 'Análise Sonora: $emotion',
-          type: EventType.behavior, // Usando Behavior
-          dateTime: DateTime.now(),
-          notes: 'Motivo: $reason\n\nDica: $action',
-       );
-       
-       await service.addEvent(event);
-       debugPrint('✅ [SoundAnalysis] Auto-saved to Hive (History & Events).');
+       // 2. Save to Events (Unified Indexing)
+       try {
+         await PetIndexingService().indexOccurrence(
+            petId: widget.petName, // Note: petName is acting as ID here based on legacy logic, ensure it matches repository expectation
+            petName: widget.petName,
+            group: 'behavior',
+            title: 'Análise Vocal: $emotion', // Título claro
+            type: 'Análise vocal', // 🛡️ Explicit Type
+            localizedTitle: 'Análise Vocal ($emotion)',
+            localizedNotes: 'Arquivo: ${filename.startsWith('sound_rec_') ? 'Gravação do App' : filename}',
+            extraData: {
+               'emotion': emotion,
+               'reason': reason,
+               'action': action,
+               'source': 'vocal_analysis',
+               'is_automatic': true,
+               'file_name': filename,
+               // 'deep_link': 'scannut://sound/analysis/$emotion' // Removido temporariamente por solicitação
+            }
+         );
+         debugPrint('✅ [SoundAnalysis] Auto-saved to Unified Timeline via Indexer.');
+       } catch (e) {
+          debugPrint('⚠️ [SoundAnalysis] Indexing failed: $e');
+       }
        
        if (widget.onAnalysisSaved != null) {
          widget.onAnalysisSaved!();
@@ -354,7 +359,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
                    const SizedBox(height: 12),
                    ...widget.analysisHistory
                        .where((a) => a['analysis_type'] == 'vocal_analysis')
-                       .map((a) => _buildHistoryItem(a)).toList(),
+                       .map((a) => _buildHistoryItem(a)),
                 ]
             ],
           ),

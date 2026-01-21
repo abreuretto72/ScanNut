@@ -4,7 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
 
 class NutritionalPillarsScreen extends StatelessWidget {
-  const NutritionalPillarsScreen({Key? key}) : super(key: key);
+  const NutritionalPillarsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

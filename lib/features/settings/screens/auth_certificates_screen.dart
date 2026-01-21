@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart';
-import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/auth_trace_logger.dart';
 import '../../../core/utils/auth_project_auditor.dart';
 
 class AuthCertificatesScreen extends StatefulWidget {
-  const AuthCertificatesScreen({Key? key}) : super(key: key);
+  const AuthCertificatesScreen({super.key});
 
   @override
   State<AuthCertificatesScreen> createState() => _AuthCertificatesScreenState();
@@ -75,7 +74,7 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
         children: [
           _buildRow('Package Name:', 'com.multiversodigital.scannut'),
           _buildRow('Build Type:', kDebugMode ? 'DEBUG' : 'RELEASE'),
-          _buildRow('Device:', '${defaultTargetPlatform.toString().split('.').last}'),
+          _buildRow('Device:', defaultTargetPlatform.toString().split('.').last),
         ],
       ),
     );

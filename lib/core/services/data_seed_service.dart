@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'hive_atomic_manager.dart';
 
@@ -164,7 +163,7 @@ class DataSeedService {
     // (1) PROTOCOLO DE ABERTURA FORÇADA
     await HiveAtomicManager().ensureBoxOpen('pet_events', cipher: SimpleAuthService().encryptionCipher);
     
-    final types = EventType.values;
+    const types = EventType.values;
     final petNames = ['Thor', 'Luna'];
     
     // 5 Events in CURRENT MONTH (Jan 2026)

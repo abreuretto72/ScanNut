@@ -1,15 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:uuid/uuid.dart';
 import '../../../core/services/gemini_service.dart';
 import '../../pet/models/weekly_meal_plan.dart';
 import '../../pet/services/meal_plan_service.dart';
 import '../../pet/services/pet_shopping_list_service.dart';
 import '../../pet/models/meal_plan_request.dart';
-import '../../../core/utils/json_cast.dart';
 import 'package:scannut/features/pet/services/pet_profile_service.dart';
 import '../models/brand_suggestion.dart'; // 🛡️ NEW: Import BrandSuggestion
+import 'pet_indexing_service.dart'; // 🧠 Indexing Service
 
 final petMenuGeneratorProvider = Provider<PetMenuGeneratorService>((ref) {
   final geminiService = ref.watch(geminiServiceProvider);
@@ -122,7 +120,7 @@ class PetMenuGeneratorService {
     }
 
     // 3. MASTER PROMPT (Phase 5 - Rigid Rules)
-    final ingredientsPool = """
+    const ingredientsPool = """
     AVAILABLE INGREDIENTS POOL (USE THIS TO VARIATE):
     - Proteins: Chicken, Beef, Fish (White/Salmon), Pork, Lamb, Turkey, Egg.
     - Vegetables: Carrot, Pumpkin, Zucchini, Green Beans, Broccoli, Spinach, Sweet Potato, Beets, Chayote, Peas.
@@ -308,7 +306,8 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
 
            // 🛡️ UPDATED: Parse brand suggestions with justifications
            final List<BrandSuggestion> recommendedBrands = [];
-           final marcasSugeridas = rawResult['marcas_sugeridas'];
+           // 🛡️ Robust Parsing: Check inside specific week first, then fallback to root
+           final marcasSugeridas = weekEntry['marcas_sugeridas'] ?? rawResult['marcas_sugeridas'];
            
            if (marcasSugeridas != null && marcasSugeridas is List) {
              for (var item in marcasSugeridas) {
@@ -343,8 +342,14 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
            );
 
            // SAVE PLAN (Calendar)
-           await mealService.savePlan(plan);
-           debugPrint('💾 [PetMenu] Saved Week starting $weekStart');
+           debugPrint('🛡️ [TRACE-HIVE] Saving Plan ${plan.id}. Brands Count: ${plan.recommendedBrands?.length ?? 0}');
+           try {
+              await mealService.savePlan(plan);
+              debugPrint('💾 [PetMenu] Saved Week starting $weekStart');
+           } catch (e) {
+              debugPrint('🛑 [TRACE-HIVE] CRITICAL HIVE ERROR SAVING PLAN: $e');
+              rethrow;
+           }
 
            // SAVE SHOPPING LIST
            // 🛡️ V4: Robust Parsing (Handle potential String list hallucination)
@@ -372,10 +377,31 @@ EXAMPLE OUTPUT STRUCTURE (FOLLOW EXACTLY):
            }
       }
 
-      // Final Step: Update Active Menu Markdown (Optional display)
-      // Since the new structure is more granular, we might not have a full markdown field anymore, 
-      // but we can generate one or just use the JSON-based view.
-      // For now, let's just complete the process.
+      // 5. INDEXING (Timeline Event)
+      try {
+          final petName = request.profileData['nome'] ?? request.profileData['name'] ?? 'Pet';
+          final firstWeekStart = weeksJson.isNotEmpty ? (weeksJson.first['start_date'] ?? '-') : '-';
+          
+          await PetIndexingService().indexOccurrence(
+            petId: request.petId,
+            petName: petName.toString(),
+            group: 'food', // Grupo Alimentação
+            title: 'Cardápio Nutricional Gerado',
+            type: 'Cardápio', // 🛡️ Explicit Type
+            localizedTitle: 'Novo Cardápio (IA)',
+            localizedNotes: 'Plano alimentar gerado: ${_translateMode(request.mode)}. Início: $firstWeekStart. Objetivo: ${_translateDiet(dietLabel)}.',
+            extraData: {
+              'diet_type': dietLabel,
+              'weeks_count': weeksJson.length,
+              'source': 'ai_generator',
+              'is_automatic': true
+            }
+          );
+          debugPrint('🧠 [PetMenu] Cardápio indexado na timeline com sucesso.');
+      } catch (e) {
+         debugPrint('⚠️ [PetMenu] Falha ao indexar evento na timeline: $e');
+      }
+
       debugPrint('✅ [PetMenu] Successfully generated ${weeksJson.length} weeks of meal plans.');
 
     } catch (e) {
@@ -464,5 +490,33 @@ OUTPUT STRUCTURE:
          debugPrint('🚨 [PetMenu] Single Regeneration Failed: $e');
          return null;
       }
+  }
+
+  String _translateMode(String mode) {
+    switch (mode.toLowerCase()) {
+      case 'weekly': return 'Semanal';
+      case 'monthly': return 'Mensal';
+      case 'custom': return 'Personalizado';
+      default: return mode;
+    }
+  }
+
+  String _translateDiet(String diet) {
+    switch (diet.toLowerCase()) {
+       case 'general': return 'Manutenção Geral';
+       case 'obesity': return 'Perda de Peso';
+       case 'muscle_gain': return 'Ganho Muscular';
+       case 'renal': return 'Renal';
+       case 'hepatic': return 'Hepática';
+       case 'gastrointestinal': return 'Gastrointestinal';
+       case 'hypoallergenic': return 'Hipoalergênica';
+       case 'diabetes': return 'Diabetes';
+       case 'cardiac': return 'Cardíaca';
+       case 'urinary': return 'Urinária';
+       case 'pediatric': return 'Pediátrica';
+       case 'growth': return 'Crescimento';
+       case 'other': return 'Outra';
+       default: return diet;
+    }
   }
 }

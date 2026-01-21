@@ -149,7 +149,7 @@ class PetEventsPdfService {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(35),
-          header: (context) => _exportService.buildHeader(l10n.petEvent_reportTitle, timestampStr),
+          header: (context) => _exportService.buildHeader(l10n.petEvent_reportTitle, timestampStr, color: ExportService.colorPet),
           footer: (context) => _exportService.buildFooter(context, strings: l10n),
           build: (context) => [
             // Header Info Card
@@ -200,7 +200,7 @@ class PetEventsPdfService {
                   pw.Container(
                     width: double.infinity,
                     padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                    color: PdfColors.grey200,
+                    color: ExportService.colorPet, // 🎨 Domain Color Pink
                     child: pw.Text(
                       DateFormat.yMMMMEEEEd(l10n.localeName).format(entry.key).toUpperCase(),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
@@ -286,17 +286,17 @@ class PetEventsPdfService {
                                   pw.Text('📎 ', style: const pw.TextStyle(fontSize: 8)),
                                   pw.Text('${_getKindLabel(a.kind)}: ${a.path.split('/').last} (${_formatSize(a.size)})', style: const pw.TextStyle(fontSize: 7, color: PdfColors.blue800)),
                                ],
-                             )).toList(),
+                             )),
                           ],
                           pw.SizedBox(height: 10),
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   pw.SizedBox(height: 15),
                 ],
               );
-            }).toList(),
+            }),
           ],
         ),
       );
@@ -333,12 +333,18 @@ class PetEventsPdfService {
       // Collect alerts/warnings from various possible schemas
       List<String> warnings = [];
       if (result['alertas'] != null) {
-        if (result['alertas'] is List) warnings.addAll((result['alertas'] as List).map((e) => e.toString()));
-        else warnings.add(result['alertas'].toString());
+        if (result['alertas'] is List) {
+          warnings.addAll((result['alertas'] as List).map((e) => e.toString()));
+        } else {
+          warnings.add(result['alertas'].toString());
+        }
       }
       if (result['alerts'] != null) {
-        if (result['alerts'] is List) warnings.addAll((result['alerts'] as List).map((e) => e.toString()));
-        else warnings.add(result['alerts'].toString());
+        if (result['alerts'] is List) {
+          warnings.addAll((result['alerts'] as List).map((e) => e.toString()));
+        } else {
+          warnings.add(result['alerts'].toString());
+        }
       }
       if (result['urgency_level'] != null) {
         warnings.add('Nível de Urgência: ${result['urgency_level']}');

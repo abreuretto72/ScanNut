@@ -3,16 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../../../core/providers/subscription_provider.dart';
-import '../../../core/services/subscription_service.dart';
 import '../../../l10n/app_localizations.dart';
 
 class PaywallScreen extends ConsumerStatefulWidget {
   final bool showRestoreFirst;
 
   const PaywallScreen({
-    Key? key,
+    super.key,
     this.showRestoreFirst = false,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<PaywallScreen> createState() => _PaywallScreenState();

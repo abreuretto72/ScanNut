@@ -1,18 +1,10 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
-import 'package:open_filex/open_filex.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:printing/printing.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import '../../../../core/widgets/pro_access_wrapper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../models/plant_analysis_model.dart';
@@ -33,13 +25,13 @@ class PlantResultCard extends StatefulWidget {
   final bool isReadOnly;
 
     const PlantResultCard({
-      Key? key, 
+      super.key, 
       required this.analysis, 
       this.imagePath, 
       required this.onSave, 
       required this.onShop,
       this.isReadOnly = false,
-    }) : super(key: key);
+    });
 
   @override
   State<PlantResultCard> createState() => _PlantResultCardState();
@@ -140,11 +132,6 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
   Future<void> _generatePDF() async {
     debugPrint("📄 [PLANT_PDF] Botão PDF clicado. Iniciando fluxo...");
     try {
-      if (widget.analysis == null) {
-         debugPrint("❌ [PLANT_PDF] Erro crítico: Objeto Analysis é nulo.");
-         throw Exception("Objeto de análise inválido.");
-      }
-
       debugPrint("📄 [PLANT_PDF] Navegando para PdfPreviewScreen...");
       await Navigator.push(
         context,
@@ -443,19 +430,19 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         Text(AppLocalizations.of(context)!.labelTrafficLight, style: _tabTitleStyle),
         const SizedBox(height: 16),
         _buildSurvivorRow(
-          "☀️ " + AppLocalizations.of(context)!.plantNeedSun.toUpperCase(), 
+          "☀️ ${AppLocalizations.of(context)!.plantNeedSun.toUpperCase()}", 
           _translateLuminosity(surv.luminosidade['type']?.toString() ?? surv.luminosidade['tipo']?.toString() ?? AppLocalizations.of(context)!.noInformation), 
           surv.luminosidade['explanation']?.toString() ?? surv.luminosidade['explicacao']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
           Colors.amber
         ),
         _buildSurvivorRow(
-          "💧 " + AppLocalizations.of(context)!.plantNeedWater.toUpperCase(), 
+          "💧 ${AppLocalizations.of(context)!.plantNeedWater.toUpperCase()}", 
           surv.regimeHidrico['frequency']?.toString() ?? surv.regimeHidrico['frequencia_ideal']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
           surv.regimeHidrico['watering_method']?.toString() ?? surv.regimeHidrico['method']?.toString() ?? surv.regimeHidrico['método_rega']?.toString() ?? AppLocalizations.of(context)!.directSoilWatering, 
           Colors.blue
         ),
         _buildSurvivorRow(
-          "🪴 " + AppLocalizations.of(context)!.plantNeedSoil.toUpperCase(), 
+          "🪴 ${AppLocalizations.of(context)!.plantNeedSoil.toUpperCase()}", 
           surv.soloENutricao['soil_type']?.toString() ?? surv.soloENutricao['tipo_solo']?.toString() ?? surv.soloENutricao['composition']?.toString() ?? AppLocalizations.of(context)!.noInformation, 
           surv.soloENutricao['fertilizer']?.toString() ?? surv.soloENutricao['adubo_recomendado']?.toString() ?? AppLocalizations.of(context)!.asNeeded, 
           Colors.brown
@@ -498,7 +485,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               ),
               if (!widget.analysis.isHealthy) ...[
                 const SizedBox(height: 16),
-                _buildInfoLabel(AppLocalizations.of(context)!.plantUrgency + ":", widget.analysis.urgency),
+                _buildInfoLabel("${AppLocalizations.of(context)!.plantUrgency}:", widget.analysis.urgency),
               ],
             ],
           ),
@@ -533,8 +520,8 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           color: AppDesign.error,
           child: Column(
             children: [
-              _buildToggleInfo(AppLocalizations.of(context)!.plantDangerPets + " 🐾", (bios.segurancaDomestica['toxica_para_pets'] == true || bios.segurancaDomestica['is_toxic_to_pets'] == true)),
-              _buildToggleInfo(AppLocalizations.of(context)!.plantDangerKids + " 👶", (bios.segurancaDomestica['toxica_para_criancas'] == true || bios.segurancaDomestica['is_toxic_to_children'] == true)),
+              _buildToggleInfo("${AppLocalizations.of(context)!.plantDangerPets} 🐾", (bios.segurancaDomestica['toxica_para_pets'] == true || bios.segurancaDomestica['is_toxic_to_pets'] == true)),
+              _buildToggleInfo("${AppLocalizations.of(context)!.plantDangerKids} 👶", (bios.segurancaDomestica['toxica_para_criancas'] == true || bios.segurancaDomestica['is_toxic_to_children'] == true)),
               const SizedBox(height: 12),
               Text(bios.segurancaDomestica['sintomas_ingestao']?.toString() ?? bios.segurancaDomestica['toxicity_details']?.toString() ?? AppLocalizations.of(context)!.plantNoAlerts, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
             ],
@@ -550,8 +537,8 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
             children: [
               _buildProgressBar(AppLocalizations.of(context)!.plantAirScore, ((bios.poderesBiofilicos['purificacao_ar_score'] ?? bios.poderesBiofilicos['air_purification_score'] ?? 5) as num).toDouble() / 10.0, AppDesign.success),
               const SizedBox(height: 16),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantHumidification + ":", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? AppLocalizations.of(context)!.noInformation),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantWellness + ":", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? bios.poderesBiofilicos['wellness_impact']?.toString() ?? AppLocalizations.of(context)!.noInformation),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantHumidification}:", bios.poderesBiofilicos['umidificacao_natural']?.toString() ?? AppLocalizations.of(context)!.noInformation),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantWellness}:", bios.poderesBiofilicos['impacto_bem_estar']?.toString() ?? bios.poderesBiofilicos['wellness_impact']?.toString() ?? AppLocalizations.of(context)!.noInformation),
             ],
           ),
         ),
@@ -574,10 +561,10 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
            child: Column(
              crossAxisAlignment: CrossAxisAlignment.start,
              children: [
-               _buildInfoLabel(AppLocalizations.of(context)!.plantMethod + ":", prop.metodo),
-               _buildInfoLabel(AppLocalizations.of(context)!.plantDifficulty + ":", prop.dificuldade),
+               _buildInfoLabel("${AppLocalizations.of(context)!.plantMethod}:", prop.metodo),
+               _buildInfoLabel("${AppLocalizations.of(context)!.plantDifficulty}:", prop.dificuldade),
                const Divider(color: Colors.white12),
-               Text(AppLocalizations.of(context)!.plantStepByStep + ":", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 12)),
+               Text("${AppLocalizations.of(context)!.plantStepByStep}:", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 12)),
                const SizedBox(height: 8),
                Text(prop.passoAPasso, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 13, height: 1.5)),
              ],
@@ -591,9 +578,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
            child: Column(
              crossAxisAlignment: CrossAxisAlignment.start,
              children: [
-               _buildInfoLabel(AppLocalizations.of(context)!.plantCompanions + ":", (eco.plantasParceiras as List? ?? []).join(', ')),
-               _buildInfoLabel(AppLocalizations.of(context)!.plantAvoid + ":", (eco.plantasConflitantes as List? ?? []).join(', ')),
-               _buildInfoLabel(AppLocalizations.of(context)!.plantRepellent + ":", eco.repelenteNatural),
+               _buildInfoLabel("${AppLocalizations.of(context)!.plantCompanions}:", (eco.plantasParceiras as List? ?? []).join(', ')),
+               _buildInfoLabel("${AppLocalizations.of(context)!.plantAvoid}:", (eco.plantasConflitantes as List? ?? []).join(', ')),
+               _buildInfoLabel("${AppLocalizations.of(context)!.plantRepellent}:", eco.repelenteNatural),
              ],
            ),
          ),
@@ -616,9 +603,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInfoLabel(AppLocalizations.of(context)!.plantPlacement + ":", lifestyle.posicionamentoIdeal),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantPlacement}:", lifestyle.posicionamentoIdeal),
               const SizedBox(height: 8),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantSymbolism + ":", lifestyle.simbolismo),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantSymbolism}:", lifestyle.simbolismo),
             ],
           ),
         ),
@@ -629,10 +616,10 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           color: AppDesign.warning,
           child: Column(
             children: [
-              _buildInfoLabel(AppLocalizations.of(context)!.plantFlowering + ":", estetica.epocaFloracao),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantFlowerColor + ":", estetica.corDasFlores),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantGrowth + ":", estetica.velocidadeCrescimento),
-              _buildInfoLabel(AppLocalizations.of(context)!.plantMaxSize + ":", estetica.tamanhoMaximo),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantFlowering}:", estetica.epocaFloracao),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantFlowerColor}:", estetica.corDasFlores),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantGrowth}:", estetica.velocidadeCrescimento),
+              _buildInfoLabel("${AppLocalizations.of(context)!.plantMaxSize}:", estetica.tamanhoMaximo),
             ],
           ),
         ),

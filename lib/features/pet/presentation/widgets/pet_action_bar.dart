@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_design.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Simplified action bar with only 3 essential icons
@@ -12,13 +11,13 @@ class PetActionBar extends StatelessWidget {
   final VoidCallback onEditTap;
 
   const PetActionBar({
-    Key? key,
+    super.key,
     required this.petId,
     required this.petName,
     required this.onAgendaTap,
     required this.onMenuTap,
     required this.onEditTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

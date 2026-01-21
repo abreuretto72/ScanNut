@@ -4,11 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:printing/printing.dart';
 
 import 'dart:io';
 import 'package:intl/intl.dart';
@@ -16,18 +12,12 @@ import '../../../../core/theme/app_design.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import '../../models/pet_analysis_result.dart';
 import '../../../../core/utils/color_helper.dart';
-import '../../../../core/utils/color_helper.dart';
-import 'package:open_filex/open_filex.dart';
 import '../../../../core/templates/race_nutrition_component.dart';
 import '../../../../core/templates/weekly_meal_planner_component.dart';
-import 'weekly_menu_screen.dart';
 import 'vaccine_card.dart';
 import '../../../../core/services/file_upload_service.dart';
-import 'edit_pet_form.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../models/pet_profile_extended.dart';
-import '../../models/analise_ferida_model.dart';
-import '../../services/pet_profile_service.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
 
@@ -38,7 +28,7 @@ class PetResultCard extends StatefulWidget {
   final String? petName;
   final PetProfileExtended? petProfile; // 🛡️ Source of Truth
 
-  const PetResultCard({Key? key, required this.analysis, required this.imagePath, required this.onSave, this.petName, this.petProfile}) : super(key: key);
+  const PetResultCard({super.key, required this.analysis, required this.imagePath, required this.onSave, this.petName, this.petProfile});
 
   @override
   State<PetResultCard> createState() => _PetResultCardState();
@@ -131,8 +121,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     
     // Activity Level
     String result = cleanValue;
-    if (cleanValue.toLowerCase().contains('moderad') || cleanValue.toLowerCase().contains('medium')) result = AppLocalizations.of(context)!.petActivityModerate;
-    else if (cleanValue.toLowerCase().contains('alt') || cleanValue.toLowerCase().contains('high')) result = AppLocalizations.of(context)!.petActivityHigh;
+    if (cleanValue.toLowerCase().contains('moderad') || cleanValue.toLowerCase().contains('medium')) {
+      result = AppLocalizations.of(context)!.petActivityModerate;
+    } else if (cleanValue.toLowerCase().contains('alt') || cleanValue.toLowerCase().contains('high')) result = AppLocalizations.of(context)!.petActivityHigh;
     else if (cleanValue.toLowerCase().contains('baix') || cleanValue.toLowerCase().contains('low')) result = AppLocalizations.of(context)!.petActivityLow;
     
     // Reproductive Status
@@ -174,8 +165,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     
     for (int i = 0; i < history.length; i++) {
         final item = history[i];
-        if (item.imagemRef != null && item.imagemRef!.isNotEmpty) {
-             final f = File(item.imagemRef!);
+        if (item.imagemRef.isNotEmpty) {
+             final f = File(item.imagemRef);
              if (f.existsSync()) {
                  try {
                      final bytes = await f.readAsBytes();
@@ -230,7 +221,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text("ScanNut", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 24, color: PdfColors.pink)),
-                  pw.Text(l10n.pdfDossierTitle, style: pw.TextStyle(fontSize: 18)),
+                  pw.Text(l10n.pdfDossierTitle, style: const pw.TextStyle(fontSize: 18)),
                 ],
               ),
             ),
@@ -379,7 +370,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                       children: [
                         pw.Text(dia, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12, color: PdfColors.pink900)),
                         pw.RichText(text: pw.TextSpan(children: [
-                             pw.TextSpan(text: 'Meta: ', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                             const pw.TextSpan(text: 'Meta: ', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
                              pw.TextSpan(text: dailyKcal, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
                         ])),
                       ],
@@ -392,7 +383,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                     pw.SizedBox(height: 10),
                   ],
                 );
-              }).toList(),
+              }),
               pw.SizedBox(height: 15),
             ],
 
@@ -711,7 +702,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                             ]
                         )
                     );
-                }).toList(),
+                }),
             ],
             
             pw.Footer(
@@ -1134,8 +1125,8 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
     // fallback for Identification Mode
     final signs = [
-            if (racaPredict != null && racaPredict != 'Unknown' && racaPredict.isNotEmpty) "IA Breed: $racaPredict",
-            if (morfologia != null && morfologia.isNotEmpty) "Morfologia: $morfologia",
+            if (racaPredict != 'Unknown' && racaPredict.isNotEmpty) "IA Breed: $racaPredict",
+            if (morfologia.isNotEmpty) "Morfologia: $morfologia",
             _bestEffortTranslate(widget.analysis.identificacao.porteEstimado),
             _bestEffortTranslate(widget.analysis.higiene.manutencaoPelagem['tipo_pelo'] ?? l10n.commonNormal),
     ];
@@ -1790,7 +1781,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             child: LinearProgressIndicator(
               value: percent,
               backgroundColor: Colors.white10,
-              valueColor: AlwaysStoppedAnimation<Color>(AppDesign.petPink),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppDesign.petPink),
               minHeight: 6,
             ),
           ),

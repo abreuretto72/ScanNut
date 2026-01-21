@@ -24,7 +24,7 @@ import '../../../core/theme/app_design.dart';
 
 /// Tela do Plano Semanal - MVP Completo
 class WeeklyPlanScreen extends ConsumerStatefulWidget {
-  const WeeklyPlanScreen({Key? key}) : super(key: key);
+  const WeeklyPlanScreen({super.key});
 
   @override
   ConsumerState<WeeklyPlanScreen> createState() => _WeeklyPlanScreenState();
@@ -952,7 +952,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 class DayPlanDetailsScreen extends ConsumerWidget {
   final PlanDay day;
 
-  const DayPlanDetailsScreen({Key? key, required this.day}) : super(key: key);
+  const DayPlanDetailsScreen({super.key, required this.day});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

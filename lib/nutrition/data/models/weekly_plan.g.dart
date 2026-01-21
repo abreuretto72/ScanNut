@@ -30,13 +30,15 @@ class WeeklyPlanAdapter extends TypeAdapter<WeeklyPlan> {
       version: fields[10] as int,
       status: fields[11] as String,
       shoppingListJson: fields[12] as String?,
+      petId: fields[13] as String?,
+      petName: fields[14] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, WeeklyPlan obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.weekStartDate)
       ..writeByte(1)
@@ -62,7 +64,11 @@ class WeeklyPlanAdapter extends TypeAdapter<WeeklyPlan> {
       ..writeByte(11)
       ..write(obj.status)
       ..writeByte(12)
-      ..write(obj.shoppingListJson);
+      ..write(obj.shoppingListJson)
+      ..writeByte(13)
+      ..write(obj.petId)
+      ..writeByte(14)
+      ..write(obj.petName);
   }
 
   @override

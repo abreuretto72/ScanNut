@@ -9,9 +9,9 @@ class MealPlanLoadingWidget extends StatefulWidget {
   final String petName;
   
   const MealPlanLoadingWidget({
-    Key? key,
+    super.key,
     required this.petName,
-  }) : super(key: key);
+  });
 
   @override
   State<MealPlanLoadingWidget> createState() => _MealPlanLoadingWidgetState();

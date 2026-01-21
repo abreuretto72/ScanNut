@@ -7,7 +7,7 @@ import '../../../core/theme/app_design.dart';
 import '../../../l10n/app_localizations.dart';
 
 class LocalBackupWidget extends StatefulWidget {
-  const LocalBackupWidget({Key? key}) : super(key: key);
+  const LocalBackupWidget({super.key});
 
   @override
   State<LocalBackupWidget> createState() => _LocalBackupWidgetState();

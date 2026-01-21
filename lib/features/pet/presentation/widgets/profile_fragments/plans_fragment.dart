@@ -19,7 +19,7 @@ class PlansFragment extends StatefulWidget {
   final VoidCallback onUserInteraction;
 
   const PlansFragment({
-    Key? key,
+    super.key,
     required this.healthPlan,
     required this.assistancePlan,
     required this.funeralPlan,
@@ -30,7 +30,7 @@ class PlansFragment extends StatefulWidget {
     required this.onFuneralPlanChanged,
     required this.onLifeInsuranceChanged,
     required this.onUserInteraction,
-  }) : super(key: key);
+  });
 
   @override
   State<PlansFragment> createState() => _PlansFragmentState();
@@ -364,7 +364,7 @@ class _PlansFragmentState extends State<PlansFragment> {
                     onToggle(v);
                     _notifyInteraction();
                   },
-                  activeColor: AppDesign.petPink,
+                  activeThumbColor: AppDesign.petPink,
                 ),
               ],
             ),
@@ -450,7 +450,7 @@ class _PlansFragmentState extends State<PlansFragment> {
       title: Text(label, style: const TextStyle(color: Colors.white, fontSize: 13)),
       contentPadding: EdgeInsets.zero,
       dense: true,
-      activeColor: AppDesign.petPink,
+      activeThumbColor: AppDesign.petPink,
       onChanged: (v) {
         onChanged(v);
         _notifyInteraction();

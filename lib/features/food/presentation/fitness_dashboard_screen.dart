@@ -4,13 +4,11 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../services/nutrition_service.dart';
 import '../services/workout_service.dart';
 import '../models/workout_item.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/intl.dart';
 import 'nutrition_history_screen.dart';
 import '../../../l10n/app_localizations.dart';
 
 class FitnessDashboardScreen extends StatefulWidget {
-  const FitnessDashboardScreen({Key? key}) : super(key: key);
+  const FitnessDashboardScreen({super.key});
 
   @override
   State<FitnessDashboardScreen> createState() => _FitnessDashboardScreenState();
@@ -19,7 +17,7 @@ class FitnessDashboardScreen extends StatefulWidget {
 class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
   double _consumed = 0;
   int _burned = 0;
-  double _goal = 2000;
+  final double _goal = 2000;
   bool _isLoading = true;
 
   @override

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../partners/presentation/partner_agenda_screen.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -10,10 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
-import 'package:open_filex/open_filex.dart';
 import '../../../../core/services/file_upload_service.dart';
-import '../../../../core/services/gemini_service.dart';
-import '../../../../core/utils/prompt_factory.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/enums/scannut_mode.dart';
 import '../../models/pet_profile_extended.dart';
@@ -24,12 +20,10 @@ import '../../models/pet_event.dart';
 
 import '../../services/pet_vision_service.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
-import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/utils/permission_helper.dart';
 
 import '../../../partners/presentation/partners_hub_screen.dart'; // Add this line
-import '../../../partners/presentation/partner_registration_screen.dart'; // Add this line
-import '../../../../core/services/whatsapp_service.dart';
+// Add this line
 import '../../services/pet_menu_generator_service.dart';
 import '../../services/meal_plan_service.dart';
 import '../../models/meal_plan_request.dart';
@@ -41,38 +35,18 @@ import '../../../../core/widgets/pdf_action_button.dart';
 import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
-import 'filter_3d_modal.dart';
-import '../../../../core/widgets/cumulative_observations_field.dart';
 import '../../models/lab_exam.dart';
-import 'meal_plan_loading_widget.dart';
 import '../../services/lab_exam_service.dart';
 import 'lab_exams_section.dart';
-import 'race_analysis_detail_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/pet_weight_database.dart';
 import '../../services/pet_profile_service.dart';
 
-import '../../services/lab_exam_service.dart';
-import 'lab_exams_section.dart';
-import 'race_analysis_detail_screen.dart';
-import 'package:image_picker/image_picker.dart';
-import '../../services/pet_weight_database.dart';
-import '../../services/pet_profile_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/pet_menu_generator_service.dart';
-import '../../services/meal_plan_service.dart';
-import 'pet_menu_filter_dialog.dart';
-import 'pet_menu_filter_dialog.dart';
 import 'weekly_menu_screen.dart';
-import '../../models/meal_plan_request.dart';
 import '../../models/weekly_meal_plan.dart';
-import 'partner_agenda_sheet.dart';
-import 'linked_partner_card.dart';
 import '../pet_event_history_screen.dart'; // Added
-import 'pet_event_grid.dart'; // Added
-import '../../services/pet_indexing_service.dart';
+// Added
 
-import 'profile_fragments/profile_design_system.dart';
 import 'profile_fragments/identity_fragment.dart';
 import 'profile_fragments/nutrition_fragment.dart';
 import 'profile_fragments/health_fragment.dart';
@@ -93,7 +67,7 @@ class EditPetForm extends StatefulWidget {
   final bool isNewEntry;
 
   const EditPetForm({
-    Key? key, 
+    super.key, 
     this.existingProfile, 
     this.petData,
     required this.onSave, 
@@ -101,7 +75,7 @@ class EditPetForm extends StatefulWidget {
     this.onDelete, 
     this.isNewEntry = false,
     this.initialTabIndex = 0,
-  }) : super(key: key);
+  });
 
   final int initialTabIndex;
 
@@ -171,7 +145,7 @@ class _EditPetFormState extends State<EditPetForm>
   List<Map<String, dynamic>> _analysisHistory = [];
   final FileUploadService _fileService = FileUploadService();
   String? _profileUrl; // V_FIX: Added missing variable
-  Map<String, List<File>> _attachments = {
+  final Map<String, List<File>> _attachments = {
     'identity': [],
     'health_exams': [],
     'health_prescriptions': [],
@@ -664,18 +638,11 @@ class _EditPetFormState extends State<EditPetForm>
       }
     } else if (state == AppLifecycleState.resumed) {
         debugPrint('🔄 App Resumed: Validating data coherence...');
-        // In a "Disk-First" architecture, we trusts the DB.
-        // However, if we have unsaved changes in memory that failed to write, overwriting them with DB data causes data loss.
-        // So we only refresh if we are "clean".
-        if (!_hasChanges) {
-             _reloadFreshData();
-             debugPrint('✅ UI is clean. Refreshed from disk.');
-        } else {
-             debugPrint('⚠️ UI has unsaved changes. Attempting to merge...');
-             // We could reload opaque data here too, but riskier.
-             // For now, save existing changes to overwrite disk (user intention prevails).
-             _saveNow(silent: true);
-        }
+        // 🛡️ FIX: Always reload external data (History, Exams) to prevent overwriting
+        // updates made by other screens (like Analysis) while this form was in background.
+        // Trusted Source: DISK (Hive).
+        _reloadFreshData();
+        debugPrint('✅ Data refreshed from disk on resume.');
     }
   }
 
@@ -1194,7 +1161,7 @@ class _EditPetFormState extends State<EditPetForm>
                         debugPrint('⚠️ [PDF_ATTACH] File picker returned null (user cancelled or error)');
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Nenhum arquivo selecionado'))
+                            const SnackBar(content: Text('Nenhum arquivo selecionado'))
                           );
                         }
                       }
@@ -1208,7 +1175,7 @@ class _EditPetFormState extends State<EditPetForm>
                     }
                   },
                 ),
-                SizedBox(height: 20), // Padding extra
+                const SizedBox(height: 20), // Padding extra
               ],
             ),
           ),
@@ -1240,7 +1207,7 @@ class _EditPetFormState extends State<EditPetForm>
         debugPrint('⚠️ [PDF_SAVE] saveMedicalDocument returned null');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao salvar arquivo'))
+            const SnackBar(content: Text('Erro ao salvar arquivo'))
           );
         }
       }
@@ -1300,8 +1267,8 @@ class _EditPetFormState extends State<EditPetForm>
       onEspecieChanged: (val) { setState(() => _especie = val); _onUserInteractionGeneric(); },
       onSexoChanged: (val) { setState(() => _sexo = val); _onUserInteractionGeneric(); },
       onPorteChanged: (val) { setState(() => _porte = val); _onUserInteractionGeneric(); },
-      onNivelAtividadeChanged: (val) { setState(() => _nivelAtividade = val!); _onUserInteractionGeneric(); },
-      onStatusReprodutivoChanged: (val) { setState(() => _statusReprodutivo = val!); _onUserInteractionGeneric(); },
+      onNivelAtividadeChanged: (val) { setState(() => _nivelAtividade = val); _onUserInteractionGeneric(); },
+      onStatusReprodutivoChanged: (val) { setState(() => _statusReprodutivo = val); _onUserInteractionGeneric(); },
       onObservacoesChanged: (val) { setState(() => _observacoesIdentidade = val); _onUserTyping(); },
       onUserTyping: _onUserTyping,
       onUserInteractionGeneric: _onUserInteractionGeneric,
@@ -1322,7 +1289,7 @@ class _EditPetFormState extends State<EditPetForm>
          l.petBathWeekly,
          l.petBathMonthly
       ]),
-      petId: _nameController.text.trim(),
+      petId: _petId ?? _nameController.text.trim(),
       species: _especie ?? '',
       labExams: _labExams,
       observacoesSaude: _observacoesSaude,
@@ -1353,6 +1320,7 @@ class _EditPetFormState extends State<EditPetForm>
 
   Widget _buildNutritionTabContent() {
     return NutritionFragment(
+      petId: _petId ?? _nameController.text,
       petName: _nameController.text,
       alergiasController: _alergiasController,
       alergiasConhecidas: _alergiasConhecidas,
@@ -1430,7 +1398,8 @@ class _EditPetFormState extends State<EditPetForm>
 
       if (confirm != true) return;
 
-      await PetProfileService().removeAnalysisFromHistory(petName, item);
+      final petIdOrName = _petId ?? _nameController.text.trim();
+      await PetProfileService().removeAnalysisFromHistory(petIdOrName, item);
       setState(() {
           _analysisHistory.removeWhere((a) => a['last_updated'] == item['last_updated']);
       });
@@ -1517,7 +1486,7 @@ class _EditPetFormState extends State<EditPetForm>
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.white54, size: 20),
+                    const Icon(Icons.info_outline, color: Colors.white54, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -1591,7 +1560,7 @@ class _EditPetFormState extends State<EditPetForm>
     }
 
     final imagePath = analysis['imagePath'] as String?;
-    final hasImage = imagePath != null && imagePath.isNotEmpty && File(imagePath!).existsSync();
+    final hasImage = imagePath != null && imagePath.isNotEmpty && File(imagePath).existsSync();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1616,7 +1585,7 @@ class _EditPetFormState extends State<EditPetForm>
                                 children: [
                                     ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
-                                        child: Image.file(File(imagePath!)),
+                                        child: Image.file(File(imagePath)),
                                     ),
                                     Container(
                                         margin: const EdgeInsets.all(8),
@@ -1641,7 +1610,7 @@ class _EditPetFormState extends State<EditPetForm>
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: severityColor.withOpacity(0.5)),
                     image: DecorationImage(
-                        image: FileImage(File(imagePath!)),
+                        image: FileImage(File(imagePath)),
                         fit: BoxFit.cover,
                     ),
                   ),
@@ -1765,19 +1734,8 @@ class _EditPetFormState extends State<EditPetForm>
           if (freshData != null && freshData['data'] != null) {
                final data = freshData['data'];
                
-               // 1. Refresh Wound History (Local State)
-               if (data['wound_analysis_history'] != null) {
-                   if (mounted) {
-                      setState(() {
-                          _woundHistory = (data['wound_analysis_history'] as List)
-                              .map((e) => Map<String, dynamic>.from(e as Map))
-                              .toList();
-                      });
-                   }
-               }
 
-
-               // 1. Refresh Wound History (Local + Structured)
+               // 1. Refresh Wound History (Legacy)
                if (data['wound_analysis_history'] != null) {
                    if (mounted) {
                       setState(() {
@@ -1788,10 +1746,13 @@ class _EditPetFormState extends State<EditPetForm>
                    }
                }
                
-               // 🛡️ V_FIX: Load Structured History (Gallery)
-               if (data['historicoAnaliseFeridas'] != null) {
+               // 2. Load Structured History (Gallery)
+               // 🛡️ FIX: Use correct key 'historico_analise_feridas' (snake_case) matching DB
+               if (data['historico_analise_feridas'] != null) {
                    try {
-                       final list = (data['historicoAnaliseFeridas'] as List).map((e) => AnaliseFeridaModel.fromJson(Map<String, dynamic>.from(e))).toList();
+                       final list = (data['historico_analise_feridas'] as List)
+                           .map((e) => AnaliseFeridaModel.fromJson(Map<String, dynamic>.from(e)))
+                           .toList();
                        if (mounted) setState(() => _historicoAnaliseFeridas = list);
                    } catch (e) {
                        debugPrint('Error loading structured history: $e');
@@ -1935,7 +1896,7 @@ class _EditPetFormState extends State<EditPetForm>
       try {
         // Delete from database
         await PetProfileService().deleteWoundAnalysis(
-          petName: _nameController.text.trim(),
+          petId: _petId ?? _nameController.text.trim(),
           analysisDate: analysisDate,
         );
 
@@ -2390,7 +2351,7 @@ class _EditPetFormState extends State<EditPetForm>
              final latest = plans.first; 
              setState(() {
                  _lastMealPlanDate = latest.startDate;
-                 if (_currentRawAnalysis == null) _currentRawAnalysis = {};
+                 _currentRawAnalysis ??= {};
                  
                  final allMeals = latest.meals..sort((a,b) {
                      final d = a.dayOfWeek.compareTo(b.dayOfWeek);
@@ -2409,6 +2370,7 @@ class _EditPetFormState extends State<EditPetForm>
              
              if (mounted) {
                  Navigator.push(context, MaterialPageRoute(builder: (_) => WeeklyMenuScreen(
+                     petId: _petId!,
                      petName: _nameController.text,
                      raceName: _racaController.text,
                      initialTabIndex: 1,
@@ -2503,7 +2465,8 @@ class _EditPetFormState extends State<EditPetForm>
                    ),
                    onPressed: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => WeeklyMenuScreen(
-                          currentWeekPlan: [],
+                          petId: _petId!,
+                          currentWeekPlan: const [],
                           generalGuidelines: '',
                           petName: widget.existingProfile?.petName ?? _nameController.text,
                           raceName: _racaController.text,
@@ -3465,6 +3428,7 @@ class _EditPetFormState extends State<EditPetForm>
       context,
       MaterialPageRoute(
         builder: (context) => WeeklyMenuScreen(
+          petId: _petId!,
           petName: widget.existingProfile?.petName ?? _nameController.text,
           raceName: _racaController.text,
         ),

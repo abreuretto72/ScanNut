@@ -6,7 +6,7 @@ import '../../../../l10n/app_localizations.dart';
 class AttachmentAnalysisDialog extends StatelessWidget {
   final String jsonString;
 
-  const AttachmentAnalysisDialog({Key? key, required this.jsonString}) : super(key: key);
+  const AttachmentAnalysisDialog({super.key, required this.jsonString});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class AttachmentAnalysisDialog extends StatelessWidget {
                 ],
                 if (data['alerts'] != null && (data['alerts'] is List) && (data['alerts'] as List).isNotEmpty) ...[
                    const Text("ALERTAS", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12)),
-                   ...(data['alerts'] as List).map((a) => Text("• $a", style: TextStyle(color: Colors.red.shade100, fontSize: 13))).toList(),
+                   ...(data['alerts'] as List).map((a) => Text("• $a", style: TextStyle(color: Colors.red.shade100, fontSize: 13))),
                    const SizedBox(height: 12),
                 ],
                 if (data['details'] != null) ...[

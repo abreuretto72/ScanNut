@@ -278,7 +278,7 @@ class PetPdfGenerator {
                     return (model.categoria == 'fezes' || model.categoria == 'stool')
                         ? _buildStoolItem(model, e['image'], strings)
                         : _buildWoundItem(model, e['image'], strings);
-                }).toList()
+                })
              else
                 pw.Text(strings.fallbackNoInfo, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
              pw.SizedBox(height: 20),
@@ -286,7 +286,7 @@ class PetPdfGenerator {
              _buildSectionTitle(strings.pdfGeneralAnalysisHistory, strings),
              pw.SizedBox(height: 10),
              if (analysisWithImages.isNotEmpty)
-                  ...analysisWithImages.map((e) => _buildGeneralAnalysisItem(e['data'], strings, image: e['image'])).toList()
+                  ...analysisWithImages.map((e) => _buildGeneralAnalysisItem(e['data'], strings, image: e['image']))
              else
                   pw.Text(strings.pdfNoInfo, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
              pw.SizedBox(height: 20),
@@ -294,7 +294,7 @@ class PetPdfGenerator {
              _buildSectionTitle(strings.pdfLabExams, strings),
              pw.SizedBox(height: 10),
              if (labItems.isNotEmpty)
-                 ...labItems.map((e) => _buildLabItem(e['model'], e['image'], strings)).toList()
+                 ...labItems.map((e) => _buildLabItem(e['model'], e['image'], strings))
              else
                  pw.Text(strings.fallbackNoInfo, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
              pw.SizedBox(height: 20),
@@ -384,8 +384,8 @@ class PetPdfGenerator {
                pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(p['name']!, style: const pw.TextStyle(fontSize: 9))),
                pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(p['category']!, style: const pw.TextStyle(fontSize: 9))),
                pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                   if (p['phone']!.isNotEmpty) pw.Text('${strings.labelPhone}: ${p['phone']}', style: pw.TextStyle(fontSize: 9)),
-                   if (p['email']!.isNotEmpty) pw.Text('${strings.labelEmail}: ${p['email']}', style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                   if (p['phone']!.isNotEmpty) pw.Text('${strings.labelPhone}: ${p['phone']}', style: const pw.TextStyle(fontSize: 9)),
+                   if (p['email']!.isNotEmpty) pw.Text('${strings.labelEmail}: ${p['email']}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
                    if (p['address']!.isNotEmpty) pw.Text(p['address']!, style: pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic)),
                    if (p['notes'] != null && p['notes']!.isNotEmpty) 
                        pw.Padding(
@@ -589,7 +589,7 @@ class PetPdfGenerator {
                    pw.Container(
                      margin: const pw.EdgeInsets.only(top: 4),
                      padding: const pw.EdgeInsets.all(6),
-                     decoration: pw.BoxDecoration(color: PdfColors.grey100, borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4))),
+                     decoration: const pw.BoxDecoration(color: PdfColors.grey100, borderRadius: pw.BorderRadius.all(pw.Radius.circular(4))),
                      child: pw.Text(item.aiExplanation!.replaceAll('\n', ' '), style: const pw.TextStyle(fontSize: 8, color: PdfColors.black))
                    )
             ]))
@@ -632,7 +632,7 @@ class PetPdfGenerator {
                         pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(day, style: const pw.TextStyle(fontSize: 8))),
                         pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(refeicoes, style: const pw.TextStyle(fontSize: 8))),
                     ]);
-                }).toList()
+                })
             ])
         ],
         
@@ -987,11 +987,11 @@ class PetPdfGenerator {
                                ...details.map((d) => pw.Padding(
                                    padding: const pw.EdgeInsets.only(bottom: 2),
                                    child: pw.Text(d, style: const pw.TextStyle(fontSize: 9))
-                               )).toList(),
+                               )),
                            ]
                        )
                    );
-               }).toList(),
+               }),
                if (profile.observacoesPlanos.isNotEmpty) ...[
                    pw.SizedBox(height: 10),
                    pw.Text('Observações de Planos:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
@@ -1088,7 +1088,7 @@ class PetPdfGenerator {
                                  pw.Container(width: 80, child: pw.Text('$label: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.grey800))),
                                  pw.Expanded(child: pw.Text(val, style: const pw.TextStyle(fontSize: 9))),
                              ]));
-                        }).toList()
+                        })
                     ]
                  )
               )

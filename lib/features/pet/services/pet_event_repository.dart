@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/pet_event_model.dart';
@@ -161,7 +160,11 @@ class PetEventRepository {
 
   List<PetEventModel> listEventsByPet(String petId, {DateTime? from, DateTime? to}) {
     try {
-      var events = _openBox.values.where((e) => e.petId == petId && !e.isDeleted).toList();
+      // 🛡️ HYBRID QUERY: Matches either ID (UUID) OR Name (Legacy/Data)
+      var events = _openBox.values.where((e) => 
+        (e.petId == petId || e.data['pet_name'] == petId) && 
+        !e.isDeleted
+      ).toList();
       
       if (from != null) {
         events = events.where((e) => e.timestamp.isAfter(from) || e.timestamp.isAtSameMomentAs(from)).toList();
@@ -181,7 +184,7 @@ class PetEventRepository {
   Map<String, int> listTotalCountByGroup(String petId) {
     final counts = <String, int>{};
     final events = _openBox.values.where((e) => 
-      e.petId == petId && 
+      (e.petId == petId || e.data['pet_name'] == petId) && 
       !e.isDeleted
     );
 
@@ -198,7 +201,7 @@ class PetEventRepository {
 
     final counts = <String, int>{};
     final events = _openBox.values.where((e) => 
-      e.petId == petId && 
+      (e.petId == petId || e.data['pet_name'] == petId) && 
       !e.isDeleted &&
       (e.timestamp.isAfter(today) || e.timestamp.isAtSameMomentAs(today)) &&
       e.timestamp.isBefore(tomorrow)

@@ -14,10 +14,10 @@ import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
 import 'pet_menu_filter_dialog.dart';
 import '../../models/meal_plan_request.dart';
-import 'meal_plan_loading_widget.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 
 class WeeklyMenuScreen extends ConsumerStatefulWidget {
+  final String petId;
   final String petName;
   final String raceName;
   
@@ -27,13 +27,14 @@ class WeeklyMenuScreen extends ConsumerStatefulWidget {
   final int initialTabIndex;
 
   const WeeklyMenuScreen({
-    Key? key,
+    super.key,
+    required this.petId,
     required this.petName,
     required this.raceName,
-    this.currentWeekPlan = const [],
+    this.currentWeekPlan = const <Map<String, dynamic>>[],
     this.generalGuidelines = '',
     this.initialTabIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<WeeklyMenuScreen> createState() => _WeeklyMenuScreenState();
@@ -60,7 +61,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
     setState(() => _isLoading = true);
     try {
        // Fetch strict history from Hive
-       final plans = await MealPlanService().getPlansForPet(widget.petName.trim());
+       final plans = await MealPlanService().getPlansForPet(widget.petId.trim(), fallbackName: widget.petName.trim());
        if (mounted) {
          setState(() {
            _history = plans;
@@ -141,7 +142,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
       for (var plan in selectedPlans) {
          // Load shopping list
          final sl = await PetShoppingListService().getList(plan.id);
-         if (sl != null) shoppingLists[plan.id] = sl;
+         shoppingLists[plan.id] = sl;
 
          // Convert daily meals
          for (var day in plan.meals) {
@@ -225,7 +226,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        title: Text(widget.petName.isEmpty ? 'Cardápio' : '${widget.petName}', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text(widget.petName.isEmpty ? 'Cardápio' : widget.petName, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -292,7 +293,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                     // VALIDATION SAFETY CHECK (Trava de Segurança)
                     final profileService = PetProfileService();
                     await profileService.init();
-                    final profile = await profileService.getProfile(widget.petName);
+                    final profile = await profileService.getProfile(widget.petId);
                     
                      if (profile != null && profile['data'] != null) {
                           final d = profile['data'];
@@ -391,7 +392,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
         Map<String, dynamic> profileData = Map<String, dynamic>.from(fullProfileData);
 
          final request = MealPlanRequest(
-            petId: widget.petName.trim(), 
+            petId: widget.petId.trim(), 
             profileData: profileData,
             mode: config['mode'],
             startDate: config['startDate'],
@@ -547,8 +548,11 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                side: const BorderSide(color: Colors.white54),
                onChanged: (val) {
                   setState(() {
-                     if (val == true) _selectedPlanIds.add(plan.id);
-                     else _selectedPlanIds.remove(plan.id);
+                     if (val == true) {
+                       _selectedPlanIds.add(plan.id);
+                     } else {
+                       _selectedPlanIds.remove(plan.id);
+                     }
                   });
                },
             ),
@@ -587,7 +591,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                ],
             ),
             children: [
-               ...plan.meals.map((day) => _buildDayItem(plan, day, l10n)).toList(),
+               ...plan.meals.map((day) => _buildDayItem(plan, day, l10n)),
                _buildRacaoSuggestions(plan, l10n),
             ],
          ),

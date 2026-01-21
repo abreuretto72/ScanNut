@@ -1,12 +1,3 @@
-import 'dart:io';
-/// ============================================================================
-/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
-/// Este módulo de Exames Laboratoriais foi concluído e validado.
-/// Nenhuma rotina ou lógica interna deve ser modificada.
-/// Data de Congelamento: 29/12/2025
-/// ============================================================================
-
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../models/lab_exam.dart';

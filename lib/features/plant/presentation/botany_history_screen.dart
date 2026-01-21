@@ -17,7 +17,7 @@ import 'widgets/plant_export_configuration_modal.dart';
 import 'widgets/plant_level_icon.dart';
 
 class BotanyHistoryScreen extends StatefulWidget {
-  const BotanyHistoryScreen({Key? key}) : super(key: key);
+  const BotanyHistoryScreen({super.key});
 
   @override
   State<BotanyHistoryScreen> createState() => _BotanyHistoryScreenState();
@@ -101,7 +101,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.local_florist, size: 80, color: AppDesign.surfaceDark),
+          const Icon(Icons.local_florist, size: 80, color: AppDesign.surfaceDark),
           const SizedBox(height: 16),
           Text(
             l10n.botanyEmpty,
@@ -385,7 +385,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: AppDesign.success, width: 0.5),
+                side: const BorderSide(color: AppDesign.success, width: 0.5),
               ),
             ),
           ),

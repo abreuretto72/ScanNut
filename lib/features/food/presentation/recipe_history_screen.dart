@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/theme/app_design.dart';
 import '../models/recipe_history_item.dart';
 import '../services/recipe_service.dart';
@@ -13,7 +12,7 @@ import '../../../core/widgets/pdf_preview_screen.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 
 class RecipeHistoryScreen extends StatefulWidget {
-  const RecipeHistoryScreen({Key? key}) : super(key: key);
+  const RecipeHistoryScreen({super.key});
 
   @override
   State<RecipeHistoryScreen> createState() => _RecipeHistoryScreenState();

@@ -44,6 +44,14 @@ class HiveInitService {
       // 1. AUTHENTICATION BOX (no encryption)
       await _openBox('box_auth_local', cipher: null);
 
+      // 🛡️ [V70-FIX] If cipher is null, we ONLY open the Auth box. 
+      // Secure boxes MUST wait for the user to log in or a persistent session to be restored.
+      if (cipher == null) {
+        debugPrint('⚠️ [V70-HIVE] Cipher is NULL. Skipping secure boxes to avoid corruption or accidental wipe.');
+        _isInitialized = false; 
+        return;
+      }
+
       // 2. PET MODULE BOXES (encrypted)
       await _openBox('box_pets_master', cipher: cipher);
       await _openBox('pet_events', cipher: cipher);
@@ -72,7 +80,10 @@ class HiveInitService {
       await _openTypedBox<ShoppingListItem>('nutrition_shopping_list', cipher: cipher);
       await _openBox('menu_filter_settings', cipher: cipher);
 
-      // 7. PARTNERS BOX (encrypted)
+      // 7. DEDUPLICATION BOX (encrypted)
+      await _openBox('processed_images_box', cipher: cipher);
+
+      // 8. PARTNERS BOX (encrypted)
       await _openBox('partners_box', cipher: cipher);
 
       _isInitialized = true;

@@ -6,7 +6,7 @@ import '../../data/models/weekly_plan.dart';
 
 /// Painel de diagnóstico do Hive (apenas DEBUG)
 class HiveDebugPanel extends StatelessWidget {
-  const HiveDebugPanel({Key? key}) : super(key: key);
+  const HiveDebugPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +101,7 @@ class HiveDebugPanel extends StatelessWidget {
               '• $key',
               style: GoogleFonts.poppins(color: Colors.green, fontSize: 12),
             ),
-          )).toList(),
+          )),
       ];
     } catch (e) {
       return [

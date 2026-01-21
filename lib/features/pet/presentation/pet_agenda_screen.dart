@@ -13,7 +13,7 @@ class PetAgendaScreen extends ConsumerStatefulWidget {
   final String petId;
   final String petName;
 
-  const PetAgendaScreen({Key? key, required this.petId, required this.petName}) : super(key: key);
+  const PetAgendaScreen({super.key, required this.petId, required this.petName});
 
   @override
   ConsumerState<PetAgendaScreen> createState() => _PetAgendaScreenState();
@@ -682,7 +682,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                           // Title/Vaccine Selection
                           if (_selectedType == EventType.vaccine) ...[
                             DropdownButtonFormField<String>(
-                              value: _selectedVaccine,
+                              initialValue: _selectedVaccine,
                               dropdownColor: Colors.grey[800],
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
@@ -749,7 +749,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                           const SizedBox(height: 16),
                           // Type
                           DropdownButtonFormField<EventType>(
-                            value: _selectedType,
+                            initialValue: _selectedType,
                             dropdownColor: Colors.grey[800],
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
@@ -837,7 +837,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                           const SizedBox(height: 16),
                           // Recurrence
                           DropdownButtonFormField<RecurrenceType>(
-                            value: _selectedRecurrence,
+                            initialValue: _selectedRecurrence,
                             dropdownColor: Colors.grey[800],
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(

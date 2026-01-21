@@ -13,13 +13,13 @@ class RaceDetailsSection extends StatelessWidget {
   final String Function(String?, {bool isReliability}) localizeValue;
 
   const RaceDetailsSection({
-    Key? key,
+    super.key,
     this.racaController,
     this.pesoController,
     this.porte,
     required this.currentRawAnalysis,
     required this.localizeValue,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

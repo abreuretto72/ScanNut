@@ -35,7 +35,7 @@ class HealthFragment extends StatelessWidget {
   final Function(File) onDeleteAttachment;
 
   const HealthFragment({
-    Key? key,
+    super.key,
     required this.dataUltimaV10,
     required this.dataUltimaAntirrabica,
     required this.frequenciaBanho,
@@ -57,7 +57,7 @@ class HealthFragment extends StatelessWidget {
     this.onDeleteAnalysis,
     required this.species,
     required this.petId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -8,11 +8,11 @@ class PlantLevelIcon extends StatelessWidget {
   final double size;
 
   const PlantLevelIcon({
-    Key? key,
+    super.key,
     required this.level,
     required this.type,
     this.size = 20.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -6,7 +6,7 @@ import '../../../core/theme/app_design.dart';
 import '../../home/presentation/home_view.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -18,7 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _obscurePassword = true;
+  final bool _obscurePassword = true;
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;

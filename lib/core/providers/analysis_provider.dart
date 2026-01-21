@@ -5,14 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/analysis_state.dart';
 import '../services/gemini_service.dart';
 import '../services/groq_api_service.dart';
-import '../services/history_service.dart';
 import '../services/meal_history_service.dart';
-import '../../features/food/services/nutrition_service.dart';
 import '../enums/scannut_mode.dart';
 import '../utils/prompt_factory.dart';
 import '../../features/food/models/food_analysis_model.dart';
 import '../../features/plant/models/plant_analysis_model.dart';
 import '../../features/pet/models/pet_analysis_result.dart';
+import '../services/image_deduplication_service.dart';
 
 // Provider for GeminiService
 final geminiServiceProvider = Provider<GeminiService>((ref) {
@@ -23,15 +22,15 @@ final geminiServiceProvider = Provider<GeminiService>((ref) {
 class AnalysisNotifier extends StateNotifier<AnalysisState> {
   final GeminiService _geminiService;
   final GroqApiService _groqService;
-  final HistoryService _historyService;
 
-  AnalysisNotifier(this._geminiService, this._groqService, this._historyService) : super(AnalysisIdle());
+  AnalysisNotifier(this._geminiService, this._groqService) : super(AnalysisIdle());
 
   /// Analyze image based on selected mode
-  Future<void> analyzeImage({
+  Future<AnalysisState> analyzeImage({
     required File imageFile,
     required ScannutMode mode,
     String? petName,
+    String? petId, // 🛡️ UUID Link
     List<String> excludedBases = const [],
     String locale = 'pt', // Default to Portuguese
     Map<String, String>? contextData, // 🛡️ NEW: Context Injection
@@ -42,6 +41,18 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     );
 
     try {
+      // 🛡️ [V180] Image Deduplication Check
+      final deduplication = ImageDeduplicationService();
+      final hash = await deduplication.calculateHash(imageFile);
+      
+      if (hash.isNotEmpty) {
+          final existing = await deduplication.checkDeduplication(hash);
+          if (existing != null) {
+              debugPrint('🚫 [DEDUPLICATION] Image already analyzed. Stopping.');
+              state = AnalysisError('error_image_already_analyzed');
+              return state;
+          }
+      }
       Map<String, dynamic> jsonResponse;
       // 3. Alinhamento de Idioma (Locale)
       String normalizedLocale = locale;
@@ -107,11 +118,11 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
             errorVal.contains('not_food') || 
             errorVal.contains('not_plant')) {
           state = AnalysisError('analysisErrorInvalidCategory');
-          return;
+          return state;
         }
         if (errorVal.contains('not_detected')) {
           state = AnalysisError('analysisErrorNotDetected');
-          return;
+          return state;
         }
       }
 
@@ -153,11 +164,35 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           // debugPrint('✅ [AnalysisNotifier] Food Analysis Ready.');
 
           state = AnalysisSuccess<FoodAnalysisModel>(foodAnalysis);
+          
+          // 🛡️ [V180] Register hash on success
+          if (hash.isNotEmpty) {
+              await deduplication.registerProcessedImage(
+                hash: hash,
+                type: mode.toString(),
+                extraMetadata: {
+                  'timestamp': DateTime.now().toIso8601String(),
+                  'mode': mode.toString(),
+                }
+              );
+          }
           break;
 
         case ScannutMode.plant:
           final plantAnalysis = PlantAnalysisModel.fromJson(jsonResponse);
           state = AnalysisSuccess<PlantAnalysisModel>(plantAnalysis);
+          
+          // 🛡️ [V180] Register hash on success
+          if (hash.isNotEmpty) {
+              await deduplication.registerProcessedImage(
+                hash: hash,
+                type: mode.toString(),
+                extraMetadata: {
+                  'timestamp': DateTime.now().toIso8601String(),
+                  'mode': mode.toString(),
+                }
+              );
+          }
           break;
 
         case ScannutMode.petIdentification:
@@ -165,6 +200,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           final petAnalysis = PetAnalysisResult.fromJson({
             ...jsonResponse,
             if (petName != null) 'pet_name': petName,
+            if (petId != null) 'pet_id': petId,
           });
           
           // Save meal plan ingredients for rotation logic
@@ -195,17 +231,35 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           }
           
           state = AnalysisSuccess<PetAnalysisResult>(petAnalysis);
+          
+          // 🛡️ [V180] Register hash on success
+          if (hash.isNotEmpty) {
+              await deduplication.registerProcessedImage(
+                hash: hash,
+                type: mode.toString(),
+                petId: petId,
+                petName: petName,
+                extraMetadata: {
+                  'timestamp': DateTime.now().toIso8601String(),
+                  'mode': mode.toString(),
+                }
+              );
+          }
           break;
 
         default:
-          break;
+          throw Exception('Modo não suportado: $mode');
       }
-    } on GeminiException catch (e) {
+      
+      return state;
+    } on GeminiException {
       // Use user-friendly message key
       state = AnalysisError('analysisErrorAiFailure');
+      return state;
     } on FormatException catch (e) {
       debugPrint('❌ Erro de formato no JSON: $e');
       state = AnalysisError('analysisErrorJsonFormat');
+      return state;
     } catch (e, stack) {
       if (mode == ScannutMode.plant) {
         debugPrint('Plant Analysis Error: $e');
@@ -220,7 +274,9 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         state = AnalysisError('analysisErrorUnexpected');
       }
     }
+    return state;
   }
+
 
   /// Reset state to idle
   void reset() {
@@ -252,6 +308,5 @@ final analysisNotifierProvider =
     StateNotifierProvider<AnalysisNotifier, AnalysisState>((ref) {
   final geminiService = ref.watch(geminiServiceProvider);
   final groqService = ref.watch(groqApiServiceProvider);
-  final historyService = ref.watch(historyServiceProvider);
-  return AnalysisNotifier(geminiService, groqService, historyService);
+  return AnalysisNotifier(geminiService, groqService);
 });

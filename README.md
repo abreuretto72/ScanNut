@@ -42,6 +42,156 @@ Lista de compras
 - 🤖 **NOVO:** Análise Inteligente de Anexos (Visual e OCR)
 - 🔗 **NOVO:** Pet Indexing Engine (Deep Links & Timeline Automática)
 
+Funções do APP
+
+1.Login 
+    com email e senha ou biometria
+    As vezes vai pedir para logar por questão de segurança
+
+2.Menu
+    Configuração
+        Nome do usuário
+        Alterar senha
+        Manter conectado
+        Usar biometria
+        Idioma
+        Unidade de peso
+        Raio de busca no google maps
+        Backup e restore local
+        Restaurar padrões
+    Pilares da Nutrição
+        O que é
+        Proteina Animal
+        Gorduras específicas
+        Fibras e Carboidratos
+        Minerais e Vitaminas
+        Hidratação Biológica
+    Gerenciador de Dados
+        Estatisticas do DB
+        Arquivamento com filtro
+        Anexos fisicos
+        Zona dee perigo
+            Exclusão de alimentos analisados
+            Exclusão das plantas analisadas
+            Exclusão dos Pets analisados
+            Exclusão Geral - Excluir tudo
+    Ajuda
+    Sobre
+    Politica de Privacidade
+    Sair e Desconectar
+
+3.Análise de Comida
+    Upload de imagem de comida
+    Fotografar a comida
+    Resultado da Análise
+        Resumo
+            calorias
+            nome do alimento ou refeição
+            Veredito da IA
+            Pontos positivos
+            Pontos de atenção
+        Saúde
+            Performance Biohacking
+            Segurança Bioquímica
+        Nutrientes
+            Proteinas
+            Crboidratos
+            Gorduras
+            Minerais e Vitaminas
+        Gastronomia
+            Receitas rápidas    
+    Histórico das análises
+    PDF do resultado da análise
+    PDF do histórico
+    Gestão de Nutrição
+        Gerar cardápio com várias configurações
+
+4.Análise de Planta
+    Upload de imagem de planta
+    Fotografar a planta
+    Resultado da Análise
+        Resumo
+            nome da planta
+            Necessidade de Sol
+            Necessidade de Água
+            Solo e Nutrição
+            Ajustes Sazonais
+        Saúde
+            Diagnóstico clínico
+            Plano de recuperação
+        BIOS
+            Segurança domésticaProteinas
+            Poderes biofílicos
+        Propagação
+            Engenharia de propagação
+            Inteligência de ecosistema
+        LifeStyle
+            Feng Shui
+            Estética viva    
+    Histórico das análises
+    PDF do resultado da análise
+    PDF do histórico
+        
+5.Análise de PETs
+    Upload de imagem do pet corpo inteiro
+    Fotografar o pet corpo inteiro
+    Resultado da análise
+        Identidade
+            Nome do pet
+            Espécie(cão ou gato)
+            Análise da Raça
+            Espectativa de vida
+            Porte
+            Idade
+            Peso
+            Sexo
+            Status de reprodução(castrado ou não)
+            Perfil biológico(nivel de atividade)
+            Código do Microchip
+            Foto de ID ou Passaporte
+            Observações(falado)
+        Análises
+            Análise vocal(arquivo de audio do latido ou miado)
+            Análise corporal & Postura(imagem do PET de corpo inteiro)
+        Saúde
+            Histórico de vacinas
+            Higiene
+            Exame de sangue(IA faz análise do resultado do exame)
+            Exame de urina(IA faz análise do resultado do exame)
+            Exame de fezes(IA faz análise do resultado do exame ou da imagem)
+            Exame de pele(IA faz análise da imagem)    
+            Exame de ferida(IA faz análise da imagem)
+            Exame de olhos(IA faz análise da imagem)
+            Exame da boca(IA faz análise da imagem)
+            Exame dos dentes(IA faz análise da imagem)
+            Observações(falado)
+        Nutrição
+            Análise de rótulo de ingredientes de Ração
+            Sugestões de Ração
+            Alergias alimentares
+            Restriçoes alimentares
+            Plano alimentar
+                Elaborção de cardápios
+                  Natural
+                  Ração
+                  Ração + Natural
+            Anexar Receitas e Dietas
+            Observação(falado)
+        Parceiros
+            Veterinários, Hoteis, Farmácia, Pet Shops e outros
+            Vinculo do Pet com o parceiro
+            Agendamento com o parceiro
+        Galeria
+            Galeria de fotos 
+        Planos
+            de Saúde
+            de Assistência/Reembolso
+            Funerário
+            Seguro de Vida
+            Observação(falado)
+        Viagens
+            Dicas e Documentos(Nacional ou Internacional) 
+            Observação(falado)
 ---
 
 ## ✨ **NOVIDADES DA VERSÃO 1.5.7**
@@ -369,13 +519,65 @@ Contribuições são bem-vindas! Por favor:
 
 ## 📄 **LICENÇA**
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+LICENÇA – SCANNUT
+Código Proprietário / Freemium
+
+Copyright (c) 2026 ScanNut
+Todos os direitos reservados.
+
+Este software, denominado ScanNut, é distribuído sob o modelo de
+LICENÇA DE CÓDIGO PROPRIETÁRIO e utiliza o modelo de distribuição
+FREEMIUM.
+
+1. CONCESSÃO DE LICENÇA
+É concedida ao usuário uma licença limitada, não exclusiva,
+intransferível e revogável para utilizar o aplicativo ScanNut,
+exclusivamente para fins pessoais ou comerciais, conforme as
+funcionalidades disponibilizadas na versão gratuita ou adquiridas
+por meio de recursos pagos.
+
+2. MODELO FREEMIUM
+O ScanNut oferece funcionalidades básicas gratuitamente.
+Recursos avançados, premium ou adicionais podem exigir pagamento,
+assinatura ou compra dentro do aplicativo.
+
+3. RESTRIÇÕES
+É expressamente proibido:
+- Copiar, modificar, adaptar ou criar obras derivadas do software;
+- Realizar engenharia reversa, descompilação ou desmontagem;
+- Redistribuir, sublicenciar, vender, alugar ou emprestar o software;
+- Remover ou alterar avisos de direitos autorais ou marcas.
+
+4. PROPRIEDADE INTELECTUAL
+Todo o código-fonte, design, layout, logotipos, marcas, textos,
+bancos de dados e demais elementos do ScanNut são de propriedade
+exclusiva do(s) autor(es) do projeto, sendo protegidos pelas leis
+de direitos autorais e propriedade intelectual.
+
+5. ISENÇÃO DE GARANTIA
+O software é fornecido “NO ESTADO EM QUE SE ENCONTRA”, sem garantias
+de qualquer tipo, expressas ou implícitas, incluindo, mas não se
+limitando a garantias de comercialização, adequação a um propósito
+específico ou não violação.
+
+6. LIMITAÇÃO DE RESPONSABILIDADE
+Em nenhuma hipótese os autores ou detentores dos direitos serão
+responsáveis por quaisquer danos diretos, indiretos, incidentais,
+especiais ou consequenciais decorrentes do uso ou da impossibilidade
+de uso do ScanNut.
+
+7. RESCISÃO
+Esta licença será automaticamente rescindida caso o usuário viole
+qualquer um de seu
+
+
+
 
 ---
 
 ## 📞 **SUPORTE**
 
-- **Email:** abreuretto72@gmail.com
+- **Email:** [contato@multiversodigitalk.com.br](mailto:contato@multiversodigitalk.com.br)
 - **GitHub:** [abreuretto72/ScanNut](https://github.com/abreuretto72/ScanNut)
 - **Documentação:** [docs/index.html](docs/index.html)
 
@@ -390,5 +592,5 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ---
 
-**Desenvolvido com ❤️ por Abreu Retto**  
+**Desenvolvido com ❤️ por Multiverso Digital**  
 **© 2026 ScanNut - Todos os direitos reservados**

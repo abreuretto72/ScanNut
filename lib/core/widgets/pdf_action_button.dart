@@ -7,11 +7,11 @@ class PdfActionButton extends StatelessWidget {
   final Color? color;
 
   const PdfActionButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     this.tooltip = 'Gerar PDF',
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

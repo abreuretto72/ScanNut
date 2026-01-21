@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../services/pet_weight_database.dart';
-import '../../../../../core/theme/app_design.dart';
 
 class WeightFeedbackSection extends StatelessWidget {
   final TextEditingController pesoController;
@@ -10,11 +9,11 @@ class WeightFeedbackSection extends StatelessWidget {
   final String? porte;
 
   const WeightFeedbackSection({
-    Key? key,
+    super.key,
     required this.pesoController,
     required this.raca,
     required this.porte,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

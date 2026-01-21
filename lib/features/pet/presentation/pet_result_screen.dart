@@ -1,10 +1,10 @@
 import 'dart:io';
+import '../../../core/services/image_deduplication_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/pet_analysis_result.dart';
 import '../services/pet_analysis_service.dart';
 import '../../../core/enums/scannut_mode.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import '../models/pet_profile_extended.dart';
 import 'widgets/edit_pet_form.dart';
 import 'widgets/pet_dossier_view.dart';
@@ -13,19 +13,12 @@ import '../models/analise_ferida_model.dart'; // 🛡️ V170 Import
 import '../services/pet_profile_service.dart';
 import '../../../core/services/file_upload_service.dart'; // Added
 import '../../../core/services/history_service.dart';
-import '../../../core/utils/json_cast.dart';
-import '../../../core/services/file_upload_service.dart';
-import '../../../core/widgets/pro_access_wrapper.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 import '../../../core/theme/app_design.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/services/media_vault_service.dart';
 import '../services/pet_indexing_service.dart';
 
 import '../services/pet_pdf_generator.dart';
-import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 
 final petResultProvider = StateProvider<PetAnalysisResult?>((ref) => null);
@@ -37,12 +30,12 @@ class PetResultScreen extends ConsumerStatefulWidget {
   final ScannutMode mode;
 
   const PetResultScreen({
-    Key? key, 
+    super.key, 
     required this.imageFile,
     this.existingResult,
     this.isHistoryView = false,
     this.mode = ScannutMode.petIdentification,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<PetResultScreen> createState() => _PetResultScreenState();
@@ -60,16 +53,17 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
     if (widget.existingResult != null) {
        // If existing result is passed (Observation or History), use it directly
        // Skip auto-save if history view (already saved)
-       if (!widget.isHistoryView && !_autoSaveAttempted) {
-          _autoSaveAttempted = true;
-          _performAutoSave(widget.existingResult!);
-       }
-       
        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!widget.isHistoryView && !_autoSaveAttempted) {
+              _autoSaveAttempted = true;
+              _performAutoSave(widget.existingResult!);
+          }
           ref.read(petResultProvider.notifier).state = widget.existingResult;
-          setState(() { 
-              _isLoading = false; 
-          });
+          if (mounted) {
+            setState(() { 
+                _isLoading = false; 
+            });
+          }
        });
     } else {
       // New Analysis
@@ -79,6 +73,27 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
   Future<void> _analyzeImage() async {
     try {
+      // 🛡️ [V180] Deduplication Check
+      final deduplication = ImageDeduplicationService();
+      final hash = await deduplication.calculateHash(widget.imageFile);
+      
+      if (hash.isNotEmpty) {
+          final existing = await deduplication.checkDeduplication(hash);
+          if (existing != null) {
+              debugPrint('🚫 [PetResult] [DEDUPLICATION] Match found. Stopping.');
+              if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(AppLocalizations.of(context)!.error_image_already_analyzed),
+                          backgroundColor: Colors.red,
+                      )
+                  );
+                  setState(() { _isLoading = false; });
+              }
+              return;
+          }
+      }
+
       final service = ref.read(petAnalysisServiceProvider);
       final result = await service.analyzePet(widget.imageFile, widget.mode);
       
@@ -112,6 +127,16 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
           _isLoading = false;
         });
       }
+
+      // 🛡️ [V180] Register hash on success
+      if (hash.isNotEmpty) {
+          await deduplication.registerProcessedImage(
+              hash: hash,
+              type: widget.mode.toString(),
+              petId: result.petId,
+              petName: result.petName,
+          );
+      }
     } catch (e) {
       final l10n = AppLocalizations.of(context)!;
       if (mounted) {
@@ -136,7 +161,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
           : result == null
-              ? Center(child: Text(l10n.errorGeneric, style: const TextStyle(color: AppDesign.textPrimaryDark)))
+               ? Center(child: Text(l10n.errorGeneric, style: const TextStyle(color: AppDesign.textPrimaryDark)))
               : PetDossierView(
                   analysis: result,
                   imagePath: _permanentImage?.path ?? widget.imageFile.path,
@@ -214,7 +239,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
        // 🛡️ [V_FIX] LOAD EXISTING PROFILE TO AVOID OVERWRITING IDENTITY/IMAGE
        final ps = PetProfileService();
        await ps.init();
-       final existingEntry = await ps.getProfile(result.petName ?? '');
+       final existingEntry = await ps.getProfile(result.petId ?? result.petName ?? '');
        
        PetProfileExtended profile;
        if (existingEntry != null && existingEntry['data'] != null) {
@@ -232,10 +257,15 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
             String cat = result.category?.toLowerCase() ?? '';
             
             // Refined category detection
-            if (cat == 'olhos' || cat == 'eyes') visualFindings = result.eyeDetails ?? {};
-            else if (cat == 'dentes' || cat == 'dental') visualFindings = result.dentalDetails ?? {};
-            else if (cat == 'pele' || cat == 'skin') visualFindings = result.skinDetails ?? {};
-            else if (cat == 'ferida' || cat == 'wound') visualFindings = result.woundDetails ?? {};
+            if (cat == 'olhos' || cat == 'eyes') {
+              visualFindings = result.eyeDetails ?? {};
+            } else if (cat == 'dentes' || cat == 'dental') {
+              visualFindings = result.dentalDetails ?? {};
+            } else if (cat == 'pele' || cat == 'skin') {
+              visualFindings = result.skinDetails ?? {};
+            } else if (cat == 'ferida' || cat == 'wound') {
+              visualFindings = result.woundDetails ?? {};
+            }
             else if (cat == 'fezes' || cat == 'stool' || result.analysisType == 'stool_analysis') {
                visualFindings = result.stoolAnalysis ?? {};
                if (cat.isEmpty) cat = 'fezes'; 
@@ -260,15 +290,6 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
             final alreadyExists = profile.historicoAnaliseFeridas.any((e) => e.imagemRef == imagePathToUse);
             if (!alreadyExists) {
                 profile.historicoAnaliseFeridas.add(healthAnalysis);
-                
-                // Legacy injection for robustness
-                profile.woundAnalysisHistory.add({
-                    'date': DateTime.now().toIso8601String(),
-                    'imagePath': imagePathToUse,
-                    'visual_findings': healthAnalysis.achadosVisuais,
-                    'risk_level': healthAnalysis.nivelRisco,
-                    'recommendation': healthAnalysis.recomendacao
-                });
             }
        } catch (e) {
            debugPrint('⚠️ Optimistic update failed: $e');
@@ -283,7 +304,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                       isNewEntry: false, 
                       onSave: (updated) async {
                           final ps = PetProfileService(); await ps.init();
-                          await ps.saveOrUpdateProfile(updated.petName, updated.toJson());
+                          await ps.saveOrUpdateProfile(updated.id, updated.toJson());
                       }
                   )
               )
@@ -294,13 +315,13 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   Future<void> _performAutoSave(PetAnalysisResult result) async {
     if (_isSaving) return;
     final l10n = AppLocalizations.of(context)!;
+    debugPrint('🚀 [AUDIT-RESULT] Iniciando Auto-Save para pet: ${result.petName}');
     try {
       if (mounted) setState(() => _isSaving = true);
       final profileService = PetProfileService();
       await profileService.init();
 
       // 🛡️ V_FIX: Persist Image Permanently
-      // If we rely on cache path, it gets deleted. saving explicitly.
       String imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
       if (_permanentImage == null) {
           try {
@@ -312,11 +333,10 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
              );
              if (savedPath != null) {
                 imagePathToUse = savedPath;
-                debugPrint('✅ [V_FIX] Image persisted to: $imagePathToUse');
                 if (mounted) setState(() => _permanentImage = File(savedPath));
              }
           } catch (e) {
-             debugPrint('❌ [V_FIX] Failed to persist image: $e');
+             debugPrint('❌ [AUDIT-RESULT] Falha ao persistir imagem: $e');
           }
       }
 
@@ -325,28 +345,34 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
           ? result.petName! 
           : 'Pet';
 
+      debugPrint('   🔍 [AUDIT-RESULT] Pet Identificado como: "$safePetName" (Type: ${result.analysisType})');
+
+      // 🛡️ [V_UUID] RESOLVE PROFILE EARLY
+      final existingEntry = await profileService.getProfile(result.petId ?? safePetName);
+      PetProfileExtended profile;
+      
+      if (existingEntry != null && existingEntry['data'] != null) {
+          debugPrint('   ✅ [AUDIT-RESULT] Perfil existente encontrado. ID=${existingEntry['id']}');
+          profile = PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(existingEntry));
+      } else {
+          debugPrint('   🆕 [AUDIT-RESULT] Perfil não encontrado. Criando novo esqueleto...');
+          profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
+          // If it's a health analysis, DO NOT use the clinical image as the main profile photo
+          final bool isClinical = result.analysisType == 'diagnosis' || result.analysisType == 'stool_analysis';
+          if (isClinical) {
+              profile = profile.copyWith(imagePath: null);
+          }
+          
+          final jsonProfile = profile.toJson();
+          jsonProfile['pet_name'] = safePetName;
+          await profileService.saveOrUpdateProfile(result.petId ?? safePetName, jsonProfile);
+          debugPrint('   ✨ [AUDIT-RESULT] Novo perfil salvo com ID: ${profile.id}');
+      }
+
       // 🛡️ V144: UNIFIED ROUTING - ALL CLINICAL/STOOL GOES TO WOUND HISTORY ('historicoAnaliseFeridas')
       if (result.analysisType == 'diagnosis' || result.analysisType == 'stool_analysis') {
-           // HEALTH/STOOL DOMAIN: DO NOT OVERWRITE PROFILE IMAGE
-           debugPrint('🏥 [V144] Persisting Unified Health Analysis (Includes Stool) to Wound History');
+           debugPrint('   🏥 [AUDIT-RESULT] Roteamento: Health Domain (Wound/Stool)');
            
-           // 🛡️ CRITICAL FIX: Ensure Profile Exists skeleton
-           if (!await profileService.hasProfile(safePetName)) {
-               debugPrint('   [V144] Profile "$safePetName" not found. Creating skeleton profile...');
-               // If it's a health analysis, DO NOT use the clinical image as the main profile photo
-               final bool isClinical = result.analysisType == 'diagnosis' || result.analysisType == 'stool_analysis';
-               final String? profilePhoto = isClinical ? null : imagePathToUse;
-               
-               final newProfile = PetProfileExtended.fromAnalysisResult(result, profilePhoto ?? '');
-               final jsonProfile = newProfile.toJson();
-               jsonProfile['pet_name'] = safePetName;
-               if (profilePhoto == null) jsonProfile['image_path'] = null; // Ensure null if clinical
-               
-               await profileService.saveOrUpdateProfile(safePetName, jsonProfile);
-           }
-           
-           // A. Save to History Line (Timeline - Generic)
-           debugPrint('📜 [PetResult] Saving to Master History... (mode: Pet)');
            final historyPayload = result.toJson();
            historyPayload['pet_name'] = safePetName;
            
@@ -355,10 +381,11 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
              historyPayload, 
              imagePath: imagePathToUse,
              thumbnailPath: imagePathToUse,
-             petName: safePetName
+             petName: safePetName,
+             petId: profile.id,
            );
 
-           // 🛡️ Extração de Categoria e Achados (V231)
+           // Extraction for clinical history
            final String cat = (result.category ?? result.analysisType).toLowerCase();
            Map<String, dynamic> visualFindings = {};
            if (cat == 'olhos' || cat == 'eyes') visualFindings = result.eyeDetails ?? {};
@@ -368,63 +395,51 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
            else if (cat == 'fezes' || cat == 'stool' || result.analysisType == 'stool_analysis') visualFindings = result.stoolAnalysis ?? {};
            else visualFindings = result.clinicalSignsDiag ?? {};
 
-            // 🛡️ UNIFIED HEALTH DOMAIN (Wound, Stool, Dental, Eyes, Skin)
-            final healthAnalysis = AnaliseFeridaModel(
-               dataAnalise: DateTime.now(), 
-               imagemRef: imagePathToUse, 
-               achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
-               categoria: cat.isNotEmpty ? cat : 'geral',
-               nivelRisco: result.urgenciaNivel, 
-               recomendacao: result.orientacaoImediata,
-               diagnosticosProvaveis: result.possiveisCausas,
-               rawClinicalSigns: result.clinicalSignsDiag != null ? {'clinical_signs': result.clinicalSignsDiag} : null,
-               descricaoVisual: result.descricaoVisual,
-               caracteristicas: result.caracteristicas,
-            );
-            await profileService.saveDetailedAnalysis(safePetName, healthAnalysis);
+           final healthAnalysis = AnaliseFeridaModel(
+              dataAnalise: DateTime.now(), 
+              imagemRef: imagePathToUse, 
+              achadosVisuais: visualFindings.isNotEmpty ? visualFindings : (result.clinicalSignsDiag ?? {}),
+              categoria: cat.isNotEmpty ? cat : 'geral',
+              nivelRisco: result.urgenciaNivel, 
+              recomendacao: result.orientacaoImediata,
+              diagnosticosProvaveis: result.possiveisCausas,
+              rawClinicalSigns: result.clinicalSignsDiag != null ? {'clinical_signs': result.clinicalSignsDiag} : null,
+              descricaoVisual: result.descricaoVisual,
+              caracteristicas: result.caracteristicas,
+           );
+           await profileService.saveDetailedAnalysis(profile.id, healthAnalysis);
 
-      }
- else {
+      } else {
            // IDENTITY DOMAIN: SAVE/UPDATE PROFILE & IMAGE
            debugPrint('🐾 [V220] Persisting Identity (Profile Update)');
            
-           // Standard update
-           final existingEntry = await profileService.getProfile(safePetName);
-           PetProfileExtended profile;
-           
-           if (existingEntry != null && existingEntry['data'] != null) {
-               final current = PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(existingEntry));
-               // Update specific identity fields but keep the rest
-               profile = current.copyWith(
-                  especie: current.especie ?? result.especie,
-                  raca: (current.raca == null || current.raca == 'N/A' || current.raca!.contains('SRD')) ? result.raca : current.raca,
-                  imagePath: imagePathToUse, // In Identity mode, we intentionally update the main photo
-                  lastUpdated: DateTime.now(),
-                  reliability: result.reliability,
-               );
-           } else {
-               profile = PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
-           }
+           profile = profile.copyWith(
+              especie: profile.especie ?? result.especie,
+              raca: (profile.raca == null || profile.raca == 'N/A' || profile.raca!.contains('SRD')) ? result.raca : profile.raca,
+              imagePath: imagePathToUse, 
+              lastUpdated: DateTime.now(),
+              reliability: result.reliability,
+           );
            
            final jsonProfile = profile.toJson();
            jsonProfile['pet_name'] = safePetName;
            
            await profileService.saveOrUpdateProfile(safePetName, jsonProfile);
            
-           // Also save to generic history
-           debugPrint('📜 [PetResult] Saving to History (Identity)... (mode: Pet)');
            await HistoryService.addScan(
              'Pet', 
              result.toJson(), 
              imagePath: imagePathToUse,
-             thumbnailPath: imagePathToUse
+             thumbnailPath: imagePathToUse,
+             petName: safePetName,
+             petId: profile.id,
            );
       }
       
       final box = await HistoryService.getBox();
       if (box.isOpen) await box.flush();
       
-      // 🧠 AUTOMATIC INDEXING (MARE Logic)
+      // Indexing
       try {
         final indexer = PetIndexingService();
         String displayType = result.analysisType;
@@ -434,20 +449,19 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
         if (displayType == 'diagnosis') displayType = l10n.petDiagnosis;
 
         await indexer.indexAiAnalysis(
-          petId: result.petName ?? 'Unknown', 
-          petName: result.petName ?? 'Unknown',
+          petId: profile.id, 
+          petName: result.petName ?? safePetName,
           analysisType: displayType, 
           resultId: DateTime.now().millisecondsSinceEpoch.toString(),
-          rawResult: result.toJson(), // 🛡️ V231: Full payload
-          imagePath: imagePathToUse, // 🛡️ V231: Assoc image
+          rawResult: result.toJson(),
+          imagePath: imagePathToUse,
           localizedTitle: AppLocalizations.of(context)!.petIndexing_aiTitle(displayType),
           localizedNotes: result.urgenciaNivel,
         );
       } catch (e) {
         debugPrint("⚠️ Indexing failed: $e");
       }
-
-      debugPrint("✅ Auto-Save completed for ${result.petName}");
+      debugPrint("✅ Auto-Save completed for ${profile.petName}");
     } catch (e) {
       debugPrint("❌ Auto-Save failed: $e");
       if (mounted) {

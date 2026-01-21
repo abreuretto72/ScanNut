@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:scannut/core/theme/app_design.dart';
 import 'package:scannut/core/models/partner_model.dart';
-import 'package:scannut/l10n/app_localizations.dart';
 
 class RadarExportFilterModal extends StatefulWidget {
   final List<PartnerModel> currentResults;
   final Function(List<PartnerModel>) onGenerate;
 
   const RadarExportFilterModal({
-    Key? key,
+    super.key,
     required this.currentResults,
     required this.onGenerate,
-  }) : super(key: key);
+  });
 
   @override
   State<RadarExportFilterModal> createState() => _RadarExportFilterModalState();
@@ -168,7 +167,7 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
 class BtnPrimaryPink extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
-  const BtnPrimaryPink({Key? key, required this.text, this.onPressed}) : super(key: key);
+  const BtnPrimaryPink({super.key, required this.text, this.onPressed});
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(

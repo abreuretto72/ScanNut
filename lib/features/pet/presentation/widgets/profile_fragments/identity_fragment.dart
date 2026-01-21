@@ -6,7 +6,6 @@ import '../../../../../core/widgets/cumulative_observations_field.dart';
 import 'profile_design_system.dart';
 import 'race_details_section.dart';
 import 'attachment_section.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class IdentityFragment extends StatelessWidget {
   final TextEditingController nameController;
@@ -38,7 +37,7 @@ class IdentityFragment extends StatelessWidget {
   final Function(File) onDeleteAttachment;
 
   const IdentityFragment({
-    Key? key,
+    super.key,
     required this.nameController,
     required this.especie,
     required this.racaController,
@@ -65,7 +64,7 @@ class IdentityFragment extends StatelessWidget {
     required this.localizeValue,
     required this.onAddAttachment,
     required this.onDeleteAttachment,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

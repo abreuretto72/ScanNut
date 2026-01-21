@@ -17,14 +17,14 @@ class LinkedPartnerCard extends StatefulWidget {
   final String? petName;
 
   const LinkedPartnerCard({
-    Key? key,
+    super.key,
     required this.partner,
     required this.onUnlink,
     required this.onUpdate,
     required this.onOpenAgenda,
     this.petId,
     this.petName,
-  }) : super(key: key);
+  });
 
   @override
   State<LinkedPartnerCard> createState() => _LinkedPartnerCardState();
@@ -138,7 +138,7 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
                        children: [
                          Switch(
                              value: true, 
-                             activeColor: AppDesign.petPink,
+                             activeThumbColor: AppDesign.petPink,
                              onChanged: (v) {
                                  if (!v) widget.onUnlink();
                              }

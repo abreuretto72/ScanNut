@@ -69,11 +69,7 @@ class LocalBackupService {
       final jsonBytes = utf8.encode(jsonString);
       developer.log('📊 JSON gerado: ${jsonBytes.length} bytes', name: 'BackupTrace');
 
-      final compressed = GZipEncoder().encode(jsonBytes);
-      if (compressed == null) {
-        developer.log('❌ Falha crítica: Erro na compressão GZip', name: 'BackupTrace', level: 1000);
-        throw Exception('Falha na compressão');
-      }
+      final compressed = const GZipEncoder().encode(jsonBytes);
       developer.log('🗜️ Compressão concluída: ${compressed.length} bytes', name: 'BackupTrace');
 
       final dateStr = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
@@ -144,9 +140,7 @@ class LocalBackupService {
 
       final jsonString = jsonEncode(backupData);
       final jsonBytes = utf8.encode(jsonString);
-      final compressed = GZipEncoder().encode(jsonBytes);
-
-      if (compressed == null) throw Exception('Falha na compressão');
+      final compressed = const GZipEncoder().encode(jsonBytes);
 
       final tempDir = await getTemporaryDirectory();
       final dateStr = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
@@ -195,7 +189,7 @@ class LocalBackupService {
       final bytes = await file.readAsBytes();
 
       logger.info('📦 Descomprimindo backup (${bytes.length} bytes)...');
-      final decompressed = GZipDecoder().decodeBytes(bytes);
+      final decompressed = const GZipDecoder().decodeBytes(bytes);
       final jsonString = utf8.decode(decompressed);
       final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
 

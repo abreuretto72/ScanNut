@@ -8,10 +8,10 @@ class PartnerExportConfigurationModal extends StatefulWidget {
   final Function(List<PartnerModel>) onGenerate;
 
   const PartnerExportConfigurationModal({
-    Key? key,
+    super.key,
     required this.allPartners,
     required this.onGenerate,
-  }) : super(key: key);
+  });
 
   @override
   State<PartnerExportConfigurationModal> createState() => _PartnerExportConfigurationModalState();

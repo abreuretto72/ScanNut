@@ -9,12 +9,12 @@ class WeeklyMealPlanner extends StatelessWidget {
   final String? dailyKcal; // Added Kcal Goal
 
     const WeeklyMealPlanner({
-      Key? key, 
+      super.key, 
       required this.weeklyPlan, 
       this.generalGuidelines, 
       this.startDate,
       this.dailyKcal,
-    }) : super(key: key);
+    });
 
   @override
   Widget build(BuildContext context) {

@@ -4,7 +4,6 @@ import 'package:scannut/features/pet/services/pet_menu_generator_service.dart';
 import 'package:scannut/features/pet/services/meal_plan_service.dart';
 import 'package:scannut/features/pet/models/pet_profile_extended.dart';
 import 'package:scannut/features/pet/models/meal_plan_request.dart';
-import 'package:scannut/core/services/gemini_service.dart';
 import 'package:scannut/features/pet/models/weekly_meal_plan.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,7 +37,7 @@ class CardapioStressTest {
         // 2. Generate 3 Sequential Menus
         final plans = <WeeklyMealPlan>[];
         for (int i = 1; i <= 3; i++) {
-           debugPrint('   👉 Geração ${i}/3 em andamento...');
+           debugPrint('   👉 Geração $i/3 em andamento...');
            await Future.delayed(const Duration(seconds: 2)); // Avoid simple rate limits
 
            // Create Request
@@ -97,7 +96,9 @@ class CardapioStressTest {
     debugPrint('\n==========================================================');
     debugPrint('📊 RELATÓRIO FINAL DE STRESS TEST');
     debugPrint('==========================================================');
-    for (var r in results) debugPrint(r);
+    for (var r in results) {
+      debugPrint(r);
+    }
     debugPrint('\nSTATUS: ${criticalFailure ? "FALHA CRÍTICA 🔴" : "APROVADO 🟢"}');
     debugPrint('==========================================================\n');
   }
@@ -132,8 +133,9 @@ class CardapioStressTest {
   PetProfileExtended _createMockProfile(Map<String, dynamic> data) {
       String size = 'Médio';
       final w = data['peso_atual'] as double;
-      if (w < 10) size = 'Pequeno';
-      else if (w > 25) size = 'Grande';
+      if (w < 10) {
+        size = 'Pequeno';
+      } else if (w > 25) size = 'Grande';
 
       return PetProfileExtended(
           id: const Uuid().v4(),

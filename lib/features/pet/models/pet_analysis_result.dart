@@ -10,6 +10,7 @@ class PetAnalysisResult {
   final DicaEspecialista dica;
   
   final String? petName;
+  final String? petId; // 🛡️ UUID Link
   final String analysisType;
   final String? reliability; // Added Reliability
 
@@ -46,6 +47,7 @@ class PetAnalysisResult {
     required this.lifestyle,
     required this.dica,
     this.petName,
+    this.petId, // 🛡️ UUID Link
     this.analysisType = 'identification',
     this.reliability, // Added
     this.especieId, // Added
@@ -84,8 +86,8 @@ class PetAnalysisResult {
     List<Map<String, String>> parseTable(dynamic input) {
       if (input is List) {
         return input
-            .where((e) => e is Map)
-            .map((e) => Map<String, String>.from((e as Map).map((k, v) => MapEntry(k.toString(), v.toString()))))
+            .whereType<Map>()
+            .map((e) => Map<String, String>.from((e).map((k, v) => MapEntry(k.toString(), v.toString()))))
             .toList();
       }
       return [];
@@ -119,6 +121,7 @@ class PetAnalysisResult {
         lifestyle: LifestyleEEducacao.empty(),
         dica: DicaEspecialista.empty(),
         petName: json['pet_name'],
+        petId: json['pet_id'] ?? json['id'], // 🛡️ V_UUID
         especieDiag: json['species'] ?? 'Pet',
         racaDiag: json['breed'] ?? 'N/A',
         caracteristicasDiag: json['characteristics'] ?? 'N/A',
@@ -159,6 +162,7 @@ class PetAnalysisResult {
       limitacoesAnalise: null,
       especieId: idMap['species']?.toString(), // Capture species from identification
       petName: json['pet_name'] ?? 'Pet',
+      petId: json['pet_id'] ?? json['id'], // 🛡️ V_UUID
       tabelaBenigna: [],
       tabelaMaligna: [],
       planoSemanal: [],
@@ -177,6 +181,7 @@ class PetAnalysisResult {
   Map<String, dynamic> toJson() => {
     'analysis_type': analysisType,
     'pet_name': petName,
+    'pet_id': petId,
     'species': especieDiag,
     'breed': racaDiag,
     'characteristics': caracteristicasDiag,

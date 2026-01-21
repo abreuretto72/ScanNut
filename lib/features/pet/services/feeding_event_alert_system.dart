@@ -6,8 +6,6 @@
 
 import 'package:flutter/material.dart';
 import '../models/pet_event_model.dart';
-import '../models/feeding_event_types.dart';
-import '../models/feeding_event_constants.dart';
 
 /// Alert severity levels
 enum AlertSeverity {

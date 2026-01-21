@@ -16,7 +16,7 @@ class CumulativeObservationsField extends StatefulWidget {
   final String? label;
 
   const CumulativeObservationsField({
-    Key? key,
+    super.key,
     required this.sectionName,
     required this.initialValue,
     required this.onChanged,
@@ -24,7 +24,7 @@ class CumulativeObservationsField extends StatefulWidget {
     this.accentColor,
     this.controller,
     this.label,
-  }) : super(key: key);
+  });
 
   @override
   State<CumulativeObservationsField> createState() => _CumulativeObservationsFieldState();

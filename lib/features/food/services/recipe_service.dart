@@ -1,11 +1,7 @@
-import 'dart:io';
-import 'package:dio/dio.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/recipe_history_item.dart';
 import '../models/food_analysis_model.dart'; // For ReceitaRapida
-import '../../../core/services/subscription_service.dart';
 import '../../../core/services/hive_atomic_manager.dart';
 
 class RecipeService {

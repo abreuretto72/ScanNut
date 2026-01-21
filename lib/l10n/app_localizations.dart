@@ -695,6 +695,12 @@ abstract class AppLocalizations {
   /// **'Começar'**
   String get onboardingGetStarted;
 
+  /// No description provided for @error_image_already_analyzed.
+  ///
+  /// In pt, this message translates to:
+  /// **'Esta imagem já foi analisada recentemente.'**
+  String get error_image_already_analyzed;
+
   /// No description provided for @analysisErrorAiFailure.
   ///
   /// In pt, this message translates to:
@@ -1718,13 +1724,13 @@ abstract class AppLocalizations {
   /// No description provided for @petSavedSuccess.
   ///
   /// In pt, this message translates to:
-  /// **'Dossiê do {petName} salvo/atualizado com sucesso!'**
+  /// **'Dossiê do {petName} salvo com sucesso!'**
   String petSavedSuccess(Object petName);
 
   /// No description provided for @savedSuccess.
   ///
   /// In pt, this message translates to:
-  /// **'{type} salvo nas boxes especializadas!'**
+  /// **'{type} salvo com sucesso no histórico!'**
   String savedSuccess(Object type);
 
   /// No description provided for @errorPetNameNotFound.
@@ -1744,6 +1750,30 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Erro ao salvar análise: {error}'**
   String errorSavingAnalysis(String error);
+
+  /// No description provided for @errorNavigationPrefix.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro de Navegação: '**
+  String get errorNavigationPrefix;
+
+  /// No description provided for @error_image_not_found.
+  ///
+  /// In pt, this message translates to:
+  /// **'Imagem não encontrada. Verifique se a foto foi capturada corretamente.'**
+  String get error_image_not_found;
+
+  /// No description provided for @errorSaveHiveTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Erro ao Salvar'**
+  String get errorSaveHiveTitle;
+
+  /// No description provided for @errorSaveHiveBody.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível salvar: {error}'**
+  String errorSaveHiveBody(String error);
 
   /// No description provided for @menuHello.
   ///
@@ -11615,12 +11645,6 @@ abstract class AppLocalizations {
   /// **'Erro no processamento: '**
   String get errorProcessingPrefix;
 
-  /// No description provided for @errorNavigationPrefix.
-  ///
-  /// In pt, this message translates to:
-  /// **'Erro de Navegação: '**
-  String get errorNavigationPrefix;
-
   /// No description provided for @pdfClinicalHistorySection.
   ///
   /// In pt, this message translates to:
@@ -12262,18 +12286,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Autenticar'**
   String get homeBiometricAction;
-
-  /// No description provided for @errorSaveHiveTitle.
-  ///
-  /// In pt, this message translates to:
-  /// **'Erro ao Salvar'**
-  String get errorSaveHiveTitle;
-
-  /// No description provided for @errorSaveHiveBody.
-  ///
-  /// In pt, this message translates to:
-  /// **'Não foi possível salvar: {error}'**
-  String errorSaveHiveBody(String error);
 
   /// No description provided for @loadingMsgDiet.
   ///

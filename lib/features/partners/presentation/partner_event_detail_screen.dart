@@ -8,7 +8,6 @@ import '../../../core/services/partner_service.dart';
 import '../../pet/models/pet_event.dart';
 import '../../pet/services/pet_event_service.dart';
 import '../../pet/presentation/widgets/edit_pet_form.dart';
-import '../../pet/models/pet_profile_extended.dart';
 import '../../pet/services/pet_profile_service.dart';
 import 'partner_registration_screen.dart';
 import 'widgets/add_event_modal.dart';
@@ -21,10 +20,10 @@ class PartnerEventDetailScreen extends StatefulWidget {
   final PetEvent event;
 
   const PartnerEventDetailScreen({
-    Key? key,
+    super.key,
     required this.partnerId,
     required this.event,
-  }) : super(key: key);
+  });
 
   @override
   State<PartnerEventDetailScreen> createState() => _PartnerEventDetailScreenState();
@@ -137,9 +136,9 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
         maxChildSize: 0.95,
         expand: false,
         builder: (context, scrollController) => Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppDesign.surfaceDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: AddEventModal(
             selectedDate: agendaEvent.dateTime,
@@ -325,7 +324,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
               ),
             ],
           ),
-          Divider(color: Colors.white12, height: 32),
+          const Divider(color: Colors.white12, height: 32),
           _buildDetailRow(Icons.calendar_today, AppLocalizations.of(context)!.pdfDate, dateFormat.format(_event.dateTime)),
           const SizedBox(height: 12),
           _buildDetailRow(Icons.access_time, AppLocalizations.of(context)!.pdfFieldTime, timeFormat.format(_event.dateTime)),
@@ -372,7 +371,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
           ),
           
           if (displayNotes.isNotEmpty) ...[
-            Divider(color: Colors.white12, height: 32),
+            const Divider(color: Colors.white12, height: 32),
             Text('${AppLocalizations.of(context)!.pdfObservations}:', style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
             const SizedBox(height: 4),
             Text(

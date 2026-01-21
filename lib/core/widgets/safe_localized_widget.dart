@@ -8,10 +8,10 @@ class SafeLocalizedWidget extends StatelessWidget {
   final Widget? loadingWidget;
 
   const SafeLocalizedWidget({
-    Key? key,
+    super.key,
     required this.builder,
     this.loadingWidget,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

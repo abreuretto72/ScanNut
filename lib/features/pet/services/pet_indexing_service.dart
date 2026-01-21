@@ -58,6 +58,7 @@ class PetIndexingService {
     required String petName,
     required String group, // health, hygiene, medication, etc.
     required String title,
+    String? type, // 🛡️ Optional explicit type (e.g. 'Análise vocal')
     String? localizedTitle,
     String? localizedNotes,
     String? notes,
@@ -67,7 +68,7 @@ class PetIndexingService {
       id: 'idx_muo_${_uuid.v4()}',
       petId: petId,
       group: group,
-      type: 'occurrence',
+      type: type ?? 'occurrence', // 🛡️ Use custom type if provided
       title: localizedTitle ?? title,
       notes: localizedNotes ?? notes ?? '',
       timestamp: DateTime.now(),
@@ -190,13 +191,33 @@ class PetIndexingService {
     String? localizedTitle,
     String? localizedNotes,
   }) async {
+      // 🧠 Smart Inference based on Filename
+    String inferredNote = localizedNotes ?? 'Documento indexado no Media Vault.';
+    String displayTitle = localizedTitle ?? 'Arquivo: $fileName ($petName)';
+      
+    final lowerName = fileName.toLowerCase();
+    
+    if (lowerName.contains('card') || lowerName.contains('menu')) {
+        inferredNote = 'Cardápio Nutricional';
+        displayTitle = 'Cardápio Indexado ($petName)';
+    } else if (lowerName.contains('exame') || lowerName.contains('laudo') || lowerName.contains('result')) {
+        inferredNote = 'Exame / Laudo Técnico';
+        displayTitle = 'Exame Indexado ($petName)';
+    } else if (lowerName.contains('vacina') || lowerName.contains('cart')) {
+        inferredNote = 'Cartão de Vacinas';
+        displayTitle = 'Vacina Indexada ($petName)';
+    } else if (lowerName.contains('receita') || lowerName.contains('presc')) {
+        inferredNote = 'Prescrição Veterinária';
+        displayTitle = 'Receita Indexada ($petName)';
+    }
+
     final event = PetEventModel(
       id: 'idx_vlt_${_uuid.v4()}',
       petId: petId,
       group: 'media',
       type: 'vault_upload',
-      title: localizedTitle ?? 'Arquivo: $fileName ($petName)',
-      notes: localizedNotes ?? 'Documento indexado no Media Vault.',
+      title: displayTitle,
+      notes: inferredNote,
       timestamp: DateTime.now(),
       data: {
         'pet_name': petName,

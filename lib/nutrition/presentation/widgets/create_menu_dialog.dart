@@ -12,11 +12,11 @@ class CreateMenuDialog extends StatefulWidget {
   final String? initialSelectedPeriodId;
 
   const CreateMenuDialog({
-    Key? key,
+    super.key,
     this.userRestrictions = const [],
     this.initialParams,
     this.initialSelectedPeriodId,
-  }) : super(key: key);
+  });
 
   @override
   State<CreateMenuDialog> createState() => _CreateMenuDialogState();

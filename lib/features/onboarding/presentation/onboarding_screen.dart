@@ -6,7 +6,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({Key? key}) : super(key: key);
+  const OnboardingScreen({super.key});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -76,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       backgroundColor: AppDesign.backgroundDark,
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -144,7 +144,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             value: _termsAccepted,
                             onChanged: (val) => setState(() => _termsAccepted = val ?? false),
                             activeColor: AppDesign.accent,
-                            side: BorderSide(color: AppDesign.textSecondaryDark),
+                            side: const BorderSide(color: AppDesign.textSecondaryDark),
                           ),
                           Expanded(
                             child: Text(

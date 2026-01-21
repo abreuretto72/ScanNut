@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 /// Um widget global que exibe uma marca d'água sutil no rodapé.
 /// Deve ser usado via MaterialApp.builder para envolver todas as telas.
 class AppWatermarkFooter extends StatelessWidget {
-  const AppWatermarkFooter({Key? key}) : super(key: key);
+  const AppWatermarkFooter({super.key});
 
   @override
   Widget build(BuildContext context) {

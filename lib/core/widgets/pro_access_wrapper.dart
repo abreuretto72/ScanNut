@@ -14,12 +14,12 @@ class ProAccessWrapper extends ConsumerWidget {
   final IconData? featureIcon;
 
   const ProAccessWrapper({
-    Key? key,
+    super.key,
     required this.child,
     required this.featureName,
     this.featureDescription = 'Este recurso está disponível apenas para assinantes Pro',
     this.featureIcon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,10 +28,10 @@ class ProAccessWrapper extends ConsumerWidget {
     // ⚠️ MODO SCREENSHOT - TEMPORÁRIO! ⚠️
     // TODO: REVERTER ANTES DE PUBLICAR NA LOJA!
     // Forçando isPro = true para captura de telas
-    const bool SCREENSHOT_MODE = true; // ← MUDAR PARA false ANTES DE PUBLICAR!
+    const bool screenshotMode = true; // ← MUDAR PARA false ANTES DE PUBLICAR!
     
     // If Pro OR in screenshot mode, show the original content
-    if (subscriptionState.isPro || SCREENSHOT_MODE) {
+    if (subscriptionState.isPro || screenshotMode) {
       return child;
     }
 

@@ -75,43 +75,43 @@ class PetEventService {
     return box.values.toList();
   }
 
-  List<PetEvent> getEventsByPet(String petName) {
-    return box.values.where((event) => event.petName == petName).toList()
+  List<PetEvent> getEventsByPet(String petId) {
+    return box.values.where((event) => event.petId == petId).toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
 
-  List<PetEvent> getUpcomingEvents(String petName) {
+  List<PetEvent> getUpcomingEvents(String petId) {
     final now = DateTime.now();
     return box.values
         .where((event) =>
-            event.petName == petName &&
+            event.petId == petId &&
             !event.completed &&
             event.dateTime.isAfter(now))
         .toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
 
-  List<PetEvent> getPastEvents(String petName) {
+  List<PetEvent> getPastEvents(String petId) {
     final now = DateTime.now();
     return box.values
         .where((event) =>
-            event.petName == petName &&
+            event.petId == petId &&
             event.dateTime.isBefore(now))
         .toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
   }
 
-  List<PetEvent> getEventsByType(String petName, EventType type) {
+  List<PetEvent> getEventsByType(String petId, EventType type) {
     return box.values
-        .where((event) => event.petName == petName && event.type == type)
+        .where((event) => event.petId == petId && event.type == type)
         .toList()
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
   }
 
-  List<PetEvent> getEventsForDate(String petName, DateTime date) {
+  List<PetEvent> getEventsForDate(String petId, DateTime date) {
     return box.values
         .where((event) =>
-            event.petName == petName &&
+            event.petId == petId &&
             event.dateTime.year == date.year &&
             event.dateTime.month == date.month &&
             event.dateTime.day == date.day)
@@ -155,26 +155,26 @@ class PetEventService {
     debugPrint('🗑️ Event deleted and flushed: $eventId');
   }
 
-  Future<void> deleteAllEventsForPet(String petName) async {
-    final events = getEventsByPet(petName);
+  Future<void> deleteAllEventsForPet(String petId) async {
+    final events = getEventsByPet(petId);
     for (var event in events) {
       await box.delete(event.id);
     }
     await box.flush(); // FORCE DISK WRITE
-    debugPrint('🗑️ All events deleted for: $petName');
+    debugPrint('🗑️ All events deleted for UUID: $petId');
   }
 
   // Statistics
-  int getEventCount(String petName) {
-    return getEventsByPet(petName).length;
+  int getEventCount(String petId) {
+    return getEventsByPet(petId).length;
   }
 
-  int getUpcomingEventCount(String petName) {
-    return getUpcomingEvents(petName).length;
+  int getUpcomingEventCount(String petId) {
+    return getUpcomingEvents(petId).length;
   }
 
-  Map<EventType, int> getEventCountByType(String petName) {
-    final events = getEventsByPet(petName);
+  Map<EventType, int> getEventCountByType(String petId) {
+    final events = getEventsByPet(petId);
     final counts = <EventType, int>{};
     
     for (var type in EventType.values) {

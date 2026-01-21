@@ -10,11 +10,11 @@ class PetAnalysisDetailsView extends StatelessWidget {
   final File? imageFile;
 
   const PetAnalysisDetailsView({
-    Key? key, 
+    super.key, 
     required this.result, 
     this.imagePath,
     this.imageFile
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -213,7 +213,7 @@ class PetAnalysisDetailsView extends StatelessWidget {
                  Text(result.petName ?? 'Pet', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                  const SizedBox(height: 4),
                  if (result.identificacao.racaPredominante != 'N/A')
-                    Text('${result.identificacao.racaPredominante}', style: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.w500)),
+                    Text(result.identificacao.racaPredominante, style: const TextStyle(color: AppDesign.accent, fontWeight: FontWeight.w500)),
                  const SizedBox(height: 4),
                  Text('${result.identificacao.porteEstimado} • ${result.identificacao.expectativaVidaMedia}', style: const TextStyle(color: Colors.white54, fontSize: 13)),
                ],

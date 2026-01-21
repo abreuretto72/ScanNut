@@ -10,21 +10,14 @@ import '../../../pet/presentation/nutritional_pillars_screen.dart';
 import '../../../../core/theme/app_design.dart';
 
 import '../../../../l10n/app_localizations.dart';
-import '../../../../core/services/data_management_service.dart';
-import '../../../food/presentation/nutrition_history_screen.dart';
-import '../../../plant/presentation/botany_history_screen.dart';
-import '../../../food/presentation/fitness_dashboard_screen.dart';
-import '../../../pet/presentation/pet_history_screen.dart';
-import '../../../../nutrition/presentation/screens/nutrition_home_screen.dart';
 import '../../../../features/subscription/presentation/paywall_screen.dart';
 import '../../../../core/services/simple_auth_service.dart';
 import '../../../auth/presentation/login_screen.dart';
-import '../../../settings/privacy_policy_screen.dart';
 import '../../../settings/screens/data_archiving_screen.dart';
 
 
 class AppDrawer extends ConsumerWidget {
-  const AppDrawer({Key? key}) : super(key: key);
+  const AppDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +32,7 @@ class AppDrawer extends ConsumerWidget {
             // Header (mantido igual, não mostrado no replace)
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     AppDesign.primary,
@@ -518,7 +511,7 @@ class AppDrawer extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     colors: [AppDesign.primary, AppDesign.info], // Replaced purple/blue shades
                   ),
                   borderRadius: BorderRadius.circular(12),

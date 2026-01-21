@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/services/gemini_service.dart';
 import '../../../core/services/groq_api_service.dart';
 import '../models/pet_analysis_result.dart';
 import '../../../core/utils/prompt_factory.dart';

@@ -1,7 +1,6 @@
 import 'package:uuid/uuid.dart';
 import 'pet_analysis_result.dart';
 import 'analise_ferida_model.dart';
-import 'analise_ferida_model.dart';
 import '../../../core/utils/json_cast.dart';
 
 
@@ -236,7 +235,7 @@ class PetProfileExtended {
      if (result.perfilComportamental.nivelEnergia <= 2) nivelAtiv = 'Sedentário';
      
      return PetProfileExtended(
-         id: (result.toJson()['id'] ?? const Uuid().v4()).toString(),
+         id: (result.petId ?? result.toJson()['id'] ?? const Uuid().v4()).toString(),
          petName: result.petName ?? '',
          especie: _normalizeSpecies(result.especie),
          raca: _formatBreedWithLineage(result),
@@ -377,7 +376,7 @@ class PetProfileExtended {
     String? porte,
   }) {
     return PetProfileExtended(
-      id: this.id,
+      id: id,
       petName: petName ?? this.petName,
       especie: especie ?? this.especie,
       raca: raca ?? this.raca,
@@ -435,8 +434,7 @@ class PetProfileExtended {
       final breed = normalizeBreed(result.identificacao.racaPredominante, result.especie);
       final lineage = result.identificacao.linhagemSrdProvavel;
       
-      if (lineage != null && 
-          lineage.isNotEmpty && 
+      if (lineage.isNotEmpty && 
           lineage.toUpperCase() != 'N/A' && 
           lineage.toUpperCase() != 'NULL' &&
           lineage != breed) {

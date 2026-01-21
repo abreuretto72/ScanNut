@@ -27,5 +27,6 @@ class VaccineStatus extends HiveObject {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
+  @override
   String get key => '${petName}_$vaccineName';
 }

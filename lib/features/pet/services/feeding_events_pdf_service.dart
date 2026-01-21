@@ -13,7 +13,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/pet_event_model.dart';
-import '../models/feeding_event_types.dart';
 import '../models/feeding_event_constants.dart';
 import 'feeding_event_alert_system.dart';
 
@@ -71,7 +70,7 @@ class FeedingEventsPdfService {
       pageFormat: PdfPageFormat.a4,
       build: (context) {
         return pw.Container(
-          decoration: pw.BoxDecoration(
+          decoration: const pw.BoxDecoration(
             gradient: pw.LinearGradient(
               colors: [PdfColors.pink300, PdfColors.pink700],
               begin: pw.Alignment.topLeft,
@@ -98,7 +97,7 @@ class FeedingEventsPdfService {
                 ),
                 pw.Text(
                   'Eventos de Alimentação',
-                  style: pw.TextStyle(
+                  style: const pw.TextStyle(
                     fontSize: 24,
                     color: PdfColors.white,
                   ),

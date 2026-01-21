@@ -4,14 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../../core/models/partner_model.dart';
 import '../../pet/services/pet_event_service.dart';
 import '../../pet/models/pet_event.dart';
 import '../models/agenda_event.dart';
 import '../../pet/services/pet_profile_service.dart';
 import '../../pet/presentation/widgets/edit_pet_form.dart';
-import '../../pet/models/pet_profile_extended.dart';
-import '../../../core/services/partner_service.dart';
 import 'partner_event_detail_screen.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../../core/services/export_service.dart';
@@ -20,7 +17,7 @@ import '../../../core/widgets/pdf_preview_screen.dart';
 import '../../../core/theme/app_design.dart';
 /// Agenda Global - Visão consolidada REATIVA de todos os eventos (PetEventService)
 class GlobalAgendaScreen extends StatefulWidget {
-  const GlobalAgendaScreen({Key? key}) : super(key: key);
+  const GlobalAgendaScreen({super.key});
 
   @override
   State<GlobalAgendaScreen> createState() => _GlobalAgendaScreenState();
@@ -78,8 +75,9 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                      final agEvent = AgendaEvent.fromJson(Map<String, dynamic>.from(evMap));
                      
                      EventType pType = EventType.other;
-                     if (agEvent.category == EventCategory.vacina) pType = EventType.vaccine;
-                     else if (agEvent.category == EventCategory.banho) pType = EventType.bath;
+                     if (agEvent.category == EventCategory.vacina) {
+                       pType = EventType.vaccine;
+                     } else if (agEvent.category == EventCategory.banho) pType = EventType.bath;
                      else if (agEvent.category == EventCategory.tosa) pType = EventType.grooming;
                      else if (agEvent.category == EventCategory.consulta || agEvent.category == EventCategory.saude || agEvent.category == EventCategory.emergencia) pType = EventType.veterinary;
                      else if (agEvent.category == EventCategory.remedios) pType = EventType.medication;
@@ -174,7 +172,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                      children: [
                        const Icon(Icons.error_outline, size: 48, color: AppDesign.error),
                        const SizedBox(height: 16),
-                       Text('Erro ao carregar agenda', style: const TextStyle(color: AppDesign.textSecondaryDark)),
+                       const Text('Erro ao carregar agenda', style: TextStyle(color: AppDesign.textSecondaryDark)),
                        const SizedBox(height: 16),
                        ElevatedButton(
                          onPressed: _initService,
@@ -206,7 +204,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   focusedDay: _focusedDay,
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   calendarFormat: CalendarFormat.week,
-                  availableCalendarFormats: {
+                  availableCalendarFormats: const {
                     CalendarFormat.week: 'Semana',
                     CalendarFormat.month: 'Mês'
                   },
@@ -282,7 +280,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.event_busy, size: 64, color: AppDesign.textSecondaryDark),
+                            const Icon(Icons.event_busy, size: 64, color: AppDesign.textSecondaryDark),
                             const SizedBox(height: 16),
                             Text(
                               _showAllEvents ? 'Nenhum evento registado' : 'Nenhum evento para este dia',
@@ -498,11 +496,11 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
       } else {
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                  content: Text(
+                  content: const Text(
                     'Nenhum parceiro vinculado.',
                     style: TextStyle(color: Color(0xFF880E4F), fontWeight: FontWeight.bold),
                   ), 
-                  backgroundColor: Color(0xFFFFD1DC),
+                  backgroundColor: const Color(0xFFFFD1DC),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -527,9 +525,9 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setSheetState) => Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppDesign.surfaceDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: ConstrainedBox(
             constraints: BoxConstraints(
@@ -557,7 +555,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   const SizedBox(height: 24),
                   
                   // Date Range - Selection via Pencil icon only
-                  Text('Período do Relatório', style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const Text('Período do Relatório', style: TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -609,7 +607,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   const SizedBox(height: 20),
                   
                   // Pet Filter
-                  Text('Filtrar por Pet', style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const Text('Filtrar por Pet', style: TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -624,7 +622,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                         value: petFilter,
                         isExpanded: true,
                         items: [
-                           DropdownMenuItem(value: null, child: Text('Todos os Animais', style: const TextStyle(color: AppDesign.textPrimaryDark))),
+                           const DropdownMenuItem(value: null, child: Text('Todos os Animais', style: TextStyle(color: AppDesign.textPrimaryDark))),
                            ...petNames.map((name) => DropdownMenuItem(value: name, child: Text(name, style: const TextStyle(color: AppDesign.textPrimaryDark)))),
                         ],
                         onChanged: (val) => setSheetState(() => petFilter = val),
@@ -634,7 +632,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                   const SizedBox(height: 20),
   
                   // Category Filter
-                  Text('Filtrar por Categoria', style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const Text('Filtrar por Categoria', style: TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -649,7 +647,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                         value: categoryFilter,
                         isExpanded: true,
                         items: [
-                           DropdownMenuItem(value: null, child: Text('Todas as Categorias', style: const TextStyle(color: AppDesign.textPrimaryDark))),
+                           const DropdownMenuItem(value: null, child: Text('Todas as Categorias', style: TextStyle(color: AppDesign.textPrimaryDark))),
                            ...EventType.values.map((type) => DropdownMenuItem(
                              value: type, 
                               child: Text(PetEvent(id: '', petId: '', petName: '', title: '', type: type, dateTime: DateTime.now()).typeLabel, style: const TextStyle(color: AppDesign.textPrimaryDark))
@@ -662,7 +660,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                 const SizedBox(height: 20),
                 
                 // Report Type
-                Text('Nível de Detalhe', style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Nível de Detalhe', style: TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -676,10 +674,10 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                       dropdownColor: AppDesign.surfaceDark,
                       value: reportType,
                       isExpanded: true,
-                      items: [
-                         DropdownMenuItem(value: 'Detalhamento', child: Text('Tabela Detalhada', style: const TextStyle(color: AppDesign.textPrimaryDark))),
-                         DropdownMenuItem(value: 'Somente Agendamentos', child: Text('Somente Agendamentos', style: const TextStyle(color: AppDesign.textPrimaryDark))),
-                         DropdownMenuItem(value: 'Resumo', child: Text('Apenas Resumo', style: const TextStyle(color: AppDesign.textPrimaryDark))),
+                      items: const [
+                         DropdownMenuItem(value: 'Detalhamento', child: Text('Tabela Detalhada', style: TextStyle(color: AppDesign.textPrimaryDark))),
+                         DropdownMenuItem(value: 'Somente Agendamentos', child: Text('Somente Agendamentos', style: TextStyle(color: AppDesign.textPrimaryDark))),
+                         DropdownMenuItem(value: 'Resumo', child: Text('Apenas Resumo', style: TextStyle(color: AppDesign.textPrimaryDark))),
                       ],
                       onChanged: (val) {
                         if (val != null) setSheetState(() => reportType = val);
@@ -696,7 +694,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                       elevation: 0,
                     ),
                     onPressed: () => Navigator.pop(context, true),
-                    child: Text('Gerar PDF', 
+                    child: const Text('Gerar PDF', 
                       style: TextStyle(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold, fontSize: 15, letterSpacing: 1)),
                   ),
                   const SizedBox(height: 24),

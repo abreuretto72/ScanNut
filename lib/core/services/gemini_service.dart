@@ -93,7 +93,7 @@ class GeminiService {
 
       final newSizeKB = compressedBytes.length / 1024;
       final reduction = ((sizeKB - newSizeKB) / sizeKB * 100).toStringAsFixed(1);
-      debugPrint('✅ Comprimido para ${newSizeKB.toStringAsFixed(2)} KB (${reduction}% redução)');
+      debugPrint('✅ Comprimido para ${newSizeKB.toStringAsFixed(2)} KB ($reduction% redução)');
       
       return compressedBytes;
     } catch (e) {
@@ -659,7 +659,7 @@ class GeminiService {
       
       // Phase 2: JSON Repair Retry
       try {
-        final repairPrompt = "Você me enviou um JSON inválido ou incompleto. Por favor, corrija-o para que seja um JSON válido de acordo com o formato solicitado anteriormente. Retorne APENAS o JSON corrigido.";
+        const repairPrompt = "Você me enviou um JSON inválido ou incompleto. Por favor, corrija-o para que seja um JSON válido de acordo com o formato solicitado anteriormente. Retorne APENAS o JSON corrigido.";
         
         final repairResponse = await _dio.post(
           '/v1/models/$workingModel:generateContent',
@@ -862,8 +862,9 @@ class GeminiService {
 
         String mimeType = 'audio/mp4'; // Default
         final ext = path.toLowerCase();
-        if (ext.endsWith('.mp3')) mimeType = 'audio/mpeg'; 
-        else if (ext.endsWith('.wav')) mimeType = 'audio/wav';
+        if (ext.endsWith('.mp3')) {
+          mimeType = 'audio/mpeg';
+        } else if (ext.endsWith('.wav')) mimeType = 'audio/wav';
         else if (ext.endsWith('.aac')) mimeType = 'audio/aac';
         else if (ext.endsWith('.ogg')) mimeType = 'audio/ogg';
         else if (ext.endsWith('.m4a')) mimeType = 'audio/mp4';

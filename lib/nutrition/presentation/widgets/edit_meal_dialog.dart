@@ -9,7 +9,7 @@ class EditMealDialog extends StatefulWidget {
   final Meal meal;
   final Function(Meal) onSave;
 
-  const EditMealDialog({Key? key, required this.meal, required this.onSave}) : super(key: key);
+  const EditMealDialog({super.key, required this.meal, required this.onSave});
 
   @override
   State<EditMealDialog> createState() => _EditMealDialogState();
@@ -198,7 +198,7 @@ class _EditMealDialogState extends State<EditMealDialog> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
 
                 ],
               ),

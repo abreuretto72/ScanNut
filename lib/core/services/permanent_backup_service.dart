@@ -98,11 +98,7 @@ class PermanentBackupService {
       // Comprimir dados
       final jsonString = jsonEncode(backupData);
       final jsonBytes = utf8.encode(jsonString);
-      final compressed = GZipEncoder().encode(jsonBytes);
-      
-      if (compressed == null) {
-        throw Exception('Falha na compressão');
-      }
+      final compressed = const GZipEncoder().encode(jsonBytes);
 
       // Salvar em pasta permanente
       final backupDir = await _getBackupDirectory();
@@ -137,7 +133,7 @@ class PermanentBackupService {
       debugPrint('📦 Backup encontrado! Iniciando auto-recovery...');
       
       final bytes = await backupFile.readAsBytes();
-      final decompressed = GZipDecoder().decodeBytes(bytes);
+      final decompressed = const GZipDecoder().decodeBytes(bytes);
       final jsonString = utf8.decode(decompressed);
       final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
 
@@ -213,9 +209,7 @@ class PermanentBackupService {
 
       final jsonString = jsonEncode(backupData);
       final jsonBytes = utf8.encode(jsonString);
-      final compressed = GZipEncoder().encode(jsonBytes);
-      
-      if (compressed == null) return null;
+      final compressed = const GZipEncoder().encode(jsonBytes);
 
       final backupFile = File('${backupDir.path}/$fileName');
       await backupFile.writeAsBytes(compressed);

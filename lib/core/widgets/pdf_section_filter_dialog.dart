@@ -5,7 +5,7 @@ import '../theme/app_design.dart';
 
 /// Dialog for selecting which sections to include in the PDF export
 class PdfSectionFilterDialog extends StatefulWidget {
-  const PdfSectionFilterDialog({Key? key}) : super(key: key);
+  const PdfSectionFilterDialog({super.key});
 
   @override
   State<PdfSectionFilterDialog> createState() => _PdfSectionFilterDialogState();
@@ -97,7 +97,7 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
                   });
                 },
               );
-            }).toList(),
+            }),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),

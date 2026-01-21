@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'dart:io';
 import 'dart:typed_data';
 import '../../../../core/theme/app_design.dart';
 import '../../../../l10n/app_localizations.dart';
@@ -11,7 +9,7 @@ import '../../../../core/widgets/pdf_preview_screen.dart';
 class PetEventReportDialog extends StatefulWidget {
   final String petId;
 
-  const PetEventReportDialog({Key? key, required this.petId}) : super(key: key);
+  const PetEventReportDialog({super.key, required this.petId});
 
   @override
   State<PetEventReportDialog> createState() => _PetEventReportDialogState();
@@ -78,7 +76,7 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
             _buildSectionTitle(l10n.petEvent_reportFilterGroup),
             DropdownButtonFormField<String>(
               dropdownColor: AppDesign.surfaceDark,
-              value: _selectedGroup,
+              initialValue: _selectedGroup,
               items: [
                 DropdownMenuItem(value: 'all', child: Text(l10n.commonCategory ?? 'Todas', style: const TextStyle(color: Colors.white70))),
                 DropdownMenuItem(value: 'food', child: Text(l10n.petEvent_group_food, style: const TextStyle(color: Colors.white70))),
@@ -100,7 +98,7 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
             SwitchListTile(
               title: Text(l10n.petEvent_reportIncludesOnlyPdf, style: const TextStyle(color: Colors.white70, fontSize: 13)),
               value: _onlyPdf,
-              activeColor: AppDesign.petPink,
+              activeThumbColor: AppDesign.petPink,
               onChanged: (val) => setState(() => _onlyPdf = val),
               contentPadding: EdgeInsets.zero,
             ),
@@ -201,7 +199,7 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(primary: AppDesign.petPink, onPrimary: Colors.black, surface: AppDesign.surfaceDark),
+            colorScheme: const ColorScheme.dark(primary: AppDesign.petPink, onPrimary: Colors.black, surface: AppDesign.surfaceDark),
           ),
           child: child!,
         );
@@ -209,7 +207,11 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startDate = picked; else _endDate = picked;
+        if (isStart) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
       });
     }
   }

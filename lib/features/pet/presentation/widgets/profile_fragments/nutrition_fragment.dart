@@ -11,6 +11,7 @@ import 'dart:io';
 import '../pet_food_analysis_card.dart';
 
 class NutritionFragment extends StatelessWidget {
+  final String? petId;
   final String petName;
   final TextEditingController alergiasController;
   final List<String> alergiasConhecidas;
@@ -40,7 +41,8 @@ class NutritionFragment extends StatelessWidget {
   final VoidCallback? onAnalysisSaved;
 
   const NutritionFragment({
-    Key? key,
+    super.key,
+    this.petId,
     required this.petName,
     required this.alergiasController,
     required this.alergiasConhecidas,
@@ -66,7 +68,7 @@ class NutritionFragment extends StatelessWidget {
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
     this.onAnalysisSaved,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +81,7 @@ class NutritionFragment extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
         PetFoodAnalysisCard(
+          petId: petId,
           petName: petName,
           analysisHistory: analysisHistory,
           onDeleteAnalysis: onDeleteAnalysis,

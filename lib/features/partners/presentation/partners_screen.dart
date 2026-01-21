@@ -18,7 +18,7 @@ import 'widgets/partner_export_configuration_modal.dart';
 class PartnersScreen extends ConsumerStatefulWidget {
   final PetAnalysisResult? suggestionContext;
 
-  const PartnersScreen({Key? key, this.suggestionContext}) : super(key: key);
+  const PartnersScreen({super.key, this.suggestionContext});
 
   @override
   ConsumerState<PartnersScreen> createState() => _PartnersScreenState();
@@ -41,8 +41,8 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
     await _service.init();
     
     final settings = ref.read(settingsProvider);
-    final userLat = -23.5500; // Mock
-    final userLon = -46.6330; // Mock
+    const userLat = -23.5500; // Mock
+    const userLon = -46.6330; // Mock
 
     List<PartnerModel> allInRadius = _service.getPartnersInRadius(
       userLat: userLat, 
@@ -73,7 +73,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           );
           break;
         default:
-          message = 'Olá, gostaria de saber mais sobre os serviços da ' + partner.name + '.';
+          message = 'Olá, gostaria de saber mais sobre os serviços da ${partner.name}.';
       }
     } else {
       message = 'Olá, vi sua empresa no ScanNut e gostaria de mais informações.';
@@ -320,7 +320,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.star, color: AppDesign.warning, size: 16),
-                      Text(' ' + partner.rating.toString(), style: const TextStyle(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
+                      Text(' ${partner.rating}', style: const TextStyle(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   if (isOpen24h)
@@ -333,14 +333,14 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
                 ],
               ),
             ),
-            Divider(color: Colors.white12, height: 1),
+            const Divider(color: Colors.white12, height: 1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildActionButton(Icons.phone, AppLocalizations.of(context)!.partnersCall, () => launchUrl(Uri.parse('tel:' + partner.phone))),
+                    _buildActionButton(Icons.phone, AppLocalizations.of(context)!.partnersCall, () => launchUrl(Uri.parse('tel:${partner.phone}'))),
                     const SizedBox(width: 8),
                     if (partner.whatsapp != null)
                       _buildActionButton(Icons.chat_bubble_outline, 'WhatsApp', () => _sendWhatsApp(partner)),
@@ -367,8 +367,8 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
     }
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0x1A5C6BC0),
+      decoration: const BoxDecoration(
+        color: Color(0x1A5C6BC0),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: AppDesign.info),

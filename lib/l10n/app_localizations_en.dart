@@ -321,6 +321,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingGetStarted => 'Get Started';
 
   @override
+  String get error_image_already_analyzed =>
+      'This image has already been analyzed recently.';
+
+  @override
   String get analysisErrorAiFailure => 'All AIs failed to analyze the image.';
 
   @override
@@ -853,16 +857,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String petSavedSuccess(Object petName) {
-    return '$petName\'s dossier saved/updated successfully!';
+    return 'Dossiê do $petName salvo com sucesso!';
   }
 
   @override
   String savedSuccess(Object type) {
-    return '$type saved in specialized boxes!';
+    return '$type salvo com sucesso no histórico!';
   }
 
   @override
-  String get errorPetNameNotFound => 'Error: Pet name not found.';
+  String get errorPetNameNotFound => 'Erro: Nome do pet não encontrado.';
 
   @override
   String healthAnalysisSaved(String petName) {
@@ -872,6 +876,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String errorSavingAnalysis(String error) {
     return 'Error saving analysis: $error';
+  }
+
+  @override
+  String get errorNavigationPrefix => 'Navigation Error: ';
+
+  @override
+  String get error_image_not_found =>
+      'Image not found. Please ensure the photo was captured correctly.';
+
+  @override
+  String get errorSaveHiveTitle => 'Save Error';
+
+  @override
+  String errorSaveHiveBody(String error) {
+    return 'Could not save: $error';
   }
 
   @override
@@ -6063,9 +6082,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorProcessingPrefix => 'Processing error: ';
 
   @override
-  String get errorNavigationPrefix => 'Navigation Error: ';
-
-  @override
   String get pdfClinicalHistorySection => 'Clinical History and Wounds';
 
   @override
@@ -6400,14 +6416,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeBiometricAction => 'Authenticate';
-
-  @override
-  String get errorSaveHiveTitle => 'Save Error';
-
-  @override
-  String errorSaveHiveBody(String error) {
-    return 'Could not save: $error';
-  }
 
   @override
   String get loadingMsgDiet => 'Analyzing diet...';

@@ -6,7 +6,7 @@ import 'weekly_plan_screen.dart';
 /// Tela principal do módulo de Gestão de Nutrição
 /// MVP - Offline-First com Hive
 class NutritionHomeScreen extends StatefulWidget {
-  const NutritionHomeScreen({Key? key}) : super(key: key);
+  const NutritionHomeScreen({super.key});
 
   @override
   State<NutritionHomeScreen> createState() => _NutritionHomeScreenState();

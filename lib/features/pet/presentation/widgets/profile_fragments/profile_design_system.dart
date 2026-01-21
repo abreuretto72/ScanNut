@@ -85,7 +85,7 @@ class ProfileDesignSystem {
     bool isRequired = false,
   }) {
     return DropdownButtonFormField<String>(
-      value: (value == null || !options.contains(value)) ? null : value,
+      initialValue: (value == null || !options.contains(value)) ? null : value,
       items: options.map((opt) => DropdownMenuItem(
         value: opt,
         child: Text(opt, style: const TextStyle(fontSize: 13)),

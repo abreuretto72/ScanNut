@@ -13,35 +13,23 @@ import 'package:uuid/uuid.dart';
 
 import '../services/pet_profile_service.dart';
 import 'widgets/edit_pet_form.dart';
-import '../../partners/presentation/partner_agenda_screen.dart';
 import 'widgets/weekly_menu_screen.dart';
-import '../../../core/services/meal_history_service.dart';
-import '../../../core/services/file_upload_service.dart';
 import '../../../core/services/partner_service.dart';
 import '../../../core/models/partner_model.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../services/pet_event_service.dart';
-import '../models/pet_event.dart';
-import '../../partners/models/agenda_event.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
-import 'widgets/pet_menu_filter_dialog.dart';
-import '../services/pet_menu_generator_service.dart';
 import 'widgets/pet_event_grid.dart';
 import 'widgets/pet_action_bar.dart';
-import '../models/meal_plan_request.dart';
 
 
-import 'widgets/pet_event_report_dialog.dart';
 import 'pet_event_history_screen.dart';
 import 'deep_analysis_pet_screen.dart';
 import '../../../core/services/simple_auth_service.dart';
 import '../models/pet_analysis_result.dart'; // Ensure this is imported
 
-import 'package:share_plus/share_plus.dart';
 
 class PetHistoryScreen extends ConsumerStatefulWidget {
-  const PetHistoryScreen({Key? key}) : super(key: key);
+  const PetHistoryScreen({super.key});
 
   @override
   ConsumerState<PetHistoryScreen> createState() => _PetHistoryScreenState();
@@ -100,28 +88,29 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     Map<String, PetProfileExtended?> profileMap = {};
     
     for (var item in petHistory) {
-         // 🛡️ ROBUST NAME RESOLUTION (Match Builder Logic)
+         // 🛡️ ROBUST IDENTITY RESOLUTION (UUID Priority)
          final data = item['data'] is Map ? item['data'] : {};
          final rawName = item['pet_name'] ?? data['pet_name'] ?? data['name'];
+         final rawId = item['pet_id'] ?? item['id'] ?? data['pet_id'] ?? data['id'];
          
-         if (rawName != null) {
-             final petName = rawName.toString().trim();
+         if (rawId != null || rawName != null) {
+             final identifier = rawId?.toString() ?? rawName?.toString().trim();
+             if (identifier == null || identifier.isEmpty) continue;
              
-             if (petName.isNotEmpty && !profileMap.containsKey(petName)) {
-                 final profileData = await profileService.getProfile(petName);
+             if (!profileMap.containsKey(identifier)) {
+                 final profileData = await profileService.getProfile(identifier);
                  if (profileData != null && profileData['data'] != null) {
                      try {
-                        // Use consistent parsing logic
                         final dataMap = deepCastMap(profileData['data']);
                         final profile = PetProfileExtended.fromJson(dataMap);
-                        profileMap[petName] = profile;
+                        profileMap[identifier] = profile;
                         
-                        // Cache image path
+                        // Cache image path using UI-safe identifier
                         if (profile.imagePath != null && profile.imagePath!.isNotEmpty) {
-                            imageMap[petName] = profile.imagePath;
+                            imageMap[identifier] = profile.imagePath;
                         }
                      } catch (e) {
-                        debugPrint('❌ [PetHistory] Error parsing profile for $petName: $e');
+                        debugPrint('❌ [PetHistory] Error parsing profile for $identifier: $e');
                      }
                  }
              }
@@ -132,7 +121,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                   if (linkedIds is List && linkedIds.isNotEmpty) {
                       final partnerId = linkedIds.first; 
                       final partner = partnerService.getPartner(partnerId);
-                      vetMap[petName] = partner;
+                      vetMap[identifier] = partner;
                   }
              }
          }
@@ -189,37 +178,51 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
         builder: (context, box, _) {
           // Real-time filtering and sorting
           final allItems = box.values.toList();
-          debugPrint('📜 [PetHistory] Total items in history box: ${allItems.length}');
+          debugPrint('📜 [AUDIT] Total de itens brutos na history box: ${allItems.length}');
           
           final rawHistory = allItems.where((item) {
-             if (item is! Map) return false;
-             final mode = item['mode']?.toString();
-             // Debug log for non-matching items to see what's there
-             // if (mode != 'Pet') debugPrint('   [PetHistory] Skipping item with mode: $mode');
+             if (item is! Map) {
+               debugPrint('   ⚠️ [AUDIT] Item ignorado: não é um Map (${item.runtimeType})');
+               return false;
+             }
              
-             return mode != null && mode.toLowerCase() == 'pet';
+             final mode = item['mode']?.toString().toLowerCase();
+             final hasPetId = item['pet_id'] != null || (item['data'] is Map && item['data']['pet_id'] != null);
+             final hasPetName = item['pet_name'] != null || (item['data'] is Map && item['data']['pet_name'] != null);
+             
+             // 🛡️ Permissive Filter: Accept explicit 'pet' mode OR any item with pet identifiers
+             final isPet = mode == 'pet' || (mode == null && (hasPetId || hasPetName));
+             
+             if (!isPet) {
+               debugPrint('   ℹ️ [AUDIT] Item filtrado (não identificado como Pet): mode=$mode');
+             }
+             return isPet;
           }).map((e) => deepCastMap(e)).toList();
 
+          debugPrint('📜 [AUDIT] Itens após filtro de mode=Pet: ${rawHistory.length}');
+
           // 🛡️ DEDUPLICATION STRATEGY (V190)
-          // Group by Pet Name and keep only the LATEST entry.
-          // This prevents "Ghost Duplicates" when switching between Log-Mode (Add) and Profile-Mode (Put).
           final Map<String, Map<String, dynamic>> uniqueMap = {};
           
           for (var item in rawHistory) {
-              final data = item['data'] is Map ? item['data'] : {};
+              final data = (item['data'] is Map) ? item['data'] as Map : {};
+              
+              final rawId = item['pet_id'] ?? item['id'] ?? data['pet_id'] ?? data['id'];
               final rawName = item['pet_name'] ?? data['pet_name'] ?? data['name'];
               
-              if (rawName != null) {
-                  final key = rawName.toString().trim();
-                  if (key.isNotEmpty) {
-                      if (!uniqueMap.containsKey(key)) {
+              final key = rawId?.toString() ?? 
+                           (rawName?.toString().trim().isNotEmpty == true ? rawName.toString().trim() : 'Unknown_${item['timestamp']}');
+              
+              debugPrint('   🔍 [AUDIT] Processando Pet: Name=$rawName, ID=$rawId -> Final Key=$key');
+              
+              if (key.isNotEmpty) {
+                  if (!uniqueMap.containsKey(key)) {
+                      uniqueMap[key] = item;
+                  } else {
+                      final currentTs = DateTime.tryParse(uniqueMap[key]?['timestamp'] ?? '') ?? DateTime(2000);
+                      final newTs = DateTime.tryParse(item['timestamp'] ?? '') ?? DateTime(2000);
+                      if (newTs.isAfter(currentTs)) {
                           uniqueMap[key] = item;
-                      } else {
-                          final currentTs = DateTime.tryParse(uniqueMap[key]?['timestamp'] ?? '') ?? DateTime(2000);
-                          final newTs = DateTime.tryParse(item['timestamp'] ?? '') ?? DateTime(2000);
-                          if (newTs.isAfter(currentTs)) {
-                              uniqueMap[key] = item;
-                          }
                       }
                   }
               }
@@ -271,13 +274,16 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 
                 final timestamp = DateFormat('dd/MM/yyyy HH:mm', Localizations.localeOf(context).toString()).format(date);
                 
+                final rawId = item['pet_id'] ?? item['id'] ?? data['pet_id'] ?? data['id'];
+                final identifier = rawId?.toString() ?? petName;
+                
                 // Extract breed/species for subtitle
                 // 🛡️ SAFE SUBTITLE with Zero N/A Policy
                 String subtitle;
                 try {
-                  // 🛡️ SHIELDING: Use Profile as Source of Truth if available
-                  final profile = _petProfiles[petName];
-                  String rawBreed = profile?.raca ?? '';
+                  // 🛡️ SUBTITLE LOGIC: Prioritize Profile as Source of Truth
+                final profile = _petProfiles[identifier];
+                String rawBreed = profile?.raca ?? '';
                   
                   if (rawBreed.isEmpty) {
                     if (data['analysis_type'] == 'diagnosis') {
@@ -331,8 +337,10 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                           final profile = _petProfiles[petName];
                           
                           // Resolve Best Image Path
-                          // Reuse logic from _buildPetAvatar somewhat or rely on cached map
-                          String? imgPath = _currentProfileImages[petName];
+                          final rawId = item['pet_id'] ?? item['id'] ?? data['pet_id'] ?? data['id'];
+                          final identifier = rawId?.toString() ?? petName;
+                          
+                          String? imgPath = _currentProfileImages[identifier];
                           if (imgPath == null || !File(imgPath).existsSync()) {
                              imgPath = item['image_path'] ?? data['image_path'];
                           }
@@ -393,7 +401,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                                       ),
                                     ),
                                     Text(
-                                      '${_petProfiles[petName]?.especie ?? ''} • ${_petProfiles[petName]?.raca ?? data['breed'] ?? data['identificacao']?['raca_predominante'] ?? 'SRD'} • ${_petProfiles[petName]?.idadeExata ?? data['age'] ?? '---'}',
+                                      '${_petProfiles[identifier]?.especie ?? ''} • ${_petProfiles[identifier]?.raca ?? data['breed'] ?? data['identificacao']?['raca_predominante'] ?? 'SRD'} • ${_petProfiles[identifier]?.idadeExata ?? data['age'] ?? '---'}',
                                       style: const TextStyle(color: Colors.white60, fontSize: 13),
                                     ),
                                     const SizedBox(height: 6),
@@ -411,11 +419,11 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                           
                           // BLOCO 2 — AÇÕES (3 BOTÕES)
                           PetActionBar(
-                            petId: petName,
+                            petId: identifier,
                             petName: petName,
-                            onAgendaTap: () => _showEventSelector(context, petName),
-                            onMenuTap: () => _handleMenuTap(context, petName),
-                            onEditTap: () => _handleEditTap(item, petName, data),
+                            onAgendaTap: () => _showEventSelector(context, identifier, petName),
+                            onMenuTap: () => _handleMenuTap(context, identifier, petName),
+                            onEditTap: () => _handleEditTap(item, identifier, petName, data),
                           ),
                         ],
                       ),
@@ -430,7 +438,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
 );
 }
 
-  void _showEventSelector(BuildContext context, String petName) {
+  void _showEventSelector(BuildContext context, String identifier, String petName) {
     final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
@@ -473,7 +481,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                         ),
                         Text(
                           l10n.petSelectRecordType,
-                          style: TextStyle(color: Colors.white60, fontSize: 13),
+                          style: const TextStyle(color: Colors.white60, fontSize: 13),
                         ),
                       ],
                     ),
@@ -484,7 +492,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PetEventHistoryScreen(petId: petName, petName: petName),
+                             builder: (context) => PetEventHistoryScreen(petId: identifier, petName: petName),
                           ),
                       );
                     },
@@ -500,7 +508,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              PetEventGrid(petId: petName),
+               PetEventGrid(petId: identifier),
             ],
           ),
         ),
@@ -512,16 +520,20 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     // 🛡️ Builds pet avatar with photo or fallback (PADRÃO OBRIGATÓRIO)
   Widget _buildPetAvatar(Map<String, dynamic> item, {double radius = 28}) {
     final l10n = AppLocalizations.of(context)!;
-    // 🛡️ ROBUST NAME RESOLUTION (Synced with List Builder)
+    // 🛡️ ROBUST IDENTITY RESOLUTION (Synced with List Builder)
     final rawName = item['pet_name'] ?? (item['data'] is Map ? item['data']['pet_name'] : null) ?? (item['data'] is Map ? item['data']['name'] : null);
+    final rawId = item['pet_id'] ?? item['id'] ?? (item['data'] is Map ? (item['data']['pet_id'] ?? item['data']['id']) : null);
+    
     final petName = (rawName != null && rawName.toString().trim().isNotEmpty) 
                       ? rawName.toString().trim() 
                       : l10n.petUnknown;
 
-    debugPrint('🔍 [UI_TRACE] Avatar Build for: $petName');
+    final identifier = rawId?.toString() ?? petName;
+
+    debugPrint('🔍 [UI_TRACE] Avatar Build for: $petName ($identifier)');
 
     // 1. Try to get FRESH image from Profile Service cache
-    String? imagePath = _currentProfileImages[petName];
+    String? imagePath = _currentProfileImages[identifier];
     debugPrint('   [UI_TRACE] Profile Cache Path: $imagePath');
     
     // 2. Fallback to history item data if cache is empty
@@ -653,7 +665,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     );
   }
 
-  Future<void> _handleEditTap(Map<String, dynamic> item, String petName, dynamic data) async {
+  Future<void> _handleEditTap(Map<String, dynamic> item, String identifier, String petName, dynamic data) async {
     final sw = Stopwatch()..start();
 
     // 🛡️ UX Fix: Show loading immediately
@@ -674,7 +686,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
       await profileService.init();
       debugPrint('⏱️ [PERF] Service Init: ${sw.elapsedMilliseconds}ms');
 
-      final existingMap = await profileService.getProfile(petName.trim());
+      final existingMap = await profileService.getProfile(identifier);
       debugPrint('⏱️ [PERF] Hive Fetch: ${sw.elapsedMilliseconds}ms');
 
       if (existingMap != null && existingMap['data'] != null) {
@@ -732,18 +744,18 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
             
             await HistoryService().savePetAnalysis(newName, analysisData, imagePath: profile.imagePath);
           },
-          onDelete: () => _confirmDelete(context, petName),
+           onDelete: () => _confirmDelete(context, identifier, petName),
         ),
       ),
     );
     if (mounted) _loadHistory();
   }
 
-  Future<void> _handleMenuTap(BuildContext context, String petName) async {
+  Future<void> _handleMenuTap(BuildContext context, String identifier, String petName) async {
     // Get pet profile to extract race name
     final profileService = PetProfileService();
     await profileService.init();
-    final profileData = await profileService.getProfile(petName);
+    final profileData = await profileService.getProfile(identifier);
     
     String raceName = 'SRD';
     if (profileData != null && profileData['data'] != null) {
@@ -758,6 +770,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => WeeklyMenuScreen(
+          petId: identifier,
           petName: petName,
           raceName: raceName,
         ),
@@ -765,7 +778,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, String petName) async {
+  Future<void> _confirmDelete(BuildContext context, String identifier, String petName) async {
 
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
@@ -787,10 +800,10 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     );
 
     if (confirmed == true) {
-       await HistoryService.deletePet(petName);
+       await HistoryService.deletePet(identifier);
        final service = PetProfileService();
        await service.init();
-       await service.deleteProfile(petName);
+       await service.deleteProfile(identifier);
        if (mounted) _loadHistory();
     }
   }

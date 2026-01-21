@@ -17,7 +17,7 @@ class GalleryFragment extends StatelessWidget {
   final Widget actionButtons;
 
   const GalleryFragment({
-    Key? key,
+    super.key,
     required this.docs,
     this.profileImage,
     required this.observacoesGaleria,
@@ -25,7 +25,7 @@ class GalleryFragment extends StatelessWidget {
     required this.onAddAttachment,
     required this.onObservacoesChanged,
     required this.actionButtons,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +61,7 @@ class GalleryFragment extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Icon(Icons.perm_media_outlined, size: 48, color: Colors.white24),
+                const Icon(Icons.perm_media_outlined, size: 48, color: Colors.white24),
                 const SizedBox(height: 16),
                 Text(l10n.petEmptyGallery, style: GoogleFonts.poppins(color: Colors.white38)),
               ],

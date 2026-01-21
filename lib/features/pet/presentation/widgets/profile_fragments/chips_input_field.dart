@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_design.dart';
 
 class ChipsInputField extends StatelessWidget {
@@ -12,7 +11,7 @@ class ChipsInputField extends StatelessWidget {
   final Color? chipColor;
 
   const ChipsInputField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.label,
     required this.icon,
@@ -20,7 +19,7 @@ class ChipsInputField extends StatelessWidget {
     required this.onAdd,
     required this.onDelete,
     this.chipColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

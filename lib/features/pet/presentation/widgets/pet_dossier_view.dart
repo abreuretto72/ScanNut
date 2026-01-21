@@ -20,7 +20,7 @@ class PetDossierView extends ConsumerStatefulWidget {
   final PetProfileExtended? petProfile;
 
   const PetDossierView({
-    Key? key,
+    super.key,
     required this.analysis,
     required this.imagePath,
     required this.onSave,
@@ -28,7 +28,7 @@ class PetDossierView extends ConsumerStatefulWidget {
     this.onViewProfile,
     this.petName,
     this.petProfile,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<PetDossierView> createState() => _PetDossierViewState();
@@ -241,7 +241,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
         ),
         child: Row(
           children: [
-            Icon(Icons.info_outline, color: AppDesign.petPink, size: 20),
+            const Icon(Icons.info_outline, color: AppDesign.petPink, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -514,8 +514,9 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
       final bristol = details['consistency_bristol_scale'];
       if (bristol != null) {
           final bInt = int.tryParse(bristol.toString()) ?? 0;
-          if (bInt == 1) bristolDesc = 'Caroços duros (Constipação)';
-          else if (bInt == 4) bristolDesc = 'Ideal (Salsicha lisa)';
+          if (bInt == 1) {
+            bristolDesc = 'Caroços duros (Constipação)';
+          } else if (bInt == 4) bristolDesc = 'Ideal (Salsicha lisa)';
           else if (bInt == 7) bristolDesc = 'Aquosa (Diarreia)';
           else bristolDesc = 'Escala $bInt';
       }
@@ -566,7 +567,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
 
       // Check if current analysis is empty, if so, look at history
       bool useHistory = false;
-      if ((signs == null || signs.isEmpty) && (causes == null || causes.isEmpty)) {
+      if ((signs == null || signs.isEmpty) && (causes.isEmpty)) {
           final history = widget.petProfile?.historicoAnaliseFeridas;
           if (history != null && history.isNotEmpty) {
              final last = history.last;
@@ -577,16 +578,16 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
           }
       }
       
-      if ((signs == null || signs.isEmpty) && (causes == null || causes.isEmpty)) return const SizedBox.shrink();
+      if ((signs == null || signs.isEmpty) && (causes.isEmpty)) return const SizedBox.shrink();
 
       return Column(
         children: [
             if (signs != null && signs.isNotEmpty)
                _buildAccordion('clinical_signs', 'Sinais Clínicos Identificados', Icons.medical_services, Map<String, dynamic>.from(signs)),
             
-            if (causes != null && causes.isNotEmpty)
+            if (causes.isNotEmpty)
                 _buildAccordion('possible_causes', 'Diagnósticos Prováveis', Icons.analytics, 
-                    Map.fromIterable(causes, key: (e) => 'Possibilidade', value: (e) => e.toString())
+                    { for (var e in causes) 'Possibilidade' : e.toString() }
                 ),
                 
             if (useHistory)
@@ -622,7 +623,11 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
                  initiallyExpanded: isExpanded,
                  onExpansionChanged: (val) {
                      setState(() {
-                         if (val) _expandedSections.add(id); else _expandedSections.remove(id);
+                         if (val) {
+                           _expandedSections.add(id);
+                         } else {
+                           _expandedSections.remove(id);
+                         }
                      });
                  },
                  leading: Container(

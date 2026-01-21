@@ -70,17 +70,17 @@ class PetEventModel extends HiveObject {
     bool? isDeleted,
   }) {
     return PetEventModel(
-      id: this.id,
-      petId: this.petId,
-      group: this.group,
-      type: this.type,
+      id: id,
+      petId: petId,
+      group: group,
+      type: type,
       title: title ?? this.title,
       notes: notes ?? this.notes,
       timestamp: timestamp ?? this.timestamp,
       includeInPdf: includeInPdf ?? this.includeInPdf,
       data: data ?? this.data,
       attachments: attachments ?? this.attachments,
-      createdAt: this.createdAt,
+      createdAt: createdAt,
       updatedAt: DateTime.now(),
       isDeleted: isDeleted ?? this.isDeleted,
     );

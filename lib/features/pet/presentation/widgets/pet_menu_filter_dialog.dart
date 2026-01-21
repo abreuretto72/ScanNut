@@ -11,9 +11,9 @@ class PetMenuFilterDialog extends StatefulWidget {
   final Map<String, dynamic>? initialConfig;
   
   const PetMenuFilterDialog({
-    Key? key, 
+    super.key, 
     this.initialConfig
-  }) : super(key: key);
+  });
 
   @override
   State<PetMenuFilterDialog> createState() => _PetMenuFilterDialogState();
@@ -89,8 +89,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
                onPrimary: Colors.black,
                surface: colorPastelPink,
                onSurface: Colors.black,
-             ),
-             dialogBackgroundColor: colorPastelPink,
+             ), dialogTheme: const DialogThemeData(backgroundColor: colorPastelPink),
           ),
           child: child!,
         );
@@ -314,7 +313,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(
         child: DropdownButtonFormField<PetDietType>(
-          value: _selectedDietType,
+          initialValue: _selectedDietType,
           dropdownColor: colorPastelPink,
           isExpanded: true,
           decoration: const InputDecoration(border: InputBorder.none),
@@ -350,7 +349,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(
         child: DropdownButtonFormField<PetFoodType>(
-          value: _selectedFoodType,
+          initialValue: _selectedFoodType,
           dropdownColor: colorPastelPink,
           isExpanded: true,
           decoration: const InputDecoration(border: InputBorder.none),

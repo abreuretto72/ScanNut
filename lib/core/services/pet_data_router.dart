@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import '../models/pet_data_envelope.dart';
 import '../../features/pet/services/pet_profile_service.dart';
@@ -112,7 +111,7 @@ class PetDataRouter {
       'raca_id': {}, // await _profileService.getProfile(petName),
       'saude': [], // await _healthService.getHealthRecords(petName),
       'cardapio': await _mealService.getRecentIngredients(petName),
-      'agenda': await _eventService.getEventsByPet(petName),
+      'agenda': _eventService.getEventsByPet(petName),
     };
   }
 }

@@ -4,7 +4,7 @@ import '../../../l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
-  const PrivacyPolicyScreen({Key? key}) : super(key: key);
+  const PrivacyPolicyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

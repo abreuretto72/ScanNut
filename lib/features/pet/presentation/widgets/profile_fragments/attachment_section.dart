@@ -13,12 +13,12 @@ class AttachmentSection extends StatelessWidget {
   final Function(File) onDelete;
 
   const AttachmentSection({
-    Key? key,
+    super.key,
     required this.title,
     required this.files,
     required this.onAdd,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +147,7 @@ class AttachmentSection extends StatelessWidget {
                                 onTap: () => onDelete(file),
                                 child: Container(
                                    padding: const EdgeInsets.all(2),
-                                   decoration: BoxDecoration(color: Colors.black45, shape: BoxShape.circle),
+                                   decoration: const BoxDecoration(color: Colors.black45, shape: BoxShape.circle),
                                    child: const Icon(Icons.close, size: 10, color: Colors.white70),
                                 ),
                              ),

@@ -7,7 +7,6 @@ import '../services/nutrition_service.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../models/food_analysis_model.dart';
 import 'food_result_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/translation_mapper.dart';
@@ -17,7 +16,7 @@ import '../../../core/widgets/pdf_preview_screen.dart';
 import 'widgets/food_export_configuration_modal.dart';
 
 class NutritionHistoryScreen extends StatefulWidget {
-  const NutritionHistoryScreen({Key? key}) : super(key: key);
+  const NutritionHistoryScreen({super.key});
 
   @override
   State<NutritionHistoryScreen> createState() => _NutritionHistoryScreenState();
@@ -68,7 +67,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
              return const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)));
           }
           
-          final listenable = NutritionService().listenable as ValueListenable<Box<NutritionHistoryItem>>?;
+          final listenable = NutritionService().listenable;
           if (listenable == null) {
              debugPrint('⚠️ [HistoryScreen] Listenable is null');
              return _buildEmptyState();

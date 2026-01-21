@@ -7,7 +7,7 @@ import 'package:scannut/l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
 
 class ShoppingListScreen extends ConsumerWidget {
-  const ShoppingListScreen({Key? key}) : super(key: key);
+  const ShoppingListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

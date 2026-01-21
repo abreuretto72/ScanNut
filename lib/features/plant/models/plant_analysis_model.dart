@@ -1,11 +1,3 @@
-/// ============================================================================
-/// 🚫 MODELO BLINDADO E CONGELADO - NÃO ALTERAR
-/// Este modelo representa a análise técnica de botânica.
-/// Chaves JSON compatíveis com o prompt em Inglês e exibição em Português.
-/// Data de Congelamento: 01/01/2026
-/// ============================================================================
-
-import 'package:flutter/foundation.dart';
 
 class PlantAnalysisModel {
   final Identificacao identificacao;

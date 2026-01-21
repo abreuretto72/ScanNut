@@ -1,11 +1,3 @@
-/// ============================================================================
-/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
-/// Este módulo de Status de Vacinação foi concluído e validado.
-/// Nenhuma rotina ou lógica interna deve ser modificada.
-/// Data de Congelamento: 29/12/2025
-/// ============================================================================
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/vaccine_status.dart';
 import '../../../core/services/hive_atomic_manager.dart';

@@ -7,7 +7,7 @@ import '../../../core/theme/app_design.dart';
 import '../../../core/utils/snackbar_helper.dart';
 
 class MediaManagerScreen extends StatefulWidget {
-  const MediaManagerScreen({Key? key}) : super(key: key);
+  const MediaManagerScreen({super.key});
 
   @override
   State<MediaManagerScreen> createState() => _MediaManagerScreenState();
