@@ -194,6 +194,15 @@ Funções do APP
             Observação(falado)
 ---
 
+## ✨ **NOVIDADES DA VERSÃO 7.2.2**
+
+### **🛡️ Correções Críticas de Persistência (Atomic Shield)**
+- **Proteção Contra "Data Nuke":** Corrigido bug crítico onde a inicialização prematura do `PetProfileService` (antes do login) causava o wipe completo do banco de dados de pets. Implementada "Guard Clause" que aborta a operação caso a chave de criptografia não esteja disponível.
+- **Auto-Save Estabilizado:** Corrigido crash (`DependOnInheritedWidget`) na tela de resultados ao tentar salvar automaticamente. A rotina agora aguarda o ciclo de renderização completo.
+- **Deduplicação Inteligente:** Sistema aprimorado para evitar processamento repetido da mesma imagem.
+
+---
+
 ## ✨ **NOVIDADES DA VERSÃO 1.5.7**
 
 ### **💉 Melhorias no Cartão de Vacinas**
