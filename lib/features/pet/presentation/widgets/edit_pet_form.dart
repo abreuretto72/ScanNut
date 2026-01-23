@@ -40,6 +40,7 @@ import '../../services/lab_exam_service.dart';
 import 'lab_exams_section.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/pet_weight_database.dart';
+import '../../services/pet_indexing_service.dart';
 import '../../services/pet_profile_service.dart';
 
 import 'weekly_menu_screen.dart';
@@ -3722,6 +3723,17 @@ class _EditPetFormState extends State<EditPetForm>
               _linkedPartnerIds.remove(p.id);
            } else {
               _linkedPartnerIds.add(p.id);
+              
+              // 🧠 [V_FIX] MARE: Auto-Index partner linking in pet timeline
+              PetIndexingService().indexPartnerInteraction(
+                petId: widget.existingProfile?.id ?? _petId,
+                petName: _nameController.text,
+                partnerName: p.name,
+                partnerId: p.id,
+                interactionType: 'linked_partner',
+                localizedTitle: 'Parceiro vinculado: ${p.name}',
+                localizedNotes: 'O parceiro ${p.name} (${p.category}) foi vinculado ao prontuário do pet.',
+              );
            }
            _markDirty();
       }),
@@ -3739,7 +3751,7 @@ class _EditPetFormState extends State<EditPetForm>
       actionButtons: const SizedBox(), 
       localizeValue: (v) => v,
       onAddPartner: () async {
-          final result = await Navigator.push(
+          await Navigator.push(
               context, 
               MaterialPageRoute(
                   builder: (_) => PartnersHubScreen(
@@ -3749,7 +3761,8 @@ class _EditPetFormState extends State<EditPetForm>
                   ),
               ),
           );
-          if (result != null) _loadLinkedPartners();
+          // 🛡️ Always reload to ensure NEW partners show up immediately
+          _loadLinkedPartners();
       },
     );
   }

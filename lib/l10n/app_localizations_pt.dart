@@ -4160,7 +4160,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get partnerNotesHint => 'Nova observação...';
 
   @override
-  String get partnerRadarButtonTitle => 'Busca Inteligente por Radar por categoria';
+  String get partnerRadarButtonTitle =>
+      'Busca Inteligente por Radar por categoria';
 
   @override
   String get partnerRadarButtonDesc => 'Encontre e import dados via GPS';

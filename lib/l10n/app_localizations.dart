@@ -7988,7 +7988,7 @@ abstract class AppLocalizations {
   /// No description provided for @partnerRadarButtonTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Busca Inteligente por Radar'**
+  /// **'Busca Inteligente por Radar por categoria'**
   String get partnerRadarButtonTitle;
 
   /// No description provided for @partnerRadarButtonDesc.
