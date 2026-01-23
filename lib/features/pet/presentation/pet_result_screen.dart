@@ -291,6 +291,14 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                       onSave: (updated) async {
                           final ps = PetProfileService(); await ps.init();
                           await ps.saveOrUpdateProfile(updated.petName, updated.toJson());
+                          
+                          // 🛡️ Sincroniza com o histórico usando UUID para evitar duplicidade
+                          await HistoryService().savePetAnalysis(
+                            updated.petName, 
+                            updated.rawAnalysis ?? {}, 
+                            imagePath: updated.imagePath,
+                            petId: updated.id,
+                          );
                       }
                   )
               )

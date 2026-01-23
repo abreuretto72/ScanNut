@@ -725,9 +725,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
           onSave: (profile) async {
             final service = PetProfileService();
             await service.init();
-            final oldName = petName;
             final newName = profile.petName;
             
+            // 🛡️ O UUID garante que estamos atualizando o mesmo registro, não importa se o nome mudou.
             await service.saveOrUpdateProfile(newName, profile.toJson());
             
             final analysisData = profile.rawAnalysis ?? {};
@@ -737,12 +737,14 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
               analysisData['breed'] = profile.raca;
             }
             
-            if (oldName != newName) {
-              await HistoryService.deletePet(oldName);
-              await service.deleteProfile(oldName);
-            }
-            
-            await HistoryService().savePetAnalysis(newName, analysisData, imagePath: profile.imagePath);
+            // 🛡️ [V_FIX] CRITICAL: Use profile.id to ensure the History entry is updated, not duplicated.
+            // Never delete by name in an auto-save environment.
+            await HistoryService().savePetAnalysis(
+              newName, 
+              analysisData, 
+              imagePath: profile.imagePath, 
+              petId: profile.id, // <--- STABLE UUID
+            );
           },
            onDelete: () => _confirmDelete(context, identifier, petName),
         ),
