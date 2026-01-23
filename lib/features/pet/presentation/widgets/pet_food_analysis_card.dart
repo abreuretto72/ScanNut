@@ -394,11 +394,12 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
           const Text('Níveis Garantidos:', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-               _buildNutrientChip('Proteína', nutrients['proteina'] ?? '0%'), // 🛡️ FALLBACK
-               _buildNutrientChip('Gordura', nutrients['gordura'] ?? '0%'),
-               _buildNutrientChip('Fibras', nutrients['fibras'] ?? '0%'),
+               Expanded(child: _buildNutrientChip('Proteína', nutrients['proteina'] ?? '0%')),
+               const SizedBox(width: 8),
+               Expanded(child: _buildNutrientChip('Gordura', nutrients['gordura'] ?? '0%')),
+               const SizedBox(width: 8),
+               Expanded(child: _buildNutrientChip('Fibras', nutrients['fibras'] ?? '0%')),
             ],
           ),
 
@@ -421,8 +422,19 @@ class _PetFoodAnalysisCardState extends State<PetFoodAnalysisCard> {
         decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
         child: Column(
           children: [
-            Text(label, style: const TextStyle(color: Colors.white54, fontSize: 10)),
-            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(
+              label, 
+              style: const TextStyle(color: Colors.white54, fontSize: 10),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              value, 
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       );
