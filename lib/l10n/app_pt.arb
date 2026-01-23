@@ -1562,7 +1562,7 @@
   "partnerNotesTitle": "Notas e Observações",
   "partnerNotesEmpty": "Nenhuma anotação ainda.\nEscreva ou grave lembretes sobre este parceiro.",
   "partnerNotesHint": "Nova observação...",
-  "partnerRadarButtonTitle": "Busca Inteligente por Radar",
+  "partnerRadarButtonTitle": "Busca Inteligente por Radar por categoria",
   "partnerRadarButtonDesc": "Encontre e import dados via GPS",
   "partnersTitle": "Futuros Parceiros",
   "partnersRadiusInfo": "Mostrando parceiros em um raio de {radius}km",

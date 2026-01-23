@@ -178,7 +178,7 @@ class PartnersFragment extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Busca inteligente por Radar',
+                'Busca Inteligente por Radar por categoria',
                 style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11),
               ),
             ]
