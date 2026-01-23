@@ -130,16 +130,24 @@ class PetEventRepository {
         case 'grooming': type = EventType.grooming; break;
         case 'activity': type = EventType.activity; break;
         case 'behavior': type = EventType.behavior; break;
-        case 'medication': type = EventType.medication; break;
-        case 'documents': type = EventType.documents; break;
-        case 'exams': type = EventType.exams; break;
-        case 'dentistry': type = EventType.dentistry; break;
-        case 'metrics': type = EventType.metrics; break;
-        case 'media': type = EventType.media; break;
-        case 'allergies': type = EventType.veterinary; break; // Health related
-        case 'schedule': type = EventType.other; break;
-        default: type = EventType.other; break;
-      }
+      case 'medication': type = EventType.medication; break;
+      case 'documents': type = EventType.documents; break;
+      case 'exams': type = EventType.exams; break;
+      case 'dentistry': type = EventType.dentistry; break;
+      case 'metrics': type = EventType.metrics; break;
+      case 'media': type = EventType.media; break;
+      case 'allergies': type = EventType.veterinary; break; 
+      case 'schedule': 
+          type = model.type == 'vaccine' ? EventType.vaccine : EventType.other;
+          break;
+      default: 
+          if (model.type == 'vaccine') {
+              type = EventType.vaccine;
+          } else {
+              type = EventType.other;
+          }
+          break;
+    }
 
       final agendaEvent = PetEvent(
         id: model.id, // Keep same ID for easy sync/delete

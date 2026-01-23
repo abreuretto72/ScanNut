@@ -76,6 +76,8 @@ class HealthFragment extends StatelessWidget {
             species: species,
             legacyV10Date: dataUltimaV10,
             legacyRabiesDate: dataUltimaAntirrabica,
+            onV10DateSelected: onV10DateSelected,
+            onRabiesDateSelected: onAntirrabicaDateSelected,
         ),
         
         const SizedBox(height: 24),

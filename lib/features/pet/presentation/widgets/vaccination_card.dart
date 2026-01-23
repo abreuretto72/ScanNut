@@ -7,6 +7,8 @@ import '../../../../core/theme/app_design.dart';
 import '../../models/pet_event.dart';
 import '../../../../core/providers/pet_event_provider.dart';
 import '../../services/pet_event_service.dart';
+import '../models/pet_event_model.dart';
+import '../../services/pet_event_repository.dart';
 
 class VaccinationCard extends ConsumerStatefulWidget {
   final String petId;
@@ -20,10 +22,14 @@ class VaccinationCard extends ConsumerStatefulWidget {
     required this.species,
     this.legacyV10Date,
     this.legacyRabiesDate,
+    this.onV10DateSelected,
+    this.onRabiesDateSelected,
   });
 
   final DateTime? legacyV10Date;
   final DateTime? legacyRabiesDate;
+  final Function(DateTime)? onV10DateSelected;
+  final Function(DateTime)? onRabiesDateSelected;
 
   @override
   ConsumerState<VaccinationCard> createState() => _VaccinationCardState();
@@ -71,7 +77,7 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
     if (l10n == null) return;
 
     final service = await ref.read(petEventServiceProvider.future);
-    final events = service.getEventsByPet(widget.petName);
+    final events = service.getEventsByPet(widget.petId);
     
     // MIGRATION LOGIC: Check for legacy dates and create events if missing
     await _checkMigration(service, events, l10n.vaccineV8V10, widget.legacyV10Date);
@@ -104,26 +110,37 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
     setState(() => _isLoading = false);
   }
 
-  Future<void> _checkMigration(PetEventService service, List<PetEvent> events, String title, DateTime? legacyDate) async {
+  Future<void> _checkMigration(PetEventService agendaService, List<PetEvent> currentAgendaEvents, String title, DateTime? legacyDate) async {
       if (legacyDate == null) return;
       
-      // Check if any event exists with this title
-      final exists = events.any((e) => e.type == EventType.vaccine && e.title.toLowerCase().trim() == title.toLowerCase().trim());
+      // Check if any event exists with this title in Agenda
+      final existsInAgenda = currentAgendaEvents.any((e) => e.type == EventType.vaccine && e.title.toLowerCase().trim() == title.toLowerCase().trim());
       
-      if (!exists) {
+      if (!existsInAgenda) {
          debugPrint('🔄 Migrating legacy vaccine date for $title: $legacyDate');
-         final event = PetEvent(
-            id: DateTime.now().millisecondsSinceEpoch.toString() + (title.hashCode).toString(), // Unique ID
+         
+         await PetEventRepository().init();
+         final eventModel = PetEventModel(
+            id: 'mig_vac_${DateTime.now().millisecondsSinceEpoch}_${title.hashCode}',
             petId: widget.petId,
-            petName: widget.petName,
+            group: 'health',
+            type: 'vaccine',
             title: title,
-            type: EventType.vaccine,
-            dateTime: legacyDate,
-            notes: 'Migrated from legacy profile',
+            notes: 'Migrado do perfil legado',
+            timestamp: legacyDate,
+            data: {
+              'pet_name': widget.petName,
+              'is_automatic': true,
+              'migration_source': 'legacy_profile'
+            },
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
          );
-         await service.addEvent(event);
-         // Add to local list to avoid fetch delay issues
-         events.add(event); 
+         
+         await PetEventRepository().addEvent(eventModel);
+         
+         // To avoid visual delay, we could manually add a placeholder to the agenda list if it wasn't mirrored fast enough
+         // But addEvent is awaited and it does mirror.
       }
   }
   
@@ -209,7 +226,7 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
       loading: () => const CircularProgressIndicator(),
       error: (_,__) => const Text('Error loading data'),
       data: (service) {
-        final events = service.getEventsByPet(widget.petName);
+        final events = service.getEventsByPet(widget.petId);
         
         return ListView.separated(
           shrinkWrap: true,
@@ -248,22 +265,36 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
   }
 
   Future<void> _saveVaccineDate(PetEventService service, String vaccineName, DateTime date) async {
-    // Create new event
-    // Format: Title = Vaccine Name
-    final event = PetEvent(
-       id: DateTime.now().millisecondsSinceEpoch.toString(), // Simple durable ID for now
-       petId: widget.petId, // Assuming we have petId, or generate one if empty?
-       // Wait, PetEvent requires petId. If we don't have it (e.g. creating pet), this fails.
-       // Assuming we are in EDIT mode mostly.
-       petName: widget.petName,
-       title: vaccineName,
-       type: EventType.vaccine,
-       dateTime: date,
-       notes: 'Vaccination record via smart card',
+    // 1. Notify Parent (Legacy Compatibility)
+    final l10n = AppLocalizations.of(context)!;
+    if (vaccineName == l10n.vaccineV8V10 || vaccineName == l10n.vaccineV3V4V5) {
+       widget.onV10DateSelected?.call(date);
+    } else if (vaccineName == l10n.vaccineRabies) {
+       widget.onRabiesDateSelected?.call(date);
+    }
+
+    // 2. Persistent Event (Journal + Agenda Mirror)
+    await PetEventRepository().init();
+    final eventModel = PetEventModel(
+        id: 'vac_${DateTime.now().millisecondsSinceEpoch}',
+        petId: widget.petId,
+        group: 'health',
+        type: 'vaccine',
+        title: vaccineName,
+        notes: 'Registro de vacinação via cartão inteligente',
+        timestamp: date,
+        data: {
+          'pet_name': widget.petName,
+          'is_automatic': false,
+        },
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
     );
     
-    await service.addEvent(event);
-    setState(() {}); // Force rebuild to refresh list
+    await PetEventRepository().addEvent(eventModel);
+    
+    // Force rebuild local view
+    setState(() {}); 
   }
 
   void _showHelpDialog(BuildContext context, AppLocalizations l10n) {
