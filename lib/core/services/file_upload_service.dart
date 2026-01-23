@@ -106,6 +106,7 @@ class FileUploadService {
     required File file,
     required String petName,
     required String attachmentType,
+    bool skipIndexing = false,
   }) async {
     try {
       final vault = MediaVaultService();
@@ -137,7 +138,8 @@ class FileUploadService {
       final result = await vault.secureClone(
         tempFile, 
         category, 
-        petName.replaceAll(RegExp(r'\s+'), '_').toLowerCase()
+        petName.replaceAll(RegExp(r'\s+'), '_').toLowerCase(),
+        skipIndexing
       );
       
       // Clean up temp file

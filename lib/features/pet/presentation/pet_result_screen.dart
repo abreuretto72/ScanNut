@@ -104,7 +104,8 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
           final savedPath = await vault.secureClone(
               widget.imageFile, 
               MediaVaultService.PETS_DIR, 
-              petNameForPath
+              petNameForPath,
+              true // skipIndexing = true to avoid duplicate VAULT_UPLOAD in timeline
           );
           
           _permanentImage = File(savedPath);
@@ -314,7 +315,8 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
              final savedPath = await fs.saveMedicalDocument(
                 file: widget.imageFile,
                 petName: result.petName ?? 'Unknown',
-                attachmentType: 'health_${result.analysisType}_${DateTime.now().millisecondsSinceEpoch}'
+                attachmentType: 'health_${result.analysisType}_${DateTime.now().millisecondsSinceEpoch}',
+                skipIndexing: true // 🛡️ V_FIX: Avoid duplicate VAULT_UPLOAD in timeline
              );
              if (savedPath != null) {
                 imagePathToUse = savedPath;
