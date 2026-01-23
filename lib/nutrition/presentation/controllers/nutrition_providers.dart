@@ -245,7 +245,7 @@ final shoppingListProvider = StateNotifierProvider<ShoppingListNotifier, List<Sh
 
 class ShoppingListNotifier extends StateNotifier<List<ShoppingListItem>> {
   final ShoppingListService _service = ShoppingListService();
-  final ShoppingListGenerator _generator = ShoppingListGenerator();
+
 
   ShoppingListNotifier() : super([]) {
     _loadList();

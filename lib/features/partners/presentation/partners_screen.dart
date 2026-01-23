@@ -243,9 +243,9 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppDesign.petPink.withOpacity(0.15),
+        color: AppDesign.petPink.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppDesign.petPink.withOpacity(0.4))
+        border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.4))
       ),
       child: Row(
         children: [

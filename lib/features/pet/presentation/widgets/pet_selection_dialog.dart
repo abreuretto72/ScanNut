@@ -83,7 +83,7 @@ class PetSelectionDialog extends StatelessWidget {
                   ),
                   
                   if (registeredPets.isNotEmpty)
-                    Divider(height: 1, color: Colors.white.withOpacity(0.1)),
+                    Divider(height: 1, color: Colors.white.withValues(alpha: 0.1)),
                   
                   // Registered pets
                   ...registeredPets.map((pet) => _buildPetOption(
@@ -132,7 +132,7 @@ class PetSelectionDialog extends StatelessWidget {
           color: Colors.transparent,
           border: Border(
             bottom: BorderSide(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               width: 0.5,
             ),
           ),
@@ -144,8 +144,8 @@ class PetSelectionDialog extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: isNew 
-                    ? AppDesign.petPink.withOpacity(0.2)
-                    : Colors.blue.withOpacity(0.2),
+                    ? AppDesign.petPink.withValues(alpha: 0.2)
+                    : Colors.blue.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isNew 

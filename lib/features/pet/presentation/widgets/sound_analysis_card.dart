@@ -217,8 +217,8 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     // Cores indicativas (Using withOpacity for compatibility)
-    final borderColor = _errorMessage != null ? Colors.red : (_lastResult != null ? Colors.green : Colors.grey.withOpacity(0.3));
-    final bgColor = _errorMessage != null ? Colors.red.withOpacity(0.1) : (_lastResult != null ? Colors.green.withOpacity(0.1) : Colors.black.withOpacity(0.2));
+    final borderColor = _errorMessage != null ? Colors.red : (_lastResult != null ? Colors.green : Colors.grey.withValues(alpha: 0.3));
+    final bgColor = _errorMessage != null ? Colors.red.withValues(alpha: 0.1) : (_lastResult != null ? Colors.green.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.2));
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
@@ -264,7 +264,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
                const SizedBox(height: 8),
                Text(
                  strings?.soundAnalysisDesc ?? 'Entenda o que seu pet diz.',
-                 style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+                 style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
                ),
                
                const SizedBox(height: 16),
@@ -284,7 +284,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
                              padding: EdgeInsets.all(_isRecording ? 24 : 16),
                              decoration: BoxDecoration(
                                shape: BoxShape.circle,
-                               color: _isRecording ? Colors.red.withOpacity(0.2) : AppDesign.petPink.withOpacity(0.1),
+                               color: _isRecording ? Colors.red.withValues(alpha: 0.2) : AppDesign.petPink.withValues(alpha: 0.1),
                                border: Border.all(color: _isRecording ? Colors.red : AppDesign.petPink, width: 2),
                              ),
                              child: Icon(
@@ -308,7 +308,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
                               onPressed: _pickFile,
                               icon: const Icon(Icons.upload_file, color: Colors.white, size: 32),
                               style: IconButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.1),
+                                backgroundColor: Colors.white.withValues(alpha: 0.1),
                                 padding: const EdgeInsets.all(16),
                               ),
                             ),
@@ -338,7 +338,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Text(
                           'Arquivo: ${_lastResult!['original_filename']}',
-                          style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10, fontStyle: FontStyle.italic),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10, fontStyle: FontStyle.italic),
                         ),
                       ),
                    _buildResultRow(Icons.sentiment_satisfied_alt, strings?.soundEmotionSimple ?? 'O que ele sente', _lastResult?['emotion_simple']?.toString()),
@@ -388,7 +388,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
          children: [
             Container(
               padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
               child: Icon(icon, size: 16, color: AppDesign.petPink),
             ),
             const SizedBox(width: 12),
@@ -396,7 +396,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11)),
+                  Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11)),
                   const SizedBox(height: 2),
                   Text(
                     value ?? '...', 
@@ -423,7 +423,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
        child: Container(
          margin: const EdgeInsets.only(bottom: 8),
          padding: const EdgeInsets.all(10),
-         decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white.withOpacity(0.05))),
+         decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
          child: Row(
            children: [
               const Icon(Icons.audio_file, color: AppDesign.petPink, size: 20),

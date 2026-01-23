@@ -200,6 +200,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
               // Convert AgendaEvent to old format for compatibility
               final eventMap = event.toJson();
               _addEvent(eventMap);
+              if (!mounted) return;
               Navigator.pop(context);
             },
             speech: _speech,
@@ -369,7 +370,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           children: [
             // 1. Calendar
             Container(
-              color: AppDesign.textPrimaryDark.withOpacity(0.05),
+              color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
               padding: const EdgeInsets.only(bottom: 8),
               child: TableCalendar(
                 firstDay: DateTime.utc(2020, 10, 16),
@@ -476,7 +477,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.event_available, size: 60, color: AppDesign.textPrimaryDark.withOpacity(0.05)),
+          Icon(Icons.event_available, size: 60, color: AppDesign.textPrimaryDark.withValues(alpha: 0.05)),
           const SizedBox(height: 16),
           Text(AppLocalizations.of(context)!.agendaNoEventsDay, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         ],
@@ -559,4 +560,5 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
     );
   }
 }
+
 

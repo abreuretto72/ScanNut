@@ -114,7 +114,7 @@ class CustomErrorScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                      border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                     ),
                     child: Text(
                       details!.exception.toString(),
@@ -134,28 +134,4 @@ class CustomErrorScreen extends StatelessWidget {
 }
 
 /// Versão simplificada da marca d'água para a tela de erro (sem dependência de contexto de tema complexo)
-class _AppWatermarkSimple extends StatelessWidget {
-  const _AppWatermarkSimple();
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Material(
-        type: MaterialType.transparency,
-        child: Container(
-          alignment: Alignment.bottomRight,
-          padding: const EdgeInsets.only(right: 16, bottom: 8),
-          child: SafeArea(
-            child: Text(
-              'ScanNut © 2026 Multiverso Digital',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                color: Colors.white.withValues(alpha: 0.08),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+

@@ -8,6 +8,7 @@ import '../../../../../l10n/app_localizations.dart';
 
 class AttachmentSection extends StatelessWidget {
   final String title;
+  final String? subtitle;
   final List<File> files;
   final VoidCallback onAdd;
   final Function(File) onDelete;
@@ -15,6 +16,7 @@ class AttachmentSection extends StatelessWidget {
   const AttachmentSection({
     super.key,
     required this.title,
+    this.subtitle,
     required this.files,
     required this.onAdd,
     required this.onDelete,
@@ -24,13 +26,21 @@ class AttachmentSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    final bool hasFiles = files.isNotEmpty;
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: hasFiles 
+            ? Colors.green.withValues(alpha: 0.1) 
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(
+          color: hasFiles 
+              ? Colors.green.withValues(alpha: 0.2) 
+              : Colors.white10
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,30 +49,60 @@ class AttachmentSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.attach_file, color: Colors.white54, size: 16),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        title, 
-                        style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          hasFiles ? Icons.check_circle : Icons.attach_file, 
+                          color: hasFiles ? Colors.greenAccent : Colors.white54, 
+                          size: 16
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            title, 
+                            style: GoogleFonts.poppins(
+                              color: hasFiles ? Colors.white : Colors.white70, 
+                              fontSize: 13, 
+                              fontWeight: FontWeight.w600
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (hasFiles) 
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.3), 
+                              borderRadius: BorderRadius.circular(10)
+                            ),
+                            child: Text(
+                              '${files.length}', 
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)
+                            ),
+                          ),
+                      ],
                     ),
-                    if (files.isNotEmpty) 
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: AppDesign.petPink, shape: BoxShape.circle),
-                        child: Text('${files.length}', style: const TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle!,
+                        style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10),
                       ),
+                    ],
                   ],
                 ),
               ),
               IconButton( // Small Add Button
                 onPressed: onAdd,
-                icon: const Icon(Icons.add_circle_outline, color: AppDesign.petPink, size: 20),
+                icon: Icon(
+                  hasFiles ? Icons.add_circle : Icons.add_circle_outline, 
+                  color: hasFiles ? Colors.greenAccent : AppDesign.petPink, 
+                  size: 22
+                ),
                 constraints: const BoxConstraints(),
                 padding: EdgeInsets.zero,
                 tooltip: l10n.commonAdd,
@@ -113,7 +153,7 @@ class AttachmentSection extends StatelessWidget {
                     child: Container(
                       width: 90,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.03),
+                        color: Colors.white.withValues(alpha: 0.03),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: Colors.white10),
                       ),
@@ -124,7 +164,7 @@ class AttachmentSection extends StatelessWidget {
                             children: [
                               Icon(
                                 isPdf ? Icons.picture_as_pdf : Icons.image,
-                                color: isPdf ? Colors.redAccent.withOpacity(0.7) : Colors.blueAccent.withOpacity(0.7),
+                                color: isPdf ? Colors.redAccent.withValues(alpha: 0.7) : Colors.blueAccent.withValues(alpha: 0.7),
                                 size: 30,
                               ),
                               const SizedBox(height: 4),

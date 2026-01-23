@@ -393,7 +393,8 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
+    if (!mounted) return const SizedBox.shrink();
+
     final isFood = widget.groupId.trim().toLowerCase() == 'food';
 
     return SizedBox(
@@ -413,7 +414,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
+                    border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -483,7 +484,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                         decoration: BoxDecoration(
                           color: AppDesign.backgroundDark,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                         ),
                         child: Row(
                           children: [
@@ -623,7 +624,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                         color: AppDesign.petPink, 
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, spreadRadius: 5)
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 20, spreadRadius: 5)
                         ]
                       ),
                       child: const Text(
@@ -745,7 +746,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
             decoration: BoxDecoration(
               color: AppDesign.backgroundDark,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Icon(icon, color: Colors.white70, size: 20),
           ),
@@ -1167,7 +1168,7 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                     margin: const EdgeInsets.only(top: 8),
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade900.withOpacity(0.3),
+                      color: Colors.red.shade900.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(color: Colors.red.shade700),
                     ),
@@ -1608,3 +1609,4 @@ class _PetEventBottomSheetState extends State<PetEventBottomSheet> {
                    .replaceFirst(RegExp(r'^\d{8}_\d{6}_'), '');
   }
 }
+

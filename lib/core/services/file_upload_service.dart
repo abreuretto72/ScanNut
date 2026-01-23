@@ -101,6 +101,25 @@ class FileUploadService {
     return null;
   }
 
+  /// Pick image, optimize and return file
+  Future<File?> pickAndOptimizeImage({required ImageSource source}) async {
+    try {
+      final XFile? photo = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 70, // 🛡️ V_FIX: Enforce compression for storage efficiency
+        maxWidth: 1600,
+        maxHeight: 1600,
+      );
+
+      if (photo != null) {
+        return File(photo.path);
+      }
+    } catch (e) {
+      debugPrint('❌ Error picking and optimizing image: $e');
+    }
+    return null;
+  }
+
   /// MEDIA ARCHIVIST: Securely save document to Media Vault
   Future<String?> saveMedicalDocument({
     required File file,
@@ -119,6 +138,9 @@ class FileUploadService {
         category = MediaVaultService.FOOD_DIR;
       } else if (attachmentType.contains('plant')) {
         category = MediaVaultService.BOTANY_DIR;
+      } else if (attachmentType.startsWith('travel_')) {
+        // 🛡️ V_FIX: Travel documents categorized for later bulk treatment if needed
+        category = MediaVaultService.PETS_DIR; 
       }
       // Note: health_prescriptions, health_vaccines, etc. stay in PETS_DIR
 

@@ -41,7 +41,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white10),
               ),
@@ -64,7 +64,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       "Para a versão completa e detalhada, visite nosso portal online.",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        color: Colors.cyanAccent.withOpacity(0.7), 
+                        color: Colors.cyanAccent.withValues(alpha: 0.7), 
                         fontSize: 11,
                         decoration: TextDecoration.underline,
                       ),
@@ -100,7 +100,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -125,10 +125,10 @@ class PrivacyPolicyScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.grey.shade900,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color.withOpacity(0.2)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.05),
+                color: color.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),

@@ -165,6 +165,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
 
   Future<void> _generatePdf() async {
     String selectedReportCategory = AppLocalizations.of(context)!.partnersFilterAll;
+    if (!mounted) return;
     String selectedReportType = AppLocalizations.of(context)!.partnersSummary;
 
     showDialog(
@@ -555,7 +556,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
               style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 16)
             ),
             const SizedBox(height: 8),
-            Text(AppLocalizations.of(context)!.partnersRadarHint, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark.withOpacity(0.5), fontSize: 12)),
+            Text(AppLocalizations.of(context)!.partnersRadarHint, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark.withValues(alpha: 0.5), fontSize: 12)),
           ],
         ),
       ),
@@ -663,7 +664,7 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
 
     return Container(
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
       child: Icon(icon, color: color, size: 20),
     );
   }
@@ -775,6 +776,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
           authTrace.endStep('GPS.checkPermission', success: false, details: 'Permission Denied');
           setState(() {
             _isLoading = false;
+            if (!mounted) return;
             _errorMessage = AppLocalizations.of(context)!.partnersLocationDenied;
           });
           return;
@@ -809,6 +811,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
           authTrace.endStep('GPS.getPosition', details: 'Using last known pos');
         } else {
           authTrace.endStep('GPS.getPosition', success: false, details: e.toString());
+          if (!mounted) return;
           throw AppLocalizations.of(context)!.partnersLocationError;
         }
       }
@@ -994,6 +997,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
                                      TextButton(
                                        onPressed: () {
                                          Clipboard.setData(ClipboardData(text: authTrace.getTraceAsString()));
+                                         if (!mounted) return;
                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.logsCopied)));
                                        }, 
                                        child: Text(AppLocalizations.of(context)!.actionCopy)
@@ -1222,8 +1226,9 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
 
     return Container(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
       child: Icon(icon, color: color, size: 16),
     );
   }
 }
+

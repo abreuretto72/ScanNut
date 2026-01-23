@@ -10,8 +10,8 @@ class AppWatermarkFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     // Cor neutra baseada no brilho do tema com baixa opacidade (20% para visibilidade sutil em screenshots)
     final Color textColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white.withOpacity(0.20)
-        : Colors.black.withOpacity(0.20);
+        ? Colors.white.withValues(alpha: 0.20)
+        : Colors.black.withValues(alpha: 0.20);
 
     return IgnorePointer(
       ignoring: true,

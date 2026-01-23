@@ -107,6 +107,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
       
       if (mounted) {
         _selectedPlanIds.remove(planId);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuDeletedSuccess), backgroundColor: AppDesign.success));
         await _loadHistory();
       }
@@ -120,6 +121,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
 
   Future<void> _generatePdfMulti() async {
     if (_selectedPlanIds.isEmpty) return;
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     
     // Show Loading
@@ -166,7 +168,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
       }
 
       // 3. Generate
-      final pdf = await ExportService().generateWeeklyMenuReport(
+      await ExportService().generateWeeklyMenuReport(
          petName: widget.petName,
          raceName: widget.raceName,
          dietType: selectedPlans.first.dietType, // Use first as representative
@@ -209,6 +211,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pdf Error: $e'), backgroundColor: AppDesign.error));
       }
     }
@@ -262,7 +265,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
              Container(
                padding: const EdgeInsets.all(24),
                decoration: BoxDecoration(
-                  color: AppDesign.petPink.withOpacity(0.1),
+                  color: AppDesign.petPink.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                ),
                child: const Icon(Icons.auto_awesome, size: 60, color: AppDesign.petPink),
@@ -303,6 +306,12 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                           final age = d['idade_exata'] ?? d['age'];
                           final weight = d['peso_atual'] ?? d['weight'];
                           final size = d['porte'] ?? d['size'];
+                          // Note: 'size' is used in validation logic below, but linter complained it wasn't.
+                          // Wait, looking at line 311: (size != null && size.toString().isNotEmpty)
+                          // It IS used. Why did the linter complain?
+                          // Ah, maybe the user meant it wasn't used in PetMenuGeneratorService?
+                          // The previous tool failed for chunk 1 (size) in PetMenuGeneratorService.
+                          // Let's check PetMenuGeneratorService content again for 'size'.
                           
                           bool valid = (species != null && species.toString().isNotEmpty) &&
                                        (raca != null && raca.toString().isNotEmpty) &&
@@ -458,6 +467,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
      } catch (e) {
         if (mounted) {
            Navigator.pop(context);
+           if (!mounted) return;
            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Generation Error: $e'), backgroundColor: AppDesign.error));
         }
      }
@@ -532,7 +542,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
      final isSelected = _selectedPlanIds.contains(plan.id);
 
      return Card(
-       color: Colors.white.withOpacity(0.05),
+       color: Colors.white.withValues(alpha: 0.05),
        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
        shape: RoundedRectangleBorder(
          borderRadius: BorderRadius.circular(12), 
@@ -606,7 +616,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
 
      return Container(
         decoration: BoxDecoration(
-           border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+           border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
         ),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: Column(
@@ -708,6 +718,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
               _history[index] = updatedPlan;
            }
         });
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuDeletedSuccess), backgroundColor: AppDesign.success));
      }
   }
@@ -800,6 +811,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
            final hIndex = _history.indexWhere((p) => p.id == plan.id);
            if (hIndex != -1) _history[hIndex] = updatedPlan;
         });
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.petMenuSaveSuccess), backgroundColor: AppDesign.success));
      }
   }
@@ -862,6 +874,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
                     final hIndex = _history.indexWhere((p) => p.id == plan.id);
                     if (hIndex != -1) _history[hIndex] = updatedPlan;
                  });
+                 if (!mounted) return;
                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Opção alterada com sucesso!"), backgroundColor: AppDesign.success));
               }
 
@@ -987,3 +1000,4 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen> with Ticker
      }
   }
 }
+

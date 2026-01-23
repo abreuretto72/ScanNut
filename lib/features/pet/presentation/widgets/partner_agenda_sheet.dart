@@ -153,15 +153,15 @@ class _PartnerAgendaSheetState extends State<PartnerAgendaSheet> {
         background: Container(
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
-          color: Colors.red.withOpacity(0.2),
+          color: Colors.red.withValues(alpha: 0.2),
           child: const Icon(Icons.delete, color: Colors.red),
         ),
         child: Container(
           margin: const EdgeInsets.only(bottom: 12, left: 16),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            border: Border(left: BorderSide(color: AppDesign.petPink.withOpacity(0.5), width: 2)),
+            color: Colors.white.withValues(alpha: 0.05),
+            border: Border(left: BorderSide(color: AppDesign.petPink.withValues(alpha: 0.5), width: 2)),
             borderRadius: const BorderRadius.only(topRight: Radius.circular(8), bottomRight: Radius.circular(8))
           ),
           child: Column(
@@ -193,7 +193,7 @@ class _PartnerAgendaSheetState extends State<PartnerAgendaSheet> {
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                  Icon(Icons.event_busy, size: 48, color: Colors.white.withOpacity(0.1)),
+                  Icon(Icons.event_busy, size: 48, color: Colors.white.withValues(alpha: 0.1)),
                   const SizedBox(height: 16),
                   Text(
                       AppLocalizations.of(context)!.agendaNoEvents, 
@@ -216,9 +216,9 @@ class _PartnerAgendaSheetState extends State<PartnerAgendaSheet> {
           margin: const EdgeInsets.only(bottom: 24),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-              color: AppDesign.petPink.withOpacity(0.05),
+              color: AppDesign.petPink.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppDesign.petPink.withOpacity(0.2))
+              border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.2))
           ),
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

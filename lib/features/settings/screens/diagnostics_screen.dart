@@ -86,7 +86,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             icon: const Icon(Icons.play_arrow),
             label: Text('Executar Testes de Conectividade', style: GoogleFonts.poppins()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E676).withOpacity(0.2),
+              backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.2),
               foregroundColor: const Color(0xFF00E676),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
@@ -112,9 +112,9 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.1),
+        color: Colors.blue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.withOpacity(0.3)),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

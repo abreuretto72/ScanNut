@@ -81,7 +81,7 @@ class _Filter3DModalState extends State<Filter3DModal> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -226,7 +226,7 @@ class _Filter3DModalState extends State<Filter3DModal> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.05),
+          color: Colors.black.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Center(
@@ -243,7 +243,7 @@ class _Filter3DModalState extends State<Filter3DModal> {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.05),
+          color: Colors.black.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -258,9 +258,9 @@ class _Filter3DModalState extends State<Filter3DModal> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
+        color: Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black.withOpacity(0.1)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(
@@ -306,10 +306,10 @@ class _Filter3DModalState extends State<Filter3DModal> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withOpacity(0.4) : Colors.black.withOpacity(0.03),
+          color: isSelected ? Colors.white.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? colorIntensePink.withOpacity(0.5) : Colors.black.withOpacity(0.05),
+            color: isSelected ? colorIntensePink.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.05),
             width: 1.5,
           ),
         ),
@@ -317,7 +317,7 @@ class _Filter3DModalState extends State<Filter3DModal> {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isSelected ? colorIntensePink.withOpacity(0.2) : Colors.black.withOpacity(0.05),
+              color: isSelected ? colorIntensePink.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: isSelected ? colorIntensePink : Colors.black54, size: 20),

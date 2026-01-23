@@ -342,7 +342,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
         child: Container(
            padding: const EdgeInsets.all(16),
            decoration: BoxDecoration(
-              color: const Color(0xFFFFD1DC).withOpacity(0.7), 
+              color: const Color(0xFFFFD1DC).withValues(alpha: 0.7), 
               borderRadius: BorderRadius.circular(16),
            ),
            child: Row(
@@ -416,7 +416,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -582,6 +582,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
            
            if(mounted) {
               Navigator.pop(context); 
+              if (!mounted) return; 
               SnackBarHelper.showSuccess(context, 'Filtro 3D: $count registros de $petName excluídos/arquivados.');
            }
            
@@ -1053,7 +1054,7 @@ class _FilterModalContentState extends State<_FilterModalContent> {
                       Text('O QUÊ (Categorias)', style: GoogleFonts.poppins(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 12)),
                       const SizedBox(height: 12),
                       Card(
-                         color: Colors.white.withOpacity(0.5),
+                         color: Colors.white.withValues(alpha: 0.5),
                          elevation: 0,
                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                          child: Column(
@@ -1080,7 +1081,7 @@ class _FilterModalContentState extends State<_FilterModalContent> {
                             decoration: BoxDecoration(
                                color: Colors.white,
                                borderRadius: BorderRadius.circular(12),
-                               border: Border.all(color: const Color(0xFFE91E63).withOpacity(0.3)),
+                               border: Border.all(color: const Color(0xFFE91E63).withValues(alpha: 0.3)),
                             ),
                             child: Row(
                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1135,9 +1136,10 @@ class _FilterModalContentState extends State<_FilterModalContent> {
                  _updateDateLabel();
               });
            },
-           style: TextButton.styleFrom(backgroundColor: Colors.white.withOpacity(0.5), foregroundColor: Colors.black87),
+           style: TextButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.5), foregroundColor: Colors.black87),
            child: Text(label, style: const TextStyle(fontSize: 12)),
         ),
      );
   }
 }
+

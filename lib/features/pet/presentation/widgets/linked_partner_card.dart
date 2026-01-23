@@ -91,9 +91,9 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white.withOpacity(0.08),
+      color: Colors.white.withValues(alpha: 0.08),
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppDesign.petPink.withOpacity(0.3))),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppDesign.petPink.withValues(alpha: 0.3))),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -281,7 +281,7 @@ class _ActionIcon extends StatelessWidget {
             child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: isHighlighted 
-                   ? BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.5)))
+                   ? BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: 0.5)))
                    : null,
                 child: Column(
                     children: [

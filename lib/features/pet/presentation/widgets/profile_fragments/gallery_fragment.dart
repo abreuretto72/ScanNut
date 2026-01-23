@@ -55,7 +55,7 @@ class GalleryFragment extends StatelessWidget {
             padding: const EdgeInsets.all(40),
             width: double.infinity,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: Colors.white10),
             ),
@@ -111,7 +111,7 @@ class GalleryFragment extends StatelessWidget {
                          Positioned(
                            bottom: 0, left: 0, right: 0,
                            child: Container(
-                             color: AppDesign.petPink.withOpacity(0.8),
+                             color: AppDesign.petPink.withValues(alpha: 0.8),
                              padding: const EdgeInsets.symmetric(vertical: 2),
                              child: const Text('Perfil', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                            ),

@@ -176,6 +176,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                    );
                    _isLoading = false;
                 });
+                if (!mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(AppLocalizations.of(context)!.agendaEventUpdated), backgroundColor: AppDesign.success)
@@ -250,6 +251,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                                   await PetEventService().markAsCompleted(_event.id);
                                   if (mounted) {
                                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaEventCompleted), backgroundColor: AppDesign.success));
+                                      if (!mounted) return;
                                       Navigator.pop(context);
                                   }
                               },
@@ -347,6 +349,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
                          petData: profileData,
                          onSave: (updated) async {
                              await service.saveOrUpdateProfile(_event.petName, updated.toJson());
+                             if (!mounted) return;
                              if (mounted) Navigator.pop(context); 
                          },
                          onCancel: () => Navigator.pop(context),
@@ -390,7 +393,7 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
       decoration: BoxDecoration(
         color: Colors.white10,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
+        border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,3 +516,4 @@ class _PartnerEventDetailScreenState extends State<PartnerEventDetailScreen> {
       );
   }
 }
+

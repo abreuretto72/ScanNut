@@ -6879,4 +6879,110 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get travel_ship_checklist_3 => 'Regras de Circulação';
+
+  @override
+  String get petTravelMedicationActive => 'Medicação de Ciclo Ativo';
+
+  @override
+  String get petTravelMedicationActiveDesc =>
+      'Interrupções em tratamentos durante viagens podem causar recidivas e resistência bacteriana ou parasitária.';
+
+  @override
+  String get petTravelWaterMineral => 'Água Mineral e Soro';
+
+  @override
+  String get petTravelWaterMineralDesc =>
+      'Mudanças no pH da água de diferentes cidades podem causar distúrbios gastrointestinais em pets sensíveis.';
+
+  @override
+  String get petTravelTacticalStops => 'Paradas Táticas (A cada 2h)';
+
+  @override
+  String get petTravelTacticalStopsDesc =>
+      'Essencial para circulação, alívio de estresse e para evitar retenção urinária, que favorece infecções.';
+
+  @override
+  String get petTravelV8V10Desc =>
+      'Protege contra Cinomose e Parvovirose. Áreas de descanso e postos de gasolina são focos de contaminação por outros animais.';
+
+  @override
+  String get petTravelV3V4V5Desc =>
+      'Protege contra Complexo Respiratório e FelV. O estresse da viagem baixa a imunidade, tornando o gato mais suscetível.';
+
+  @override
+  String get petTravelRabiesDesc =>
+      'É a única exigida por lei para circulação em território nacional. Protege contra uma zoonose fatal.';
+
+  @override
+  String get petTravelGripeDesc =>
+      'Crucial para cães que frequentarão hotéis pet ou ambientes com ar-condicionado central.';
+
+  @override
+  String get petTravelLeishDesc =>
+      'Indispensável para viagens rumo ao litoral ou interior com áreas de mata.';
+
+  @override
+  String get petTravelHealthCheckup =>
+      'Calendário de Saúde não preenchido - Recomenda-se Check-up pré-viagem';
+
+  @override
+  String get petTravelHygieneKit => 'Kit de Higiene e Medicação Parasitária';
+
+  @override
+  String get petTravelHydrationMonitoring =>
+      'Hidratação e Monitoramento de Micção';
+
+  @override
+  String get petTravelRestSupport => 'Suporte Hídrico e Repouso';
+
+  @override
+  String get petTravelPremiumFoodKit => 'Kit Alimentar Super Premium';
+
+  @override
+  String get petTravelVaccineGuide => 'Guia de Vacinação Vital';
+
+  @override
+  String get petTravelSpecificCares => 'Cuidados Específicos';
+
+  @override
+  String get travelDocHealthTitle => 'Atestado de Saúde';
+
+  @override
+  String get travelDocHealthDesc =>
+      'Emitido pelo veterinário em até 10 dias antes da viagem.';
+
+  @override
+  String get travelDocVaccineTitle => 'Comprovante de Vacinação';
+
+  @override
+  String get travelDocVaccineDesc =>
+      'A vacina antirrábica deve ter sido aplicada há mais de 30 dias.';
+
+  @override
+  String get travelDocMicrochipTitle => 'Certificado de Microchip';
+
+  @override
+  String get travelDocMicrochipDesc =>
+      'Obrigatório para identificação permanente e viagens internacionais.';
+
+  @override
+  String get travelDocCrateTitle => 'Gaiola/Caixa de Transporte';
+
+  @override
+  String get travelDocCrateDesc =>
+      'Foto da etiqueta de identificação ou certificado da caixa.';
+
+  @override
+  String get travelDocLeishTitle => 'Vacina Leishmaniose';
+
+  @override
+  String get travelDocLeishDesc =>
+      'Recomendada para trânsito em áreas endêmicas.';
+
+  @override
+  String get travelDocFelvTitle => 'Teste FeLV/FiV';
+
+  @override
+  String get travelDocFelvDesc =>
+      'Importante para estadias em hotéis pet e segurança do felino.';
 }

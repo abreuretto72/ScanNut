@@ -61,7 +61,7 @@ class _RequirementPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     final fillPaint = Paint()
-      ..color = color.withOpacity(0.8) // Preenchimento sólido quase opaco para visibility
+      ..color = color.withValues(alpha: 0.8) // Preenchimento sólido quase opaco para visibility
       ..style = PaintingStyle.fill;
 
     // 1. Desenhar o Contorno (Shape conforme o domínio)

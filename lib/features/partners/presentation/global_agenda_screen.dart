@@ -354,12 +354,12 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: color.withOpacity(0.5), width: 1), // Dynamic color border
+        side: BorderSide(color: color.withValues(alpha: 0.5), width: 1), // Dynamic color border
       ),
       child: InkWell(
         onTap: () => _handleCardTap(event),
-        splashColor: color.withOpacity(0.2),
-        highlightColor: color.withOpacity(0.1),
+        splashColor: color.withValues(alpha: 0.2),
+        highlightColor: color.withValues(alpha: 0.1),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -396,9 +396,9 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.2),
+                        color: color.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: color.withOpacity(0.6)),
+                        border: Border.all(color: color.withValues(alpha: 0.6)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -455,6 +455,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
              petData: profileData,
              onSave: (updated) async {
                   await petService.saveOrUpdateProfile(event.petName, updated.toJson());
+                  if (!mounted) return;
                   if (mounted) Navigator.pop(context);
              },
              onCancel: () => Navigator.pop(context),
@@ -665,7 +666,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: AppDesign.textPrimaryDark.withOpacity(0.05),
+                    color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.white12),
                   ),
@@ -746,3 +747,4 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
     }
   }
 }
+

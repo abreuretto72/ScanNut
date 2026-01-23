@@ -6,8 +6,8 @@ class AppColors {
   static const Color accent = Color(0xFF5E4B6B);  // Roxo Destaque (substituto do verde)
 
   // Variações de Opacidade (Safe)
-  static Color get primarySoft => primary.withOpacity(0.8);
-  static Color get accentSoft => accent.withOpacity(0.8);
+  static Color get primarySoft => primary.withValues(alpha: 0.8);
+  static Color get accentSoft => accent.withValues(alpha: 0.8);
   
   // Estados
   static const Color success = accent; // Sucesso agora usa o tom de destaque/roxo

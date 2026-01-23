@@ -13,8 +13,8 @@ class AppDesign {
   static const Color primaryDark  = Color(0xFF3F2444);
   static const Color primaryLight = Color(0xFFA47DA8);
 
-  static Color accentSoft = accent.withOpacity(0.8);
-  static Color disabled   = primary.withOpacity(0.45);
+  static Color accentSoft = accent.withValues(alpha: 0.8);
+  static Color disabled   = primary.withValues(alpha: 0.45);
 
   // FUNDOS
   static const Color backgroundLight = Color(0xFFF6F3F7);

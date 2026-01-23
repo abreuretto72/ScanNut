@@ -226,7 +226,7 @@ class _MediaManagerScreenState extends State<MediaManagerScreen> {
                            if (isSelected)
                               Container(
                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.5),
+                                    color: Colors.black.withValues(alpha: 0.5),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(color: Colors.red, width: 2),
                                  ),

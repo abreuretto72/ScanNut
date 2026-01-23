@@ -241,7 +241,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           color: Colors.black,
           boxShadow: [
             BoxShadow(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               offset: const Offset(0, -4),
               blurRadius: 10,
             ),
@@ -418,7 +418,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     children: [
                       const Icon(Icons.auto_awesome, color: Colors.cyanAccent, size: 18),
@@ -548,7 +548,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         color: Colors.white10,
-        border: Border.all(color: statusColor.withOpacity(0.2)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -583,7 +583,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
@@ -596,7 +596,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               Expanded(child: Text(recipe.nome, style: GoogleFonts.poppins(color: _themeColor, fontWeight: FontWeight.bold, fontSize: 15))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: _themeColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: _themeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                 child: Text(recipe.tempoPreparo, style: GoogleFonts.poppins(color: _themeColor, fontSize: 10, fontWeight: FontWeight.bold)),
               ),
             ],
@@ -612,7 +612,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -651,7 +651,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 12),
-          Expanded(child: Text(text.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white.withOpacity(0.8), fontSize: 14))),
+          Expanded(child: Text(text.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white.withValues(alpha: 0.8), fontSize: 14))),
         ],
       ),
     );

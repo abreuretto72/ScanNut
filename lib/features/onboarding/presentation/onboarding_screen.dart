@@ -124,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       decoration: BoxDecoration(
                         color: _currentPage == index 
                             ? AppDesign.accent 
-                            : AppDesign.textPrimaryDark.withOpacity(0.24),
+                            : AppDesign.textPrimaryDark.withValues(alpha: 0.24),
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -226,9 +226,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: data.color.withOpacity(0.1),
+              color: data.color.withValues(alpha: 0.1),
               boxShadow: [
-                BoxShadow(color: data.color.withOpacity(0.2), blurRadius: 40, spreadRadius: 10),
+                BoxShadow(color: data.color.withValues(alpha: 0.2), blurRadius: 40, spreadRadius: 10),
               ],
             ),
             child: Icon(data.icon, size: 100, color: data.color),

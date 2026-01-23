@@ -197,10 +197,10 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
         
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _isListening ? Colors.red : Colors.white.withOpacity(0.1),
+              color: _isListening ? Colors.red : Colors.white.withValues(alpha: 0.1),
               width: _isListening ? 2 : 1,
             ),
           ),
@@ -231,9 +231,9 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
+              color: Colors.red.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.withOpacity(0.3)),
+              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [

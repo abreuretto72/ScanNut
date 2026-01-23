@@ -135,7 +135,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
 
   Widget _buildDiagnosisTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -146,7 +146,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                padding: const EdgeInsets.all(12),
                margin: const EdgeInsets.only(bottom: 20),
                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.white10),
                ),
@@ -237,7 +237,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
     final signs = widget.analysis.clinicalSignsDiag ?? {};
     
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -307,7 +307,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
       itemCount: history.length,
       itemBuilder: (context, index) {
         // Ordenação reversa (mais recente primeiro) se a lista não estiver ordenada

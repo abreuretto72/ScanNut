@@ -53,7 +53,7 @@ class PetAnalysisDetailsView extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+                    colors: [Colors.transparent, Colors.black.withValues(alpha: 0.7)],
                   )
                 ),
                 child: imageProvider == null ? const Center(child: Icon(Icons.pets, size: 60, color: Colors.white24)) : null,
@@ -110,7 +110,7 @@ class PetAnalysisDetailsView extends StatelessWidget {
                             children: result.nutricao.nutrientesAlvo.map((n) => 
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppDesign.petPink.withOpacity(0.3))),
+                                decoration: BoxDecoration(color: AppDesign.petPink.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3))),
                                 child: Text(n, style: const TextStyle(color: AppDesign.petPink, fontSize: 11)),
                               )
                             ).toList(),
@@ -163,9 +163,9 @@ class PetAnalysisDetailsView extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppDesign.petPink.withOpacity(0.08),
+                      color: AppDesign.petPink.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppDesign.petPink.withOpacity(0.2)),
+                      border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,9 +228,9 @@ class PetAnalysisDetailsView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.1),
+        color: Colors.amber.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.amber.withOpacity(0.3)),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -312,7 +312,7 @@ class PetAnalysisDetailsView extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withOpacity(0.5))),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: 0.5))),
       child: Row(
         children: [
            Icon(icon, color: color),

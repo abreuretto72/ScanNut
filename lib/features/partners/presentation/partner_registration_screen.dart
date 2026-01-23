@@ -452,7 +452,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [AppDesign.petPink, Color(0xFFFFB7C5)]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: AppDesign.petPink.withOpacity(0.3), blurRadius: 10, spreadRadius: 2)],
+          boxShadow: [BoxShadow(color: AppDesign.petPink.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 2)],
         ),
         child: Row(
           children: [
@@ -666,7 +666,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                        runSpacing: 4,
                        children: _teamMembers.map((member) => Chip(
                            label: Text(member, style: const TextStyle(fontSize: 12)),
-                           backgroundColor: AppDesign.petPink.withOpacity(0.2),
+                           backgroundColor: AppDesign.petPink.withValues(alpha: 0.2),
                            deleteIcon: const Icon(Icons.close, size: 14),
                            onDeleted: () {
                                setState(() {
@@ -1053,7 +1053,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                         return ListTile(
                           contentPadding: const EdgeInsets.symmetric(vertical: 4),
                           leading: CircleAvatar(
-                            backgroundColor: AppDesign.petPink.withOpacity(0.15),
+                            backgroundColor: AppDesign.petPink.withValues(alpha: 0.15),
                             child: Icon(_getIcon(p.category), color: AppDesign.petPink, size: 20),
                           ),
                           title: Text(p.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),

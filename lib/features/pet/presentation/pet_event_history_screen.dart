@@ -165,7 +165,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                    Container(
                      padding: const EdgeInsets.symmetric(horizontal: 12),
                      decoration: BoxDecoration(
-                       color: Colors.white.withOpacity(0.05),
+                       color: Colors.white.withValues(alpha: 0.05),
                        borderRadius: BorderRadius.circular(12),
                        border: Border.all(color: Colors.white12)
                      ),
@@ -223,7 +223,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                              child: Container(
                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.05),
+                                  color: Colors.white.withValues(alpha: 0.05),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(color: _selectedDateRange != null ? AppDesign.petPink : Colors.white12)
                                ),
@@ -262,6 +262,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                      _selectedType = null;
                                      _selectedDateRange = null;
                                   });
+                                  if (!mounted) return;
                                   Navigator.pop(context);
                                }, 
                                child: const Text('Limpar Filtros'),
@@ -314,7 +315,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                     color: AppDesign.petPink,
                     shape: BoxShape.circle,
                     boxShadow: [
-                      BoxShadow(color: AppDesign.petPink.withOpacity(0.3), blurRadius: 8, spreadRadius: 1),
+                      BoxShadow(color: AppDesign.petPink.withValues(alpha: 0.3), blurRadius: 8, spreadRadius: 1),
                     ],
                   ),
                 ),
@@ -344,15 +345,15 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: event.data.containsKey('deep_link') 
-                            ? AppDesign.petPink.withOpacity(0.2) 
-                            : Colors.white.withOpacity(0.05)
+                            ? AppDesign.petPink.withValues(alpha: 0.2) 
+                            : Colors.white.withValues(alpha: 0.05)
                         ),
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.white.withOpacity(0.05),
-                            Colors.white.withOpacity(0.02),
+                            Colors.white.withValues(alpha: 0.05),
+                            Colors.white.withValues(alpha: 0.02),
                           ],
                         ),
                       ),
@@ -365,7 +366,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                               Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: AppDesign.petPink.withOpacity(0.1),
+                                  color: AppDesign.petPink.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(_getGroupIcon(event.group), color: AppDesign.petPink, size: 14),
@@ -382,7 +383,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                           (event.type == 'ai_analysis' || event.type == 'vault_upload' 
                                            ? 'Foto do pet analisada' 
                                            : event.type).toUpperCase(),
-                                          style: TextStyle(color: AppDesign.petPink.withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                                          style: TextStyle(color: AppDesign.petPink.withValues(alpha: 0.8), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                                         ),
                                       ),
                                     Text(
@@ -487,7 +488,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                            const SizedBox(height: 4),
                                            Text(
                                                summary.trim(),
-                                               style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 11, height: 1.3),
+                                               style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, height: 1.3),
                                                maxLines: 5,
                                                overflow: TextOverflow.ellipsis,
                                            )
@@ -515,11 +516,11 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                              const SizedBox(height: 12),
                              Row(
                                children: [
-                                 Icon(Icons.touch_app, color: AppDesign.petPink.withOpacity(0.5), size: 12),
+                                 Icon(Icons.touch_app, color: AppDesign.petPink.withValues(alpha: 0.5), size: 12),
                                  const SizedBox(width: 4),
                                  Text(
                                    AppLocalizations.of(context)!.petEvent_tapToViewDetails, 
-                                   style: TextStyle(color: AppDesign.petPink.withOpacity(0.5), fontSize: 9, fontWeight: FontWeight.bold)
+                                   style: TextStyle(color: AppDesign.petPink.withValues(alpha: 0.5), fontSize: 9, fontWeight: FontWeight.bold)
                                   ),
                                ],
                              ),
@@ -550,7 +551,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                    decoration: BoxDecoration(
                                      color: Colors.black26,
                                      borderRadius: BorderRadius.circular(8),
-                                     border: Border.all(color: Colors.white.withOpacity(0.03)),
+                                     border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
                                     ),
                                    child: Text(
                                      '${e.key.toUpperCase()}: ${e.value}', 
@@ -581,8 +582,8 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.05),
-                                        border: Border.all(color: AppDesign.petPink.withOpacity(0.2)),
+                                        color: Colors.white.withValues(alpha: 0.05),
+                                        border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.2)),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: GestureDetector(
@@ -612,6 +613,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                         onTap: () {
                                            try {
                                               final content = File(sidecarPath).readAsStringSync();
+                                              if (!mounted) return;
                                               AttachmentAnalysisDialog.show(context, content);
                                            } catch (e) {
                                               debugPrint("Error reading sidecar: $e");
@@ -620,8 +622,8 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                           decoration: BoxDecoration(
-                                            color: Colors.greenAccent.withOpacity(0.12),
-                                            border: Border.all(color: Colors.greenAccent.withOpacity(0.35)),
+                                            color: Colors.greenAccent.withValues(alpha: 0.12),
+                                            border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.35)),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
                                           child: const Row(
@@ -750,6 +752,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
             
             if (File(sidecarPath).existsSync()) {
                 final content = File(sidecarPath).readAsStringSync();
+                if (!mounted) return;
                 _openAnalysisResult(context, content, firstImage.path);
             } else {
                  ScaffoldMessenger.of(context).showSnackBar(
@@ -851,3 +854,4 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                    .replaceFirst(RegExp(r'^\d{8}_\d{6}_'), '');
   }
 }
+

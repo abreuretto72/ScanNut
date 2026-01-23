@@ -65,9 +65,9 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,9 +106,9 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: check['ok'] ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+              color: check['ok'] ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: check['ok'] ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3)),
+              border: Border.all(color: check['ok'] ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
@@ -127,9 +127,9 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.1),
+        color: Colors.amber.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.withOpacity(0.3)),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

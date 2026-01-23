@@ -24,7 +24,7 @@ class ShoppingListScreen extends ConsumerWidget {
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
                     itemCount: items.length,
-                    separatorBuilder: (_, __) => Divider(color: AppDesign.textPrimaryDark.withOpacity(0.12)),
+                    separatorBuilder: (_, __) => Divider(color: AppDesign.textPrimaryDark.withValues(alpha: 0.12)),
                     itemBuilder: (context, index) {
                       final item = items[index];
                       return _buildItemRow(context, ref, item, index);
@@ -76,7 +76,7 @@ class ShoppingListScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_cart_outlined, size: 80, color: AppDesign.textPrimaryDark.withOpacity(0.24)),
+          Icon(Icons.shopping_cart_outlined, size: 80, color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
           const SizedBox(height: 24),
           Text(
             AppLocalizations.of(context)!.shopEmptyTitle,
@@ -120,7 +120,7 @@ class ShoppingListScreen extends ConsumerWidget {
         title: Text(
           item.nome,
           style: GoogleFonts.poppins(
-            color: item.marcado ? AppDesign.textPrimaryDark.withOpacity(0.38) : AppDesign.textPrimaryDark,
+            color: item.marcado ? AppDesign.textPrimaryDark.withValues(alpha: 0.38) : AppDesign.textPrimaryDark,
             decoration: item.marcado ? TextDecoration.lineThrough : null,
             fontWeight: FontWeight.w500,
           ),
@@ -129,7 +129,7 @@ class ShoppingListScreen extends ConsumerWidget {
           item.quantidadeTexto,
           style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
         ),
-        secondary: Icon(Icons.shopping_basket, color: AppDesign.textPrimaryDark.withOpacity(0.24)),
+        secondary: Icon(Icons.shopping_basket, color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
       ),
     );
   }
@@ -181,7 +181,7 @@ class ShoppingListScreen extends ConsumerWidget {
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.shopItemName,
                 labelStyle: const TextStyle(color: AppDesign.textSecondaryDark),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.24))),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24))),
               ),
             ),
             const SizedBox(height: 16),
@@ -191,7 +191,7 @@ class ShoppingListScreen extends ConsumerWidget {
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.shopItemQty,
                 labelStyle: const TextStyle(color: AppDesign.textSecondaryDark),
-                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.24))),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24))),
               ),
             ),
           ],

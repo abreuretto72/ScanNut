@@ -126,7 +126,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
 
     final isToxic = item.toxicityStatus != 'safe';
     final toxicityColor = isToxic ? Colors.redAccent : const Color(0xFF00E676);
-    final toxicityBg = isToxic ? Colors.redAccent.withOpacity(0.2) : const Color(0xFF00E676).withOpacity(0.15);
+    final toxicityBg = isToxic ? Colors.redAccent.withValues(alpha: 0.2) : const Color(0xFF00E676).withValues(alpha: 0.15);
     final toxicityText = isToxic ? (l10n.botanyToxicHuman) : l10n.labelSafe;
 
     return GestureDetector(
@@ -138,10 +138,10 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           color: AppDesign.surfaceDark,
           borderRadius: BorderRadius.circular(16),
           // Subtle border for high-end look
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           boxShadow: [
              BoxShadow(
-               color: Colors.black.withOpacity(0.3),
+               color: Colors.black.withValues(alpha: 0.3),
                blurRadius: 8,
                offset: const Offset(0, 4),
              )
@@ -228,7 +228,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                               color: semaphoreColor.withOpacity(0.2), 
+                               color: semaphoreColor.withValues(alpha: 0.2), 
                                borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -248,7 +248,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                                  // Default Safe
                                  String text = l10n.labelSafe;
                                  Color color = const Color(0xFF00E676);
-                                 Color bg = const Color(0xFF00E676).withOpacity(0.15);
+                                 Color bg = const Color(0xFF00E676).withValues(alpha: 0.15);
                                  
                                  if (meta != null && meta['seguranca_biofilia'] != null) {
                                     final sec = meta['seguranca_biofilia']['seguranca_domestica'];
@@ -258,7 +258,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                                        
                                        if (toxicPets) {
                                           color = Colors.redAccent;
-                                          bg = Colors.redAccent.withOpacity(0.2);
+                                          bg = Colors.redAccent.withValues(alpha: 0.2);
                                           
                                           // Try to find specific animal mention in details
                                           final String details = (sec['sintomas_ingestao'] ?? sec['toxicity_details'] ?? '').toString().toLowerCase();
@@ -273,7 +273,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                                           }
                                        } else if (toxicKids) {
                                            color = Colors.orangeAccent;
-                                           bg = Colors.orangeAccent.withOpacity(0.2);
+                                           bg = Colors.orangeAccent.withValues(alpha: 0.2);
                                            text = l10n.botanyToxicHuman.toUpperCase();
                                        }
                                     }
@@ -281,7 +281,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                                     // Fallback legacy
                                     if (item.toxicityStatus != 'safe') {
                                        color = Colors.redAccent;
-                                       bg = Colors.redAccent.withOpacity(0.2);
+                                       bg = Colors.redAccent.withValues(alpha: 0.2);
                                        text = l10n.botanyDangerousPet.toUpperCase();
                                     }
                                  }
@@ -380,7 +380,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
             icon: const Icon(Icons.health_and_safety_rounded, size: 18),
             label: Text(l10n.botanyRecovery, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppDesign.success.withOpacity(0.1),
+              backgroundColor: AppDesign.success.withValues(alpha: 0.1),
               foregroundColor: AppDesign.success,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -418,9 +418,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: backgroundColor ?? color.withOpacity(0.1),
+        color: backgroundColor ?? color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
-        border: Border.all(color: backgroundColor ?? color.withOpacity(0.3)),
+        border: Border.all(color: backgroundColor ?? color.withValues(alpha: 0.3)),
       ),
       child: IconButton(
         icon: Icon(icon, color: color, size: 20),
@@ -645,7 +645,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
             style: GoogleFonts.poppins(
               fontSize: 8,
               fontWeight: FontWeight.bold,
-              color: color.withOpacity(0.7),
+              color: color.withValues(alpha: 0.7),
             ),
           ),
         ],

@@ -201,7 +201,7 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 64, color: Colors.white.withOpacity(0.2)),
+            Icon(Icons.event_busy, size: 64, color: Colors.white.withValues(alpha: 0.2)),
             const SizedBox(height: 16),
             Text(
               emptyMessage,
@@ -330,12 +330,12 @@ class _EventCard extends StatelessWidget {
     final isOverdue = event.isPast && !event.completed;
 
     return Card(
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isOverdue ? Colors.red.withOpacity(0.5) : _eventColor.withOpacity(0.3),
+          color: isOverdue ? Colors.red.withValues(alpha: 0.5) : _eventColor.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -353,7 +353,7 @@ class _EventCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _eventColor.withOpacity(0.2),
+                      color: _eventColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(event.typeEmoji, style: const TextStyle(fontSize: 20)),
@@ -417,7 +417,7 @@ class _EventCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.2),
+                        color: Colors.red.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -435,7 +435,7 @@ class _EventCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.2),
+                        color: Colors.orange.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -689,7 +689,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 labelText: AppLocalizations.of(context)!.agendaFieldVaccineSelect,
                                 labelStyle: const TextStyle(color: Colors.white54),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                                 ),
                                 focusedBorder: const OutlineInputBorder(
                                   borderSide: BorderSide(color: AppDesign.petPink),
@@ -722,7 +722,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                   labelText: AppLocalizations.of(context)!.agendaFieldVaccineName,
                                   labelStyle: const TextStyle(color: Colors.white54),
                                   enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                                   ),
                                   focusedBorder: const OutlineInputBorder(
                                     borderSide: BorderSide(color: AppDesign.petPink),
@@ -738,7 +738,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 labelText: AppLocalizations.of(context)!.agendaFieldTitle,
                                 labelStyle: const TextStyle(color: Colors.white54),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                                 ),
                                 focusedBorder: const OutlineInputBorder(
                                   borderSide: BorderSide(color: AppDesign.petPink),
@@ -756,7 +756,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                               labelText: AppLocalizations.of(context)!.agendaFieldType,
                               labelStyle: const TextStyle(color: Colors.white54),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: const OutlineInputBorder(
                                 borderSide: BorderSide(color: AppDesign.petPink),
@@ -805,7 +805,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 child: OutlinedButton.icon(
                                   onPressed: _selectDate,
                                   style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                    side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(vertical: 16)
                                   ),
@@ -821,7 +821,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 child: OutlinedButton.icon(
                                   onPressed: _selectTime,
                                   style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                    side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(vertical: 16)
                                   ),
@@ -844,7 +844,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                               labelText: 'Recorrência',
                               labelStyle: const TextStyle(color: Colors.white54),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: const OutlineInputBorder(
                                 borderSide: BorderSide(color: AppDesign.petPink),
@@ -877,7 +877,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                               labelText: 'Observações (opcional)',
                               labelStyle: const TextStyle(color: Colors.white54),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: const OutlineInputBorder(
                                 borderSide: BorderSide(color: AppDesign.petPink),

@@ -193,10 +193,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.24)),
-      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withOpacity(0.5), size: 20),
+      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
+      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withValues(alpha: 0.5), size: 20),
       filled: true,
-      fillColor: AppDesign.textPrimaryDark.withOpacity(0.05),
+      fillColor: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -204,7 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),

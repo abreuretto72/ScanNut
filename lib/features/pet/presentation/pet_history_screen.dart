@@ -258,7 +258,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
               color: AppDesign.accent,
               backgroundColor: AppDesign.surfaceDark,
               child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
               itemCount: petHistory.length,
               itemBuilder: (context, index) {
                 final item = petHistory[index];
@@ -271,6 +271,8 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
                 final petName = (rawName != null && rawName.toString().trim().isNotEmpty) 
                     ? rawName.toString().trim() 
                     : l10n.petUnknown;
+
+                if (!mounted) return const SizedBox.shrink();
 
                 final timestamp = DateFormat('dd/MM/yyyy HH:mm', Localizations.localeOf(context).toString()).format(date);
                 
@@ -597,9 +599,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
       width: radius * 2,
       height: radius * 2,
       decoration: BoxDecoration(
-        color: AppDesign.petPink.withOpacity(0.2),
+        color: AppDesign.petPink.withValues(alpha: 0.2),
         shape: BoxShape.circle,
-        border: Border.all(color: AppDesign.petPink.withOpacity(0.3), width: 1),
+        border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3), width: 1),
       ),
       child: ClipOval(
         child: hasValidImage
@@ -637,9 +639,9 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
         child: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: (color ?? Colors.white).withOpacity(0.05),
+            color: (color ?? Colors.white).withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: (color ?? Colors.white).withOpacity(0.1)),
+            border: Border.all(color: (color ?? Colors.white).withValues(alpha: 0.1)),
           ),
           child: Icon(icon, color: color ?? Colors.white70, size: 18),
         ),
@@ -653,12 +655,12 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
       icon: Icon(icon, size: 16),
       label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: color.withOpacity(0.1),
+        backgroundColor: color.withValues(alpha: 0.1),
         foregroundColor: color,
         padding: const EdgeInsets.symmetric(vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: color.withOpacity(0.2)),
+          side: BorderSide(color: color.withValues(alpha: 0.2)),
         ),
         elevation: 0,
       ),
@@ -702,6 +704,7 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
       debugPrint('Error loading full profile: $e');
     }
 
+    if (!mounted) return;
     if (!mounted) return;
     Navigator.of(context).pop(); // Dismiss loader
 
@@ -810,4 +813,5 @@ class _PetHistoryScreenState extends ConsumerState<PetHistoryScreen> {
     }
   }
 }
+
 

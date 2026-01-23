@@ -91,7 +91,7 @@ class PartnersFragment extends StatelessWidget {
               }
 
               return Card(
-                color: AppDesign.textPrimaryDark.withOpacity(0.05),
+                color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Padding(
@@ -99,7 +99,7 @@ class PartnersFragment extends StatelessWidget {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: Colors.grey.withOpacity(0.1),
+                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
                         child: const Icon(Icons.link_off, color: Colors.grey, size: 20),
                       ),
                       const SizedBox(width: 16),

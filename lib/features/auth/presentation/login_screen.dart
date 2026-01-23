@@ -197,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Container(
                             padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
                             decoration: BoxDecoration(
-                              color: AppDesign.accent.withOpacity(0.1),
+                              color: AppDesign.accent.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: SizedBox(
@@ -276,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                color: AppDesign.textSecondaryDark.withOpacity(0.5),
+                                color: AppDesign.textSecondaryDark.withValues(alpha: 0.5),
                               ),
                               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
@@ -322,9 +322,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                             margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
-                              color: AppDesign.error.withOpacity(0.1),
+                              color: AppDesign.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppDesign.error.withOpacity(0.3)),
+                              border: Border.all(color: AppDesign.error.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               children: [
@@ -386,7 +386,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               icon: const Icon(Icons.fingerprint, color: AppDesign.accent),
                               label: Text('Entrar com Biometria', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
                               style: OutlinedButton.styleFrom(
-                                 side: BorderSide(color: AppDesign.accent.withOpacity(0.5)),
+                                 side: BorderSide(color: AppDesign.accent.withValues(alpha: 0.5)),
                                  padding: const EdgeInsets.symmetric(vertical: 12),
                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                               ),
@@ -442,11 +442,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.24)),
-      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withOpacity(0.5), size: 20),
+      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
+      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withValues(alpha: 0.5), size: 20),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: AppDesign.textPrimaryDark.withOpacity(0.05),
+      fillColor: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -454,7 +454,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),

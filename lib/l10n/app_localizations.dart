@@ -13102,6 +13102,186 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Regras de Circulação'**
   String get travel_ship_checklist_3;
+
+  /// No description provided for @petTravelMedicationActive.
+  ///
+  /// In pt, this message translates to:
+  /// **'Medicação de Ciclo Ativo'**
+  String get petTravelMedicationActive;
+
+  /// No description provided for @petTravelMedicationActiveDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Interrupções em tratamentos durante viagens podem causar recidivas e resistência bacteriana ou parasitária.'**
+  String get petTravelMedicationActiveDesc;
+
+  /// No description provided for @petTravelWaterMineral.
+  ///
+  /// In pt, this message translates to:
+  /// **'Água Mineral e Soro'**
+  String get petTravelWaterMineral;
+
+  /// No description provided for @petTravelWaterMineralDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mudanças no pH da água de diferentes cidades podem causar distúrbios gastrointestinais em pets sensíveis.'**
+  String get petTravelWaterMineralDesc;
+
+  /// No description provided for @petTravelTacticalStops.
+  ///
+  /// In pt, this message translates to:
+  /// **'Paradas Táticas (A cada 2h)'**
+  String get petTravelTacticalStops;
+
+  /// No description provided for @petTravelTacticalStopsDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Essencial para circulação, alívio de estresse e para evitar retenção urinária, que favorece infecções.'**
+  String get petTravelTacticalStopsDesc;
+
+  /// No description provided for @petTravelV8V10Desc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Protege contra Cinomose e Parvovirose. Áreas de descanso e postos de gasolina são focos de contaminação por outros animais.'**
+  String get petTravelV8V10Desc;
+
+  /// No description provided for @petTravelV3V4V5Desc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Protege contra Complexo Respiratório e FelV. O estresse da viagem baixa a imunidade, tornando o gato mais suscetível.'**
+  String get petTravelV3V4V5Desc;
+
+  /// No description provided for @petTravelRabiesDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'É a única exigida por lei para circulação em território nacional. Protege contra uma zoonose fatal.'**
+  String get petTravelRabiesDesc;
+
+  /// No description provided for @petTravelGripeDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Crucial para cães que frequentarão hotéis pet ou ambientes com ar-condicionado central.'**
+  String get petTravelGripeDesc;
+
+  /// No description provided for @petTravelLeishDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Indispensável para viagens rumo ao litoral ou interior com áreas de mata.'**
+  String get petTravelLeishDesc;
+
+  /// No description provided for @petTravelHealthCheckup.
+  ///
+  /// In pt, this message translates to:
+  /// **'Calendário de Saúde não preenchido - Recomenda-se Check-up pré-viagem'**
+  String get petTravelHealthCheckup;
+
+  /// No description provided for @petTravelHygieneKit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Kit de Higiene e Medicação Parasitária'**
+  String get petTravelHygieneKit;
+
+  /// No description provided for @petTravelHydrationMonitoring.
+  ///
+  /// In pt, this message translates to:
+  /// **'Hidratação e Monitoramento de Micção'**
+  String get petTravelHydrationMonitoring;
+
+  /// No description provided for @petTravelRestSupport.
+  ///
+  /// In pt, this message translates to:
+  /// **'Suporte Hídrico e Repouso'**
+  String get petTravelRestSupport;
+
+  /// No description provided for @petTravelPremiumFoodKit.
+  ///
+  /// In pt, this message translates to:
+  /// **'Kit Alimentar Super Premium'**
+  String get petTravelPremiumFoodKit;
+
+  /// No description provided for @petTravelVaccineGuide.
+  ///
+  /// In pt, this message translates to:
+  /// **'Guia de Vacinação Vital'**
+  String get petTravelVaccineGuide;
+
+  /// No description provided for @petTravelSpecificCares.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cuidados Específicos'**
+  String get petTravelSpecificCares;
+
+  /// No description provided for @travelDocHealthTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atestado de Saúde'**
+  String get travelDocHealthTitle;
+
+  /// No description provided for @travelDocHealthDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Emitido pelo veterinário em até 10 dias antes da viagem.'**
+  String get travelDocHealthDesc;
+
+  /// No description provided for @travelDocVaccineTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Comprovante de Vacinação'**
+  String get travelDocVaccineTitle;
+
+  /// No description provided for @travelDocVaccineDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'A vacina antirrábica deve ter sido aplicada há mais de 30 dias.'**
+  String get travelDocVaccineDesc;
+
+  /// No description provided for @travelDocMicrochipTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Certificado de Microchip'**
+  String get travelDocMicrochipTitle;
+
+  /// No description provided for @travelDocMicrochipDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Obrigatório para identificação permanente e viagens internacionais.'**
+  String get travelDocMicrochipDesc;
+
+  /// No description provided for @travelDocCrateTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gaiola/Caixa de Transporte'**
+  String get travelDocCrateTitle;
+
+  /// No description provided for @travelDocCrateDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Foto da etiqueta de identificação ou certificado da caixa.'**
+  String get travelDocCrateDesc;
+
+  /// No description provided for @travelDocLeishTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacina Leishmaniose'**
+  String get travelDocLeishTitle;
+
+  /// No description provided for @travelDocLeishDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Recomendada para trânsito em áreas endêmicas.'**
+  String get travelDocLeishDesc;
+
+  /// No description provided for @travelDocFelvTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Teste FeLV/FiV'**
+  String get travelDocFelvTitle;
+
+  /// No description provided for @travelDocFelvDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Importante para estadias em hotéis pet e segurança do felino.'**
+  String get travelDocFelvDesc;
 }
 
 class _AppLocalizationsDelegate

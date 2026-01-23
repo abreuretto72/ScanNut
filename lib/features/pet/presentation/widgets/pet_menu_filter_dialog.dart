@@ -164,7 +164,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -220,7 +220,7 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
                             hintText: l10n.dietOtherHint,
                             hintStyle: const TextStyle(color: Colors.black38),
                             filled: true,
-                            fillColor: Colors.black.withOpacity(0.05),
+                            fillColor: Colors.black.withValues(alpha: 0.05),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           ),
@@ -306,9 +306,9 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
   Widget _buildDietDropdown(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
+        color: Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black.withOpacity(0.1)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(
@@ -342,9 +342,9 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
   Widget _buildFoodTypeDropdown(AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
+        color: Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black.withOpacity(0.1)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(
@@ -397,9 +397,9 @@ class _PetMenuFilterDialogState extends State<PetMenuFilterDialog> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: enabled ? Colors.black.withOpacity(0.05) : Colors.black.withOpacity(0.02),
+          color: enabled ? Colors.black.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: enabled ? Colors.black.withOpacity(0.1) : Colors.transparent),
+          border: Border.all(color: enabled ? Colors.black.withValues(alpha: 0.1) : Colors.transparent),
         ),
         child: Row(
           children: [

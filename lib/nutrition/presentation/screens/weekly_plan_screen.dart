@@ -119,78 +119,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     );
   }
 
-  Future<void> _handleGeneration({required DateTime startDate, required String periodType}) async {
-    final l10n = AppLocalizations.of(context)!;
-    final profile = ref.read(nutritionProfileProvider);
-    if (profile == null) return;
 
-    // Check for existing active plans in this slot
-    final existingPlans = WeeklyPlanService().getAllActivePlans().where((p) => 
-      WeeklyPlanService().isSameDay(p.weekStartDate, startDate)
-    ).toList();
 
-    bool replace = false;
-    if (existingPlans.isNotEmpty) {
-      final choice = await showDialog<String>(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: AppDesign.surfaceDark,
-          title: Text(l10n.redoPlanAction, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
-          content: Text(l10n.redoPlanPrompt, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, 'archive'),
-              child: Text(l10n.createNewVersion, style: GoogleFonts.poppins(color: AppDesign.accent)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, 'replace'),
-              child: Text(l10n.replaceExisting, style: GoogleFonts.poppins(color: AppDesign.error)),
-            ),
-          ],
-        ),
-      );
-      if (choice == null) return;
-      replace = choice == 'replace';
-    }
 
-    try {
-      setState(() => _isLoading = true);
-      await ref.read(currentWeekPlanProvider.notifier).generateNewPlan(
-        profile,
-        startDate: startDate,
-        params: MenuCreationParams(
-          periodType: periodType,
-          mealsPerDay: profile.horariosRefeicoes.length,
-          style: 'simples',
-          objective: profile.objetivo ?? 'maintenance',
-        ),
-        replace: replace,
-        languageCode: Localizations.localeOf(context).languageCode,
-      );
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('✅ ${l10n.regenerateSuccess}'), backgroundColor: AppDesign.success)
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.planSaveError), 
-            backgroundColor: AppDesign.error
-          )
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _regeneratePlan() async {
-    // Legacy mapping to redo options
-    _showRedoOptions();
-  }
 
   Future<void> _generatePDF(WeeklyPlan plan) async {
     final l10n = AppLocalizations.of(context)!;
@@ -410,10 +341,11 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                     return ListView.separated(
                       itemCount: plans.length,
                       separatorBuilder: (_, __) => Divider(
-                        color: AppDesign.textPrimaryDark.withOpacity(0.12),
+                        color: AppDesign.textPrimaryDark.withValues(alpha: 0.12),
                       ),
                       itemBuilder: (context, index) {
                         final plan = plans[index];
+                        // if (!mounted) return const SizedBox.shrink(); // This is inside a builder, causing the return type mismatch void vs Widget
                         final locale = Localizations.localeOf(context).toString();
                         final isCurrent = ref.read(currentWeekPlanProvider)?.id == plan.id;
                         final statusColor = plan.status == 'active'
@@ -439,7 +371,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: statusColor.withOpacity(0.1),
+                                  color: statusColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -502,6 +434,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                           ),
                           onTap: () {
                             ref.read(currentWeekPlanProvider.notifier).setPlan(plan);
+                            if (!mounted) return;
                             Navigator.pop(context);
                           },
                         );
@@ -669,9 +602,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppDesign.warning.withOpacity(0.1),
+        color: AppDesign.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppDesign.foodOrange.withOpacity(0.3)),
+        border: Border.all(color: AppDesign.foodOrange.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -742,12 +675,12 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
     return Row(
       children: [
-        Icon(Icons.local_fire_department, size: 14, color: AppDesign.warning.withOpacity(0.7)),
+        Icon(Icons.local_fire_department, size: 14, color: AppDesign.warning.withValues(alpha: 0.7)),
         const SizedBox(width: 4),
         Text(
           '$cals ${l10n.caloriesEstimated}',
           style: GoogleFonts.poppins(
-            color: AppDesign.textPrimaryDark.withOpacity(0.38),
+            color: AppDesign.textPrimaryDark.withValues(alpha: 0.38),
             fontSize: 11,
           ),
         ),
@@ -756,8 +689,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           width: 60,
           child: LinearProgressIndicator(
             value: (cals / 2000).clamp(0.0, 1.0),
-            backgroundColor: AppDesign.textPrimaryDark.withOpacity(0.1),
-            valueColor: AlwaysStoppedAnimation<Color>(AppDesign.warning.withOpacity(0.5)),
+            backgroundColor: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
+            valueColor: AlwaysStoppedAnimation<Color>(AppDesign.warning.withValues(alpha: 0.5)),
             minHeight: 2,
           ),
         ),
@@ -792,11 +725,11 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isToday ? AppDesign.accent.withOpacity(0.1) : AppDesign.surfaceDark,
+      color: isToday ? AppDesign.accent.withValues(alpha: 0.1) : AppDesign.surfaceDark,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isToday ? AppDesign.foodOrange : AppDesign.foodOrange.withOpacity(0.3), // Food Domain Border
+          color: isToday ? AppDesign.foodOrange : AppDesign.foodOrange.withValues(alpha: 0.3), // Food Domain Border
           width: isToday ? 2 : 1,
         ),
       ),
@@ -866,9 +799,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1062,7 +995,7 @@ class DayPlanDetailsScreen extends ConsumerWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Row(
                 children: [
-                  Icon(Icons.circle, size: 6, color: _getMealColor(meal.tipo).withOpacity(0.5)),
+                  Icon(Icons.circle, size: 6, color: _getMealColor(meal.tipo).withValues(alpha: 0.5)),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -1151,3 +1084,4 @@ class DayPlanDetailsScreen extends ConsumerWidget {
     }
   }
 }
+

@@ -154,6 +154,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
   @override
   Widget build(BuildContext context) {
     final result = ref.watch(petResultProvider);
+    if (!mounted) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -308,6 +309,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
 
   Future<void> _performAutoSave(PetAnalysisResult result) async {
     if (_isSaving) return;
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     debugPrint('🚀 [AUDIT-RESULT] Iniciando Auto-Save para pet: ${result.petName}');
     try {
@@ -476,3 +478,4 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
     return {};
   }
 }
+

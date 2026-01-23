@@ -44,6 +44,8 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
     double percent = _consumed / _goal;
     if (percent > 1.0) percent = 1.0;
     
+    if (!mounted) return const SizedBox.shrink();
+    
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -100,7 +102,7 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
         color: Colors.grey.shade900,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
-          BoxShadow(color: const Color(0xFF00E676).withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: const Color(0xFF00E676).withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Column(
@@ -165,9 +167,9 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.blueAccent.withOpacity(0.1),
+            color: Colors.blueAccent.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.blueAccent.withOpacity(0.2)),
+            border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
@@ -249,6 +251,7 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
                   durationMinutes: int.tryParse(durCtrl.text) ?? 0,
                 );
                 await WorkoutService().saveWorkout(workout);
+                if (!mounted) return;
                 Navigator.pop(context);
                 _loadDailyData();
               }
@@ -271,9 +274,10 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.white30),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.05),
+        fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       ),
     );
   }
 }
+

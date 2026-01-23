@@ -122,32 +122,28 @@ class PetEventRepository {
       final agendaService = PetEventService();
       await agendaService.init();
 
-      EventType type = EventType.other;
-      switch (model.group) {
-        case 'food': type = EventType.food; break;
-        case 'health': type = EventType.veterinary; break;
-        case 'elimination': type = EventType.elimination; break;
-        case 'grooming': type = EventType.grooming; break;
-        case 'activity': type = EventType.activity; break;
-        case 'behavior': type = EventType.behavior; break;
-      case 'medication': type = EventType.medication; break;
-      case 'documents': type = EventType.documents; break;
-      case 'exams': type = EventType.exams; break;
-      case 'dentistry': type = EventType.dentistry; break;
-      case 'metrics': type = EventType.metrics; break;
-      case 'media': type = EventType.media; break;
-      case 'allergies': type = EventType.veterinary; break; 
-      case 'schedule': 
-          type = model.type == 'vaccine' ? EventType.vaccine : EventType.other;
-          break;
-      default: 
-          if (model.type == 'vaccine') {
-              type = EventType.vaccine;
-          } else {
-              type = EventType.other;
+      EventType type;
+      if (model.type == 'vaccine') {
+          type = EventType.vaccine;
+      } else {
+          switch (model.group) {
+            case 'food': type = EventType.food; break;
+            case 'health': type = EventType.veterinary; break;
+            case 'elimination': type = EventType.elimination; break;
+            case 'grooming': type = EventType.grooming; break;
+            case 'activity': type = EventType.activity; break;
+            case 'behavior': type = EventType.behavior; break;
+            case 'medication': type = EventType.medication; break;
+            case 'documents': type = EventType.documents; break;
+            case 'exams': type = EventType.exams; break;
+            case 'dentistry': type = EventType.dentistry; break;
+            case 'metrics': type = EventType.metrics; break;
+            case 'media': type = EventType.media; break;
+            case 'allergies': type = EventType.veterinary; break; 
+            case 'schedule': type = EventType.other; break;
+            default: type = EventType.other; break;
           }
-          break;
-    }
+      }
 
       final agendaEvent = PetEvent(
         id: model.id, // Keep same ID for easy sync/delete

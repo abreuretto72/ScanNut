@@ -170,7 +170,7 @@ class _PartnerExportConfigurationModalState extends State<PartnerExportConfigura
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? AppDesign.petPink.withOpacity(0.2) : Colors.white10,
+          color: isSelected ? AppDesign.petPink.withValues(alpha: 0.2) : Colors.white10,
           border: Border.all(
             color: isSelected ? AppDesign.petPink : Colors.white24,
             width: isSelected ? 2 : 1,

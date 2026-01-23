@@ -259,9 +259,9 @@ class _AddEventModalState extends State<AddEventModal> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppDesign.textPrimaryDark.withOpacity(0.05),
+                  color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+                  border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<EventCategory>(
@@ -330,7 +330,7 @@ class _AddEventModalState extends State<AddEventModal> {
                                 children: [
                                   const Icon(Icons.person, color: AppDesign.textSecondaryDark, size: 18),
                                   const SizedBox(width: 12),
-                                  Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.3), fontSize: 14)),
+                                  Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.3), fontSize: 14)),
                                 ],
                               ),
                               // 🛡️ PROTEÇÃO: Se não há membros, desabilitar ou mostrar mensagem informativa
@@ -434,7 +434,7 @@ class _AddEventModalState extends State<AddEventModal> {
                           final fileName = path.split('/').last;
                           return Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                            decoration: BoxDecoration(color: AppDesign.petPink.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -553,13 +553,13 @@ class _AddEventModalState extends State<AddEventModal> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
-            color: AppDesign.textPrimaryDark.withOpacity(0.03),
+            color: AppDesign.textPrimaryDark.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
-              Icon(icon, color: AppDesign.textPrimaryDark.withOpacity(0.24), size: 18),
+              Icon(icon, color: AppDesign.textPrimaryDark.withValues(alpha: 0.24), size: 18),
               const SizedBox(width: 12),
               Text(value, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 14)),
             ],

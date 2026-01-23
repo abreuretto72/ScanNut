@@ -298,7 +298,7 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(12),
-        // border: isHighlighted ? Border.all(color: AppDesign.petPink.withOpacity(0.5)) : null,
+        // border: isHighlighted ? Border.all(color: AppDesign.petPink.withValues(alpha: 0.5)) : null,
         boxShadow: [
              BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2)),
         ],

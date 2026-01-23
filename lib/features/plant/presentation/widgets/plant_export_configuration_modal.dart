@@ -204,7 +204,7 @@ class _PlantExportConfigurationModalState extends State<PlantExportConfiguration
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? AppDesign.plantGreen.withOpacity(0.2) : Colors.white10,
+          color: isSelected ? AppDesign.plantGreen.withValues(alpha: 0.2) : Colors.white10,
           border: Border.all(
             color: isSelected ? AppDesign.plantGreen : Colors.white24,
             width: isSelected ? 2 : 1,

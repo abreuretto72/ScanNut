@@ -7,7 +7,7 @@ import '../../../../core/theme/app_design.dart';
 import '../../models/pet_event.dart';
 import '../../../../core/providers/pet_event_provider.dart';
 import '../../services/pet_event_service.dart';
-import '../models/pet_event_model.dart';
+import '../../models/pet_event_model.dart';
 import '../../services/pet_event_repository.dart';
 
 class VaccinationCard extends ConsumerStatefulWidget {
@@ -127,7 +127,7 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
             type: 'vaccine',
             title: title,
             notes: 'Migrado do perfil legado',
-            timestamp: legacyDate,
+            timestamp: legacyDate!,
             data: {
               'pet_name': widget.petName,
               'is_automatic': true,

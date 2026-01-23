@@ -187,7 +187,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+        border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       child: TextFormField(
         controller: controller,

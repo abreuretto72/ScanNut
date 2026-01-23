@@ -39,9 +39,9 @@ class PetMenuGeneratorService {
     final breed = profile['raca'] ?? profile['breed'] ?? 'Unknown';
     final weight = profile['peso_atual']?.toString() ?? profile['weight']?.toString() ?? 'Unknown';
     final age = profile['idade_exata'] ?? profile['age'] ?? 'Unknown';
-    final size = profile['porte'] ?? profile['size'] ?? 'Medium';
+
     
-    final sex = profile['sex'] ?? 'Unknown';
+
 
     // Enhanced extraction logic
     final rawReprod = profile['statusReprodutivo'] ?? 
@@ -54,7 +54,7 @@ class PetMenuGeneratorService {
         ? 'Não informado (Assumido Neutro)' 
         : rawReprod.toString();
 
-    final allergies = (profile['alergias_conhecidas'] as List?)?.join(', ') ?? 'None';
+
     final restrictions = (profile['restricoes'] as List?)?.join(', ') ?? 'None';
     final preferences = (profile['preferencias'] as List?)?.join(', ') ?? 'None';
     

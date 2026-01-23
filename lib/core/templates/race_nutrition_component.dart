@@ -33,9 +33,9 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Column(
             children: [
@@ -45,8 +45,8 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
                   controller: _tabController,
                   indicator: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    color: Colors.white.withOpacity(0.1),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    color: Colors.white.withValues(alpha: 0.1),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
@@ -125,13 +125,13 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: isBenign 
-                ? Colors.green.withOpacity(0.05) 
-                : Colors.red.withOpacity(0.05),
+                ? Colors.green.withValues(alpha: 0.05) 
+                : Colors.red.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isBenign 
-                  ? Colors.green.withOpacity(0.2) 
-                  : Colors.red.withOpacity(0.2),
+                  ? Colors.green.withValues(alpha: 0.2) 
+                  : Colors.red.withValues(alpha: 0.2),
             ),
           ),
           child: Theme(
@@ -141,8 +141,8 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: isBenign 
-                      ? Colors.green.withOpacity(0.1) 
-                      : Colors.red.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1) 
+                      : Colors.red.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

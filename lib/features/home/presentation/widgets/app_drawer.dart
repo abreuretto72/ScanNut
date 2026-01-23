@@ -95,7 +95,7 @@ class AppDrawer extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFADADD).withOpacity(0.5),
+                            color: const Color(0xFFFADADD).withValues(alpha: 0.5),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -260,7 +260,7 @@ class AppDrawer extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: color), // Removed .shade300
@@ -450,7 +450,7 @@ class AppDrawer extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppDesign.accent.withOpacity(0.2), // withValues -> withOpacity
+                color: AppDesign.accent.withValues(alpha: 0.2), // withValues -> withOpacity
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.help_outline, color: AppDesign.accent, size: 24),
@@ -540,9 +540,9 @@ class AppDrawer extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppDesign.error.withOpacity(0.1),
+                  color: AppDesign.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.error.withOpacity(0.4), width: 2),
+                  border: Border.all(color: AppDesign.error.withValues(alpha: 0.4), width: 2),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,7 +626,7 @@ class AppDrawer extends ConsumerWidget {
               ),
               
               const SizedBox(height: 24),
-              Divider(color: AppDesign.textPrimaryDark.withOpacity(0.24)),
+              Divider(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
               const SizedBox(height: 16),
               
               // MÓDULO PLANTAS
@@ -675,7 +675,7 @@ class AppDrawer extends ConsumerWidget {
               ),
               
               const SizedBox(height: 24),
-              Divider(color: AppDesign.textPrimaryDark.withOpacity(0.24)),
+              Divider(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
               const SizedBox(height: 16),
               
               // MÓDULO COMIDA
@@ -760,9 +760,9 @@ class AppDrawer extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppDesign.accent.withOpacity(0.1),
+                  color: AppDesign.accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.accent.withOpacity(0.3)),
+                  border: Border.all(color: AppDesign.accent.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -807,7 +807,7 @@ class AppDrawer extends ConsumerWidget {
                   l10n.helpFooter,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
-                    color: AppDesign.textSecondaryDark.withOpacity(0.5),
+                    color: AppDesign.textSecondaryDark.withValues(alpha: 0.5),
                     fontSize: 11,
                   ),
                 ),
@@ -840,9 +840,9 @@ class AppDrawer extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -850,7 +850,7 @@ class AppDrawer extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: color, size: 24),

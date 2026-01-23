@@ -6850,4 +6850,108 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travel_ship_checklist_3 => 'Circulation Rules';
+
+  @override
+  String get petTravelMedicationActive => 'Active Cycle Medication';
+
+  @override
+  String get petTravelMedicationActiveDesc =>
+      'Interruptions in treatments during travel can cause relapses and bacterial or parasitic resistance.';
+
+  @override
+  String get petTravelWaterMineral => 'Mineral Water and Serum';
+
+  @override
+  String get petTravelWaterMineralDesc =>
+      'Changes in water pH in different cities can cause gastrointestinal disorders in sensitive pets.';
+
+  @override
+  String get petTravelTacticalStops => 'Tactical Stops (Every 2h)';
+
+  @override
+  String get petTravelTacticalStopsDesc =>
+      'Essential for circulation, stress relief, and to avoid urinary retention, which favors infections.';
+
+  @override
+  String get petTravelV8V10Desc =>
+      'Protects against Distemper and Parvovirus. Rest areas and gas stations are hot spots for several contaminations.';
+
+  @override
+  String get petTravelV3V4V5Desc =>
+      'Protects against Respiratory Complex and FelV. Travel stress lowers immunity, making the cat more susceptible.';
+
+  @override
+  String get petTravelRabiesDesc =>
+      'The only one required by law for circulation in national territory. Protects against a fatal zoonosis.';
+
+  @override
+  String get petTravelGripeDesc =>
+      'Crucial for dogs visiting pet hotels or environments with central air conditioning.';
+
+  @override
+  String get petTravelLeishDesc =>
+      'Indispensable for travel to coast or countryside with forest areas.';
+
+  @override
+  String get petTravelHealthCheckup =>
+      'Health Calendar not filled - Pre-travel check-up recommended';
+
+  @override
+  String get petTravelHygieneKit => 'Hygiene Kit and Parasitic Medication';
+
+  @override
+  String get petTravelHydrationMonitoring =>
+      'Hydration and Urination Monitoring';
+
+  @override
+  String get petTravelRestSupport => 'Hydration Support and Rest';
+
+  @override
+  String get petTravelPremiumFoodKit => 'Super Premium Food Kit';
+
+  @override
+  String get petTravelVaccineGuide => 'Vital Vaccination Guide';
+
+  @override
+  String get petTravelSpecificCares => 'Specific Cares';
+
+  @override
+  String get travelDocHealthTitle => 'Health Certificate';
+
+  @override
+  String get travelDocHealthDesc =>
+      'Issued by the vet up to 10 days before the trip.';
+
+  @override
+  String get travelDocVaccineTitle => 'Vaccination Record';
+
+  @override
+  String get travelDocVaccineDesc =>
+      'The rabies vaccine must have been administered more than 30 days ago.';
+
+  @override
+  String get travelDocMicrochipTitle => 'Microchip Certificate';
+
+  @override
+  String get travelDocMicrochipDesc =>
+      'Mandatory for permanent identification and international travel.';
+
+  @override
+  String get travelDocCrateTitle => 'Crate/Carrier Box';
+
+  @override
+  String get travelDocCrateDesc =>
+      'Photo of the crate identification tag or certificate.';
+
+  @override
+  String get travelDocLeishTitle => 'Leishmaniasis Vaccine';
+
+  @override
+  String get travelDocLeishDesc => 'Recommended for travel to endemic areas.';
+
+  @override
+  String get travelDocFelvTitle => 'FeLV/FiV Test';
+
+  @override
+  String get travelDocFelvDesc => 'Important for pet stays and feline safety.';
 }

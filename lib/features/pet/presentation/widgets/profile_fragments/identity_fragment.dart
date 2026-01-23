@@ -78,7 +78,7 @@ class IdentityFragment extends StatelessWidget {
         children: [
         // 1. NAME CARD
         Card(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -105,7 +105,7 @@ class IdentityFragment extends StatelessWidget {
         // 2. SPECIES
         // 2. SPECIES (Card Wrapped)
         Card(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -139,7 +139,7 @@ class IdentityFragment extends StatelessWidget {
         
         // 4. CHARACTERISTICS GROUP (Age, Weight, Size, Sex, Repro)
         Card(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -192,7 +192,7 @@ class IdentityFragment extends StatelessWidget {
         
         // BIOLOGICAL PROFILE CARD
         Card(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -227,7 +227,7 @@ class IdentityFragment extends StatelessWidget {
                 if (microchipController != null) const SizedBox(height: 16),
                 
                 // 10. IDENTITY ATTACHMENTS
-                Divider(color: Colors.white.withOpacity(0.1)),
+                Divider(color: Colors.white.withValues(alpha: 0.1)),
                 const SizedBox(height: 12),
                 AttachmentSection(
                   title: l10n.pdfIdentitySection,
@@ -278,7 +278,7 @@ class IdentityFragment extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: selected ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
+            color: selected ? AppDesign.petPink.withValues(alpha: 0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -304,9 +304,9 @@ class IdentityFragment extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: AppDesign.petPink.withOpacity(0.1),
+          color: AppDesign.petPink.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
+          border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -348,7 +348,7 @@ class IdentityFragment extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
+            color: selected ? AppDesign.petPink.withValues(alpha: 0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -393,7 +393,7 @@ class IdentityFragment extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppDesign.petPink.withOpacity(0.1) : Colors.transparent,
+            color: selected ? AppDesign.petPink.withValues(alpha: 0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(

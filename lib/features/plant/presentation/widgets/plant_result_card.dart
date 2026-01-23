@@ -257,7 +257,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppDesign.textPrimaryDark.withOpacity(0.3),
+                color: AppDesign.textPrimaryDark.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -280,7 +280,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                      color: _themeColor.withOpacity(0.1),
+                      color: _themeColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle
                   ),
                   child: Icon(Icons.check_circle_rounded, color: _themeColor, size: 20)
@@ -336,9 +336,9 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: _statusColor.withOpacity(0.2),
+                    color: _statusColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
-                    border: Border.all(color: _statusColor.withOpacity(0.5)),
+                    border: Border.all(color: _statusColor.withValues(alpha: 0.5)),
                   ),
                   child: Icon(_statusIcon, color: _statusColor, size: 24),
                 ),
@@ -351,7 +351,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           // TabBar
           Container(
             decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1))),
+              border: Border(bottom: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1))),
             ),
             child: TabBar(
               controller: _tabController,
@@ -381,7 +381,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
               color: AppDesign.backgroundDark,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   offset: const Offset(0, -4),
                   blurRadius: 10,
                 ),
@@ -531,7 +531,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
         _buildSectionCard(
           title: AppLocalizations.of(context)!.plantBioPower, // "Poderes Biofílicos"
           icon: Icons.auto_awesome,
-          color: AppDesign.primary.withOpacity(0.7),
+          color: AppDesign.primary.withValues(alpha: 0.7),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -633,7 +633,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.3))),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.3))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -783,7 +783,7 @@ class _PlantResultCardState extends State<PlantResultCard> with SingleTickerProv
           style: GoogleFonts.poppins(
             fontSize: 9,
             fontWeight: FontWeight.bold,
-            color: color.withOpacity(0.8),
+            color: color.withValues(alpha: 0.8),
           ),
         ),
       ],

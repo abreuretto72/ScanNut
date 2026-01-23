@@ -66,6 +66,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+    if (!mounted) return const SizedBox.shrink();
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -109,7 +110,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                            labelText: l10n.settingsNameLabel,
                            hintText: l10n.settingsNameHint,
                            labelStyle: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
-                           hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withOpacity(0.3)),
+                           hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.3)),
                            border: InputBorder.none,
                            icon: const Icon(Icons.person_outline, color: AppDesign.accent),
                         ),
@@ -135,6 +136,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         try {
                            await simpleAuthService.setPersistSession(val);
                            setState(() {});
+                           if (!mounted) return;
                            if (context.mounted) SnackBarHelper.showSuccess(context, val ? l10n.settingsMsgSessionKept : l10n.settingsMsgLoginRequired);
                         } catch(e) { /* ignore */ }
                      },
@@ -272,6 +274,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                          if (_devTapCount >= 7) {
                             ref.read(settingsProvider.notifier).setDeveloperMode(true);
                             logger.setDeveloperMode(true);
+                            if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Developer Mode Activated! 🛠️')));
                             _devTapCount = 0;
                          }
@@ -288,9 +291,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                    _buildSectionHeader('🛠️ Developer Tools', Icons.build, color: Colors.purple),
                    Container(
                       decoration: BoxDecoration(
-                         color: Colors.purple.withOpacity(0.05),
+                         color: Colors.purple.withValues(alpha: 0.05),
                          borderRadius: BorderRadius.circular(12), 
-                         border: Border.all(color: Colors.purple.withOpacity(0.3)),
+                         border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
                       ),
                       child: Column(
                          children: [
@@ -408,14 +411,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
      );
   }
 
-  Widget _buildDangerTile({required String title, required String subtitle, required VoidCallback onTap}) {
-     return ListTile(
-        title: Text(title, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 11)),
-        trailing: const Icon(Icons.chevron_right, color: AppDesign.error),
-        onTap: onTap,
-     );
-  }
+
 
   void _showResetDialog() {
     final l10n = AppLocalizations.of(context)!;
@@ -444,6 +440,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ref.read(settingsProvider.notifier).resetToDefaults();
               _nameController.text = '';
               _calorieController.text = '2000';
+              if (!mounted) return;
               Navigator.pop(context);
               SnackBarHelper.showSuccess(context, l10n.settingsResetSuccess);
             },
@@ -457,326 +454,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildDangerButton(String text, String subtitle, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppDesign.error.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppDesign.error.withOpacity(0.2)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.delete_forever, color: Colors.red),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    text,
-                    style: GoogleFonts.poppins(
-                      color: AppDesign.error,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.poppins(
-                      color: AppDesign.textSecondaryDark,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, color: AppDesign.error, size: 16),
-          ],
-        ),
-      ),
-    );
-  }
 
-  void _confirmDeleteAction(String itemType, Future<void> Function() onDelete) {
-    final l10n = AppLocalizations.of(context)!;
-    final isNuclear = itemType == 'CONTA COMPLETA';
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppDesign.surfaceDark,
-        title: Text(
-          isNuclear ? l10n.deleteAccountConfirmTitle : l10n.settingsConfirmDeleteTitle,
-          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          isNuclear 
-            ? l10n.deleteAccountConfirmBody 
-            : l10n.settingsConfirmDeleteContent(itemType),
-          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await onDelete();
-               if (!mounted) return;
-              SnackBarHelper.showSuccess(context, l10n.settingsDeleteSuccess(itemType));
-            },
-            child: Text(l10n.actionDelete, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _atomicWipeHistoryData() async {
-      final l10n = AppLocalizations.of(context)!;
-      try {
-         debugPrint('🚨 [WIPE_TRACE] Starting Atomic Wipe...');
-         
-         // 1. Identify Target Boxes (Operational Data Only)
-         // Excludes: user_profile, settings (Global Config)
-         final targetBoxes = [
-            'scannut_history',      // General history (Multi-mode)
-            'box_pets_master',      // Pets profiles and metadata
-            'box_nutrition_human',  // 🍎 Food History (NutritionService)
-            'box_plants_history',   // 🌿 Botany History (BotanyService)
-            'box_botany_intel',     // Supplementary botany data
-            'pet_events',           // Scheduled events
-            'pet_events_journal',   // Daily logs and clinical journal
-            'meal_logs',            // Individual meal entries
-            'weekly_plans',         // Generated nutrition plans
-            'shopping_list',        // Nutrition grocery list
-            'cached_feed',          // Social/Community cache
-            'processed_images_box', // Atomic image hashing
-            'scannut_meal_history', // Legacy food history
-         ];
-
-         // 2. Clear Boxes Atomically (Keep Box Open)
-         for (final name in targetBoxes) {
-             try {
-                Box box;
-                if (Hive.isBoxOpen(name)) {
-                   box = Hive.box(name);
-                } else {
-                   // Open safely just to clear
-                   box = await Hive.openBox(name);
-                }
-                await box.clear(); // The Atomic Wipe
-                debugPrint('✅ [WIPE_TRACE] Box cleared: $name');
-             } catch (e) {
-                debugPrint('⚠️ [WIPE_TRACE] Failed to clear $name: $e');
-             }
-         }
-
-         // 3. Physical Media Cleanup (Reclaim Storage)
-         final mediaService = MediaVaultService();
-         await mediaService.clearDomain(MediaVaultService.PETS_DIR);
-         await mediaService.clearDomain(MediaVaultService.FOOD_DIR);
-         await mediaService.clearDomain(MediaVaultService.BOTANY_DIR);
-         await mediaService.clearDomain(MediaVaultService.WOUNDS_DIR); // V180
-         debugPrint('✅ [WIPE_TRACE] Media Vault purged.');
-         
-         // 4. Clear Permanent Backup (Prevent Auto-Recovery)
-         await PermanentBackupService().clearBackup();
-         debugPrint('✅ [WIPE_TRACE] Permanent Backup cleared.');
-
-         if (!mounted) return;
-         SnackBarHelper.showSuccess(context, l10n.settingsWipeSuccess);
-         
-      } catch (e) {
-         debugPrint('❌ [WIPE_TRACE] Critical failure: $e');
-         if(mounted) SnackBarHelper.showError(context, l10n.settingsWipeError(e.toString()));
-      }
-  }
-
-  void _showAtomicWipeDialog() {
-     final l10n = AppLocalizations.of(context)!;
-     showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-           backgroundColor: AppDesign.surfaceDark,
-           title: Row(
-              children: [
-                 const Icon(Icons.warning_amber_rounded, color: AppDesign.error),
-                 const SizedBox(width: 8),
-                 Text(l10n.settingsDangerZone, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
-              ],
-           ),
-           content: Text(
-              l10n.settingsWipeConfirmBody,
-              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
-           ),
-           actions: [
-              TextButton(
-                 onPressed: () => Navigator.pop(context),
-                 child: Text(l10n.cancel, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
-              ),
-              TextButton(
-                 onPressed: () {
-                    Navigator.pop(context);
-                    _atomicWipeHistoryData();
-                 },
-                 child: Text(l10n.settingsActionWipeAll, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold)),
-              ),
-           ],
-        ),
-     );
-  }
-
-  Future<void> _performFactoryReset() async {
-      await _atomicWipeHistoryData();
-      // Optional: Logout if desired, but Atomic Wipe is history-only.
-      // If full factory reset is needed, we would add settings reset logic here.
-  }
-
-  Future<void> _saveUserProfileOnChange() async {
-    final settings = ref.read(settingsProvider);
-    final profile = UserProfile(
-      id: _profileId ?? const Uuid().v4(),
-      userName: settings.userName,
-      dailyCalorieGoal: settings.dailyCalorieGoal,
-      weight: double.tryParse(_weightController.text) ?? 0.0,
-      height: double.tryParse(_heightController.text) ?? 0.0,
-      preferences: {
-        'showTips': settings.showTips,
-        'weightUnit': settings.weightUnit,
-      },
-    );
-    await UserProfileService().saveProfile(profile);
-  }
-
-  // --- Segmented Delete UI Helpers ---
-
-  Widget _buildDomainDeleteCard({
-    required String title,
-    required IconData icon,
-    required Color color,
-    required List<Widget> actions,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppDesign.surfaceDark,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Colors.red,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: Row(
-              children: [
-                Icon(icon, color: Colors.white, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-          ...actions,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDeleteAction({required String label, required VoidCallback onTap, bool isDestructive = false}) {
-    return ListTile(
-      title: Text(label, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 14)),
-      trailing: Icon(Icons.delete_outline, color: isDestructive ? Colors.red : AppDesign.textSecondaryDark, size: 20),
-      onTap: onTap,
-    );
-  }
-
-  // --- Logic Helpers ---
-
-  Future<void> _clearBox(String boxName) async {
-    try {
-      if (Hive.isBoxOpen(boxName)) {
-        await Hive.box(boxName).clear();
-      } else {
-        await Hive.deleteBoxFromDisk(boxName);
-      }
-      debugPrint('🧹 Box wiped: $boxName');
-    } catch (e) {
-      debugPrint('⚠️ Error clearing box $boxName: $e');
-    }
-  }
-
-  Future<void> _clearHistoryByMode(String mode) async {
-    try {
-      const boxName = 'scannut_history';
-      Box box;
-      if (Hive.isBoxOpen(boxName)) {
-        box = Hive.box(boxName);
-      } else {
-        box = await Hive.openBox(boxName, encryptionCipher: SimpleAuthService().encryptionCipher);
-      }
-
-      final keysToDelete = <dynamic>[];
-      for (var key in box.keys) {
-        final val = box.get(key);
-        if (val is Map && val['mode'] == mode) {
-          keysToDelete.add(key);
-        }
-      }
-      await box.deleteAll(keysToDelete);
-      debugPrint('🧹 Cleared ${keysToDelete.length} history items for mode: $mode');
-    } catch (e) {
-      debugPrint('⚠️ Error clearing history by mode: $e');
-    }
-  }
-
-  Future<void> _clearJournalByGroup(List<String> groups) async {
-    try {
-      const boxName = 'pet_events_journal';
-      Box box;
-      // We might need to register adapters if opening raw, but usually main.dart handles it.
-      // If box is closed, opening it generic might fail if adapters are missing.
-      // Assuming modules initialized it or we can try catch.
-      if (Hive.isBoxOpen(boxName)) {
-        box = Hive.box(boxName);
-      } else {
-        box = await Hive.openBox(boxName); // No cipher? Pet repo used cipher usually? 
-        // PetEventRepo uses cipher if provided. Let's assume standard auth cipher if needed.
-        // Actually PetEventRepo init passes cipher. Let's try simple open first.
-      }
-
-      final keysToDelete = <dynamic>[];
-      for (var key in box.keys) {
-        final val = box.get(key);
-        // val is PetEventModel usually.
-        // If we can't access model properties easily without casting to generic, we check via dynamic
-        try {
-           final g = (val as dynamic).group; 
-           if (groups.contains(g)) {
-             keysToDelete.add(key);
-           }
-        } catch (_) {
-           // Fallback for Map
-           if (val is Map && groups.contains(val['group'])) {
-             keysToDelete.add(key);
-           }
-        }
-      }
-      await box.deleteAll(keysToDelete);
-      debugPrint('🧹 Cleared ${keysToDelete.length} journal items for groups: $groups');
-    } catch (e) {
-      debugPrint('⚠️ Error clearing journal by group: $e');
-    }
-  }
 }
+

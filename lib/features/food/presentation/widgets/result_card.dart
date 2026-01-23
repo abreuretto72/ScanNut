@@ -91,7 +91,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: AppDesign.textSecondaryDark.withOpacity(0.3),
+                        color: AppDesign.textSecondaryDark.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -121,7 +121,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                           fontWeight: FontWeight.bold,
                                           color: AppDesign.textPrimaryDark,
                                           decoration: TextDecoration.underline,
-                                          decorationColor: AppDesign.textSecondaryDark.withOpacity(0.3),
+                                          decorationColor: AppDesign.textSecondaryDark.withValues(alpha: 0.3),
                                           decorationStyle: TextDecorationStyle.dotted,
                                         ),
                                         maxLines: 2,
@@ -152,9 +152,9 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: _themeColor.withOpacity(0.2),
+                              color: _themeColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: _themeColor.withOpacity(0.5)),
+                              border: Border.all(color: _themeColor.withValues(alpha: 0.5)),
                             ),
                             child: Column(
                               children: [
@@ -170,13 +170,13 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                                   l10n.cardScore,
                                   style: GoogleFonts.poppins(
                                     fontSize: 10,
-                                    color: _themeColor.withOpacity(0.8),
+                                    color: _themeColor.withValues(alpha: 0.8),
                                   ),
                                 ),
                                 Icon(
                                   Icons.info_outline,
                                   size: 12,
-                                  color: _themeColor.withOpacity(0.6),
+                                  color: _themeColor.withValues(alpha: 0.6),
                                 ),
                               ],
                             ),
@@ -190,7 +190,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                   Container(
                     decoration: BoxDecoration(
                       border: Border(
-                        bottom: BorderSide(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+                        bottom: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
                       ),
                     ),
                     child: TabBar(
@@ -248,12 +248,12 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                _themeColor.withOpacity(0.2),
-                _themeColor.withOpacity(0.05),
+                _themeColor.withValues(alpha: 0.2),
+                _themeColor.withValues(alpha: 0.05),
               ],
             ),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: _themeColor.withOpacity(0.3)),
+            border: Border.all(color: _themeColor.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [
@@ -284,7 +284,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                   ],
                 ),
                 circularStrokeCap: CircularStrokeCap.round,
-                backgroundColor: AppDesign.textPrimaryDark.withOpacity(0.1),
+                backgroundColor: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
                 progressColor: _themeColor,
               ),
               const SizedBox(height: 16),
@@ -317,7 +317,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
           decoration: BoxDecoration(
             color: AppDesign.surfaceDark,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
           ),
           child: PieChart(
             PieChartData(
@@ -436,19 +436,19 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  _themeColor.withOpacity(0.3),
-                  _themeColor.withOpacity(0.1),
+                  _themeColor.withValues(alpha: 0.3),
+                  _themeColor.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _themeColor.withOpacity(0.5)),
+              border: Border.all(color: _themeColor.withValues(alpha: 0.5)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: _themeColor.withOpacity(0.2),
+                    color: _themeColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -509,7 +509,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                     ),
                   ),
                   progressColor: _themeColor,
-                  backgroundColor: AppDesign.textPrimaryDark.withOpacity(0.1),
+                  backgroundColor: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
                   circularStrokeCap: CircularStrokeCap.round,
                 ),
               ),
@@ -538,19 +538,19 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withOpacity(0.2),
-              color.withOpacity(0.05),
+              color.withValues(alpha: 0.2),
+              color.withValues(alpha: 0.05),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 22),
@@ -578,7 +578,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
             Icon(
               Icons.info_outline,
               size: 16,
-              color: color.withOpacity(0.6),
+              color: color.withValues(alpha: 0.6),
             ),
           ],
         ),
@@ -590,9 +590,9 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -721,7 +721,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+        border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -757,7 +757,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         decoration: BoxDecoration(
           color: AppDesign.surfaceDark,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+          border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -779,7 +779,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 Icon(
                   Icons.info_outline,
                   size: 16,
-                  color: _themeColor.withOpacity(0.6),
+                  color: _themeColor.withValues(alpha: 0.6),
                 ),
               ],
             ),
@@ -803,13 +803,13 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isPositive
-            ? AppDesign.success.withOpacity(0.1)
-            : AppDesign.warning.withOpacity(0.1),
+            ? AppDesign.success.withValues(alpha: 0.1)
+            : AppDesign.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isPositive
-              ? AppDesign.success.withOpacity(0.3)
-              : AppDesign.warning.withOpacity(0.3),
+              ? AppDesign.success.withValues(alpha: 0.3)
+              : AppDesign.warning.withValues(alpha: 0.3),
         ),
       ),
       child: ListTile(
@@ -821,7 +821,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
           text,
           style: GoogleFonts.poppins(
             fontSize: 14,
-            color: AppDesign.textPrimaryDark.withOpacity(0.9),
+            color: AppDesign.textPrimaryDark.withValues(alpha: 0.9),
           ),
         ),
       ),
@@ -834,7 +834,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+        border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -873,7 +873,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         color: AppDesign.backgroundDark,
         boxShadow: [
           BoxShadow(
-            color: AppDesign.backgroundDark.withOpacity(0.5),
+            color: AppDesign.backgroundDark.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, -10),
           ),
@@ -895,13 +895,13 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: _isSaved
-                    ? [AppDesign.accent, AppDesign.accent.withOpacity(0.8)]
-                    : [_themeColor, _themeColor.withOpacity(0.8)],
+                    ? [AppDesign.accent, AppDesign.accent.withValues(alpha: 0.8)]
+                    : [_themeColor, _themeColor.withValues(alpha: 0.8)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: _themeColor.withOpacity(0.3),
+                  color: _themeColor.withValues(alpha: 0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),
@@ -968,12 +968,12 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        _themeColor.withOpacity(0.3),
-                        _themeColor.withOpacity(0.1),
+                        _themeColor.withValues(alpha: 0.3),
+                        _themeColor.withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _themeColor.withOpacity(0.5)),
+                    border: Border.all(color: _themeColor.withValues(alpha: 0.5)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1043,8 +1043,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 ),
                 const SizedBox(height: 6),
                 _buildScaleItem('9-10', 'Excelente', AppDesign.success),
-                _buildScaleItem('7-9', 'Muito Bom', AppDesign.success.withOpacity(0.7)),
-                _buildScaleItem('5-7', 'Bom', AppDesign.warning.withOpacity(0.7)),
+                _buildScaleItem('7-9', 'Muito Bom', AppDesign.success.withValues(alpha: 0.7)),
+                _buildScaleItem('5-7', 'Bom', AppDesign.warning.withValues(alpha: 0.7)),
                 _buildScaleItem('3-5', 'Regular', AppDesign.warning),
                 _buildScaleItem('1-3', 'Atenção', AppDesign.error),
               ],
@@ -1121,7 +1121,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
           const SizedBox(width: 8),
           Text(
             '•',
-            style: TextStyle(color: AppDesign.textSecondaryDark.withOpacity(0.3)),
+            style: TextStyle(color: AppDesign.textSecondaryDark.withValues(alpha: 0.3)),
           ),
           const SizedBox(width: 8),
           Text(
@@ -1184,7 +1184,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                             margin: const EdgeInsets.only(top: 4),
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppDesign.success.withOpacity(0.2),
+                              color: AppDesign.success.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
                             child: Text(
@@ -1279,7 +1279,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                             margin: const EdgeInsets.only(top: 4),
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppDesign.warning.withOpacity(0.2),
+                              color: AppDesign.warning.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
                             child: Text(
@@ -1507,10 +1507,10 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: (info['color'] as Color).withOpacity(0.2),
+                    color: (info['color'] as Color).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: (info['color'] as Color).withOpacity(0.5),
+                      color: (info['color'] as Color).withValues(alpha: 0.5),
                     ),
                   ),
                   child: Row(
@@ -1566,7 +1566,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
           borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
           boxShadow: [
             BoxShadow(
-              color: AppDesign.backgroundDark.withOpacity(0.5),
+              color: AppDesign.backgroundDark.withValues(alpha: 0.5),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -1580,7 +1580,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
               width: 50,
               height: 5,
               decoration: BoxDecoration(
-                color: AppDesign.textPrimaryDark.withOpacity(0.24),
+                color: AppDesign.textPrimaryDark.withValues(alpha: 0.24),
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
@@ -1619,7 +1619,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                     icon: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: AppDesign.textPrimaryDark.withOpacity(0.1),
+                        color: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.close, color: AppDesign.textPrimaryDark, size: 20),
@@ -1628,7 +1628,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 ],
               ),
             ),
-            Divider(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+            Divider(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
 
             // Content
             Expanded(
@@ -1640,7 +1640,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                           Icon(
                             Icons.no_meals_rounded,
                             size: 64,
-                            color: AppDesign.textPrimaryDark.withOpacity(0.24),
+                            color: AppDesign.textPrimaryDark.withValues(alpha: 0.24),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -1654,7 +1654,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                           Text(
                             'Tente analisar outro alimento.',
                             style: GoogleFonts.poppins(
-                              color: AppDesign.textSecondaryDark.withOpacity(0.5),
+                              color: AppDesign.textSecondaryDark.withValues(alpha: 0.5),
                               fontSize: 14,
                             ),
                           ),
@@ -1671,7 +1671,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                           decoration: BoxDecoration(
                             color: AppDesign.surfaceDark,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.1)),
+                            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
                           ),
                           child: Theme(
                             data: Theme.of(context).copyWith(
@@ -1686,7 +1686,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                               leading: Container(
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: _themeColor.withOpacity(0.2),
+                                  color: _themeColor.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -1753,7 +1753,7 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

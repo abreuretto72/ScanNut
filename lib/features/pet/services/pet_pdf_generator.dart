@@ -9,6 +9,7 @@ import '../models/pet_profile_extended.dart';
 import '../models/pet_analysis_result.dart';
 import '../models/analise_ferida_model.dart';
 import '../models/brand_suggestion.dart'; // 🛡️ NEW
+import '../models/weekly_meal_plan.dart'; // 🛡️ NEW
 
 import '../models/lab_exam.dart';
 import '../../../core/services/image_optimization_service.dart';
@@ -443,7 +444,6 @@ class PetPdfGenerator {
                         'category': p.category ?? strings.partnersFilterAll, // Fallback to 'All' or similar since generic 'Partner' key missing
                         'phone': p.phone.isNotEmpty ? p.phone : (p.whatsapp ?? p.metadata['formatted_phone_number']?.toString() ?? ''),
                         'email': p.email ?? '',
-                        'email': p.email ?? '',
                         'address': p.address ?? '',
                         'notes': (profile.partnerNotes[id] as List?)?.map((n) => n['content']?.toString() ?? '').join('; ') ?? ''
                     });
@@ -507,17 +507,18 @@ class PetPdfGenerator {
     final font = await PdfGoogleFonts.openSansRegular();
     final fontBold = await PdfGoogleFonts.openSansBold();
 
-    // 🛡️ NEW: Busca recommendedBrands ANTES de construir o PDF
+    // 🛡️ NEW: Busca plano alimentar completo
+    WeeklyMealPlan? latestFullPlan;
     List<dynamic> recommendedBrands = [];
     try {
       final mealService = MealPlanService();
       final plans = await mealService.getPlansForPet(profile.petName);
       if (plans.isNotEmpty) {
-        final latestPlan = plans.first;
-        recommendedBrands = latestPlan.safeRecommendedBrands;
+        latestFullPlan = plans.first;
+        recommendedBrands = latestFullPlan.safeRecommendedBrands;
       }
     } catch (e) {
-      debugPrint('⚠️ [PDF] Erro ao buscar recommendedBrands: $e');
+      debugPrint('⚠️ [PDF] Erro ao buscar plano alimentar: $e');
     }
 
     pdf.addPage(
@@ -526,8 +527,9 @@ class PetPdfGenerator {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         build: (context) {
-          // 🛡️ NEW: Await nutrition section to fetch recommendedBrands
-          final nutritionWidget = _buildNutritionSection(profile, strings, recommendedBrands: recommendedBrands);
+          // 🛡️ NEW: Pre-build sections
+          final nutritionWidget = _buildNutritionSection(profile, strings, recommendedBrands: recommendedBrands, fullPlan: latestFullPlan);
+          final travelWidget = _buildTravelSection(profile, strings, vaccinationData: vaccinationData);
           
           return [
              _buildHeader(profile, profileImage, strings),
@@ -538,6 +540,11 @@ class PetPdfGenerator {
              pw.SizedBox(height: 10),
              
              _buildPreferences(profile, strings),
+             pw.SizedBox(height: 20),
+
+             _buildSectionTitle(strings.pdfNutritionSection, strings),
+             pw.SizedBox(height: 10),
+             nutritionWidget,
              pw.SizedBox(height: 20),
              
              _buildSectionTitle(strings.pdfParcSection, strings),
@@ -558,7 +565,7 @@ class PetPdfGenerator {
 
              _buildSectionTitle(strings.petTravelTitle.toUpperCase(), strings),
              pw.SizedBox(height: 10),
-             _buildTravelSection(profile, strings),
+             travelWidget,
              pw.SizedBox(height: 10),
 
              _buildWeightSection(profile, strings),
@@ -898,9 +905,9 @@ class PetPdfGenerator {
       );
   }
 
-  pw.Widget _buildNutritionSection(PetProfileExtended profile, AppLocalizations strings, {List<dynamic> recommendedBrands = const []}) {
-    final diet = profile.rawAnalysis?['tipo_dieta'] ?? strings.fallbackNoInfo;
-    final plan = profile.rawAnalysis?['plano_semanal'];
+  pw.Widget _buildNutritionSection(PetProfileExtended profile, AppLocalizations strings, {List<dynamic> recommendedBrands = const [], WeeklyMealPlan? fullPlan}) {
+    final diet = fullPlan?.dietType ?? profile.rawAnalysis?['tipo_dieta'] ?? strings.fallbackNoInfo;
+    final plan = fullPlan?.meals ?? profile.rawAnalysis?['plano_semanal'];
 
     final nutritionData = profile.rawAnalysis?['nutrition'];
     String? kcal;
@@ -926,14 +933,24 @@ class PetPdfGenerator {
                     pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(strings.pdfDay, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8))),
                     pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(strings.pdfMeal, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8))),
                 ]),
-                ...plan.map((e) {
-                    final day = e['dia']?.toString() ?? '-';
-                    final refeicoes = (e['refeicoes'] as List?)?.map((r) => r['descricao']?.toString() ?? '').join('\\n') ?? (e['descricao']?.toString() ?? '-');
-                    return pw.TableRow(children: [
-                        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(day, style: const pw.TextStyle(fontSize: 8))),
-                        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(refeicoes, style: const pw.TextStyle(fontSize: 8))),
-                    ]);
-                })
+                if (fullPlan != null) 
+                  ...fullPlan.meals.map((m) {
+                      final dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+                      final day = dayNames[m.dayOfWeek - 1];
+                      return pw.TableRow(children: [
+                          pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(day, style: const pw.TextStyle(fontSize: 8))),
+                          pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('${m.title}: ${m.description} (${m.quantity})', style: const pw.TextStyle(fontSize: 8))),
+                      ]);
+                  })
+                else if (plan is List)
+                  ...plan.map((e) {
+                      final day = e['dia']?.toString() ?? '-';
+                      final refeicoes = (e['refeicoes'] as List?)?.map((r) => r['descricao']?.toString() ?? '').join('\n') ?? (e['descricao']?.toString() ?? '-');
+                      return pw.TableRow(children: [
+                          pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(day, style: const pw.TextStyle(fontSize: 8))),
+                          pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(refeicoes, style: const pw.TextStyle(fontSize: 8))),
+                      ]);
+                  })
             ])
         ],
         
@@ -1302,9 +1319,35 @@ class PetPdfGenerator {
        );
    }
 
-    pw.Widget _buildTravelSection(PetProfileExtended profile, AppLocalizations strings) {
+    pw.Widget _buildTravelSection(PetProfileExtended profile, AppLocalizations strings, {Map<String, DateTime>? vaccinationData}) {
         final prefs = profile.travelPreferences;
-        if (prefs.isEmpty) {
+        final hasMicrochip = profile.microchip?.isNotEmpty == true;
+        
+        // 🛡️ Resolve Rabies Date (Event Priority)
+        DateTime? rabiesDate = profile.dataUltimaAntirrabica;
+        if (vaccinationData != null) {
+            // Check for localized rabies key in vaccination events
+            final label = strings.vaccineRabies;
+            if (vaccinationData.containsKey(label)) {
+                rabiesDate = vaccinationData[label];
+            } else {
+                // Secondary fallback search
+                final match = vaccinationData.keys.firstWhere(
+                    (k) => k.toLowerCase().contains('rabies') || k.toLowerCase().contains('raiva') || k.toLowerCase().contains('antirrábica'),
+                    orElse: () => ''
+                );
+                if (match.isNotEmpty) rabiesDate = vaccinationData[match];
+            }
+        }
+
+        bool isRabiesVaxValid = false;
+        if (rabiesDate != null) {
+            final diff = DateTime.now().difference(rabiesDate);
+            isRabiesVaxValid = diff.inDays >= 30 && diff.inDays <= 365;
+        }
+
+        // Section is only "empty" if absolutely no travel info exists
+        if (prefs.isEmpty && !hasMicrochip && rabiesDate == null) {
             return pw.Text(strings.fallbackNoInfo, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700));
         }
 
@@ -1312,11 +1355,101 @@ class PetPdfGenerator {
         final scope = _localizeTravelValue(prefs['scope']?.toString(), strings);
         
         // Checklist items
-        final List<String> items = [];
-        if (prefs['has_safety_belt'] == true) items.add(strings.petTravelSafetyBelt);
-        if (prefs['has_health_cert'] == true) items.add(strings.petTravelHealthCert);
-        if (prefs['has_czi'] == true) items.add(strings.petTravelCZI);
-        if (prefs['has_microchip'] == true) items.add(strings.petTravelMicrochip);
+        final List<String> basicItems = [];
+        if (prefs['has_safety_belt'] == true) basicItems.add(strings.petTravelSafetyBelt);
+        if (prefs['has_health_cert'] == true || isRabiesVaxValid) basicItems.add(strings.petTravelHealthCert);
+        if (prefs['has_czi'] == true) basicItems.add(strings.petTravelCZI);
+        if (hasMicrochip || prefs['has_microchip'] == true) basicItems.add(strings.petTravelMicrochip);
+
+        // --- INTELLIGENT CHECKLIST MOTOR ---
+        final List<_TravelImpactItem> intelligentItems = [];
+        
+        if (profile.analysisHistory.isEmpty && profile.labExams.isEmpty && profile.historicoAnaliseFeridas.isEmpty) {
+            intelligentItems.add(_TravelImpactItem(strings.petTravelHealthCheckup, isWarning: true));
+        } else {
+            // 1. Parasites
+            bool hasParasites = false;
+            for (var a in profile.analysisHistory) {
+                final diag = a['diagnostico_provavel']?.toString().toLowerCase() ?? '';
+                if (diag.contains('parasita') || diag.contains('giárdia') || diag.contains('pulga') || diag.contains('verme')) {
+                    hasParasites = true;
+                    break;
+                }
+            }
+            for (var w in profile.historicoAnaliseFeridas) {
+                final cat = w.categoria?.toLowerCase() ?? '';
+                if (cat == 'fezes' || cat == 'stool') {
+                    final desc = w.diagnosticosProvaveis.join(' ').toLowerCase();
+                    if (desc.contains('parasita') || desc.contains('giárdia') || desc.contains('verme')) {
+                        hasParasites = true;
+                        break;
+                    }
+                }
+            }
+            if (hasParasites) {
+                intelligentItems.add(_TravelImpactItem(strings.petTravelHygieneKit, isWarning: true, subtitle: 'Identificado no historial recente'));
+            }
+
+            // 2. Infection/Inflammation
+            bool hasInfection = false;
+            for (var lab in profile.labExams) {
+                final findings = lab['achados']?.toString().toLowerCase() ?? '';
+                if (findings.contains('leucocitose') || findings.contains('hematúria') || findings.contains('infecção') || findings.contains('inflamação')) {
+                    hasInfection = true;
+                    break;
+                }
+            }
+            if (hasInfection) {
+                intelligentItems.add(_TravelImpactItem(strings.petTravelHydrationMonitoring, isWarning: true, subtitle: 'Baseado em exames laboratoriais'));
+            }
+
+            // 3. Health Score / Dehydration
+            bool needsRest = false;
+            for (var a in profile.analysisHistory) {
+                final recommendations = a['orientacao_imediata']?.toString().toLowerCase() ?? '';
+                if (recommendations.contains('desidratação') || recommendations.contains('repouso')) {
+                    needsRest = true;
+                    break;
+                }
+            }
+            if (needsRest) {
+                intelligentItems.add(_TravelImpactItem(strings.petTravelRestSupport, isWarning: true));
+            }
+
+            // 4. Diet
+            bool needsPremiumFood = false;
+            for (var a in profile.analysisHistory) {
+                final diet = a['nutricao']?['regime_alimentar']?.toString().toLowerCase() ?? '';
+                if (diet.contains('standard') || diet.contains('desbalanceada')) {
+                    needsPremiumFood = true;
+                    break;
+                }
+            }
+            if (needsPremiumFood) {
+                intelligentItems.add(_TravelImpactItem(strings.petTravelPremiumFoodKit));
+            }
+        }
+
+        // 5. Standard Educational Items
+        intelligentItems.add(_TravelImpactItem(strings.petTravelMedicationActive, subtitle: strings.petTravelMedicationActiveDesc));
+        intelligentItems.add(_TravelImpactItem(strings.petTravelWaterMineral, subtitle: strings.petTravelWaterMineralDesc));
+        intelligentItems.add(_TravelImpactItem(strings.petTravelTacticalStops, subtitle: strings.petTravelTacticalStopsDesc));
+
+        // --- VACCINATION GUIDE ---
+        final List<_EducationalGuideItem> vaccineGuide = [];
+        final String speciesLower = profile.especie?.toLowerCase() ?? '';
+        final bool isDog = speciesLower.contains('cão') || speciesLower.contains('cao') || speciesLower.contains('dog');
+        final bool isCat = speciesLower.contains('gato') || speciesLower.contains('cat');
+
+        if (isDog) {
+            vaccineGuide.add(_EducationalGuideItem('V8/V10 (Cães)', strings.petTravelV8V10Desc));
+            vaccineGuide.add(_EducationalGuideItem('Gripe/Bordetella', strings.petTravelGripeDesc));
+            vaccineGuide.add(_EducationalGuideItem('Leishmaniose', strings.petTravelLeishDesc));
+        } else if (isCat) {
+            vaccineGuide.add(_EducationalGuideItem('V3/V4/V5 (Gatos)', strings.petTravelV3V4V5Desc));
+        }
+        vaccineGuide.add(_EducationalGuideItem('Antirrábica', strings.petTravelRabiesDesc, isMandatory: true));
+
 
         return pw.Container(
             padding: const pw.EdgeInsets.all(8),
@@ -1328,23 +1461,112 @@ class PetPdfGenerator {
             child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
+                    // Status Badges
+                    pw.Row(children: [
+                        _buildTravelBadge(strings.petTravelVaccines, isRabiesVaxValid, strings),
+                        pw.SizedBox(width: 10),
+                        _buildTravelBadge(strings.petTravelMicrochip, hasMicrochip, strings),
+                    ]),
+                    pw.SizedBox(height: 10),
+
                     pw.Row(children: [
                         pw.Expanded(child: pw.Text('${strings.petTravelMode}: $mode', style: const pw.TextStyle(fontSize: 10))),
                         pw.Expanded(child: pw.Text('${strings.petTravelScope}: $scope', style: const pw.TextStyle(fontSize: 10))),
                     ]),
-                    if (items.isNotEmpty) ...[
+                    
+                    if (hasMicrochip) ...[
+                        pw.SizedBox(height: 4),
+                        pw.Text('${strings.pdfFieldMicrochip}: ${profile.microchip}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                    ],
+                    
+                    pw.SizedBox(height: 8),
+                    pw.Text('DICAS INTELIGENTES DE VIAGEM', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: colorAccent)),
+                    pw.SizedBox(height: 4),
+                    pw.Text(_getTravelTips(prefs['mode']?.toString(), prefs['scope']?.toString(), strings), style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic)),
+                    
+                    if (!isRabiesVaxValid && rabiesDate != null) ...[
                         pw.SizedBox(height: 8),
+                        pw.Container(
+                            padding: const pw.EdgeInsets.all(6),
+                            decoration: const pw.BoxDecoration(
+                                color: PdfColors.yellow50,
+                                borderRadius: pw.BorderRadius.all(pw.Radius.circular(4)),
+                            ),
+                            child: pw.Text(
+                                'REGRA DOS 30 DIAS: Para fins de transporte (especialmente aéreo ou internacional), a vacina antirrábica só é considerada válida após 30 dias da aplicação (Quarentena Obrigatória).',
+                                style: pw.TextStyle(fontSize: 8, color: PdfColors.amber900, fontStyle: pw.FontStyle.italic)
+                            ),
+                        ),
+                    ],
+
+                    // --- NEW: INTELLIGENT CHECKLIST ---
+                    pw.SizedBox(height: 12),
+                    pw.Text('CHECKLIST INTELIGENTE (BASEADO NA SAÚDE)', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: colorAccent)),
+                    pw.SizedBox(height: 6),
+                    ...intelligentItems.map((item) => pw.Container(
+                        margin: const pw.EdgeInsets.only(bottom: 4),
+                        padding: const pw.EdgeInsets.all(5),
+                        decoration: pw.BoxDecoration(
+                            color: item.isWarning ? PdfColors.red50 : PdfColors.white,
+                            border: pw.Border.all(color: item.isWarning ? PdfColors.red200 : PdfColors.grey200),
+                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+                        ),
+                        child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                                pw.Row(children: [
+                                    pw.Container(width: 5, height: 5, decoration: pw.BoxDecoration(color: item.isWarning ? PdfColors.red : PdfColors.blue, shape: pw.BoxShape.circle)),
+                                    pw.SizedBox(width: 5),
+                                    pw.Expanded(child: pw.Text(item.label, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: item.isWarning ? PdfColors.red900 : PdfColors.grey900))),
+                                ]),
+                                if (item.subtitle != null) ...[
+                                    pw.SizedBox(height: 2),
+                                    pw.Text(item.subtitle!, style: pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600, fontStyle: pw.FontStyle.italic)),
+                                ]
+                            ]
+                        )
+                    )).toList(),
+
+                    // --- NEW: VACCINATION GUIDE ---
+                    pw.SizedBox(height: 12),
+                    pw.Text(strings.petTravelVaccineGuide.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: colorAccent)),
+                    pw.SizedBox(height: 6),
+                    ...vaccineGuide.map((v) => pw.Container(
+                        margin: const pw.EdgeInsets.only(bottom: 4),
+                        padding: const pw.EdgeInsets.all(5),
+                        decoration: pw.BoxDecoration(
+                            border: pw.Border.all(color: v.isMandatory ? colorAccent : PdfColors.grey200),
+                            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+                        ),
+                        child: pw.Column(
+                            crossAxisAlignment: pw.CrossAxisAlignment.start,
+                            children: [
+                                pw.Row(children: [
+                                    pw.Text(v.title, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: v.isMandatory ? colorAccent : PdfColors.grey900)),
+                                    if (v.isMandatory) ...[
+                                        pw.SizedBox(width: 4),
+                                        pw.Text('(OBRIGATÓRIO)', style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: colorAccent)),
+                                    ]
+                                ]),
+                                pw.SizedBox(height: 2),
+                                pw.Text(v.description, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
+                            ]
+                        )
+                    )).toList(),
+
+                    if (basicItems.isNotEmpty) ...[
+                        pw.SizedBox(height: 12),
                         pw.Text(strings.petTravelChecklist.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: colorAccent)),
                         pw.SizedBox(height: 4),
                         pw.Wrap(
                             spacing: 12,
                             runSpacing: 4,
-                            children: items.map((i) => pw.Row(
+                            children: basicItems.map((i) => pw.Row(
                                 mainAxisSize: pw.MainAxisSize.min,
                                 children: [
-                                    pw.Container(width: 8, height: 8, decoration: const pw.BoxDecoration(color: PdfColors.green, shape: pw.BoxShape.circle)),
+                                    pw.Container(width: 6, height: 6, decoration: const pw.BoxDecoration(color: PdfColors.grey400, shape: pw.BoxShape.circle)),
                                     pw.SizedBox(width: 4),
-                                    pw.Text(i, style: const pw.TextStyle(fontSize: 9)),
+                                    pw.Text(i, style: const pw.TextStyle(fontSize: 8.5)),
                                 ]
                             )).toList(),
                         ),
@@ -1353,6 +1575,40 @@ class PetPdfGenerator {
             )
         );
     }
+
+    pw.Widget _buildTravelBadge(String label, bool isValid, AppLocalizations strings) {
+        return pw.Container(
+            padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: pw.BoxDecoration(
+                color: isValid ? PdfColors.green50 : PdfColors.red50,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                border: pw.Border.all(color: isValid ? PdfColors.green200 : PdfColors.red200),
+            ),
+            child: pw.Row(
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                    pw.Container(
+                        width: 6,
+                        height: 6,
+                        decoration: pw.BoxDecoration(
+                            color: isValid ? PdfColors.green : PdfColors.red,
+                            shape: pw.BoxShape.circle,
+                        ),
+                    ),
+                    pw.SizedBox(width: 4),
+                    pw.Text(
+                        label, 
+                        style: pw.TextStyle(
+                            fontSize: 8, 
+                            fontWeight: pw.FontWeight.bold,
+                            color: isValid ? PdfColors.green900 : PdfColors.red900,
+                        )
+                    ),
+                ],
+            ),
+        );
+    }
+
 
     String _localizeTravelValue(String? val, AppLocalizations strings) {
         if (val == null) return '-';
@@ -1363,6 +1619,22 @@ class PetPdfGenerator {
         if (low == 'nacional' || low == 'national') return strings.petTravelNational;
         if (low == 'internacional' || low == 'international') return strings.petTravelInternational;
         return val;
+    }
+
+    String _getTravelTips(String? mode, String? scope, AppLocalizations strings) {
+        final lowMode = mode?.toLowerCase();
+        final lowScope = scope?.toLowerCase();
+        
+        String tips = '';
+        if (lowMode == 'carro' || lowMode == 'car') tips = strings.travel_car_tips;
+        if (lowMode == 'avião' || lowMode == 'plane') tips = strings.travel_plane_checklist;
+        if (lowMode == 'navio' || lowMode == 'ship') tips = strings.travel_ship_tips;
+        
+        if (lowScope == 'internacional' || lowScope == 'international') {
+           tips += '\n• ${strings.intl_travel_tips}';
+        }
+        
+        return tips.isNotEmpty ? tips : 'Certifique-se de levar os documentos e acessórios de segurança necessários.';
     }
 
    pw.Widget _buildGeneralAnalysisItem(Map<String, dynamic> data, AppLocalizations strings, {pw.ImageProvider? image}) {
@@ -1380,7 +1652,6 @@ class PetPdfGenerator {
             'health': 'SAÚDE',
             'lifestyle': 'ESTILO DE VIDA',
             'temperament': 'TEMPERAMENTO',
-            'identification': 'ANÁLISE DE FOTO DO PET',
         };
         final type = typeMap[rawType] ?? 
                      (data.containsKey('identification') ? 'ANÁLISE DE FOTO DO PET' : 
@@ -1463,4 +1734,18 @@ class PetPdfGenerator {
           )
         );
    }
+}
+
+class _TravelImpactItem {
+    final String label;
+    final String? subtitle;
+    final bool isWarning;
+    _TravelImpactItem(this.label, {this.subtitle, this.isWarning = false});
+}
+
+class _EducationalGuideItem {
+    final String title;
+    final String description;
+    final bool isMandatory;
+    _EducationalGuideItem(this.title, this.description, {this.isMandatory = false});
 }

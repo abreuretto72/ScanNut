@@ -89,7 +89,7 @@ class NutritionFragment extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         Card(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -119,7 +119,7 @@ class NutritionFragment extends StatelessWidget {
 
         const SizedBox(height: 24),
         Card(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -139,7 +139,7 @@ class NutritionFragment extends StatelessWidget {
                   label: l10n.petAddRestriction ?? 'Adicionar restrição',
                   icon: Icons.block,
                   chips: restricoes,
-                  chipColor: AppDesign.petPink.withOpacity(0.8),
+                  chipColor: AppDesign.petPink.withValues(alpha: 0.8),
                   onAdd: onAddRestricao,
                   onDelete: onDeleteRestricao,
                 ),
@@ -150,7 +150,7 @@ class NutritionFragment extends StatelessWidget {
         
         const SizedBox(height: 24),
         Card(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),

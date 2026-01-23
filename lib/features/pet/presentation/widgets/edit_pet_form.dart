@@ -278,12 +278,13 @@ class _EditPetFormState extends State<EditPetForm>
         rawAnalysis: _currentRawAnalysis,
         reliability: _reliability,
         porte: _porte,
+        travelPreferences: _travelPreferences, // 🛡️ V250
         healthPlan: _healthPlan,
         assistancePlan: _assistancePlan,
         funeralPlan: _funeralPlan,
         lifeInsurance: _lifeInsurance,
         observacoesPlanos: _observacoesPlanosController.text,
-        travelPreferences: _travelPreferences, // 🛡️ V250
+        //travelPreferences: _travelPreferences, // 🛡️ V250
         );
 
        await widget.onSave(profile);
@@ -522,6 +523,7 @@ class _EditPetFormState extends State<EditPetForm>
   }
 
   void _updateProfileFromAI(Map<String, dynamic> result) {
+      if (!mounted) return;
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       
@@ -815,6 +817,7 @@ class _EditPetFormState extends State<EditPetForm>
     bool _isVaccine(String n) => n.startsWith('health_vaccines_');
     bool _isNutrition(String n) => n.startsWith('nutrition_');
     bool _isProfilePic(String n) => n.startsWith('profile_pic');
+    bool _isTravel(String n) => n.startsWith('travel_');
     
     bool _isGallery(String n) => n.startsWith('gallery_') || n.startsWith('profile_pic') || n.startsWith('health_analysis_');
 
@@ -870,7 +873,16 @@ class _EditPetFormState extends State<EditPetForm>
       _attachments['health_prescriptions'] = _optimizeList(allDocs.where((f) => _isPrescription(path.basename(f.path))).toList());
       _attachments['health_vaccines'] = _optimizeList(allDocs.where((f) => _isVaccine(path.basename(f.path))).toList());
       _attachments['nutrition'] = _optimizeList(allDocs.where((f) => _isNutrition(path.basename(f.path))).toList());
+      _attachments['travel_docs'] = _optimizeList(allDocs.where((f) => _isTravel(path.basename(f.path))).toList());
       
+      // 🛡️ V_FIX: Specific Travel Categories
+      _attachments['travel_health_cert'] = _optimizeList(allDocs.where((f) => path.basename(f.path).startsWith('travel_health_cert_')).toList());
+      _attachments['travel_vaccination_card'] = _optimizeList(allDocs.where((f) => path.basename(f.path).startsWith('travel_vaccination_card_')).toList());
+      _attachments['travel_microchip_cert'] = _optimizeList(allDocs.where((f) => path.basename(f.path).startsWith('travel_microchip_cert_')).toList());
+      _attachments['travel_crate_id'] = _optimizeList(allDocs.where((f) => path.basename(f.path).startsWith('travel_crate_id_')).toList());
+      _attachments['travel_leish_vax'] = _optimizeList(allDocs.where((f) => path.basename(f.path).startsWith('travel_leish_vax_')).toList());
+      _attachments['travel_felv_test'] = _optimizeList(allDocs.where((f) => path.basename(f.path).startsWith('travel_felv_test_')).toList());
+
       // Gallery gets the rest (Catch-all)
       _attachments['gallery'] = _optimizeList(allDocs.where((f) => _isGallery(path.basename(f.path))).toList());
       
@@ -917,6 +929,8 @@ class _EditPetFormState extends State<EditPetForm>
       // 🛡️ PROACTIVE HIVE CHECK (User requested fix)
       final profileService = PetProfileService();
       await profileService.init(); 
+
+      if (!mounted) return; 
 
       final locale = Localizations.localeOf(context).languageCode;
       
@@ -1099,6 +1113,7 @@ class _EditPetFormState extends State<EditPetForm>
     }
 
     final isGallery = type == 'gallery';
+    final isTravel = type.startsWith('travel_');
 
     showModalBottomSheet(
       context: context,
@@ -1120,7 +1135,9 @@ class _EditPetFormState extends State<EditPetForm>
                   title: Text(AppLocalizations.of(context)!.petCameraPhoto, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                   onTap: () async {
                     Navigator.pop(ctx);
-                    final file = await _fileService.pickFromCamera();
+                    final file = isTravel 
+                        ? await _fileService.pickAndOptimizeImage(source: ImageSource.camera)
+                        : await _fileService.pickFromCamera();
                     if (file != null) _saveFile(file, petName, type);
                   },
                 ),
@@ -1129,7 +1146,9 @@ class _EditPetFormState extends State<EditPetForm>
                   title: Text(AppLocalizations.of(context)!.petGalleryPhoto, style: const TextStyle(color: AppDesign.textPrimaryDark)),
                   onTap: () async {
                     Navigator.pop(ctx);
-                    final file = await _fileService.pickFromGallery();
+                    final file = isTravel 
+                        ? await _fileService.pickAndOptimizeImage(source: ImageSource.gallery)
+                        : await _fileService.pickFromGallery();
                     if (file != null) _saveFile(file, petName, type);
                   },
                 ),
@@ -1196,6 +1215,24 @@ class _EditPetFormState extends State<EditPetForm>
   Future<void> _saveFile(File file, String petName, String type) async {
     try {
       debugPrint('💾 [PDF_SAVE] Saving file: ${file.path} for pet: $petName, type: $type');
+
+      // 🛡️ V_FIX: Replacement logic for single-file travel documents
+      final singleDocTypes = [
+        'travel_health_cert',
+        'travel_vaccination_card',
+        'travel_microchip_cert',
+        'travel_crate_id',
+        'travel_leish_vax',
+        'travel_felv_test',
+      ];
+
+      if (singleDocTypes.contains(type)) {
+          final existingFiles = _attachments[type] ?? [];
+          for (var oldFile in existingFiles) {
+              await _fileService.deleteMedicalDocument(oldFile.path);
+          }
+          debugPrint('🧹 [V_FIX] Cleared ${existingFiles.length} old files for single-doc category: $type');
+      }
 
       final savedPath = await _fileService.saveMedicalDocument(
         file: file,
@@ -1431,7 +1468,7 @@ class _EditPetFormState extends State<EditPetForm>
 
   Widget _buildTravelTabContent() {
     return TravelFragment(
-      travelPreferences: _travelPreferences,
+      prefsMap: _travelPreferences,
       rabiesDate: _dataUltimaAntirrabica,
       microchip: _microchipController.text.trim(),
       onPreferenceChanged: (key, value) {
@@ -1440,7 +1477,16 @@ class _EditPetFormState extends State<EditPetForm>
         });
         _onUserInteractionGeneric();
       },
+      especie: _especie,
+      analysisHistory: _analysisHistory,
+      labExams: _labExams.map((e) => e.toJson()).toList(),
+      historicoAnaliseFeridas: _historicoAnaliseFeridas,
+      attachments: _attachments,
+      onAddAttachment: _addAttachment,
+      onDeleteAttachment: _deleteAttachment,
     );
+
+
   }
 
 
@@ -1490,7 +1536,7 @@ class _EditPetFormState extends State<EditPetForm>
     
     if (woundHistory.isEmpty && structuredHistory.isEmpty) {
       return Card(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -1502,9 +1548,9 @@ class _EditPetFormState extends State<EditPetForm>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppDesign.textPrimaryDark.withOpacity(0.05),
+                  color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: Row(
                   children: [
@@ -1529,7 +1575,7 @@ class _EditPetFormState extends State<EditPetForm>
     }
 
     return Card(
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -1561,6 +1607,7 @@ class _EditPetFormState extends State<EditPetForm>
   Widget _buildWoundAnalysisCard(Map<String, dynamic> analysis) {
     final date = DateTime.parse(analysis['date'] as String);
     final diagnosisRaw = analysis['diagnosis'] as String?;
+    if (!mounted) return const SizedBox.shrink();
     final diagnosis = (diagnosisRaw != null && diagnosisRaw.isNotEmpty) ? diagnosisRaw : AppLocalizations.of(context)!.diagnosisPending;
     // Removed old severityDisplay logic
     final recommendations = (analysis['recommendations'] as List?)?.cast<String>() ?? [];
@@ -1587,9 +1634,9 @@ class _EditPetFormState extends State<EditPetForm>
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: severityColor.withOpacity(0.3)),
+        border: Border.all(color: severityColor.withValues(alpha: 0.3)),
       ),
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1630,7 +1677,7 @@ class _EditPetFormState extends State<EditPetForm>
                   height: 48,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: severityColor.withOpacity(0.5)),
+                    border: Border.all(color: severityColor.withValues(alpha: 0.5)),
                     image: DecorationImage(
                         image: FileImage(File(imagePath)),
                         fit: BoxFit.cover,
@@ -1642,7 +1689,7 @@ class _EditPetFormState extends State<EditPetForm>
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: severityColor.withOpacity(0.2),
+                color: severityColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -1664,7 +1711,7 @@ class _EditPetFormState extends State<EditPetForm>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: severityColor.withOpacity(0.2),
+                color: severityColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -2163,7 +2210,7 @@ class _EditPetFormState extends State<EditPetForm>
               onSelected: (selected) {
                 if (selected) onChanged(option);
               },
-              selectedColor: AppDesign.petPink.withOpacity(0.2),
+              selectedColor: AppDesign.petPink.withValues(alpha: 0.2),
               backgroundColor: AppDesign.backgroundDark,
               labelStyle: TextStyle(
                 color: isSelected ? Colors.white : Colors.white60,
@@ -2216,7 +2263,7 @@ class _EditPetFormState extends State<EditPetForm>
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -2277,7 +2324,7 @@ class _EditPetFormState extends State<EditPetForm>
                   labelStyle: const TextStyle(color: Colors.white60),
                   prefixIcon: Icon(icon, color: AppDesign.petPink),
                   filled: true,
-                  fillColor: Colors.white.withOpacity(0.1),
+                  fillColor: Colors.white.withValues(alpha: 0.1),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -2310,7 +2357,7 @@ class _EditPetFormState extends State<EditPetForm>
               label: Text(entry.value),
               deleteIcon: const Icon(Icons.close, size: 18),
               onDeleted: () => onDelete(entry.key),
-              backgroundColor: chipColor.withOpacity(0.2),
+              backgroundColor: chipColor.withValues(alpha: 0.2),
               labelStyle: GoogleFonts.poppins(color: Colors.white),
               deleteIconColor: Colors.white,
             );
@@ -2421,9 +2468,9 @@ class _EditPetFormState extends State<EditPetForm>
     return Container(
        padding: const EdgeInsets.all(16),
        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
        ),
        child: Column(
           children: [
@@ -2446,9 +2493,9 @@ class _EditPetFormState extends State<EditPetForm>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _lastMealPlanDate != null ? AppDesign.petPink.withOpacity(0.1) : Colors.white10,
+                  color: _lastMealPlanDate != null ? AppDesign.petPink.withValues(alpha: 0.1) : Colors.white10,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _lastMealPlanDate != null ? AppDesign.petPink.withOpacity(0.3) : Colors.white24),
+                  border: Border.all(color: _lastMealPlanDate != null ? AppDesign.petPink.withValues(alpha: 0.3) : Colors.white24),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -2481,7 +2528,7 @@ class _EditPetFormState extends State<EditPetForm>
                    icon: const Icon(Icons.calendar_month, color: Colors.white),
                    label: Text(AppLocalizations.of(context)!.petViewMenu ?? 'Ver Cardápio'),
                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                      backgroundColor: Colors.white.withValues(alpha: 0.1),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                    ),
@@ -2537,7 +2584,7 @@ class _EditPetFormState extends State<EditPetForm>
                       children: [
                           Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(color: AppDesign.petPink.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                              decoration: BoxDecoration(color: AppDesign.petPink.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                               child: Text(hora, style: GoogleFonts.poppins(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 11)),
                           ),
                           const SizedBox(width: 10),
@@ -2545,7 +2592,7 @@ class _EditPetFormState extends State<EditPetForm>
                           if (tipo.isNotEmpty && tipo != 'Histórico')
                              Container(
                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                 decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                 decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                  child: Text(tipo, style: const TextStyle(color: Colors.blueAccent, fontSize: 9, fontWeight: FontWeight.bold)),
                              ),
                       ],
@@ -2795,6 +2842,7 @@ class _EditPetFormState extends State<EditPetForm>
                 _labExams.removeWhere((e) => e.id == examId);
               });
               _onUserInteractionGeneric();
+              if (!mounted) return;
               Navigator.pop(context);
             },
             child: const Text('Excluir', style: TextStyle(color: Colors.red)),
@@ -2804,25 +2852,7 @@ class _EditPetFormState extends State<EditPetForm>
     );
   }
 
-  Future<void> _openPartnerAgenda(PartnerModel partner) async {
-    await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => PartnerAgendaScreen(
-                partner: partner,
-                initialEvents: _partnerNotes[partner.id] ?? [],
-                onSave: (events) async {
-                    setState(() {
-                        _partnerNotes[partner.id] = events;
-                    });
-                    await PetProfileService().updatePartnerNotes(_nameController.text.trim(), _partnerNotes);
-                },
-                petId: widget.existingProfile?.petName ?? _nameController.text.trim(),
-            ),
-        ),
-    );
-    await _reloadFreshData();
-  }
+
 
   // --- UNDO / RESTORE LOGIC ---
 
@@ -2863,43 +2893,11 @@ class _EditPetFormState extends State<EditPetForm>
           lastUpdated: original.lastUpdated,
           imagePath: original.imagePath,
           rawAnalysis: original.rawAnalysis != null ? Map<String, dynamic>.from(original.rawAnalysis!) : null,
+          travelPreferences: Map<String, dynamic>.from(original.travelPreferences), // 🛡️ V250
       );
   }
   
-  void _undoAllChanges() {
-      if (_petBackup == null) return;
-      
-      final b = _petBackup!;
-      
-      setState(() {
-          _nameController.text = b.petName;
-          _racaController.text = b.raca ?? '';
-          _idadeController.text = b.idadeExata ?? '';
-          _pesoController.text = b.pesoAtual?.toString() ?? '';
-          _pesoIdealController.text = b.pesoIdeal?.toString() ?? '';
-          
-          final l10n = AppLocalizations.of(context)!;
-          _nivelAtividade = b.nivelAtividade ?? l10n.petActivityModerate;
-          _statusReprodutivo = b.statusReprodutivo ?? l10n.petNeutered;
-          _frequenciaBanho = b.frequenciaBanho ?? l10n.petBathBiweekly;
-          
-          _dataUltimaV10 = b.dataUltimaV10;
-          _dataUltimaAntirrabica = b.dataUltimaAntirrabica;
-          
-          _alergiasConhecidas = List.from(b.alergiasConhecidas);
-          _preferencias = List.from(b.preferencias);
-          _linkedPartnerIds = List.from(b.linkedPartnerIds);
-          _partnerNotes = Map.from(b.partnerNotes).map((k, v) => MapEntry(k, List.from(v)));
-          _weightHistory = List.from(b.weightHistory);
-          _labExams = (b.labExams).map((json) => LabExam.fromJson(json)).toList();
-          
-          // _hasChanges = false; 
-      });
-      _onUserInteractionGeneric();
-      _loadLinkedPartners(); // Refresh partners UI
-      
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.petChangesDiscarded)));
-  }
+
 
   void _removeLinkedPartner(String id) {
       setState(() {
@@ -3074,11 +3072,13 @@ class _EditPetFormState extends State<EditPetForm>
             funeralPlan: _funeralPlan,
             lifeInsurance: _lifeInsurance,
             observacoesPlanos: _observacoesPlanosController.text,
+            microchip: _microchipController.text.trim(), // 🛡️ V_FIX: ADD MISSING MICROCHIP
             lastUpdated: DateTime.now(),
             imagePath: _profileImage?.path ?? _initialImagePath,
             rawAnalysis: finalRawAnalysis, // V74: Use meal plan from both sources
             reliability: _reliability,
             porte: _porte,
+            travelPreferences: _travelPreferences, // 🛡️ V250
         );
 
         // V68: ALL SECTIONS ENABLED BY DEFAULT (Complete Medical Record)
@@ -3119,7 +3119,7 @@ class _EditPetFormState extends State<EditPetForm>
                 Map<String, DateTime>? vaccinationData;
                 try {
                   await PetEventService.ensureReady();
-                  final events = PetEventService().getEventsByPet(profile.petName);
+                  final events = PetEventService().getEventsByPet(profile.id);
                   final vaccineEvents = events.where((e) => e.type == EventType.vaccine).toList();
                   
                   if (vaccineEvents.isNotEmpty) {
@@ -3140,10 +3140,17 @@ class _EditPetFormState extends State<EditPetForm>
                   debugPrint('⚠️ Error fetching vaccination data for PDF: $e');
                 }
 
+                // 🛡️ V_FIX: Combine all relevant attachments for the gallery (clinical + travel docs)
+                final List<File> combinedGallery = [
+                  ...(_attachments['gallery'] ?? []),
+                  ...(_attachments['health_vaccines'] ?? []),
+                  ...(_attachments['travel_docs'] ?? []),
+                ];
+
                 final pdf = await PetPdfGenerator().generateReport(
                   profile: profile,
                   strings: AppLocalizations.of(context)!,
-                  manualGallery: _attachments['gallery'], // Pass manual gallery
+                  manualGallery: combinedGallery, // Pass combined gallery
                   vaccinationData: vaccinationData,
                 );
                 return pdf.save();
@@ -3167,6 +3174,7 @@ class _EditPetFormState extends State<EditPetForm>
     if (value == null) return AppLocalizations.of(context)!.petNotIdentified;
     
     final v = value.trim().toLowerCase();
+    if (!mounted) return value ?? '';
     final strings = AppLocalizations.of(context)!;
 
     // Standard Null/NA checks
@@ -3287,7 +3295,7 @@ class _EditPetFormState extends State<EditPetForm>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    AppDesign.petPink.withOpacity(0.2),
+                    AppDesign.petPink.withValues(alpha: 0.2),
                     AppDesign.backgroundDark,
                   ],
                 ),
@@ -3318,7 +3326,7 @@ class _EditPetFormState extends State<EditPetForm>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppDesign.petPink.withOpacity(0.1),
+                    color: AppDesign.petPink.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -3503,7 +3511,7 @@ class _EditPetFormState extends State<EditPetForm>
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.03),
+            color: Colors.white.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white10),
           ),
@@ -3726,7 +3734,7 @@ class _EditPetFormState extends State<EditPetForm>
               
               // 🧠 [V_FIX] MARE: Auto-Index partner linking in pet timeline
               PetIndexingService().indexPartnerInteraction(
-                petId: widget.existingProfile?.id ?? _petId,
+                petId: widget.existingProfile?.id ?? _petId!,
                 petName: _nameController.text,
                 partnerName: p.name,
                 partnerId: p.id,
@@ -3777,9 +3785,9 @@ class _EditPetFormState extends State<EditPetForm>
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: AppDesign.petPink.withOpacity(0.2),
+          color: AppDesign.petPink.withValues(alpha: 0.2),
           shape: BoxShape.circle,
-          border: Border.all(color: AppDesign.petPink.withOpacity(0.5), width: 3),
+          border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.5), width: 3),
         ),
         child: Stack(
           children: [
@@ -3788,7 +3796,7 @@ class _EditPetFormState extends State<EditPetForm>
               height: 120,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
               ),
               child: ClipOval(
                 child: imageProvider != null
@@ -4127,4 +4135,5 @@ class _EditPetFormState extends State<EditPetForm>
 }
 
 enum _SaveStatus { idle, saving, success, error }
+
 

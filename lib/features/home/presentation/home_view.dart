@@ -87,16 +87,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle camera lifecycle
-    final CameraController? cameraController = _controller;
-    if (cameraController == null || !cameraController.value.isInitialized) {
-      return;
-    }
+    if (_controller == null || !_isCameraInitialized) return;
 
-    if (state == AppLifecycleState.inactive) {
-      cameraController.dispose();
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      // 🛡️ Safe Disposal with state update
+      _disposeCamera();
     } else if (state == AppLifecycleState.resumed) {
-      // 🛡️ Só reinicia se houver um modo ativo
+      // 🛡️ Re-init if mode is still active
       if (_currentIndex != -1) {
         _initCamera();
       }
@@ -149,7 +146,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: AlertDialog(
-          backgroundColor: AppDesign.backgroundDark.withOpacity(0.9),
+          backgroundColor: AppDesign.backgroundDark.withValues(alpha: 0.9),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
               side: const BorderSide(color: AppDesign.success, width: 2)),
@@ -175,6 +172,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 await simpleAuthService.setBiometricEnabled(true);
                 if (mounted) {
                    Navigator.pop(context);
+                   if (!mounted) return;
                    AppFeedback.showSuccess(context, l10n.homeBiometricSuccess);
                 }
               },
@@ -206,7 +204,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       builder: (context) => BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: AlertDialog(
-          backgroundColor: AppDesign.backgroundDark.withOpacity(0.8),
+          backgroundColor: AppDesign.backgroundDark.withValues(alpha: 0.8),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
               side: const BorderSide(color: AppDesign.accent, width: 1)),
@@ -311,6 +309,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
          // Reset current index if permission denied
          if (mounted) {
            final l10n = AppLocalizations.of(context)!;
+           if (!mounted) return;
            AppFeedback.showError(context, l10n.cameraPermission);
          }
          setState(() {
@@ -402,6 +401,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       
     } catch (e) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
+       if (!mounted) return;
        if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorCapturePrefix}$e');
     }
   }
@@ -422,6 +422,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       }
     } catch (e) {
       debugPrint('❌ Error picking from gallery: $e');
+      if (!mounted) return;
       if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorGalleryPrefix}$e');
     }
   }
@@ -580,6 +581,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
       } catch (e) {
            debugPrint('❌❌❌ ERROR in _processCapturedImage: $e');
+           if (!mounted) return;
            if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorProcessingPrefix}$e');
       }
   }
@@ -752,6 +754,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
         await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap, petId: _petId, imagePath: activeImage?.path);
         
+        if (!mounted) return false;
+        
         if (mounted) AppFeedback.showSuccess(context, AppLocalizations.of(context)!.petSavedSuccess(petName));
 
         // Auto-Navigation Logic for Diagnosis Mode
@@ -782,6 +786,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                                     existingProfile: profile,
                                     onSave: (p) async { 
                                         await profileService.saveOrUpdateProfile(p.petName, p.toJson());
+                                        if (!mounted) return;
                                         if (mounted && Navigator.canPop(context)) Navigator.pop(context);
                                     },
                                     initialTabIndex: 1, // HEALTH TAB
@@ -806,6 +811,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         if (mounted) {
           final l10n = AppLocalizations.of(context)!;
           final String translatedType = type == 'Food' ? l10n.tabFood : (type == 'Plant' ? l10n.tabPlants : type);
+          if (!mounted) return false;
           AppFeedback.showSuccess(context, l10n.savedSuccess(translatedType));
         }
         return true;
@@ -863,6 +869,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic result) async {
         if (didPop) return;
+        if (!mounted) return;
         _showExitDialog(context);
       },
       child: Scaffold(
@@ -871,9 +878,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. Camera Layer - Only show when mode is selected
           if (_currentIndex != -1) ...[
-            if (_isCameraInitialized && _controller != null && _controller!.value.isInitialized)
+            if (_isCameraInitialized && _controller != null && _controller!.value.isInitialized && !_isInitializingCamera)
               CameraPreview(_controller!)
             else
               Container(color: AppDesign.backgroundDark),
@@ -882,7 +888,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           // 🛡️ LOADING OVERLAY (Analysis State)
           if (ref.watch(analysisNotifierProvider) is AnalysisLoading)
             Container(
-              color: Colors.black.withOpacity(0.7), // Dimmed background
+              color: Colors.black.withValues(alpha: 0.7), // Dimmed background
               width: double.infinity,
               height: double.infinity,
               child: Center(
@@ -892,7 +898,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     color: Colors.white, // White card for Black Text contrast
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 5))
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 5))
                     ]
                   ),
                   child: Column(
@@ -968,7 +974,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               )
@@ -990,7 +996,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     width: 280,
                     height: 280,
                     decoration: BoxDecoration(
-                      border: Border.all(color: _currentIndex == -1 ? AppDesign.textPrimaryDark.withOpacity(0.5) : AppDesign.getModeColor(_currentIndex), width: 3),
+                      border: Border.all(color: _currentIndex == -1 ? AppDesign.textPrimaryDark.withValues(alpha: 0.5) : AppDesign.getModeColor(_currentIndex), width: 3),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Stack(
@@ -1087,7 +1093,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppDesign.backgroundDark.withOpacity(0.6),
+                    color: AppDesign.backgroundDark.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(color: Colors.white24),
                     boxShadow: const [
@@ -1159,9 +1165,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             child: Builder(
               builder: (context) => Container(
                 decoration: BoxDecoration(
-                  color: AppDesign.backgroundDark.withOpacity(0.5),
+                  color: AppDesign.backgroundDark.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.textPrimaryDark.withOpacity(0.2)),
+                  border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.2)),
                 ),
                 child: IconButton(
                   icon: Icon(AppDesign.iconMenu, color: _currentIndex == -1 ? AppDesign.textPrimaryDark : AppDesign.getModeColor(_currentIndex), size: 28),
@@ -1185,9 +1191,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // History Button (New)
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.history, color: AppDesign.getModeColor(0), size: 28),
@@ -1204,9 +1210,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // Nutrition Module Button (Existing)
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.restaurant_menu, color: AppDesign.getModeColor(0), size: 28),
@@ -1241,9 +1247,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                    // History Button
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.history, color: AppDesign.getModeColor(1), size: 28),
@@ -1272,9 +1278,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   if (_currentIndex == 2) ...[
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                       ),
                       child: IconButton(
                         icon: Icon(Icons.calendar_month, color: AppDesign.getModeColor(2), size: 28),
@@ -1291,9 +1297,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // Partners Button
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.handshake, color: AppDesign.getModeColor(2), size: 28),
@@ -1309,9 +1315,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   // History Button
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.pets, color: AppDesign.getModeColor(2), size: 28),
@@ -1356,7 +1362,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                     
                     // Dark Overlay
                     Container(
-                      color: Colors.black.withOpacity(0.7),
+                      color: Colors.black.withValues(alpha: 0.7),
                     ),
 
                     // Loading Content
@@ -1368,7 +1374,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                             ),
                             child: const CircularProgressIndicator(
                               color: AppDesign.accent,
@@ -1439,11 +1445,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               width: 56, // Fixed size for symmetry
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
                 border: Border.all(color: modeColor, width: 2),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2))
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4, offset: const Offset(0, 2))
                 ],
               ),
               child: Icon(Icons.photo_library, color: modeColor, size: 26),
@@ -1461,9 +1467,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: modeColor, width: 4),
-                color: modeColor.withOpacity(0.2),
+                color: modeColor.withValues(alpha: 0.2),
                  boxShadow: [
-                  BoxShadow(color: modeColor.withOpacity(0.3), blurRadius: 15, spreadRadius: 1)
+                  BoxShadow(color: modeColor.withValues(alpha: 0.3), blurRadius: 15, spreadRadius: 1)
                 ],
               ),
               padding: const EdgeInsets.all(4),
@@ -1571,30 +1577,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     // This method can be used for validation if needed in the future
   }
 
-  // Helper to compare configs
-  final String _lastConfig = "";
 
-  Widget _buildStaticNavItem(IconData icon, String label, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white60, size: 28),
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-          ],
-        ),
-      ),
-    );
-  }
 
 
   // Helper dialog to ask for pet name
   Future<String?> _promptPetName() async {
     String? petName;
+    if (!mounted) return null;
     final l10n = AppLocalizations.of(context)!;
     await showDialog<String>(
       context: context,
@@ -1604,7 +1593,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: AlertDialog(
-            backgroundColor: Colors.black.withOpacity(0.8),
+            backgroundColor: Colors.black.withValues(alpha: 0.8),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: const BorderSide(color: AppDesign.accent, width: 1)),
@@ -1641,6 +1630,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 ),
                 onPressed: () {
                   petName = controller.text;
+                  if (!mounted) return;
                   Navigator.of(dialogContext).pop();
                 },
                 child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -1850,3 +1840,4 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
   }
 }
+

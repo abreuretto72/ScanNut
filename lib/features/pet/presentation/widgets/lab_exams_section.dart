@@ -50,7 +50,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -86,12 +86,12 @@ class _LabExamsSectionState extends State<LabExamsSection> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.03),
+                  color: Colors.white.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: categoryExams.isNotEmpty 
-                        ? category.color.withOpacity(0.3)
-                        : Colors.white.withOpacity(0.05),
+                        ? category.color.withValues(alpha: 0.3)
+                        : Colors.white.withValues(alpha: 0.05),
                   ),
                 ),
                 child: Theme(
@@ -121,7 +121,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: category.color.withOpacity(0.2),
+                              color: category.color.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
@@ -178,9 +178,9 @@ class _LabExamsSectionState extends State<LabExamsSection> {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: category.color.withOpacity(0.2)),
+        border: Border.all(color: category.color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,7 +287,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                 icon: const Icon(Icons.psychology, size: 16),
                 label: Text(AppLocalizations.of(context)!.explainExam),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: category.color.withOpacity(0.2),
+                  backgroundColor: category.color.withValues(alpha: 0.2),
                   foregroundColor: category.color,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   textStyle: const TextStyle(fontSize: 12),
@@ -301,9 +301,9 @@ class _LabExamsSectionState extends State<LabExamsSection> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppDesign.petPink.withOpacity(0.1),
+                color: AppDesign.petPink.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
+                border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,9 +331,9 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
+                      color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [

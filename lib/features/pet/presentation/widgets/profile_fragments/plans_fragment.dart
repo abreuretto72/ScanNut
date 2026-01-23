@@ -346,7 +346,7 @@ class _PlansFragmentState extends State<PlansFragment> {
     required List<Widget> children,
   }) {
     return Card(
-      color: Colors.white.withOpacity(0.05),
+      color: Colors.white.withValues(alpha: 0.05),
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -371,7 +371,7 @@ class _PlansFragmentState extends State<PlansFragment> {
             
             Text(
               helpText,
-              style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11, fontStyle: FontStyle.italic),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, fontStyle: FontStyle.italic),
             ),
             
             if (isActive) ...[

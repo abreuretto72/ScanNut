@@ -57,7 +57,7 @@ class ChipsInputField extends StatelessWidget {
             children: List.generate(chips.length, (index) {
               return Chip(
                 label: Text(chips[index], style: const TextStyle(color: Colors.white, fontSize: 11)),
-                backgroundColor: chipColor ?? AppDesign.petPink.withOpacity(0.1),
+                backgroundColor: chipColor ?? AppDesign.petPink.withValues(alpha: 0.1),
                 deleteIcon: const Icon(Icons.close, size: 14, color: Colors.white70),
                 onDeleted: () => onDelete(index),
                 side: BorderSide.none,

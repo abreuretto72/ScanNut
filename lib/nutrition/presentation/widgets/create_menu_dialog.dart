@@ -251,9 +251,9 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: isSelected ? colorAccent.withOpacity(0.2) : Colors.transparent,
+                                color: isSelected ? colorAccent.withValues(alpha: 0.2) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(8),
-                                border: isSelected ? Border.all(color: colorAccent.withOpacity(0.5)) : null,
+                                border: isSelected ? Border.all(color: colorAccent.withValues(alpha: 0.5)) : null,
                               ),
                               child: Text(
                                 e.value,
@@ -324,7 +324,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                          label: Text(e.value),
                          selected: isSelected,
                          onSelected: (val) => setState(() => _selectedObjective = e.key),
-                         selectedColor: colorAccent.withOpacity(0.2),
+                         selectedColor: colorAccent.withValues(alpha: 0.2),
                          backgroundColor: colorCard,
                          labelStyle: GoogleFonts.poppins(
                            color: isSelected ? colorAccent : colorTextSecondary,
@@ -361,7 +361,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                             }
                           });
                         },
-                         selectedColor: colorAccent.withOpacity(0.2),
+                         selectedColor: colorAccent.withValues(alpha: 0.2),
                          backgroundColor: colorCard,
                          labelStyle: GoogleFonts.poppins(
                            color: isSelected ? colorAccent : colorTextSecondary,
@@ -535,6 +535,9 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
       selectedPeriodId: _selectedMode, // Persist 'weekly', 'monthly' or 'custom'
     );
 
+    if (!mounted) return;
+
     Navigator.pop(context, result);
   }
 }
+

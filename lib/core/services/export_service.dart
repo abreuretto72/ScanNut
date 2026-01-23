@@ -310,7 +310,7 @@ class ExportService {
         build: (context) => [
           // Indicators removed
           if (reportType == 'Detalhamento' || reportType == 'Somente Agendamentos')
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
               headerDecoration: pw.BoxDecoration(color: colorPet),
               headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9),
@@ -360,7 +360,7 @@ class ExportService {
             ],
           ),
           pw.SizedBox(height: 25),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
             headerDecoration: pw.BoxDecoration(color: colorPet),
             headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
@@ -404,7 +404,7 @@ class ExportService {
             ],
           ),
           pw.SizedBox(height: 25),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             border: pw.TableBorder.all(color: colorPet, width: 0.5),
             headerDecoration: pw.BoxDecoration(color: colorPet),
             headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9),
@@ -579,7 +579,7 @@ class ExportService {
                          content.add(pw.Text(strings.petMenuShoppingList.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)));
                          content.add(pw.SizedBox(height: 10));
                          final list = shoppingLists[currentId]!;
-                         content.add(pw.Table.fromTextArray(
+                         content.add(pw.TableHelper.fromTextArray(
                              border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
                              headerDecoration: pw.BoxDecoration(color: colorPet),
                              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
@@ -606,12 +606,12 @@ class ExportService {
                     content.add(pw.Text(strings.petMenuShoppingList.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14, color: PdfColors.black)));
                     content.add(pw.SizedBox(height: 10));
                     final list = shoppingLists[currentId]!;
-                    content.add(pw.Table.fromTextArray(
+                    content.add(pw.TableHelper.fromTextArray(
                         border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
                         headerDecoration: pw.BoxDecoration(color: colorPet),
                         headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black),
                         cellStyle: const pw.TextStyle(fontSize: 9, color: PdfColors.black),
-                        headers: [strings.commonItem ?? 'Item', strings.commonQuantity ?? 'Qtd', strings.commonCategory ?? 'Info'],
+                        headers: [strings.commonItem, strings.commonQuantity, strings.commonCategory],
                         data: list.map((i) => [
                            i['item']?.toString() ?? i['name']?.toString() ?? '',
                            i['quantity']?.toString() ?? '',
@@ -937,11 +937,11 @@ class ExportService {
            pw.MultiPage(
              pageFormat: PdfPageFormat.a4,
              margin: const pw.EdgeInsets.all(35),
-             header: (context) => buildHeader('${strings.pdfShoppingListTitle ?? 'LISTA DE COMPRAS'}${weekLabel.toUpperCase()}', timestampStr, color: colorFood),
+             header: (context) => buildHeader('${strings.pdfShoppingListTitle}${weekLabel.toUpperCase()}', timestampStr, color: colorFood),
              footer: (context) => buildFooter(context, strings: strings),
              build: (context) => [
                pw.Text(
-                 strings.pdfShoppingListDescription(weekShopping.weekLabel) ?? 'Esta lista consolidada refere-se aos itens necessários para a ${weekShopping.weekLabel}. Quantidades somadas e organizadas por setor.',
+                 strings.pdfShoppingListDescription(weekShopping.weekLabel),
                  style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
                ),
                pw.SizedBox(height: 15),
@@ -1177,7 +1177,7 @@ class ExportService {
                   children: [
                     _buildCareIcon('sun', _parsePlantCareLevel(analysis.sobrevivencia.luminosidade['type'] ?? analysis.sobrevivencia.luminosidade['tipo'], 'sun')),
                     pw.SizedBox(width: 5),
-                    pw.Text(strings.labelSun.toUpperCase() ?? strings.plantNeedSun, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    pw.Text(strings.labelSun.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ]
                 ),
                 pw.SizedBox(height: 4),
@@ -1190,7 +1190,7 @@ class ExportService {
                   children: [
                     _buildCareIcon('water', _parsePlantCareLevel(analysis.sobrevivencia.regimeHidrico['frequency'] ?? analysis.sobrevivencia.regimeHidrico['frequencia_ideal'], 'water')),
                     pw.SizedBox(width: 5),
-                    pw.Text(strings.labelWater.toUpperCase() ?? strings.plantNeedWater, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
+                    pw.Text(strings.labelWater.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   ]
                 ),
                 pw.SizedBox(height: 4),
@@ -1552,7 +1552,7 @@ class ExportService {
     List<PetEvent> allAgendaEvents = [];
     try {
         await PetEventService().init();
-        final allEvents = PetEventService().getEventsByPet(profile.petName);
+        final allEvents = PetEventService().getEventsByPet(profile.id);
         
         // Separate medical events for health section
          medicalEvents = allEvents.where((e) {
@@ -2161,7 +2161,7 @@ class ExportService {
             pw.Text('${strings.pdfWeightControl}:', 
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
             pw.SizedBox(height: 5),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.grey700, width: 0.5),
               headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
               cellStyle: const pw.TextStyle(fontSize: 9),
@@ -2190,7 +2190,7 @@ class ExportService {
               pw.Text('${strings.pdfWeightHistory}:', 
                 style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 5),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
                 headerDecoration: pw.BoxDecoration(color: colorPet),
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),
@@ -2211,7 +2211,7 @@ class ExportService {
             pw.Text('${strings.pdfVacinaV10} & ${strings.pdfVacinaAntirrabica}:', 
               style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
             pw.SizedBox(height: 5),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.black, width: 0.8),
               headerDecoration: pw.BoxDecoration(color: colorPet),
               headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 10),
@@ -2275,7 +2275,7 @@ class ExportService {
                 pw.Text('${strings.pdfHistClinico}:', 
                   style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
                 pw.SizedBox(height: 5),
-                pw.Table.fromTextArray(
+                pw.TableHelper.fromTextArray(
                     border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
                     headerDecoration: pw.BoxDecoration(color: colorPet),
                     headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.black),
@@ -2390,7 +2390,7 @@ class ExportService {
                 
                 final pdfImage = analysis['pdfImage'] as pw.ImageProvider?;
                 
-                PdfColor severityColor = PdfColors.black;
+
                 // No colors for severity
 
                 return pw.Container(
@@ -2973,7 +2973,7 @@ class ExportService {
           pw.SizedBox(height: 25),
           
           // TABELA
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             border: pw.TableBorder.all(color: PdfColors.black, width: 0.5),
             headerDecoration: pw.BoxDecoration(color: colorPet), // Pink header
             headerStyle: pw.TextStyle(color: PdfColors.black, fontWeight: pw.FontWeight.bold, fontSize: 9), // Black text
@@ -3361,7 +3361,7 @@ class ExportService {
             pw.SizedBox(height: 10),
             
             buildSectionHeader(strings.pdfDetailedNutrition, color: colorFood),
-            pw.Table.fromTextArray(
+            pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
               headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey50),
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9),

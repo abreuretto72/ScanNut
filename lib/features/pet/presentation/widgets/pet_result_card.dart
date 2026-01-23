@@ -181,6 +181,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     }
 
     final now = DateTime.now();
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final dateStr = DateFormat.yMd(l10n.localeName).add_Hm().format(now);
 
@@ -306,7 +307,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
             // Tabelas de Alimentos
             if (pet.tabelaBenigna.isNotEmpty) ...[
               pw.Text("${l10n.pdfFieldSafeFoods}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.pink900)),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
                 cellStyle: const pw.TextStyle(fontSize: 9),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.pink100),
@@ -320,7 +321,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
 
             if (pet.tabelaMaligna.isNotEmpty) ...[
               pw.Text("${l10n.pdfFieldToxicFoods}:", style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
                 cellStyle: const pw.TextStyle(fontSize: 9),
                 headerDecoration: const pw.BoxDecoration(color: PdfColors.red100),
@@ -892,7 +893,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppDesign.petPink.withOpacity(0.1),
+                    color: AppDesign.petPink.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -956,7 +957,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: AppDesign.petPink.withOpacity(0.1),
+        color: AppDesign.petPink.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         image: widget.imagePath.isNotEmpty
             ? DecorationImage(
@@ -1333,7 +1334,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1543,7 +1544,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       children: [
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: _urgencyColor.withOpacity(0.2), borderRadius: BorderRadius.circular(16), border: Border.all(color: _urgencyColor)),
+          decoration: BoxDecoration(color: _urgencyColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16), border: Border.all(color: _urgencyColor)),
           child: Row(
             children: [
               Icon(_isEmergency ? Icons.warning : Icons.info, color: _urgencyColor),
@@ -1583,7 +1584,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
                 errorBuilder: (context, error, stackTrace) => Container(
                   height: 250,
                   width: double.infinity,
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   child: const Center(child: Icon(Icons.pets, size: 50, color: Colors.white24)),
                 ),
               ),
@@ -1740,7 +1741,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [Icon(icon, color: color, size: 18), const SizedBox(width: 10), Expanded(child: Text(title, style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.bold, fontSize: 13), overflow: TextOverflow.ellipsis))]),
         const SizedBox(height: 12),
@@ -1822,9 +1823,9 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppDesign.petPink.withOpacity(0.1),
+        color: AppDesign.petPink.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppDesign.petPink.withOpacity(0.3)),
+        border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1858,7 +1859,7 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(isEstimated ? Icons.auto_awesome : Icons.label_important, color: AppDesign.petPink.withOpacity(0.5), size: 14),
+          Icon(isEstimated ? Icons.auto_awesome : Icons.label_important, color: AppDesign.petPink.withValues(alpha: 0.5), size: 14),
           const SizedBox(width: 10),
           SizedBox(
             width: 85,
@@ -1962,3 +1963,4 @@ class _PetResultCardState extends State<PetResultCard> with SingleTickerProvider
     }
   }
 }
+

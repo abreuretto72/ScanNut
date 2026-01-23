@@ -64,9 +64,9 @@ class PetEventGrid extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppDesign.surfaceDark.withOpacity(0.5),
+                  color: AppDesign.surfaceDark.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -77,7 +77,7 @@ class PetEventGrid extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppDesign.petPink.withOpacity(0.1),
+                            color: AppDesign.petPink.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(group['icon'] as IconData, color: AppDesign.petPink, size: 24),

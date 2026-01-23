@@ -27,9 +27,9 @@ class WeightFeedbackSection extends StatelessWidget {
           margin: const EdgeInsets.only(top: 12, bottom: 8),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: weightStatus.color.withOpacity(0.1),
+            color: weightStatus.color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: weightStatus.color.withOpacity(0.3), width: 2)
+            border: Border.all(color: weightStatus.color.withValues(alpha: 0.3), width: 2)
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +51,7 @@ class WeightFeedbackSection extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: weightStatus.color.withOpacity(0.2),
+                      color: weightStatus.color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

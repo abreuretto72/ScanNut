@@ -116,7 +116,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    _scanNutProColor.withOpacity(0.4),
+                    _scanNutProColor.withValues(alpha: 0.4),
                     Colors.black,
                   ],
                 ),
@@ -146,7 +146,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: _scanNutProColor.withOpacity(0.2),
+                        color: _scanNutProColor.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                         border: Border.all(color: _scanNutProColor, width: 2),
                       ),
@@ -204,7 +204,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      disabledBackgroundColor: _scanNutProColor.withOpacity(0.3),
+                      disabledBackgroundColor: _scanNutProColor.withValues(alpha: 0.3),
                     ),
                     child: _isLoading 
                       ? const SizedBox(
@@ -278,7 +278,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? _scanNutProColor.withOpacity(0.15) : Colors.white.withOpacity(0.05),
+          color: isSelected ? _scanNutProColor.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
           border: Border.all(
             color: isSelected ? _scanNutProColor : Colors.transparent,
             width: 2,

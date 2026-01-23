@@ -102,9 +102,9 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -182,13 +182,13 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: value
-            ? const Color(0xFF00E676).withOpacity(0.1)
-            : Colors.white.withOpacity(0.05),
+            ? const Color(0xFF00E676).withValues(alpha: 0.1)
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: value
-              ? const Color(0xFF00E676).withOpacity(0.5)
-              : Colors.white.withOpacity(0.1),
+              ? const Color(0xFF00E676).withValues(alpha: 0.5)
+              : Colors.white.withValues(alpha: 0.1),
           width: 1.5,
         ),
       ),
