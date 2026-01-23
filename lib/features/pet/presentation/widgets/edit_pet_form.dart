@@ -3738,6 +3738,19 @@ class _EditPetFormState extends State<EditPetForm>
       },
       actionButtons: const SizedBox(), 
       localizeValue: (v) => v,
+      onAddPartner: () async {
+          final result = await Navigator.push(
+              context, 
+              MaterialPageRoute(
+                  builder: (_) => PartnersHubScreen(
+                      petId: widget.existingProfile?.id ?? _petId,
+                      petName: _nameController.text,
+                      initialOpenRadar: true,
+                  ),
+              ),
+          );
+          if (result != null) _loadLinkedPartners();
+      },
     );
   }
 

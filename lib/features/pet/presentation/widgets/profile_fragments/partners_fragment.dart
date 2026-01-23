@@ -22,6 +22,7 @@ class PartnersFragment extends StatelessWidget {
   final Function(String) onObservacoesChanged;
   final Widget actionButtons;
   final String Function(String) localizeValue;
+  final VoidCallback? onAddPartner; // 🛡️ V_FIX: ADD PARTNER LINK
 
   const PartnersFragment({
     super.key,
@@ -39,6 +40,7 @@ class PartnersFragment extends StatelessWidget {
     required this.onObservacoesChanged,
     required this.actionButtons,
     required this.localizeValue,
+    this.onAddPartner,
   });
 
   @override
@@ -64,9 +66,9 @@ class PartnersFragment extends StatelessWidget {
 
         // 2. Partners List
         if (allPartners.isEmpty)
-          _buildEmptyState(l10n.petPartnersNoPartners)
+          _buildEmptyState(context, l10n.petPartnersNoPartners, showAddButton: true)
         else if (filtered.isEmpty)
-          _buildEmptyState(l10n.petPartnersNotFound, color: Colors.white30)
+          _buildEmptyState(context, l10n.petPartnersNotFound, color: Colors.white30)
         else
           ListView.builder(
             shrinkWrap: true,
@@ -145,14 +147,42 @@ class PartnersFragment extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(String message, {Color color = Colors.white54}) {
+  Widget _buildEmptyState(BuildContext context, String message, {Color color = Colors.white54, bool showAddButton = false}) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
       child: Center(
-        child: Text(
-          message,
-          style: GoogleFonts.poppins(color: color, fontSize: 14),
-          textAlign: TextAlign.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              style: GoogleFonts.poppins(color: color, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            if (showAddButton) ...[
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => onAddPartner?.call(),
+                icon: const Icon(Icons.radar, color: Colors.black, size: 20),
+                label: Text(
+                  l10n.partnersRegister, // Using "Cadastrar" as requested
+                  style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppDesign.petPink,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Busca inteligente por Radar',
+                style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11),
+              ),
+            ]
+          ],
         ),
       ),
     );

@@ -23,12 +23,14 @@ class PartnersHubScreen extends ConsumerStatefulWidget {
   final bool isSelectionMode;
   final String? petId;
   final String? petName;
+  final bool initialOpenRadar; // 🛡️ V_FIX: Direct Link to Radar
 
   const PartnersHubScreen({
     super.key, 
     this.isSelectionMode = false,
     this.petId,
     this.petName,
+    this.initialOpenRadar = false,
   });
 
   @override
@@ -92,6 +94,11 @@ class _PartnersHubScreenState extends ConsumerState<PartnersHubScreen> {
     super.initState();
     _selectedCategory = ''; // Initialize empty
     _loadPartners();
+    
+    // 🛡️ [V_FIX] AUTO-RADAR: Open radar discovery if requested
+    if (widget.initialOpenRadar) {
+       WidgetsBinding.instance.addPostFrameCallback((_) => _openRadar());
+    }
   }
 
   @override
