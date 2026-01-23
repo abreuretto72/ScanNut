@@ -1028,7 +1028,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(AppLocalizations.of(context)!.partnerRadarFoundTitle, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
+          Text("${AppLocalizations.of(context)!.partnerRadarFoundTitle} ${widget.initialQuery ?? ''}", style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
           const SizedBox(height: 24),
           Expanded(
             child: _isLoading 

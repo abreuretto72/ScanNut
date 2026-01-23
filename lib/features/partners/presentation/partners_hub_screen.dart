@@ -943,7 +943,7 @@ class _ExploreRadarSheetState extends ConsumerState<_ExploreRadarSheet> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(AppLocalizations.of(context)!.partnersRadarDetecting, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 13)),
+            Text("${AppLocalizations.of(context)!.partnerRadarFoundTitle} $_selectedCategory", style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 13)),
             const SizedBox(height: 16),
             _buildRadarFilterBar(),
             const SizedBox(height: 16),
