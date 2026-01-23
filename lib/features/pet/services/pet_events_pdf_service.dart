@@ -177,7 +177,7 @@ class PetEventsPdfService {
                      child: pw.Column(
                        crossAxisAlignment: pw.CrossAxisAlignment.start,
                        children: [
-                         pw.Text(petId.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                         pw.Text(profile?.petName ?? petId, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
                          pw.SizedBox(height: 4),
                          pw.Text('${l10n.petEvent_reportPeriod}: $periodStr', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
                          if (profile?.raca != null)
@@ -240,8 +240,20 @@ class PetEventsPdfService {
                              pw.Wrap(
                                spacing: 8,
                                children: event.data.entries.map((d) {
-                                  if (d.value == null || d.value.toString().isEmpty) return pw.SizedBox.shrink();
-                                   return pw.Text('${d.key}: ${d.value}', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic));
+                                  final key = d.key.toLowerCase();
+                                  const ignoredKeys = {
+                                     'deep_link', 'indexing_origin', 'pet_name', 'file_name', 
+                                     'vault_path', 'is_automatic', 'file_type', 'analysis_type', 
+                                     'result_id', 'raw_content', 'timestamp', 'event_type', 'is_completed',
+                                     'partner_name', 'partner_id', 'interaction_type',
+                                     'diet_type', 'weeks_count', 'source',
+                                     'emotion', 'reason', 'action',
+                                     'score', 'signals', 'advice', 'image_path',
+                                     'quality', 'brand', 'raw_result'
+                                  };
+                                  
+                                  if (ignoredKeys.contains(key) || d.value == null || d.value.toString().isEmpty) return pw.SizedBox.shrink();
+                                  return pw.Text('${d.key.toUpperCase()}: ${d.value}', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700, fontStyle: pw.FontStyle.italic));
                                }).toList(),
                              ),
                           ],
@@ -261,22 +273,6 @@ class PetEventsPdfService {
                                )).toList(),
                              ),
                           ],
-
-                          // 🧠 AI CLINICAL REPORT (LAUDO IA)
-                          ...(() {
-                            final uniqueContents = <String>{};
-                            final reportWidgets = <pw.Widget>[];
-                            for (var a in event.attachments) {
-                              if (a.analysisResult == null) continue;
-                              final content = a.analysisResult == 'SIDEAR_FILE' 
-                                  ? sidecarContents[a.id] 
-                                  : a.analysisResult;
-                              if (content != null && uniqueContents.add(content)) {
-                                reportWidgets.add(_buildAnalysisBlock(content, l10n));
-                              }
-                            }
-                            return reportWidgets;
-                          })(),
 
                           // List of Other Attachments
                           if (otherAttachments.isNotEmpty) ...[
@@ -308,87 +304,6 @@ class PetEventsPdfService {
     }
   }
 
-  pw.Widget _buildAnalysisBlock(String jsonResult, AppLocalizations l10n) {
-    try {
-      if (jsonResult == 'SIDEAR_FILE') return pw.SizedBox.shrink(); // Security check: should be pre-resolved
-      
-      final result = jsonDecode(jsonResult);
-      
-      // Attempt to extract content from various possible schemas
-      final diag = result['diagnostico'] ?? 
-                  result['summary'] ?? 
-                  result['resumo'] ?? 
-                  result['explanation'] ??
-                  result['visual_description'] ??
-                  result['characteristics'] ??
-                  '';
-      
-      final details = result['analise'] ?? 
-                     result['details'] ?? 
-                     result['immediate_care'] ?? 
-                     '';
-
-      if (diag.isEmpty && details.isEmpty) return pw.SizedBox.shrink();
-
-      // Collect alerts/warnings from various possible schemas
-      List<String> warnings = [];
-      if (result['alertas'] != null) {
-        if (result['alertas'] is List) {
-          warnings.addAll((result['alertas'] as List).map((e) => e.toString()));
-        } else {
-          warnings.add(result['alertas'].toString());
-        }
-      }
-      if (result['alerts'] != null) {
-        if (result['alerts'] is List) {
-          warnings.addAll((result['alerts'] as List).map((e) => e.toString()));
-        } else {
-          warnings.add(result['alerts'].toString());
-        }
-      }
-      if (result['urgency_level'] != null) {
-        warnings.add('Nível de Urgência: ${result['urgency_level']}');
-      }
-
-      return pw.Container(
-        margin: const pw.EdgeInsets.only(top: 10),
-        padding: const pw.EdgeInsets.all(8),
-        decoration: pw.BoxDecoration(
-          color: PdfColors.grey100,
-          border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
-          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
-        ),
-        width: double.infinity,
-        child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Row(
-              children: [
-                pw.Text('✨ ', style: const pw.TextStyle(fontSize: 10)),
-                pw.Text('LAUDO CLÍNICO IA', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.black)),
-              ],
-            ),
-            pw.SizedBox(height: 4),
-            if (diag.isNotEmpty)
-              pw.Text(diag.toString(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.grey900)),
-            if (details.isNotEmpty) ...[
-               pw.SizedBox(height: 2),
-               pw.Text(details.toString(), style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey800)),
-            ],
-            
-            // Warnings
-            if (warnings.isNotEmpty) ...[
-              pw.SizedBox(height: 6),
-              pw.Text('⚠ ALERTAS:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 7, color: PdfColors.red800)),
-              pw.Text(warnings.join(' • '), style: const pw.TextStyle(fontSize: 7, color: PdfColors.red900)),
-            ],
-          ],
-        ),
-      );
-    } catch (e) {
-      return pw.SizedBox.shrink();
-    }
-  }
 
   Map<DateTime, List<PetEventModel>> _groupEventsByDate(List<PetEventModel> events) {
     final groups = <DateTime, List<PetEventModel>>{};

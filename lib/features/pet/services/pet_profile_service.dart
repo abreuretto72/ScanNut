@@ -361,12 +361,7 @@ class PetProfileService {
       await _profileBox!.flush();
       debugPrint('✅ [HIVE_TRACE] Profile SAVED successfully to Key="$key".');
     
-    // 🔄 Trigger automatic permanent backup
-    PermanentBackupService().createAutoBackup().then((_) {
-      debugPrint('💾 Backup permanente atualizado após salvar pet');
-    }).catchError((e) {
-      debugPrint('⚠️ Backup automático falhou: $e');
-    });
+    // Auto-backup removido conforme solicitação do usuário
   } catch (e, stack) {
       debugPrint('❌ Error saving profile: $e\n$stack');
     }

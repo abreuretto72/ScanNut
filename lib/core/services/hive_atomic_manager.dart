@@ -18,8 +18,14 @@ class HiveAtomicManager {
       // 1. Verificar se a box está aberta e fechar
       if (Hive.isBoxOpen(boxName)) {
         debugPrint('🧹 [V115-HIVE] Fechando box ativa: $boxName');
-        await Hive.box(boxName).close();
+        try {
+           await Hive.box(boxName).close();
+        } catch (e) {
+           debugPrint('⚠️ [V115-HIVE] Type mismatch during closure of $boxName. Falling back to global close.');
+           await Hive.close();
+        }
       }
+
 
       // 2. Deletar físico do disco (Blindagem V111)
       debugPrint('🔥 [V115-HIVE] Deletando arquivos físicos de $boxName');
@@ -49,20 +55,12 @@ class HiveAtomicManager {
         final box = Hive.box<T>(boxName);
         if (box.isOpen) return box;
       } catch (e) {
-        debugPrint('⚠️ [V115-HIVE] Type conflict for $boxName. Attempting to resolve by closing... Error: $e');
-        try {
-          // Force close the mismatched box by using dynamic to bypass type check
-          // If Hive.box<T> fails, Hive.box(boxName) (dynamic) usually works for closing
-          final dynamicBox = Hive.box(boxName);
-          await dynamicBox.close();
-          debugPrint('✅ [V115-HIVE] Mismatched box closed successfully.');
-        } catch (closeError) {
-           debugPrint('⚠️ [V115-HIVE] Cleanup failed: $closeError');
-           // If it fails to close, it might be in a very bad state or not actually open.
-           // We will proceed to try opening it again, which might throw, but it's our best bet.
-        }
+        debugPrint('⚠️ [V115-HIVE] Type conflict for $boxName. Resolving via global close. Error: $e');
+        await Hive.close();
+        // After global close, we continue to open with requested type below
       }
     }
+
 
     debugPrint('🛡️ [V115-HIVE] Auto-cura: Abrindo box sob demanda: $boxName');
     if (cipher != null) {

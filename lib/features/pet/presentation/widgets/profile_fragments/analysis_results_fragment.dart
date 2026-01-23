@@ -9,6 +9,7 @@ import '../sound_analysis_card.dart';
 import '../pet_body_analysis_card.dart';
 
 class AnalysisResultsFragment extends StatelessWidget {
+  final String? petId; // 🛡️ Link UUID
   final List<Map<String, dynamic>> analysisHistory;
   final Map<String, dynamic>? currentRawAnalysis;
   final String petName;
@@ -22,6 +23,7 @@ class AnalysisResultsFragment extends StatelessWidget {
 
   const AnalysisResultsFragment({
     super.key,
+    this.petId,
     required this.analysisHistory,
     required this.currentRawAnalysis,
     required this.petName,
@@ -49,6 +51,7 @@ class AnalysisResultsFragment extends StatelessWidget {
       child: Column(
         children: [
           SoundAnalysisCard(
+            petId: petId,
             petName: petName,
             analysisHistory: analysisHistory,
             onDeleteAnalysis: onDeleteAnalysis,
@@ -56,6 +59,7 @@ class AnalysisResultsFragment extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           PetBodyAnalysisCard(
+            petId: petId,
             petName: petName,
             analysisHistory: analysisHistory,
             onDeleteAnalysis: onDeleteAnalysis,
@@ -106,9 +110,14 @@ class AnalysisResultsFragment extends StatelessWidget {
           }
           
           final rawType = data['analysis_type']?.toString() ?? '';
-          final type = rawType.isNotEmpty 
-              ? tryLocalizeLabel(context, rawType).toUpperCase() 
-              : l10n.petAnalysisDefaultTitle;
+          String type;
+          if (data.containsKey('identification') && (rawType.isEmpty || rawType == 'identification')) {
+              type = 'Análise de Foto do PET'.toUpperCase();
+          } else {
+              type = rawType.isNotEmpty 
+                  ? tryLocalizeLabel(context, rawType).toUpperCase() 
+                  : l10n.petAnalysisDefaultTitle;
+          }
           
           String dateStr = l10n.petAnalysisDateUnknown;
           DateTime? dt;
@@ -182,7 +191,7 @@ class AnalysisResultsFragment extends StatelessWidget {
                     final k = e.key;
                     final v = e.value;
                     final lowerK = k.toLowerCase().trim();
-                    if (['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification', 'clinical_signs', 'sinais_clinicos', 'metadata', 'temperament', 'temperamento'].contains(lowerK)) return false;
+                    if (['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification', 'clinical_signs', 'sinais_clinicos', 'metadata', 'temperament', 'temperamento', 'raw_result', 'raw_analysis', 'raw_data'].contains(lowerK)) return false;
                     
                     if (v == null || v.toString().toLowerCase() == 'null') return false;
                     if (v is String && v.trim().isEmpty) return false;

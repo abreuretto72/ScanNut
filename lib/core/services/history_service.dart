@@ -7,6 +7,7 @@ import 'hive_atomic_manager.dart';
 import '../utils/json_cast.dart';
 
 import 'simple_auth_service.dart';
+import 'media_vault_service.dart';
 
 final historyServiceProvider = Provider((ref) => HistoryService());
 
@@ -279,46 +280,47 @@ class HistoryService {
       'nutrition_weekly_plans',
       'nutrition_user_profile',
       'box_user_profile',
+      'user_profiles',
       'nutrition_shopping_list',
       'pet_events',
       'vaccine_status',
       'meal_log',
       'workout_plans',
+      'box_workouts',
       'partners_box',
       'pet_health_records',
       'pet_events_journal',
-      'processed_images_box'
+      'processed_images_box',
+      'lab_exams',
+      'menu_filter_settings',
+      'recipe_history_box'
     ];
 
+    final cipher = SimpleAuthService().encryptionCipher;
+
     for (var name in boxes) {
+      if (name == 'box_auth_local') continue; // 🛡️ Keep Login Intact
+      
       try {
-        if (Hive.isBoxOpen(name)) {
-          await Hive.box(name).close();
-        }
-        // DELEÇÃO FÍSICA NO DISCO (Nuclear Option)
-        await Hive.deleteBoxFromDisk(name);
-        debugPrint('💣 [Nuclear Delete] Physically destroyed $name');
+        final box = await HiveAtomicManager().ensureBoxOpen(name, cipher: cipher);
+        await box.clear();
+        debugPrint('🧹 [Power Delete] Content cleared for: $name');
       } catch (e) {
-        debugPrint('⚠️ [Nuclear Delete] Could not destroy $name: $e');
+        debugPrint('⚠️ [Power Delete] Failed to clear $name: $e');
       }
     }
 
-    // Physically wipe ALL files in documents directory
+    // ☢️ Physical Media also needs a wipe as it's operational data
     try {
-       final appDir = await getApplicationDocumentsDirectory();
-       if (await appDir.exists()) {
-          final entities = appDir.listSync();
-          for (var entity in entities) {
-             // Don't delete our .env if it was copied there, but usually it's not.
-             // Be aggressive. 
-             await entity.delete(recursive: true);
-          }
-       }
-       debugPrint('☢️  FILESYSTEM WIPE CONCLUÍDO.');
+       final ms = MediaVaultService();
+       await ms.clearDomain(MediaVaultService.PETS_DIR);
+       await ms.clearDomain(MediaVaultService.FOOD_DIR);
+       await ms.clearDomain(MediaVaultService.BOTANY_DIR);
+       await ms.clearDomain(MediaVaultService.WOUNDS_DIR);
     } catch (e) {
-       debugPrint('⚠️  FILESYSTEM WIPE ERROR: $e');
+       debugPrint('⚠️ Media wipe error: $e');
     }
 
-    debugPrint('☢️  SISTEMA RESETADO DE FÁBRICA.');
+    debugPrint('☢️  SISTEMA RESETADO (TABELAS LIMPAS). LOGIN PRESERVADO.');
   }
 }

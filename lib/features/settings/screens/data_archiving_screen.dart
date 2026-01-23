@@ -17,8 +17,10 @@ import '../../../core/services/simple_auth_service.dart';
 import '../../../core/providers/partner_provider.dart';
 import '../../../core/providers/pet_event_provider.dart';
 import '../../../features/pet/services/pet_event_service.dart';
+import '../../../features/pet/services/pet_event_repository.dart';
 import '../../../core/services/hive_atomic_manager.dart';
 import '../../../core/services/permanent_backup_service.dart';
+import '../../../core/providers/settings_provider.dart';
 
 class DataManagerScreen extends ConsumerStatefulWidget {
   const DataManagerScreen({super.key});
@@ -49,14 +51,18 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   DateTimeRange? _customDateRange;
 
   // FLOW STATE
-  final bool _isGenerating = false;
-  File? _generatedArchive;
   final bool _isSavedConfirmed = false;
+  
+  // LAST BACKUP INFO
+  String _lastBackupDate = "Sem Backup";
+  String _lastBackupFileName = "";
+  String _lastBackupSize = "";
 
   @override
   void initState() {
     super.initState();
     _calculateStorageUsage();
+    _loadLastBackupInfo();
   }
 
   Future<void> _calculateStorageUsage() async {
@@ -86,12 +92,24 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
        for (final name in boxes) {
          try {
            if (Hive.isBoxOpen(name)) {
-                totalKeys += Hive.box(name).length;
+                try {
+                  totalKeys += Hive.box(name).length;
+                } catch (e) {
+                  // Box open but type mismatch likely
+                  debugPrint('ℹ️ [Stats] Skipping open box $name due to type/access error.');
+                }
            } else {
                 if (await Hive.boxExists(name)) {
                    if (cipher != null) {
-                      final box = await Hive.openBox(name, encryptionCipher: cipher);
-                      totalKeys += box.length;
+                      try {
+                        // Open as dynamic to avoid TypeAdapter errors just for counting
+                        final box = await Hive.openBox(name, encryptionCipher: cipher);
+                        totalKeys += box.length;
+                        // We close it if we opened it just for stats to keep memory clean
+                        await box.close(); 
+                      } catch (e) {
+                        debugPrint('⚠️ [Stats] Failed to open $name for counting: $e');
+                      }
                    }
                 }
            }
@@ -114,6 +132,42 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
      }
   }
 
+  Future<void> _loadLastBackupInfo() async {
+    try {
+      final path = await PermanentBackupService().getBackupPath();
+      final dir = Directory(path);
+      if (await dir.exists()) {
+        final files = dir.listSync().whereType<File>().where((f) => f.path.endsWith('.scannut')).toList();
+        if (files.isNotEmpty) {
+          // Sort by last modified descending
+          files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+          final lastFile = files.first;
+          final stats = await lastFile.stat();
+          final sizeKB = (stats.size / 1024).toStringAsFixed(1);
+          
+          if (mounted) {
+            setState(() {
+              _lastBackupDate = DateFormat('dd/MM/yyyy HH:mm').format(stats.modified);
+              _lastBackupFileName = lastFile.path.split('/').last.split('\\').last;
+              _lastBackupSize = "$sizeKB KB";
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint("⚠️ Erro ao carregar info de backup: $e");
+    }
+    
+    if (mounted) {
+      setState(() {
+        _lastBackupDate = "Sem Backup";
+        _lastBackupFileName = "";
+        _lastBackupSize = "";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,43 +188,36 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              // DEV MODE TRIGGER
-              Center(
-                 child: TextButton.icon(
-                    icon: const Icon(Icons.science, color: Colors.amber),
-                    label: const Text('[MODO TESTE] Gerar Dados Fictícios', style: TextStyle(color: Colors.amber)),
-                    onPressed: () async {
-                       bool? confirm = await showDialog(
-                          context: context, 
-                          builder: (c) => AlertDialog(
-                             backgroundColor: AppDesign.surfaceDark,
-                             title: Text('Atenção: Modo Teste', style: GoogleFonts.poppins(color: Colors.white)),
-                             content: Text('Isso adicionará dados fictícios ao seu banco atual. Deseja continuar?', style: GoogleFonts.poppins(color: Colors.white70)),
-                             actions: [
-                                TextButton(onPressed: ()=>Navigator.pop(c,false), child: const Text('Cancelar')),
-                                TextButton(onPressed: ()=>Navigator.pop(c,true), child: Text('GERAR', style: GoogleFonts.poppins(color: Colors.amber, fontWeight: FontWeight.bold))),
-                             ]
-                          )
-                       );
-                       if(confirm == true) {
-                          if(mounted) {
-                             ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Gerando 25 registros de teste...'))
-                             );
-                          }
-                          
-                          await DataSeedService().seedAll();
-                          
-                          if(mounted) {
-                             SnackBarHelper.showSuccess(context, 'Sucesso! Reiniciando visualização.');
-                             _calculateStorageUsage();
-                             ref.invalidate(petEventServiceProvider);
-                             ref.invalidate(historyServiceProvider);
-                          }
-                       }
-                    },
+               // BACKUP STATUS CARD
+               Container(
+                 width: double.infinity,
+                 padding: const EdgeInsets.all(16),
+                 decoration: BoxDecoration(
+                   color: AppDesign.surfaceDark,
+                   borderRadius: BorderRadius.circular(16),
+                   border: Border.all(color: Colors.white10),
                  ),
-              ),
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Row(
+                       children: [
+                         Icon(Icons.history, color: _lastBackupDate == "Sem Backup" ? Colors.orange : Colors.green, size: 20),
+                         const SizedBox(width: 8),
+                         Text('Último Backup Permanente', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                       ],
+                     ),
+                     const SizedBox(height: 12),
+                     if (_lastBackupDate == "Sem Backup")
+                        Text("Sem Backup", style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13, fontStyle: FontStyle.italic))
+                     else ...[
+                        _buildBackupDetail('Data:', _lastBackupDate),
+                        _buildBackupDetail('Arquivo:', _lastBackupFileName),
+                        _buildBackupDetail('Tamanho:', _lastBackupSize),
+                     ],
+                   ],
+                 ),
+               ),
               const SizedBox(height: 16),
 
               _buildStatsDashboard(),
@@ -455,6 +502,19 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
     );
   }
 
+  Widget _buildBackupDetail(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          Text(label, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
+        ],
+      ),
+    );
+  }
+
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
@@ -585,38 +645,90 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
   
   Future<void> _performFactoryReset() async {
     final boxesToClear = [
-      'pet_events',
-      'scannut_meal_history',
+      // 🐾 Módulo Pet
       'box_pets_master',
-      'pet_health_records',
-      'box_nutrition_human',
-      'nutrition_weekly_plans',
-      'meal_log',
-      'nutrition_shopping_list',
-      'box_botany_intel',
-      'box_plants_history',
-      'user_profile',
-      'partners',
-      'scannut_history', 
-      'settings',
+      'pet_events',
       'pet_events_journal',
-      'box_workouts',
       'vaccine_status',
-      'processed_images_box'
+      'pet_health_records',
+      'lab_exams',
+      'weekly_meal_plans',
+      
+      // 🍎 Módulo Nutrição (Humano)
+      'box_nutrition_human',
+      'nutrition_user_profile',
+      'nutrition_weekly_plans',
+      'nutrition_meal_logs',
+      'nutrition_shopping_list',
+      'menu_filter_settings',
+      'recipe_history_box',
+      'box_nutrition_history',
+      'meal_log',
+      'scannut_meal_history',
+      
+      // 🌿 Módulo Botânica
+      'box_plants_history',
+      'box_botany_intel',
+      
+      // 🛠️ Módulo Core / Histórico / Misc
+      'scannut_history',
+      'settings',
+      'user_profiles',    // Real name used in HiveInit
+      'user_profile',     // Legacy variant
+      'box_workouts',
+      'processed_images_box',
+      'partners_box',
+      'partners',         // Legacy variant
+      'box_user_profile', // Legacy variant
+      'pet_shopping_lists', // Added (V231)
+      'box_nutrition_pets',  // Added (Legacy fallback)
+      'box_pets_profiles',   // Added (Legacy fallback)
     ];
 
+
     try {
+        final cipher = SimpleAuthService().encryptionCipher;
+        debugPrint('🛡️ [Factory Reset] Trace: Encryption Cipher is ${cipher != null ? "ACTIVE" : "NULL/INACTIVE"}');
+        
+        // 🚀 STEP 0: CLOSE ALL BOXES
+        // This is critical to avoid "Box already open with different type" errors during reset
+        debugPrint('🧹 [Factory Reset] Step 0: Closing all boxes to ensure clean deletion...');
+        await Hive.close();
+        
         for (final name in boxesToClear) {
              try {
-                Box box;
-                if (Hive.isBoxOpen(name)) {
-                   box = Hive.box(name);
+                debugPrint('🔍 [Factory Reset] Processing Box: $name...');
+                
+                // Nuclear approach: Delete files directly from disk
+                if (await Hive.boxExists(name)) {
+                   await Hive.deleteBoxFromDisk(name);
+                   debugPrint('✅ [Factory Reset] NUCLEAR DELETE for $name (Disk files removed)');
                 } else {
-                   box = await Hive.openBox(name);
+                   debugPrint('ℹ️ [Factory Reset] Box $name does not exist on disk, skipping.');
                 }
-                await box.clear();
-             } catch (e) {}
+             } catch (e) {
+                debugPrint('❌ [Factory Reset] ERROR deleting $name: $e');
+             }
         }
+
+        // 🛡️ STEP 1: Reconstruct Auth Box (Essential for maintaining session)
+        debugPrint('🌱 [Factory Reset] Step 1: Reconstructing Auth Box...');
+        await Hive.openBox('box_auth_local');
+
+
+        // 🛡️ RE-INIT SERVICES: After atomic reconstruction, memory singletons need a nudge
+        debugPrint('🔄 [Factory Reset] Re-initializing critical repositories...');
+        try {
+           await PetEventRepository().init(cipher: cipher);
+           await PetEventService().init(cipher: cipher);
+           await PetProfileService().init(cipher: cipher);
+           debugPrint('✅ [Factory Reset] Repositories re-initialized.');
+        } catch (e) {
+           debugPrint('⚠️ [Factory Reset] Repository re-init warning: $e');
+        }
+
+
+
 
         try {
             final ms = MediaVaultService();
@@ -630,68 +742,151 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
             await _deleteLegacyFolder('botany_images');
         } catch(e) {}
 
+        // 🛡️ V231: Clear Permanent Backup (DESATIVADO POR SOLICITAÇÃO)
+        /*
         try {
            await PermanentBackupService().clearBackup();
         } catch (_) {}
+        */
 
-    } catch (e) {}
+    } catch (e) {
+       debugPrint('❌ [Factory Reset] CRITICAL FAILURE: $e');
+    }
     
+    // 🛡️ User request: Keep Login/Auth Intact. No logout here.
+    
+    // 🔄 Force Refresh of all Riverpod providers to clear UI state
     try {
-       final authService = SimpleAuthService();
-       await authService.logout();
-    } catch(e) {}
+      ref.invalidate(petProfileServiceProvider);
+      ref.invalidate(petEventServiceProvider);
+      ref.invalidate(historyServiceProvider);
+      ref.invalidate(settingsProvider);
+      // ref.invalidate(nutritionServiceProvider); // If exists
+      debugPrint('🔄 [Factory Reset] Providers invalidated. UI should refresh.');
+    } catch (e) {
+      debugPrint('⚠️ [Factory Reset] Provider invalidation warning: $e');
+    }
 
     if (mounted) {
-      SnackBarHelper.showSuccess(context, 'Dispositivo Resetado. Reiniciando...');
-      Future.delayed(const Duration(milliseconds: 800), () {
-          if (mounted) {
-             Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-          }
-      });
+      SnackBarHelper.showSuccess(context, 'Dados limpos com sucesso. ');
+      _calculateStorageUsage();
     }
+
   }
 
   Future<void> _wipeFoodData() async {
-      await _clearBox('box_nutrition_human');
-      await _clearBox('box_nutrition_history'); 
-      await _clearBox('scannut_meal_history');
-      await _clearBox('nutrition_weekly_plans');
-      await _clearBox('meal_log');
-      await _clearBox('nutrition_shopping_list');
-      await _clearBox('recipe_history_box');
+      final cipher = SimpleAuthService().encryptionCipher;
+      
+      // 🍎 Atomic List of all Food related boxes
+      final foodBoxes = [
+        'box_nutrition_human',
+        'nutrition_user_profile',
+        'nutrition_weekly_plans',
+        'nutrition_meal_logs',
+        'nutrition_shopping_list',
+        'menu_filter_settings',
+        'recipe_history_box',
+      ];
+
+      for (final boxName in foodBoxes) {
+        try {
+          final box = await HiveAtomicManager().ensureBoxOpen(boxName, cipher: cipher);
+          await box.clear();
+          debugPrint('🧹 [Wipe Food] $boxName cleared.');
+        } catch (e) {
+          debugPrint('⚠️ [Wipe Food] Failed to clear $boxName: $e');
+        }
+      }
+
       await _clearHistoryByMode('Food');
       await _clearHistoryByMode('Recipe');
       await _clearHistoryDeep((v) => v['mode'] == 'Food' || v['mode'] == 'Nutrition' || v['type'] == 'nutrition');
       await _clearAgendaEvents(['food']);
+      
+      // Cleanup Media
       await MediaVaultService().clearDomain(MediaVaultService.FOOD_DIR);
       await _deleteLegacyFolder('nutrition_images');
+      
+      // Clear image cache registry for food photos
       await _clearBox('processed_images_box');
+      
+      // Update Permanent Backup to reflect removals
+      await PermanentBackupService().createAutoBackup();
+      
       ref.invalidate(historyServiceProvider);
   }
 
   Future<void> _wipePlantData() async {
-      await _clearBox('box_plants_history');
-      await _clearBox('box_botany_intel');
+      final cipher = SimpleAuthService().encryptionCipher;
+      
+      // 🌿 Atomic List of all Plant related boxes
+      final plantBoxes = [
+        'box_plants_history',
+        'box_botany_intel',
+      ];
+
+      for (final boxName in plantBoxes) {
+        try {
+          final box = await HiveAtomicManager().ensureBoxOpen(boxName, cipher: cipher);
+          await box.clear();
+          debugPrint('🧹 [Wipe Plant] $boxName cleared.');
+        } catch (e) {
+          debugPrint('⚠️ [Wipe Plant] Failed to clear $boxName: $e');
+        }
+      }
+
       await _clearHistoryByMode('Plant');
+      
+      // Cleanup Media
       await MediaVaultService().clearDomain(MediaVaultService.BOTANY_DIR);
       await _deleteLegacyFolder('botany_images');
       await _deleteLegacyFolder('PlantAnalyses');
+      
+      // Clear image cache registry for plant photos
       await _clearBox('processed_images_box');
+      
+      // Update Permanent Backup to reflect removals
+      await PermanentBackupService().createAutoBackup();
+      
       ref.invalidate(historyServiceProvider);
   }
 
   Future<void> _wipePetData() async {
-      await _clearBox('box_pets_master');
-      await _clearBox('pet_events');
-      await _clearBox('pet_health_records');
-      await _clearBox('partners_box');
-      await _clearBox('muo_occurrences_box');
+      final cipher = SimpleAuthService().encryptionCipher;
+      
+      // 🐾 Atomic List of all Pet related boxes
+      final petBoxes = [
+         'box_pets_master',
+         'pet_events',
+         'pet_events_journal',
+         'vaccine_status',
+         'pet_health_records',
+         'lab_exams',
+         'weekly_meal_plans',
+      ];
+
+      for (final boxName in petBoxes) {
+        try {
+          final box = await HiveAtomicManager().ensureBoxOpen(boxName, cipher: cipher);
+          await box.clear();
+          debugPrint('🧹 [Wipe Pet] $boxName cleared.');
+        } catch (e) {
+          debugPrint('⚠️ [Wipe Pet] Failed to clear $boxName: $e');
+        }
+      }
+
       await _clearHistoryByMode('Pet');
       await _clearHistoryDeep((v) => v['mode'] == 'Pet' || (v['pet_name'] != null) || (v['petId'] != null));
-      await _clearBox('pet_events_journal');
+      
+      // Cleanup Media
       await MediaVaultService().clearDomain(MediaVaultService.PETS_DIR);
       await _deleteLegacyFolder('PetPhotos');
+      
+      // Clear image cache registry for pet photos
       await _clearBox('processed_images_box');
+      
+      // Update Permanent Backup to reflect removals
+      await PermanentBackupService().createAutoBackup();
       
       ref.invalidate(petEventServiceProvider);
       ref.invalidate(partnerServiceProvider);

@@ -80,7 +80,8 @@ void main() async {
        debugPrint('❌ Media Vault Init Failed: $e');
     }
 
-    // 🔄 AUTO-RECOVERY: Restaurar dados de backup permanente (se existir)
+    // 🔄 AUTO-RECOVERY: DESATIVADO POR SOLICITAÇÃO DO USUÁRIO
+    /*
     try {
       final permanentBackup = PermanentBackupService();
       final recovered = await permanentBackup.autoRecovery();
@@ -90,6 +91,7 @@ void main() async {
     } catch (e) {
       debugPrint('⚠️ Auto-recovery falhou (primeira instalação ou erro): $e');
     }
+    */
 
 
     // STARTUP SEQUENTIAL: 

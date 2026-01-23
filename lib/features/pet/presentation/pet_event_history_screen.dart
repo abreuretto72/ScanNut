@@ -88,6 +88,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
           // 1. Fetch filtered by Date (Native Repo efficiency)
           var events = PetEventRepository().listEventsByPet(
              widget.petId, 
+             petName: widget.petName,
              from: _selectedDateRange?.start,
              to: _selectedDateRange?.end != null ? _selectedDateRange!.end.add(const Duration(days: 1)) : null, // Inclusive
           );
@@ -378,7 +379,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                       Padding(
                                         padding: const EdgeInsets.only(bottom: 4),
                                         child: Text(
-                                          event.type.toUpperCase(),
+                                          (event.type == 'ai_analysis' ? 'Análise da foto do pet' : event.type).toUpperCase(),
                                           style: TextStyle(color: AppDesign.petPink.withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                                         ),
                                       ),
@@ -538,7 +539,7 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                     'diet_type', 'weeks_count', 'source',
                                     'emotion', 'reason', 'action',
                                     'score', 'signals', 'advice', 'image_path',
-                                    'quality', 'brand'
+                                    'quality', 'brand', 'raw_result'
                                  };
                                  
                                  if (ignoredKeys.contains(key) || e.value == null || e.value.toString().isEmpty) return const SizedBox.shrink();

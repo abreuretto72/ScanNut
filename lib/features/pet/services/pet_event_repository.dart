@@ -158,13 +158,16 @@ class PetEventRepository {
     }
   }
 
-  List<PetEventModel> listEventsByPet(String petId, {DateTime? from, DateTime? to}) {
+  List<PetEventModel> listEventsByPet(String petId, {DateTime? from, DateTime? to, String? petName}) {
     try {
       // 🛡️ HYBRID QUERY: Matches either ID (UUID) OR Name (Legacy/Data)
-      var events = _openBox.values.where((e) => 
-        (e.petId == petId || e.data['pet_name'] == petId) && 
-        !e.isDeleted
-      ).toList();
+      var events = _openBox.values.where((e) {
+        final matchesId = e.petId == petId;
+        final matchesName = (petName != null && e.petId == petName);
+        final matchesDataName = (e.data['pet_name'] == petId || (petName != null && e.data['pet_name'] == petName));
+        
+        return (matchesId || matchesName || matchesDataName) && !e.isDeleted;
+      }).toList();
       
       if (from != null) {
         events = events.where((e) => e.timestamp.isAfter(from) || e.timestamp.isAtSameMomentAs(from)).toList();

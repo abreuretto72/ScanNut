@@ -29,104 +29,99 @@ class CustomErrorScreen extends StatelessWidget {
       techDetailsLabel = 'Detalles técnicos:';
     }
 
-    // 🛡️ PROTEÇÃO TOTAL - Não depende de nada externo
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        return Stack(
-          children: [
-            if (child != null) child,
-            const _AppWatermarkSimple(),
-          ],
-        );
-      },
-      home: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.pets, size: 64, color: Color(0xFF00E676)),
+    // 🛡️ PROTEÇÃO TOTAL - Usa o Scaffold diretamente para se integrar ao Navigator do App
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: const Icon(Icons.pets, size: 64, color: Color(0xFF00E676)),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white70,
+                    fontSize: 14,
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00E676),
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: () {
-                        // Tenta fechar o erro e voltar
-                        try {
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00E676),
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      // 🛡️ Lógica de Escape: Tenta voltar ou resetar o app
+                      try {
+                        if (Navigator.of(context).canPop()) {
                           Navigator.of(context).pop();
-                        } catch (e) {
-                          // Se falhar, não faz nada (já está na tela de erro)
-                          debugPrint('Cannot navigate: $e');
+                        } else {
+                          // Se não puder voltar, tenta matar o erro reiniciando para a Splash
+                          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                         }
-                      },
-                      child: Text(
-                        buttonText,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      } catch (e) {
+                        // Último recurso: silenciar para não gerar novo erro em looping
+                        debugPrint('Navigation recovery failed: $e');
+                      }
+                    },
+                    child: Text(
+                      buttonText,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
                   ),
-                  if (details != null) ...[
-                    const SizedBox(height: 40),
-                    Text(
-                      techDetailsLabel,
-                      style: GoogleFonts.poppins(color: Colors.white24, fontSize: 10),
+                ),
+                if (details != null) ...[
+                  const SizedBox(height: 40),
+                  Text(
+                    techDetailsLabel,
+                    style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
                     ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        details!.exception.toString(),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.redAccent, fontSize: 10, fontFamily: 'monospace'),
-                      ),
+                    child: Text(
+                      details!.exception.toString(),
+                      maxLines: 5,
+                      overflow: TextOverflow.visible,
+                      style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontFamily: 'monospace', height: 1.4),
                     ),
-                  ],
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
         ),

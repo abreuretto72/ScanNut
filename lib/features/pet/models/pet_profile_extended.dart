@@ -59,6 +59,7 @@ class PetProfileExtended {
   final DateTime lastUpdated;
   final String? imagePath;
   final Map<String, dynamic>? rawAnalysis; // Store complete analysis data
+  final Map<String, dynamic> travelPreferences; // 🛡️ V250: Travel Isolation
 
   PetProfileExtended({
     required this.id,
@@ -101,6 +102,7 @@ class PetProfileExtended {
     this.rawAnalysis,
     this.reliability,
     this.porte,
+    this.travelPreferences = const {}, // 🛡️ V250
   });
 
   factory PetProfileExtended.fromJson(Map<String, dynamic> json) {
@@ -157,6 +159,7 @@ class PetProfileExtended {
           : DateTime.now(),
       imagePath: (json['image_path'] ?? json['photo_path']) as String?,
       rawAnalysis: _extractRawAnalysis(json),
+      travelPreferences: json['travel_preferences'] != null ? Map<String, dynamic>.from(json['travel_preferences']) : {}, // 🛡️ V250
     );
     } catch (e) {
       throw Exception('PET_PROFILE_PARSE_ERROR: $e');
@@ -301,6 +304,7 @@ class PetProfileExtended {
       'observacoes_planos': observacoesPlanos,
       'last_updated': lastUpdated.toIso8601String(),
       if (imagePath != null) 'image_path': imagePath,
+      'travel_preferences': travelPreferences, // 🛡️ V250
       if (rawAnalysis != null) ...{
         'raw_analysis': rawAnalysis,
         // Spread AI fields to top level for compatibility with services/UI looking there
@@ -371,9 +375,9 @@ class PetProfileExtended {
     String? observacoesPlanos,
     DateTime? lastUpdated,
     String? imagePath,
-    Map<String, dynamic>? rawAnalysis,
     String? reliability,
     String? porte,
+    Map<String, dynamic>? travelPreferences,
   }) {
     return PetProfileExtended(
       id: id,
@@ -416,6 +420,7 @@ class PetProfileExtended {
       rawAnalysis: rawAnalysis ?? this.rawAnalysis,
       reliability: reliability ?? this.reliability,
       porte: porte ?? this.porte,
+      travelPreferences: travelPreferences ?? this.travelPreferences,
     );
   }
   static String? _normalizeSpecies(String? raw) {

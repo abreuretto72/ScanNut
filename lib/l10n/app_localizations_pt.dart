@@ -1152,7 +1152,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fitnessDurationHint => 'Duração (min)';
 
   @override
-  String get botanyTitle => 'Inteligência Botânica';
+  String get botanyTitle => 'Histórico das Plantas';
 
   @override
   String get botanyEmpty => 'Nenhuma planta analisada ainda.';
@@ -1181,7 +1181,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get petHistoryTitle => 'Meus Pets Salvos';
+  String get petHistoryTitle => 'Histórico dos Pets';
 
   @override
   String get petHistoryEmpty => 'Nenhum pet salvo ainda.';
@@ -1209,7 +1209,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petSpecialistOrientation => 'Orientação do Especialista';
 
   @override
-  String get foodHistoryTitle => 'Histórico de Alimentos';
+  String get foodHistoryTitle => 'Histórico das Comidas';
 
   @override
   String get foodHistoryEmpty => 'Nenhuma análise salva ainda.';
@@ -6765,6 +6765,119 @@ class AppLocalizationsPt extends AppLocalizations {
   String errorAutoSave(String error) {
     return 'Erro no salvamento automático: $error';
   }
+
+  @override
+  String get petTravelTitle => 'Viagem';
+
+  @override
+  String get petTravelMode => 'Modalidade';
+
+  @override
+  String get petTravelCar => 'Carro';
+
+  @override
+  String get petTravelPlane => 'Avião';
+
+  @override
+  String get petTravelShip => 'Navio';
+
+  @override
+  String get petTravelScope => 'Escopo';
+
+  @override
+  String get petTravelNational => 'Nacional';
+
+  @override
+  String get petTravelInternational => 'Internacional';
+
+  @override
+  String get petTravelChecklist => 'Checklist Essencial';
+
+  @override
+  String get petTravelSafetyBelt => 'Cinto de Segurança / Caixa';
+
+  @override
+  String get petTravelVaccines => 'Vacinas em Dia';
+
+  @override
+  String get petTravelCZI => 'CZI (Certificado Zoossanitário)';
+
+  @override
+  String get petTravelHealthCert => 'Atestado de Saúde';
+
+  @override
+  String get petTravelMicrochip => 'Microchipagem';
+
+  @override
+  String get petTravelTips => 'Dicas para Viagem Segura';
+
+  @override
+  String get petTravelStatusReady => 'Pronto para Viajar';
+
+  @override
+  String get petTravelStatusPending => 'Documento Faltando';
+
+  @override
+  String get petTravelVaccineStatusOk => 'Vacinas em dia';
+
+  @override
+  String get petTravelVaccineStatusPending => 'Vacinas pendentes';
+
+  @override
+  String get intl_travel_tips =>
+      'Consulte o veterinário pelo menos 30 dias antes de viagens internacionais para garantir que toda a documentação (CZI, etc) esteja pronta a tempo.';
+
+  @override
+  String get travel_section_car => 'Viagem de Carro';
+
+  @override
+  String get travel_section_plane => 'Viagem de Avião';
+
+  @override
+  String get travel_section_ship => 'Viagem de Navio';
+
+  @override
+  String get travel_health_data_missing =>
+      'Dados de saúde não encontrados. Verifique o histórico do pet.';
+
+  @override
+  String get travel_ship_tips =>
+      'Verifique a disponibilidade de canil de bordo. Alguns cruzeiros permitem apenas cães-guia. Consulte sobre medicação para enjoo marítimo.';
+
+  @override
+  String get travel_plane_checklist =>
+      'Caixa IATA, Microchip ISO e CZI (Certificado Internacional) são obrigatórios.';
+
+  @override
+  String get travel_car_tips =>
+      'Use sempre cinto peitoral ou caixa de transporte. Planeje paradas para hidratação e necessidades a cada 2 horas.';
+
+  @override
+  String get travel_car_checklist_1 => 'Cinto Peitoral / Caixa';
+
+  @override
+  String get travel_car_checklist_2 => 'Kit Primeiro Socorros';
+
+  @override
+  String get travel_car_checklist_3 => 'Identificação na Coleira';
+
+  @override
+  String get travel_plane_checklist_1 => 'Caixa de Transporte IATA';
+
+  @override
+  String get travel_plane_checklist_2 => 'Reserva Antecipada';
+
+  @override
+  String get travel_plane_checklist_3 => 'Sedação (sob prescrição)';
+
+  @override
+  String get travel_ship_checklist_1 => 'Acesso ao Canil';
+
+  @override
+  String get travel_ship_checklist_2 => 'Documentação Extra';
+
+  @override
+  String get travel_ship_checklist_3 => 'Regras de Circulação';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).
@@ -7627,7 +7740,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get fitnessDurationHint => 'Duração (min)';
 
   @override
-  String get botanyTitle => 'Inteligência Botânica';
+  String get botanyTitle => 'Histórico das Plantas';
 
   @override
   String get botanyEmpty => 'Nenhuma planta analisada ainda.';
@@ -7656,7 +7769,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   }
 
   @override
-  String get petHistoryTitle => 'Os Meus Animais Guardados';
+  String get petHistoryTitle => 'Histórico dos Pets';
 
   @override
   String get petHistoryEmpty => 'Nenhum animal guardado ainda.';
@@ -7675,7 +7788,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get petEditSaved => 'Alterações guardadas.';
 
   @override
-  String get foodHistoryTitle => 'Histórico de Alimentos';
+  String get foodHistoryTitle => 'Histórico das Comidas';
 
   @override
   String get foodHistoryEmpty => 'Nenhuma análise guardada ainda.';

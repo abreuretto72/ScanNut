@@ -260,6 +260,12 @@ class PetPdfGenerator {
              _buildSectionTitle(strings.pdfHealthSection, strings),
              _buildVaccineTable(profile, strings, vaccinationData),
              pw.SizedBox(height: 10),
+
+             _buildSectionTitle(strings.petTravelTitle.toUpperCase(), strings),
+             pw.SizedBox(height: 10),
+             _buildTravelSection(profile, strings),
+             pw.SizedBox(height: 10),
+
              _buildWeightSection(profile, strings),
              pw.SizedBox(height: 10),
              
@@ -1001,6 +1007,69 @@ class PetPdfGenerator {
        );
    }
 
+    pw.Widget _buildTravelSection(PetProfileExtended profile, AppLocalizations strings) {
+        final prefs = profile.travelPreferences;
+        if (prefs.isEmpty) {
+            return pw.Text(strings.fallbackNoInfo, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700));
+        }
+
+        final mode = _localizeTravelValue(prefs['mode']?.toString(), strings);
+        final scope = _localizeTravelValue(prefs['scope']?.toString(), strings);
+        
+        // Checklist items
+        final List<String> items = [];
+        if (prefs['has_safety_belt'] == true) items.add(strings.petTravelSafetyBelt);
+        if (prefs['has_health_cert'] == true) items.add(strings.petTravelHealthCert);
+        if (prefs['has_czi'] == true) items.add(strings.petTravelCZI);
+        if (prefs['has_microchip'] == true) items.add(strings.petTravelMicrochip);
+
+        return pw.Container(
+            padding: const pw.EdgeInsets.all(8),
+            decoration: pw.BoxDecoration(
+                color: PdfColors.grey100,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                border: pw.Border.all(color: PdfColors.grey300),
+            ),
+            child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                    pw.Row(children: [
+                        pw.Expanded(child: pw.Text('${strings.petTravelMode}: $mode', style: const pw.TextStyle(fontSize: 10))),
+                        pw.Expanded(child: pw.Text('${strings.petTravelScope}: $scope', style: const pw.TextStyle(fontSize: 10))),
+                    ]),
+                    if (items.isNotEmpty) ...[
+                        pw.SizedBox(height: 8),
+                        pw.Text(strings.petTravelChecklist.toUpperCase(), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: colorAccent)),
+                        pw.SizedBox(height: 4),
+                        pw.Wrap(
+                            spacing: 12,
+                            runSpacing: 4,
+                            children: items.map((i) => pw.Row(
+                                mainAxisSize: pw.MainAxisSize.min,
+                                children: [
+                                    pw.Container(width: 8, height: 8, decoration: const pw.BoxDecoration(color: PdfColors.green, shape: pw.BoxShape.circle)),
+                                    pw.SizedBox(width: 4),
+                                    pw.Text(i, style: const pw.TextStyle(fontSize: 9)),
+                                ]
+                            )).toList(),
+                        ),
+                    ],
+                ]
+            )
+        );
+    }
+
+    String _localizeTravelValue(String? val, AppLocalizations strings) {
+        if (val == null) return '-';
+        final low = val.toLowerCase();
+        if (low == 'carro' || low == 'car') return strings.petTravelCar;
+        if (low == 'avião' || low == 'plane') return strings.petTravelPlane;
+        if (low == 'navio' || low == 'ship') return strings.petTravelShip;
+        if (low == 'nacional' || low == 'national') return strings.petTravelNational;
+        if (low == 'internacional' || low == 'international') return strings.petTravelInternational;
+        return val;
+    }
+
    pw.Widget _buildGeneralAnalysisItem(Map<String, dynamic> data, AppLocalizations strings, {pw.ImageProvider? image}) {
         final rawType = data['analysis_type']?.toString().toLowerCase() ?? '';
         
@@ -1016,8 +1085,11 @@ class PetPdfGenerator {
             'health': 'SAÚDE',
             'lifestyle': 'ESTILO DE VIDA',
             'temperament': 'TEMPERAMENTO',
+            'identification': 'ANÁLISE DE FOTO DO PET',
         };
-        final type = typeMap[rawType] ?? (data['analysis_type']?.toString().toUpperCase() ?? 'ANÁLISE');
+        final type = typeMap[rawType] ?? 
+                     (data.containsKey('identification') ? 'ANÁLISE DE FOTO DO PET' : 
+                     (data['analysis_type']?.toString().toUpperCase() ?? 'ANÁLISE'));
 
         String dateStr = '-';
         if (data['last_updated'] != null) {
@@ -1027,7 +1099,7 @@ class PetPdfGenerator {
            } catch (_) {}
         }
         
-        final ignoredKeys = ['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification', 'clinical_signs', 'sinais_clinicos', 'metadata', 'temperament', 'temperamento', 'image_path', 'photo_path'];
+        final ignoredKeys = ['analysis_type', 'last_updated', 'pet_name', 'tabela_benigna', 'tabela_maligna', 'plano_semanal', 'weekly_plan', 'data_inicio_semana', 'data_fim_semana', 'orientacoes_gerais', 'general_guidelines', 'start_date', 'end_date', 'identificacao', 'identification', 'clinical_signs', 'sinais_clinicos', 'metadata', 'temperament', 'temperamento', 'image_path', 'photo_path', 'raw_result', 'raw_analysis', 'raw_data'];
         
         final keyLocalization = {
             'veredict': 'Veredito',

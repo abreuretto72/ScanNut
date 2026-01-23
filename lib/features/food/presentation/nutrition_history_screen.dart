@@ -13,6 +13,7 @@ import '../../../core/utils/translation_mapper.dart';
 import '../../../core/theme/app_design.dart';
 import '../../../core/services/export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
+import '../../../core/services/media_vault_service.dart';
 import 'widgets/food_export_configuration_modal.dart';
 
 class NutritionHistoryScreen extends StatefulWidget {
@@ -154,17 +155,23 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                 child: Hero(
                   tag: 'img_${item.id}',
                   child: item.imagePath != null
-                      ? Image.file(
-                          File(item.imagePath!),
-                          width: 100,
-                          height: 120, // Fixed height for image
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 100,
-                            height: 120,
-                            color: Colors.grey.shade800,
-                            child: const Icon(Icons.broken_image, color: Colors.white24),
-                          ),
+                      ? FutureBuilder<String>(
+                          future: MediaVaultService().attemptRecovery(item.imagePath!, category: MediaVaultService.FOOD_DIR),
+                          builder: (context, snapshot) {
+                            final displayPath = snapshot.data ?? item.imagePath!;
+                            return Image.file(
+                              File(displayPath),
+                              width: 100,
+                              height: 120, // Fixed height for image
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                width: 100,
+                                height: 120,
+                                color: Colors.grey.shade800,
+                                child: const Icon(Icons.broken_image, color: Colors.white24),
+                              ),
+                            );
+                          },
                         )
                       : Container(
                           width: 100,
@@ -243,15 +250,26 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   }
 
   Widget _buildMacroMini(String label, String value, Color color) {
-    // Sanitização rigorosa: remove "aproximadamente", remove parênteses e remove "por" isolado
-    final shortValue = value
+    // Sanitização rigorosa: Extrai apenas o valor principal (ex: ± 15g ou 20g)
+    final sanitized = value
         .replaceAll('aproximadamente', '±')
-        .replaceAll('Aproximadamente', '±')
-        .replaceAll(RegExp(r'\bpor\b', caseSensitive: false), '') // Remove "por"
-        .replaceAll(RegExp(r'\s+'), ' ') // Remove double spaces
-        .split('(')[0]
-        .split('/')[0] // Remove /100g se existir
-        .trim();
+        .replaceAll('Aproximadamente', '±');
+        
+    // Tenta capturar o padrão de peso (ex: 15g, 15.5g, ±15g)
+    final match = RegExp(r'(±?\s*\d+[.,]?\d*\s*g)', caseSensitive: false).firstMatch(sanitized);
+    
+    String shortValue;
+    if (match != null) {
+      shortValue = match.group(1)!.trim();
+    } else {
+      // Fallback para lógica antiga resumida se não achar o padrão
+      shortValue = sanitized
+          .replaceAll(RegExp(r'\bpor\b', caseSensitive: false), '')
+          .split('(')[0]
+          .split('/')[0]
+          .split(',')[0] // Remove labels extras como ", proteínas"
+          .trim();
+    }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,

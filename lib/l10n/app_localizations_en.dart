@@ -6737,4 +6737,117 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorAutoSave(String error) {
     return 'Auto-save error: $error';
   }
+
+  @override
+  String get petTravelTitle => 'Travel';
+
+  @override
+  String get petTravelMode => 'Mode';
+
+  @override
+  String get petTravelCar => 'Car';
+
+  @override
+  String get petTravelPlane => 'Plane';
+
+  @override
+  String get petTravelShip => 'Ship';
+
+  @override
+  String get petTravelScope => 'Scope';
+
+  @override
+  String get petTravelNational => 'National';
+
+  @override
+  String get petTravelInternational => 'International';
+
+  @override
+  String get petTravelChecklist => 'Essential Checklist';
+
+  @override
+  String get petTravelSafetyBelt => 'Seat Belt / Carrier';
+
+  @override
+  String get petTravelVaccines => 'Vaccines Up to Date';
+
+  @override
+  String get petTravelCZI => 'CZI (International Health Certificate)';
+
+  @override
+  String get petTravelHealthCert => 'Health Certificate';
+
+  @override
+  String get petTravelMicrochip => 'Microchipping';
+
+  @override
+  String get petTravelTips => 'Tips for Safe Travel';
+
+  @override
+  String get petTravelStatusReady => 'Ready to Travel';
+
+  @override
+  String get petTravelStatusPending => 'Missing Documents';
+
+  @override
+  String get petTravelVaccineStatusOk => 'Vaccines up to date';
+
+  @override
+  String get petTravelVaccineStatusPending => 'Vaccines pending';
+
+  @override
+  String get intl_travel_tips =>
+      'Consult a veterinarian at least 30 days before international travel to ensure all documentation (CZI, etc.) is ready in time.';
+
+  @override
+  String get travel_section_car => 'Car Travel';
+
+  @override
+  String get travel_section_plane => 'Plane Travel';
+
+  @override
+  String get travel_section_ship => 'Ship Travel';
+
+  @override
+  String get travel_health_data_missing =>
+      'Health data not found. Check the pet\'s history.';
+
+  @override
+  String get travel_ship_tips =>
+      'Check for onboard kennel availability. Some cruises only allow guide dogs. Consult about seasickness medication.';
+
+  @override
+  String get travel_plane_checklist =>
+      'IATA Box, ISO Microchip, and CZI (International Certificate) are mandatory.';
+
+  @override
+  String get travel_car_tips =>
+      'Always use a harness belt or carrier. Plan hydration and potty breaks every 2 hours.';
+
+  @override
+  String get travel_car_checklist_1 => 'Harness Belt / Carrier';
+
+  @override
+  String get travel_car_checklist_2 => 'First Aid Kit';
+
+  @override
+  String get travel_car_checklist_3 => 'ID on Collar';
+
+  @override
+  String get travel_plane_checklist_1 => 'IATA Transport Box';
+
+  @override
+  String get travel_plane_checklist_2 => 'Advance Booking';
+
+  @override
+  String get travel_plane_checklist_3 => 'Sedation (Prescribed)';
+
+  @override
+  String get travel_ship_checklist_1 => 'Kennel Access';
+
+  @override
+  String get travel_ship_checklist_2 => 'Extra Documentation';
+
+  @override
+  String get travel_ship_checklist_3 => 'Circulation Rules';
 }

@@ -2222,7 +2222,7 @@ abstract class AppLocalizations {
   /// No description provided for @botanyTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Inteligência Botânica'**
+  /// **'Histórico das Plantas'**
   String get botanyTitle;
 
   /// No description provided for @botanyEmpty.
@@ -2276,7 +2276,7 @@ abstract class AppLocalizations {
   /// No description provided for @petHistoryTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Meus Pets Salvos'**
+  /// **'Histórico dos Pets'**
   String get petHistoryTitle;
 
   /// No description provided for @petHistoryEmpty.
@@ -2330,7 +2330,7 @@ abstract class AppLocalizations {
   /// No description provided for @foodHistoryTitle.
   ///
   /// In pt, this message translates to:
-  /// **'Histórico de Alimentos'**
+  /// **'Histórico das Comidas'**
   String get foodHistoryTitle;
 
   /// No description provided for @foodHistoryEmpty.
@@ -12886,6 +12886,222 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Erro no salvamento automático: {error}'**
   String errorAutoSave(String error);
+
+  /// No description provided for @petTravelTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Viagem'**
+  String get petTravelTitle;
+
+  /// No description provided for @petTravelMode.
+  ///
+  /// In pt, this message translates to:
+  /// **'Modalidade'**
+  String get petTravelMode;
+
+  /// No description provided for @petTravelCar.
+  ///
+  /// In pt, this message translates to:
+  /// **'Carro'**
+  String get petTravelCar;
+
+  /// No description provided for @petTravelPlane.
+  ///
+  /// In pt, this message translates to:
+  /// **'Avião'**
+  String get petTravelPlane;
+
+  /// No description provided for @petTravelShip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Navio'**
+  String get petTravelShip;
+
+  /// No description provided for @petTravelScope.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escopo'**
+  String get petTravelScope;
+
+  /// No description provided for @petTravelNational.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nacional'**
+  String get petTravelNational;
+
+  /// No description provided for @petTravelInternational.
+  ///
+  /// In pt, this message translates to:
+  /// **'Internacional'**
+  String get petTravelInternational;
+
+  /// No description provided for @petTravelChecklist.
+  ///
+  /// In pt, this message translates to:
+  /// **'Checklist Essencial'**
+  String get petTravelChecklist;
+
+  /// No description provided for @petTravelSafetyBelt.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cinto de Segurança / Caixa'**
+  String get petTravelSafetyBelt;
+
+  /// No description provided for @petTravelVaccines.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacinas em Dia'**
+  String get petTravelVaccines;
+
+  /// No description provided for @petTravelCZI.
+  ///
+  /// In pt, this message translates to:
+  /// **'CZI (Certificado Zoossanitário)'**
+  String get petTravelCZI;
+
+  /// No description provided for @petTravelHealthCert.
+  ///
+  /// In pt, this message translates to:
+  /// **'Atestado de Saúde'**
+  String get petTravelHealthCert;
+
+  /// No description provided for @petTravelMicrochip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Microchipagem'**
+  String get petTravelMicrochip;
+
+  /// No description provided for @petTravelTips.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dicas para Viagem Segura'**
+  String get petTravelTips;
+
+  /// No description provided for @petTravelStatusReady.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pronto para Viajar'**
+  String get petTravelStatusReady;
+
+  /// No description provided for @petTravelStatusPending.
+  ///
+  /// In pt, this message translates to:
+  /// **'Documento Faltando'**
+  String get petTravelStatusPending;
+
+  /// No description provided for @petTravelVaccineStatusOk.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacinas em dia'**
+  String get petTravelVaccineStatusOk;
+
+  /// No description provided for @petTravelVaccineStatusPending.
+  ///
+  /// In pt, this message translates to:
+  /// **'Vacinas pendentes'**
+  String get petTravelVaccineStatusPending;
+
+  /// No description provided for @intl_travel_tips.
+  ///
+  /// In pt, this message translates to:
+  /// **'Consulte o veterinário pelo menos 30 dias antes de viagens internacionais para garantir que toda a documentação (CZI, etc) esteja pronta a tempo.'**
+  String get intl_travel_tips;
+
+  /// No description provided for @travel_section_car.
+  ///
+  /// In pt, this message translates to:
+  /// **'Viagem de Carro'**
+  String get travel_section_car;
+
+  /// No description provided for @travel_section_plane.
+  ///
+  /// In pt, this message translates to:
+  /// **'Viagem de Avião'**
+  String get travel_section_plane;
+
+  /// No description provided for @travel_section_ship.
+  ///
+  /// In pt, this message translates to:
+  /// **'Viagem de Navio'**
+  String get travel_section_ship;
+
+  /// No description provided for @travel_health_data_missing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados de saúde não encontrados. Verifique o histórico do pet.'**
+  String get travel_health_data_missing;
+
+  /// No description provided for @travel_ship_tips.
+  ///
+  /// In pt, this message translates to:
+  /// **'Verifique a disponibilidade de canil de bordo. Alguns cruzeiros permitem apenas cães-guia. Consulte sobre medicação para enjoo marítimo.'**
+  String get travel_ship_tips;
+
+  /// No description provided for @travel_plane_checklist.
+  ///
+  /// In pt, this message translates to:
+  /// **'Caixa IATA, Microchip ISO e CZI (Certificado Internacional) são obrigatórios.'**
+  String get travel_plane_checklist;
+
+  /// No description provided for @travel_car_tips.
+  ///
+  /// In pt, this message translates to:
+  /// **'Use sempre cinto peitoral ou caixa de transporte. Planeje paradas para hidratação e necessidades a cada 2 horas.'**
+  String get travel_car_tips;
+
+  /// No description provided for @travel_car_checklist_1.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cinto Peitoral / Caixa'**
+  String get travel_car_checklist_1;
+
+  /// No description provided for @travel_car_checklist_2.
+  ///
+  /// In pt, this message translates to:
+  /// **'Kit Primeiro Socorros'**
+  String get travel_car_checklist_2;
+
+  /// No description provided for @travel_car_checklist_3.
+  ///
+  /// In pt, this message translates to:
+  /// **'Identificação na Coleira'**
+  String get travel_car_checklist_3;
+
+  /// No description provided for @travel_plane_checklist_1.
+  ///
+  /// In pt, this message translates to:
+  /// **'Caixa de Transporte IATA'**
+  String get travel_plane_checklist_1;
+
+  /// No description provided for @travel_plane_checklist_2.
+  ///
+  /// In pt, this message translates to:
+  /// **'Reserva Antecipada'**
+  String get travel_plane_checklist_2;
+
+  /// No description provided for @travel_plane_checklist_3.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sedação (sob prescrição)'**
+  String get travel_plane_checklist_3;
+
+  /// No description provided for @travel_ship_checklist_1.
+  ///
+  /// In pt, this message translates to:
+  /// **'Acesso ao Canil'**
+  String get travel_ship_checklist_1;
+
+  /// No description provided for @travel_ship_checklist_2.
+  ///
+  /// In pt, this message translates to:
+  /// **'Documentação Extra'**
+  String get travel_ship_checklist_2;
+
+  /// No description provided for @travel_ship_checklist_3.
+  ///
+  /// In pt, this message translates to:
+  /// **'Regras de Circulação'**
+  String get travel_ship_checklist_3;
 }
 
 class _AppLocalizationsDelegate

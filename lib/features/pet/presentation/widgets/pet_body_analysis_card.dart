@@ -12,6 +12,7 @@ import 'package:scannut/features/pet/services/pet_indexing_service.dart'; // �
 import 'package:path/path.dart' as p;
 
 class PetBodyAnalysisCard extends StatefulWidget {
+  final String? petId; // 🛡️ UUID Link
   final String petName;
   final List<Map<String, dynamic>> analysisHistory;
   final Function(Map<String, dynamic>)? onDeleteAnalysis;
@@ -19,6 +20,7 @@ class PetBodyAnalysisCard extends StatefulWidget {
   
   const PetBodyAnalysisCard({
     super.key, 
+    this.petId,
     required this.petName,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
@@ -97,6 +99,16 @@ class _PetBodyAnalysisCardState extends State<PetBodyAnalysisCard> {
     debugPrint('   - Data Keys: ${data.keys}');
     
     try {
+       // 🛡️ Resolve ID once at the beginning
+       final String petId;
+       if (widget.petId != null) {
+           petId = widget.petId!;
+       } else {
+           final petProfile = await PetProfileService().getProfile(widget.petName);
+           petId = petProfile?['id']?.toString() ?? widget.petName;
+       }
+       debugPrint('🔑 [PetBody] UUID pet: $petId');
+
        final vault = MediaVaultService();
        final file = File(tempPath);
        String finalPath = tempPath;
@@ -126,14 +138,8 @@ class _PetBodyAnalysisCardState extends State<PetBodyAnalysisCard> {
        debugPrint('   - image_path: ${analysisForHistory['image_path']}');
 
        debugPrint('💾 [PetBody] Salvando no histórico via PetProfileService...');
-       await PetProfileService().addAnalysisToHistory(widget.petName, analysisForHistory);
+       await PetProfileService().addAnalysisToHistory(petId, analysisForHistory);
        debugPrint('✅ [PetBody] Salvo no histórico com sucesso');
-
-       // 🛡️ FIX: Get real pet UUID instead of using name as ID
-       debugPrint('🔑 [PetBody] Buscando UUID do pet...');
-       final petProfile = await PetProfileService().getProfile(widget.petName);
-       final petId = petProfile?['id']?.toString() ?? widget.petName;
-       debugPrint('✅ [PetBody] UUID obtido: $petId');
 
        final service = PetEventService();
        await service.init();

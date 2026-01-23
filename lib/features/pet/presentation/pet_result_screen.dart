@@ -304,7 +304,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
                       isNewEntry: false, 
                       onSave: (updated) async {
                           final ps = PetProfileService(); await ps.init();
-                          await ps.saveOrUpdateProfile(updated.id, updated.toJson());
+                          await ps.saveOrUpdateProfile(updated.petName, updated.toJson());
                       }
                   )
               )

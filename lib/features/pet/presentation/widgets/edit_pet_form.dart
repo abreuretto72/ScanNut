@@ -54,6 +54,7 @@ import 'profile_fragments/partners_fragment.dart';
 import 'profile_fragments/analysis_results_fragment.dart';
 import 'profile_fragments/gallery_fragment.dart';
 import 'profile_fragments/plans_fragment.dart'; // V200: Added
+import 'profile_fragments/travel_fragment.dart'; // 🛡️ V250: Travel Tab
 
 enum SaveStatus { saved, saving, error }
 
@@ -173,6 +174,7 @@ class _EditPetFormState extends State<EditPetForm>
   final LabExamService _labExamService = LabExamService();
   final ImagePicker _imagePicker = ImagePicker();
   List<AnaliseFeridaModel> _historicoAnaliseFeridas = []; // 🛡️ Load structured history
+  Map<String, dynamic> _travelPreferences = {}; // 🛡️ V250
 
   
   // Navigation & Scroll
@@ -280,6 +282,7 @@ class _EditPetFormState extends State<EditPetForm>
         funeralPlan: _funeralPlan,
         lifeInsurance: _lifeInsurance,
         observacoesPlanos: _observacoesPlanosController.text,
+        travelPreferences: _travelPreferences, // 🛡️ V250
         );
 
        await widget.onSave(profile);
@@ -374,6 +377,7 @@ class _EditPetFormState extends State<EditPetForm>
     
     final existing = widget.existingProfile;
     _petId = existing?.id ?? const Uuid().v4();
+    debugPrint('🛠️ [V_DEBUG] EditPetForm: Initializing with ID=$_petId (Name=${existing?.petName ?? "New Pet"})');
     
     // Load existing profile image
     // Load existing profile image with Fallback Recovery
@@ -413,7 +417,7 @@ class _EditPetFormState extends State<EditPetForm>
       }
     }
 
-    _tabController = TabController(length: 7, vsync: this, initialIndex: widget.initialTabIndex);
+    _tabController = TabController(length: 8, vsync: this, initialIndex: widget.initialTabIndex);
     
     if (existing != null) {
         _petBackup = _deepCopyProfile(existing);
@@ -454,6 +458,7 @@ class _EditPetFormState extends State<EditPetForm>
       _labExams = (existing.labExams).map((json) => LabExam.fromJson(json)).toList();
       _woundHistory = (existing.woundAnalysisHistory).map((e) => Map<String, dynamic>.from(e)).toList();
       _historicoAnaliseFeridas = List.from(existing.historicoAnaliseFeridas); // 🛡️ Load
+      _travelPreferences = Map<String, dynamic>.from(existing.travelPreferences); // 🛡️ V250
 
       _analysisHistory = List.from(existing.analysisHistory);
       
@@ -708,6 +713,7 @@ class _EditPetFormState extends State<EditPetForm>
               const Tab(text: 'Parceiros'),
               const Tab(text: 'Galeria'),
               Tab(text: AppLocalizations.of(context)!.plansTabTitle),
+              Tab(text: AppLocalizations.of(context)!.petTravelTitle), // 🛡️ V250
             ],
           ),
         ),
@@ -726,6 +732,7 @@ class _EditPetFormState extends State<EditPetForm>
                         _buildPartnersTabContent(),
                         _buildGalleryTabContent(),
                         _buildPlansTabContent(),
+                        _buildTravelTabContent(), // 🛡️ V250
                       ],
                     )
                 )
@@ -1418,6 +1425,20 @@ class _EditPetFormState extends State<EditPetForm>
       onFuneralPlanChanged: (val) { setState(() => _funeralPlan = val); _onUserInteractionGeneric(); },
       onLifeInsuranceChanged: (val) { setState(() => _lifeInsurance = val); _onUserInteractionGeneric(); },
       onUserInteraction: _onUserInteractionGeneric,
+    );
+  }
+
+  Widget _buildTravelTabContent() {
+    return TravelFragment(
+      travelPreferences: _travelPreferences,
+      rabiesDate: _dataUltimaAntirrabica,
+      microchip: _microchipController.text.trim(),
+      onPreferenceChanged: (key, value) {
+        setState(() {
+          _travelPreferences[key] = value;
+        });
+        _onUserInteractionGeneric();
+      },
     );
   }
 
@@ -3776,6 +3797,7 @@ class _EditPetFormState extends State<EditPetForm>
   Widget _buildAnalysisTabContent() {
       // Tenta localizar labels (breed, etc) se necessario
       return AnalysisResultsFragment(
+        petId: _petId, // 🛡️ Pass UUID
         analysisHistory: _analysisHistory, // Legacy 
         currentRawAnalysis: _currentRawAnalysis,
         petName: _nameController.text,

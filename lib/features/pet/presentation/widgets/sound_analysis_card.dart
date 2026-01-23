@@ -11,11 +11,13 @@ import 'package:path/path.dart' as p;
 import 'package:scannut/features/pet/services/pet_indexing_service.dart'; // 🧠 Indexing Service
 
 class SoundAnalysisCard extends StatefulWidget {
+  final String? petId; // 🛡️ UUID Link
   final String petName;
   final List<Map<String, dynamic>> analysisHistory;
   
   const SoundAnalysisCard({
     super.key, 
+    this.petId,
     required this.petName,
     this.analysisHistory = const [],
     this.onDeleteAnalysis,
@@ -149,6 +151,16 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
 
   Future<void> _autoSave(Map<String, dynamic> data, String tempPath) async {
     try {
+       // 🛡️ Resolve ID once at the beginning
+       final String petId;
+       if (widget.petId != null) {
+           petId = widget.petId!;
+       } else {
+           final petProfile = await PetProfileService().getProfile(widget.petName);
+           petId = petProfile?['id']?.toString() ?? widget.petName;
+       }
+       debugPrint('🔑 [SoundAnalysis] UUID pet: $petId');
+
        final filename = p.basename(tempPath);
        
        // 1. Prepare for History
@@ -161,7 +173,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
           'last_updated': DateTime.now().toIso8601String(),
        };
        
-       await PetProfileService().addAnalysisToHistory(widget.petName, analysisForHistory);
+       await PetProfileService().addAnalysisToHistory(petId, analysisForHistory);
 
        
        final emotion = data['emotion_simple'] ?? data['emotional_state'] ?? '?';
@@ -171,7 +183,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
        // 2. Save to Events (Unified Indexing)
        try {
          await PetIndexingService().indexOccurrence(
-            petId: widget.petName, // Note: petName is acting as ID here based on legacy logic, ensure it matches repository expectation
+            petId: petId, // 🛡️ USE resolved UUID
             petName: widget.petName,
             group: 'behavior',
             title: 'Análise Vocal: $emotion', // Título claro

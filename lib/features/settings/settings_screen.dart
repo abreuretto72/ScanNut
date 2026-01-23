@@ -17,6 +17,7 @@ import 'screens/diagnostics_screen.dart';
 import 'screens/auth_certificates_screen.dart';
 import 'screens/change_password_screen.dart';
 import '../../core/services/media_vault_service.dart';
+import '../../core/services/permanent_backup_service.dart';
 import 'package:uuid/uuid.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -544,15 +545,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
          // 1. Identify Target Boxes (Operational Data Only)
          // Excludes: user_profile, settings (Global Config)
          final targetBoxes = [
-            'scannut_history',      // General history
-            'box_pets_master',      // Pets and internal history
-            'pet_events',           // Journal events
-            'pet_events_journal',   // Legacy journal
-            'meal_logs',            // Nutrition logs
-            'weekly_plans',         // Nutrition plans
-            'shopping_list',        // Nutrition list
-            'cached_feed',          // Social feed cache
-            'processed_images_box', // Image hashes
+            'scannut_history',      // General history (Multi-mode)
+            'box_pets_master',      // Pets profiles and metadata
+            'box_nutrition_human',  // 🍎 Food History (NutritionService)
+            'box_plants_history',   // 🌿 Botany History (BotanyService)
+            'box_botany_intel',     // Supplementary botany data
+            'pet_events',           // Scheduled events
+            'pet_events_journal',   // Daily logs and clinical journal
+            'meal_logs',            // Individual meal entries
+            'weekly_plans',         // Generated nutrition plans
+            'shopping_list',        // Nutrition grocery list
+            'cached_feed',          // Social/Community cache
+            'processed_images_box', // Atomic image hashing
+            'scannut_meal_history', // Legacy food history
          ];
 
          // 2. Clear Boxes Atomically (Keep Box Open)
@@ -579,6 +584,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
          await mediaService.clearDomain(MediaVaultService.BOTANY_DIR);
          await mediaService.clearDomain(MediaVaultService.WOUNDS_DIR); // V180
          debugPrint('✅ [WIPE_TRACE] Media Vault purged.');
+         
+         // 4. Clear Permanent Backup (Prevent Auto-Recovery)
+         await PermanentBackupService().clearBackup();
+         debugPrint('✅ [WIPE_TRACE] Permanent Backup cleared.');
 
          if (!mounted) return;
          SnackBarHelper.showSuccess(context, l10n.settingsWipeSuccess);

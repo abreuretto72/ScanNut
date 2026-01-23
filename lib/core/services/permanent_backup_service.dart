@@ -19,19 +19,30 @@ class PermanentBackupService {
   
   /// Lista de boxes que devem ser salvos
   static const List<String> _criticalBoxes = [
+    'box_auth_local',
+    'settings',
+    'user_profiles',
+    'processed_images_box',
     'box_pets_master',
-    'pet_health_records',
-    'weekly_meal_plans',
     'pet_events',
+    'pet_events_journal',
     'vaccine_status',
+    'pet_health_records',
+    'lab_exams',
+    'weekly_meal_plans',
     'box_nutrition_human',
+    'nutrition_user_profile',
     'nutrition_weekly_plans',
-    'meal_log',
+    'nutrition_meal_logs',
     'nutrition_shopping_list',
-    'box_botany_intel',
+    'menu_filter_settings',
+    'recipe_history_box',
     'box_plants_history',
-    'user_profile',
-    'partners',
+    'box_botany_intel',
+    'scannut_history',
+    'scannut_meal_history',
+    'partners_box',
+    'box_workouts',
   ];
 
   /// Obtém o diretório de backup permanente
