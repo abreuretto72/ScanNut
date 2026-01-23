@@ -379,9 +379,9 @@ class _PetEventHistoryScreenState extends State<PetEventHistoryScreen> {
                                       Padding(
                                         padding: const EdgeInsets.only(bottom: 4),
                                         child: Text(
-                                          (event.type == 'ai_analysis' ? 'Análise da foto do pet' : 
-                                           event.type == 'vault_upload' ? 'Arquivo no Media Vault' :
-                                           event.type).toUpperCase(),
+                                          (event.type == 'ai_analysis' || event.type == 'vault_upload' 
+                                           ? 'Foto do pet analisada' 
+                                           : event.type).toUpperCase(),
                                           style: TextStyle(color: AppDesign.petPink.withOpacity(0.8), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                                         ),
                                       ),
