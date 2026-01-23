@@ -190,7 +190,7 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
      final imagePathToUse = _permanentImage?.path ?? widget.imageFile.path;
      
      // 🛡️ V116: AUDIT LOG
-     debugPrint('📄 [V116-PDF] Preparando exportação PDF (NOVO GERADOR) para ${result.petName ?? "Pet"}');
+     debugPrint('📄 [V116-PDF] Preparando exportação PDF do Dossiê Veterinário 360 para ${result.petName ?? "Pet"}');
      
      Navigator.push(
        context,
@@ -200,26 +200,11 @@ class _PetResultScreenState extends ConsumerState<PetResultScreen> {
            buildPdf: (format) async {
              final generator = PetPdfGenerator();
              
-             // 🛡️ V180 POINTER TO HISTORY
-             final profileService = PetProfileService();
-             await profileService.init();
-             PetProfileExtended? fullProfile;
-             try {
-                 final pData = await profileService.getProfile(result.petName ?? '');
-                 if (pData != null && pData['data'] != null) {
-                      fullProfile = PetProfileExtended.fromJson(deepCastMap(pData['data']));
-                 }
-             } catch (e) {
-                 debugPrint('⚠️ Helper Profile Load Error: $e');
-             }
-
-             // Fallback: Create profile from current result if not found in DB
-             fullProfile ??= PetProfileExtended.fromAnalysisResult(result, imagePathToUse);
-
-             final pdf = await generator.generateReport(
-               profile: fullProfile,
+             // 🛡️ FIX: Use generateDossierReport for Dossier (shows current analysis data)
+             final pdf = await generator.generateDossierReport(
+               analysis: result,
+               imagePath: imagePathToUse,
                strings: l10n,
-               currentAnalysis: result,
              );
              return pdf.save();
            },

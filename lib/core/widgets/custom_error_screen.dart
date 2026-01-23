@@ -77,17 +77,20 @@ class CustomErrorScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     onPressed: () {
-                      // 🛡️ Lógica de Escape: Tenta voltar ou resetar o app
+                      // 🛡️ FIX: Always reset to home screen to avoid frozen error overlay
                       try {
-                        if (Navigator.of(context).canPop()) {
-                          Navigator.of(context).pop();
-                        } else {
-                          // Se não puder voltar, tenta matar o erro reiniciando para a Splash
-                          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                        }
+                        // Clear all routes and go back to home
+                        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                       } catch (e) {
-                        // Último recurso: silenciar para não gerar novo erro em looping
+                        // Last resort: try to pop if pushNamedAndRemoveUntil fails
                         debugPrint('Navigation recovery failed: $e');
+                        try {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        } catch (e2) {
+                          debugPrint('Pop also failed: $e2');
+                        }
                       }
                     },
                     child: Text(

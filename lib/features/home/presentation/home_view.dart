@@ -60,6 +60,7 @@ class HomeView extends ConsumerStatefulWidget {
 class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver {
   String? _petName; // stores pet name entered by user
   String? _petId; // 🛡️ UUID Link
+  String? _displayPetName; // 🛡️ FIX: Pet name for loading overlay display
   CameraController? _controller;
   List<CameraDescription>? _cameras;
   int _currentIndex = -1; // -1 = Dashboard / No mode
@@ -236,9 +237,29 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   Future<void> _initCamera() async {
     // 🛡️ Atomic Guard: Prevent parallel initialization attempts
-    if (_isInitializingCamera || (_controller != null && _controller!.value.isInitialized)) {
-      debugPrint('🛡️ [Camera] Initialization already in progress or completed. Bailing out.');
+    if (_isInitializingCamera) {
+      debugPrint('🛡️ [Camera] Initialization already in progress. Bailing out.');
       return;
+    }
+
+    // 🛡️ FIX: Check if controller is disposed before trying to use it
+    if (_controller != null) {
+      try {
+        // If controller exists but is not initialized, it might be disposed
+        if (!_controller!.value.isInitialized) {
+          debugPrint('🔴 [Camera] Controller exists but not initialized. Disposing...');
+          await _controller!.dispose();
+          _controller = null;
+        } else {
+          // Controller is already initialized and working
+          debugPrint('🛡️ [Camera] Controller already initialized. Bailing out.');
+          return;
+        }
+      } catch (e) {
+        // If we get an error checking the controller, it's likely disposed
+        debugPrint('⚠️ [Camera] Controller check failed (likely disposed): $e');
+        _controller = null;
+      }
     }
 
     if (mounted) {
@@ -256,9 +277,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         _cameras = await availableCameras();
         
         if (_cameras != null && _cameras!.isNotEmpty) {
-          // Dispose previous controller if any (safety)
+          // 🛡️ FIX: Ensure previous controller is fully disposed
           if (_controller != null) {
-            await _controller!.dispose();
+            try {
+              await _controller!.dispose();
+            } catch (e) {
+              debugPrint('⚠️ [Camera] Error disposing old controller: $e');
+            }
+            _controller = null;
           }
 
           _controller = CameraController(
@@ -270,7 +296,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
           await _controller!.initialize();
           
-          if (_controller != null) {
+          if (_controller != null && _controller!.value.isInitialized) {
             await _controller!.setFlashMode(FlashMode.off);
           }
 
@@ -298,8 +324,20 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       final errorStr = e.toString().toLowerCase();
       final isResourceBusy = errorStr.contains('resource_busy') || errorStr.contains('multiple_init') || errorStr.contains('busy') || errorStr.contains('used');
       final isPermissionError = errorStr.contains('permissiondenied') || errorStr.contains('access denied');
+      final isDisposedError = errorStr.contains('disposed') || errorStr.contains('cameracontroller');
 
-      if (mounted && !isResourceBusy && !isPermissionError) {
+      // 🛡️ FIX: If disposed error, clear the controller
+      if (isDisposedError) {
+        debugPrint('🔴 [Camera] Disposed controller detected. Clearing...');
+        _controller = null;
+        if (mounted) {
+          setState(() {
+            _isCameraInitialized = false;
+          });
+        }
+      }
+
+      if (mounted && !isResourceBusy && !isPermissionError && !isDisposedError) {
         AppFeedback.showError(context, '${AppLocalizations.of(context)!.cameraError} (${e.toString().split(':').last.trim()})');
       }
     } finally {
@@ -423,8 +461,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 setState(() {
                   _petId = null;
                   _petName = null;
+                  _displayPetName = null; // 🛡️ FIX: Clear display name too
                 });
              }
+             // 🛡️ FIX: Capture pet name for loading overlay
+             _displayPetName = _petName;
+             debugPrint('🔍 [DEBUG] _displayPetName set to: "$_displayPetName"');
+             // Small delay to ensure setState is processed before analysis starts
+             await Future.delayed(const Duration(milliseconds: 100));
              // Else: _petId and _petName are already updated inside _showPetSelectionDialog
           } else if (capturedMode == 2 && capturedPetMode == 0) { // ID
              debugPrint('🐾 _process: Prompting for pet name...');
@@ -434,7 +478,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 _petId = null; // New ID identification has no ID yet
                 _petName = name.trim();
              });
+             // 🛡️ FIX: Capture pet name for loading overlay
+             _displayPetName = name.trim();
+             debugPrint('🔍 [DEBUG] _displayPetName set to: "$_displayPetName"');
+             // Small delay to ensure setState is processed before analysis starts
+             await Future.delayed(const Duration(milliseconds: 100));
           }
+
 
           // 4. Injeção na IA Gemini
           debugPrint('🔍 _process: Configuring Analysis Mode...');
@@ -487,6 +537,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       setState(() {
         _isProcessingAnalysis = true;
       });
+
+      // 🛡️ DEBUG: Check pet name before analysis
+      debugPrint('🔍 [DEBUG] _petName before analysis: "$_petName"');
+      debugPrint('🔍 [DEBUG] _currentIndex: $_currentIndex, _petMode: $_petMode');
+
 
       try {
           // 2. Initialize analysis notifier
@@ -866,6 +921,19 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                         ),
                         textAlign: TextAlign.center,
                       ),
+                      // 🛡️ FIX: Show pet name when analyzing pet image
+                      if (_currentIndex == 2 && _displayPetName != null && _displayPetName!.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          _displayPetName!,
+                          style: GoogleFonts.poppins(
+                            color: AppDesign.petPink,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                       const SizedBox(height: 4),
                       Text(
                         l10n.loadingMsgWait,
@@ -1320,6 +1388,22 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                               ],
                             ),
                           ),
+                          // 🛡️ FIX: Display pet name below the loading message
+                          if (_displayPetName != null && _displayPetName!.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              _displayPetName!,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                color: AppDesign.getModeColor(2), // Pink color for pet
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  const Shadow(blurRadius: 4, color: Colors.black, offset: Offset(0, 2)),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

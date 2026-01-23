@@ -80,6 +80,301 @@ class PetPdfGenerator {
     return pdf;
   }
 
+  /// 🛡️ NEW: Generate Dossier Report (Dossiê Veterinário 360°)
+  /// Shows all data from the current analysis (not the full medical record)
+  Future<pw.Document> generateDossierReport({
+    required PetAnalysisResult analysis,
+    required String imagePath,
+    required AppLocalizations strings,
+  }) async {
+    final pdf = pw.Document();
+    
+    // 1. Load Images
+    pw.ImageProvider? analysisImage = await _safeLoadImage(imagePath);
+
+    // 2. Build PDF
+    final font = await PdfGoogleFonts.openSansRegular();
+    final fontBold = await PdfGoogleFonts.openSansBold();
+
+    final isDiagnosis = analysis.analysisType == 'diagnosis' || analysis.analysisType == 'stool_analysis';
+
+    pdf.addPage(
+      pw.MultiPage(
+        theme: pw.ThemeData.withFont(base: font, bold: fontBold),
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) {
+          return [
+            // Header
+            _buildDossierHeader(analysis, analysisImage, strings),
+            pw.SizedBox(height: 20),
+            
+            // Disclaimer
+            pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.grey200,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                border: pw.Border.all(color: colorAccent),
+              ),
+              child: pw.Row(
+                children: [
+                  pw.Icon(const pw.IconData(0xe88e), color: colorAccent, size: 16), // info icon
+                  pw.SizedBox(width: 8),
+                  pw.Expanded(
+                    child: pw.Text(
+                      strings.petDossierDisclaimer,
+                      style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 20),
+
+            // Identification Section (for ID analyses)
+            if (!isDiagnosis) ...[
+              _buildSectionTitle(strings.petSectionIdentity.toUpperCase(), strings),
+              pw.SizedBox(height: 10),
+              _buildDossierIdentification(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              // Nutrition
+              _buildSectionTitle(strings.petSectionNutrition.toUpperCase(), strings),
+              pw.SizedBox(height: 10),
+              _buildDossierNutrition(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              // Grooming
+              _buildSectionTitle(strings.petSectionGrooming.toUpperCase(), strings),
+              pw.SizedBox(height: 10),
+              _buildDossierGrooming(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              // Preventive Health
+              _buildSectionTitle(strings.petSectionPreventive.toUpperCase(), strings),
+              pw.SizedBox(height: 10),
+              _buildDossierHealth(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              // Lifestyle
+              _buildSectionTitle(strings.petSectionLifestyle.toUpperCase(), strings),
+              pw.SizedBox(height: 10),
+              _buildDossierLifestyle(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              // Behavior
+              _buildSectionTitle('PERFIL COMPORTAMENTAL', strings),
+              pw.SizedBox(height: 10),
+              _buildDossierBehavior(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              // Growth (if available)
+              if (analysis.identificacao.curvaCrescimento.isNotEmpty) ...[
+                _buildSectionTitle(strings.petSectionGrowth.toUpperCase(), strings),
+                pw.SizedBox(height: 10),
+                _buildDossierGrowth(analysis, strings),
+                pw.SizedBox(height: 20),
+              ],
+            ],
+
+            // Clinical Section (for diagnosis)
+            if (isDiagnosis) ...[
+              _buildSectionTitle('SINAIS CLÍNICOS', strings),
+              pw.SizedBox(height: 10),
+              _buildDossierClinical(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              _buildSectionTitle('DIAGNÓSTICOS PROVÁVEIS', strings),
+              pw.SizedBox(height: 10),
+              _buildDossierDiagnosis(analysis, strings),
+              pw.SizedBox(height: 20),
+
+              _buildSectionTitle('ORIENTAÇÕES', strings),
+              pw.SizedBox(height: 10),
+              pw.Text(analysis.orientacaoImediata, style: const pw.TextStyle(fontSize: 11)),
+            ],
+          ];
+        },
+        footer: (context) => _buildFooter(context, strings),
+      ),
+    );
+
+    return pdf;
+  }
+
+  // Helper methods for Dossier Report
+  pw.Widget _buildDossierHeader(PetAnalysisResult analysis, pw.ImageProvider? image, AppLocalizations strings) {
+    return pw.Row(
+      children: [
+        if (image != null)
+          pw.Container(
+            width: 80,
+            height: 80,
+            decoration: pw.BoxDecoration(
+              shape: pw.BoxShape.circle,
+              border: pw.Border.all(color: colorAccent, width: 2),
+              image: pw.DecorationImage(image: image, fit: pw.BoxFit.cover),
+            ),
+          )
+        else
+          pw.Container(
+            width: 80,
+            height: 80,
+            decoration: pw.BoxDecoration(color: colorPrimary, shape: pw.BoxShape.circle),
+            child: pw.Center(
+              child: pw.Text(
+                analysis.petName?.isNotEmpty == true ? analysis.petName![0].toUpperCase() : '?',
+                style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold, color: colorAccent),
+              ),
+            ),
+          ),
+        pw.SizedBox(width: 20),
+        pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              analysis.petName ?? 'Pet',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.Text(
+              strings.petDossierTitle,
+              style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+            ),
+            pw.Text(
+              '${strings.pdfGeneratedOn}: ${DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now())}',
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierIdentification(PetAnalysisResult analysis, AppLocalizations strings) {
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey300),
+      children: [
+        _buildTableRow('Raça Predominante', analysis.identificacao.racaPredominante),
+        _buildTableRow('Linhagem SRD', analysis.identificacao.linhagemSrdProvavel),
+        _buildTableRow('Origem Geográfica', analysis.identificacao.origemGeografica),
+        _buildTableRow('Morfologia Base', analysis.identificacao.morfologiaBase),
+        _buildTableRow('Porte Estimado', analysis.identificacao.porteEstimado),
+        _buildTableRow('Expectativa de Vida', analysis.identificacao.expectativaVidaMedia),
+        _buildTableRow('Confiabilidade', analysis.reliability ?? 'N/A'),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierNutrition(PetAnalysisResult analysis, AppLocalizations strings) {
+    final meta = analysis.nutricao.metaCalorica;
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Meta Calórica (Adulto): ${meta['kcal_adulto'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Meta Calórica (Filhote): ${meta['kcal_filhote'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.SizedBox(height: 5),
+        pw.Text('Nutrientes Alvo:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        pw.Text(analysis.nutricao.nutrientesAlvo.join(', '), style: const pw.TextStyle(fontSize: 10)),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierGrooming(PetAnalysisResult analysis, AppLocalizations strings) {
+    final pelagem = analysis.higiene.manutencaoPelagem;
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Tipo de Pelo: ${pelagem['tipo_pelo'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Escovação Semanal: ${pelagem['frequencia_escovacao_semanal'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Alerta: ${pelagem['alerta_subpelo'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierHealth(PetAnalysisResult analysis, AppLocalizations strings) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Predisposições:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        ...analysis.saude.predisposicaoDoencas.map((d) => pw.Text('• $d', style: const pw.TextStyle(fontSize: 10))),
+        pw.SizedBox(height: 5),
+        pw.Text('Pontos Críticos Anatômicos:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        pw.Text(analysis.saude.pontosCriticosAnatomicos.join(', '), style: const pw.TextStyle(fontSize: 10)),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierLifestyle(PetAnalysisResult analysis, AppLocalizations strings) {
+    final ambiente = analysis.lifestyle.ambienteIdeal;
+    final estimulo = analysis.lifestyle.estimuloMental;
+    final treino = analysis.lifestyle.treinamento;
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Ambiente Ideal: ${ambiente['necessidade_de_espaco_aberto'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Estímulo Mental: ${estimulo['necessidade_estimulo_mental'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Adestramento: ${treino['dificuldade_adestramento'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierBehavior(PetAnalysisResult analysis, AppLocalizations strings) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Personalidade: ${analysis.perfilComportamental.personalidade ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Comportamento Social: ${analysis.perfilComportamental.comportamentoSocial ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Energia: ${analysis.perfilComportamental.descricaoEnergia ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Drive Ancestral: ${analysis.perfilComportamental.driveAncestral}', style: const pw.TextStyle(fontSize: 10)),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierGrowth(PetAnalysisResult analysis, AppLocalizations strings) {
+    final curva = analysis.identificacao.curvaCrescimento;
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text('Peso 3 Meses: ${curva['peso_3_meses'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Peso 6 Meses: ${curva['peso_6_meses'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+        pw.Text('Peso Adulto: ${curva['peso_adulto'] ?? 'N/A'}', style: const pw.TextStyle(fontSize: 10)),
+      ],
+    );
+  }
+
+  pw.Widget _buildDossierClinical(PetAnalysisResult analysis, AppLocalizations strings) {
+    final signs = analysis.clinicalSignsDiag ?? {};
+    if (signs.isEmpty) return pw.Text('Nenhum sinal clínico detectado', style: const pw.TextStyle(fontSize: 10));
+    
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: signs.entries.map((e) => 
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 4),
+          child: pw.Text('• ${e.key}: ${e.value}', style: const pw.TextStyle(fontSize: 10)),
+        )
+      ).toList(),
+    );
+  }
+
+  pw.Widget _buildDossierDiagnosis(PetAnalysisResult analysis, AppLocalizations strings) {
+    if (analysis.possiveisCausas.isEmpty) {
+      return pw.Text('Nenhum diagnóstico provável', style: const pw.TextStyle(fontSize: 10));
+    }
+    
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: analysis.possiveisCausas.map((d) => 
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 4),
+          child: pw.Text('• $d', style: const pw.TextStyle(fontSize: 10)),
+        )
+      ).toList(),
+    );
+  }
+
+
   Future<pw.Document> generateReport({
     required PetProfileExtended profile,
     required AppLocalizations strings,
