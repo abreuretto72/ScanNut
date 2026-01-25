@@ -24,7 +24,8 @@ class DeepAnalysisPetScreen extends StatefulWidget {
   State<DeepAnalysisPetScreen> createState() => _DeepAnalysisPetScreenState();
 }
 
-class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with SingleTickerProviderStateMixin {
+class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -48,7 +49,8 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
         elevation: 0,
         title: Text(
           AppLocalizations.of(context)!.deepAnalysisTitle,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
+          style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold, color: Colors.white),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -110,7 +112,9 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.petProfile?.petName ?? widget.analysis.petName ?? AppLocalizations.of(context)!.petUnknown,
+                  widget.petProfile?.petName ??
+                      widget.analysis.petName ??
+                      AppLocalizations.of(context)!.petUnknown,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -121,7 +125,8 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                   widget.analysis.urgenciaNivel,
                   style: GoogleFonts.poppins(
                     fontSize: 16,
-                    color: ColorHelper.getPetThemeColor(widget.analysis.urgenciaNivel),
+                    color: ColorHelper.getPetThemeColor(
+                        widget.analysis.urgenciaNivel),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -135,92 +140,121 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
 
   Widget _buildDiagnosisTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
+      padding: const EdgeInsets.fromLTRB(
+          16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. ANÁLISE VISUAL (NOVA SEÇÃO)
-          if (widget.analysis.descricaoVisual.isNotEmpty && widget.analysis.descricaoVisual != 'N/A') ...[
-             _buildSectionTitle(AppLocalizations.of(context)!.sectionVisualDesc),
-             Container(
-               padding: const EdgeInsets.all(12),
-               margin: const EdgeInsets.only(bottom: 20),
-               decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white10),
-               ),
-               child: Text(
-                 widget.analysis.descricaoVisual,
-                 style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
-               ),
-             ),
+          if (widget.analysis.descricaoVisual.isNotEmpty &&
+              widget.analysis.descricaoVisual != 'N/A') ...[
+            _buildSectionTitle(AppLocalizations.of(context)!.sectionVisualDesc),
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Text(
+                widget.analysis.descricaoVisual,
+                style: const TextStyle(
+                    color: Colors.white70, fontSize: 13, height: 1.5),
+              ),
+            ),
           ],
 
           // 2. CARACTERÍSTICAS
-          if (widget.analysis.caracteristicas.isNotEmpty && widget.analysis.caracteristicas != 'N/A') ...[
-             _buildSectionTitle(AppLocalizations.of(context)!.sectionObservedFeatures),
-             _buildBulletPoint(widget.analysis.caracteristicas),
-             const SizedBox(height: 20),
+          if (widget.analysis.caracteristicas.isNotEmpty &&
+              widget.analysis.caracteristicas != 'N/A') ...[
+            _buildSectionTitle(
+                AppLocalizations.of(context)!.sectionObservedFeatures),
+            _buildBulletPoint(widget.analysis.caracteristicas),
+            const SizedBox(height: 20),
           ],
-          
+
           // 3. SINAIS CLÍNICOS (Iteração Robusta)
-          if (widget.analysis.clinicalSignsDiag != null && widget.analysis.clinicalSignsDiag!.isNotEmpty) ...[
-            _buildSectionTitle(AppLocalizations.of(context)!.sectionClinicalSigns),
+          if (widget.analysis.clinicalSignsDiag != null &&
+              widget.analysis.clinicalSignsDiag!.isNotEmpty) ...[
+            _buildSectionTitle(
+                AppLocalizations.of(context)!.sectionClinicalSigns),
             ...widget.analysis.clinicalSignsDiag!.entries.where((e) {
-                 final k = e.key.toString().toLowerCase();
-                 return !['identification', 'identificacao', 'pet_name', 'analysis_type', 'metadata'].contains(k);
+              final k = e.key.toString().toLowerCase();
+              return ![
+                'identification',
+                'identificacao',
+                'pet_name',
+                'analysis_type',
+                'metadata'
+              ].contains(k);
             }).map((e) {
-                 // Clean & Translate Key
-                 String label = _translateKey(e.key.toString(), AppLocalizations.of(context)!);
-                 dynamic rawVal = e.value;
-                 
-                 if (rawVal is List) {
-                     // Caso seja lista, exibe como subtópicos
-                     return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                            Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13)),
-                            const SizedBox(height: 4),
-                            ...rawVal.map((item) => Padding(
-                                padding: const EdgeInsets.only(left: 12, bottom: 4),
-                                child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                        const Text('• ', style: TextStyle(color: AppDesign.petPink)),
-                                        Expanded(child: Text(item.toString(), style: const TextStyle(color: Colors.white70, fontSize: 13))),
-                                    ],
-                                ),
-                            )),
-                            const SizedBox(height: 12),
-                        ],
-                     );
-                 } else if (rawVal is Map) {
-                      // Caso seja mapa, tenta unificar
-                      return _buildInfoTile(label, rawVal.toString()); 
-                 }
-                 
-                 String val = rawVal.toString();
-                 if (val == 'null' || val.trim().isEmpty) val = AppLocalizations.of(context)!.petNotIdentified;
-                 return _buildInfoTile(label, val);
+              // Clean & Translate Key
+              String label = _translateKey(
+                  e.key.toString(), AppLocalizations.of(context)!);
+              dynamic rawVal = e.value;
+
+              if (rawVal is List) {
+                // Caso seja lista, exibe como subtópicos
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('$label:',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontSize: 13)),
+                    const SizedBox(height: 4),
+                    ...rawVal.map((item) => Padding(
+                          padding: const EdgeInsets.only(left: 12, bottom: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('• ',
+                                  style: TextStyle(color: AppDesign.petPink)),
+                              Expanded(
+                                  child: Text(item.toString(),
+                                      style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13))),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(height: 12),
+                  ],
+                );
+              } else if (rawVal is Map) {
+                // Caso seja mapa, tenta unificar
+                return _buildInfoTile(label, rawVal.toString());
+              }
+
+              String val = rawVal.toString();
+              if (val == 'null' || val.trim().isEmpty) {
+                val = AppLocalizations.of(context)!.petNotIdentified;
+              }
+              return _buildInfoTile(label, val);
             }),
             const SizedBox(height: 20),
           ],
-          
-          _buildSectionTitle(AppLocalizations.of(context)!.sectionProbableDiagnosis),
+
+          _buildSectionTitle(
+              AppLocalizations.of(context)!.sectionProbableDiagnosis),
           if (widget.analysis.possiveisCausas.isNotEmpty)
             ...widget.analysis.possiveisCausas.map((c) => _buildBulletPoint(c))
           else
-            Text(AppLocalizations.of(context)!.noDiagnosisListed, style: const TextStyle(color: Colors.white70)),
-            
+            Text(AppLocalizations.of(context)!.noDiagnosisListed,
+                style: const TextStyle(color: Colors.white70)),
+
           const SizedBox(height: 20),
-          _buildSectionTitle(AppLocalizations.of(context)!.sectionRecommendation),
+          _buildSectionTitle(
+              AppLocalizations.of(context)!.sectionRecommendation),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppDesign.surfaceDark,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
+              border:
+                  Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
             ),
             child: Text(
               widget.analysis.orientacaoImediata,
@@ -235,19 +269,24 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
   Widget _buildBiometricsTab() {
     // Exibe detalhes específicos de olhos/pele se disponíveis nos sinais clínicos
     final signs = widget.analysis.clinicalSignsDiag ?? {};
-    
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
+      padding: const EdgeInsets.fromLTRB(
+          16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle(AppLocalizations.of(context)!.sectionDepthAnalysis),
+          _buildSectionTitle(
+              AppLocalizations.of(context)!.sectionDepthAnalysis),
           const SizedBox(height: 8),
           Container(
             height: 150,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.black54, AppDesign.petPink.withValues(alpha: 0.1)],
+                colors: [
+                  Colors.black54,
+                  AppDesign.petPink.withValues(alpha: 0.1)
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -269,25 +308,34 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
             ),
           ),
           const SizedBox(height: 20),
-
-          _buildSectionTitle(AppLocalizations.of(context)!.sectionDetailedBiometrics),
+          _buildSectionTitle(
+              AppLocalizations.of(context)!.sectionDetailedBiometrics),
           if (signs.isEmpty)
-             Text(AppLocalizations.of(context)!.noBiometricsListed, style: const TextStyle(color: Colors.white70)),
-
+            Text(AppLocalizations.of(context)!.noBiometricsListed,
+                style: const TextStyle(color: Colors.white70)),
           ...signs.entries.map((e) {
-             IconData icon = Icons.analytics;
-             if (e.key.toLowerCase().contains('olho') || e.key.toLowerCase().contains('ocular')) icon = Icons.remove_red_eye;
-             if (e.key.toLowerCase().contains('pele') || e.key.toLowerCase().contains('derma')) icon = Icons.spa;
-             
-             return Card(
-               color: AppDesign.surfaceDark,
-               margin: const EdgeInsets.symmetric(vertical: 6),
-               child: ListTile(
-                 leading: Icon(icon, color: AppDesign.petPink),
-                 title: Text(e.key, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                 subtitle: Text(e.value, style: const TextStyle(color: Colors.white70)),
-               ),
-             );
+            IconData icon = Icons.analytics;
+            if (e.key.toLowerCase().contains('olho') ||
+                e.key.toLowerCase().contains('ocular')) {
+              icon = Icons.remove_red_eye;
+            }
+            if (e.key.toLowerCase().contains('pele') ||
+                e.key.toLowerCase().contains('derma')) {
+              icon = Icons.spa;
+            }
+
+            return Card(
+              color: AppDesign.surfaceDark,
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              child: ListTile(
+                leading: Icon(icon, color: AppDesign.petPink),
+                title: Text(e.key,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: Text(e.value,
+                    style: const TextStyle(color: Colors.white70)),
+              ),
+            );
           }),
         ],
       ),
@@ -307,20 +355,21 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
+      padding: const EdgeInsets.fromLTRB(
+          16, 16, 16, 100), // 🛡️ V_FIX: Protected Footer Padding
       itemCount: history.length,
       itemBuilder: (context, index) {
         // Ordenação reversa (mais recente primeiro) se a lista não estiver ordenada
         // Mas assumindo que vamos mostrar a lista como está ou ordenar aqui.
         // Vamos mostrar do mais recente para o mais antigo.
-        final item = history[history.length - 1 - index]; 
-        
+        final item = history[history.length - 1 - index];
+
         return Card(
           color: AppDesign.surfaceDark,
           margin: const EdgeInsets.only(bottom: 16),
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -334,7 +383,8 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
-                    errorBuilder: (_,__,___) => Container(width: 60, height: 60, color: Colors.grey),
+                    errorBuilder: (_, __, ___) =>
+                        Container(width: 60, height: 60, color: Colors.grey),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -344,11 +394,13 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                     children: [
                       Text(
                         DateFormat('dd/MM/yyyy HH:mm').format(item.dataAnalise),
-                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 12),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _translateStatus(item.nivelRisco, AppLocalizations.of(context)!),
+                        _translateStatus(
+                            item.nivelRisco, AppLocalizations.of(context)!),
                         style: TextStyle(
                           color: ColorHelper.getPetThemeColor(item.nivelRisco),
                           fontWeight: FontWeight.bold,
@@ -359,7 +411,8 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                         item.recomendacao,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13),
                       ),
                     ],
                   ),
@@ -393,7 +446,8 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_circle_outline, color: AppDesign.petPink, size: 18),
+          const Icon(Icons.check_circle_outline,
+              color: AppDesign.petPink, size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: RichText(
@@ -402,7 +456,8 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
                 children: [
                   TextSpan(
                     text: "$label: ",
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   TextSpan(text: value),
                 ],
@@ -425,7 +480,8 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
             child: Icon(Icons.circle, size: 6, color: Colors.white60),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(color: Colors.white))),
+          Expanded(
+              child: Text(text, style: const TextStyle(color: Colors.white))),
         ],
       ),
     );
@@ -433,7 +489,7 @@ class _DeepAnalysisPetScreenState extends State<DeepAnalysisPetScreen> with Sing
 
   String _translateKey(String key, AppLocalizations l10n) {
     final upper = key.toUpperCase().replaceAll(' ', '_');
-    
+
     final Map<String, String> mapper = {
       'IDENTIFICATION': l10n.labelIdentification,
       'BREED_NAME': l10n.labelBreed,

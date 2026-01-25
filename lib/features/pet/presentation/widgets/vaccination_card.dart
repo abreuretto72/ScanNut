@@ -78,72 +78,80 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
 
     final service = await ref.read(petEventServiceProvider.future);
     final events = service.getEventsByPet(widget.petId);
-    
+
     // MIGRATION LOGIC: Check for legacy dates and create events if missing
-    await _checkMigration(service, events, l10n.vaccineV8V10, widget.legacyV10Date);
-    await _checkMigration(service, events, l10n.vaccineRabies, widget.legacyRabiesDate);
-    
+    await _checkMigration(
+        service, events, l10n.vaccineV8V10, widget.legacyV10Date);
+    await _checkMigration(
+        service, events, l10n.vaccineRabies, widget.legacyRabiesDate);
+
     // Initialize map
     _vaccineDates.clear();
-    
+
     // Helper to get localized vaccine name (we store the KEY in memory, but Title in DB)
     // Actually, to be robust, we should store standardized keys or match by title
     // For simplicity and robustness given existing localization, we will match by Title if possible
     // But since we are creating new events, we can standardise.
-    
+
     // Strategy: Search events where title matches the LOCALIZED name of the vaccine
-    // This assumes the user didn't change the language. 
+    // This assumes the user didn't change the language.
     // Ideally, we should store metadata. But PetEvent is simple.
-    
+
     try {
-      // We need localization context. Assuming context is available in initState technically no, 
+      // We need localization context. Assuming context is available in initState technically no,
       // but we will do this in didChangeDependencies or just force a rebuild.
       // Let's delay slighty or use a post-frame callback if context is needed.
       // Better: do matching in build or load with a context reference if safe.
-      
-      // Actually, we can just look for the most recent event of type 'vaccine' 
+
+      // Actually, we can just look for the most recent event of type 'vaccine'
       // and matching common strings.
-    } catch(e) {
+    } catch (e) {
       debugPrint('Error loading vaccines: $e');
     }
-    
+
     setState(() => _isLoading = false);
   }
 
-  Future<void> _checkMigration(PetEventService agendaService, List<PetEvent> currentAgendaEvents, String title, DateTime? legacyDate) async {
-      if (legacyDate == null) return;
-      
-      // Check if any event exists with this title in Agenda
-      final existsInAgenda = currentAgendaEvents.any((e) => e.type == EventType.vaccine && e.title.toLowerCase().trim() == title.toLowerCase().trim());
-      
-      if (!existsInAgenda) {
-         debugPrint('🔄 Migrating legacy vaccine date for $title: $legacyDate');
-         
-         await PetEventRepository().init();
-         final eventModel = PetEventModel(
-            id: 'mig_vac_${DateTime.now().millisecondsSinceEpoch}_${title.hashCode}',
-            petId: widget.petId,
-            group: 'health',
-            type: 'vaccine',
-            title: title,
-            notes: 'Migrado do perfil legado',
-            timestamp: legacyDate!,
-            data: {
-              'pet_name': widget.petName,
-              'is_automatic': true,
-              'migration_source': 'legacy_profile'
-            },
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
-         );
-         
-         await PetEventRepository().addEvent(eventModel);
-         
-         // To avoid visual delay, we could manually add a placeholder to the agenda list if it wasn't mirrored fast enough
-         // But addEvent is awaited and it does mirror.
-      }
+  Future<void> _checkMigration(
+      PetEventService agendaService,
+      List<PetEvent> currentAgendaEvents,
+      String title,
+      DateTime? legacyDate) async {
+    if (legacyDate == null) return;
+
+    // Check if any event exists with this title in Agenda
+    final existsInAgenda = currentAgendaEvents.any((e) =>
+        e.type == EventType.vaccine &&
+        e.title.toLowerCase().trim() == title.toLowerCase().trim());
+
+    if (!existsInAgenda) {
+      debugPrint('🔄 Migrating legacy vaccine date for $title: $legacyDate');
+
+      await PetEventRepository().init();
+      final eventModel = PetEventModel(
+        id: 'mig_vac_${DateTime.now().millisecondsSinceEpoch}_${title.hashCode}',
+        petId: widget.petId,
+        group: 'health',
+        type: 'vaccine',
+        title: title,
+        notes: 'Migrado do perfil legado',
+        timestamp: legacyDate,
+        data: {
+          'pet_name': widget.petName,
+          'is_automatic': true,
+          'migration_source': 'legacy_profile'
+        },
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await PetEventRepository().addEvent(eventModel);
+
+      // To avoid visual delay, we could manually add a placeholder to the agenda list if it wasn't mirrored fast enough
+      // But addEvent is awaited and it does mirror.
+    }
   }
-  
+
   // We need to fetch localized strings every build, so better to do the mapping logic there
   // or store the mapping.
 
@@ -154,10 +162,10 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
       // Let's trigger the async load result processing here safely
       // But _loadVaccineHistory is async.
     }
-    
-    // Trigger load if map is empty and not loading? 
+
+    // Trigger load if map is empty and not loading?
     // Better to use FutureBuilder. But we want state.
-    
+
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
@@ -186,7 +194,8 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
           // Header with Help Icon
           Row(
             children: [
-              const Icon(Icons.medical_services_outlined, color: AppDesign.petPink, size: 20),
+              const Icon(Icons.medical_services_outlined,
+                  color: AppDesign.petPink, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Histórico de Vacinas', // TODO: Add key or use hardcoded if acceptable/Add to arb
@@ -198,103 +207,109 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.info_outline, color: AppDesign.petPink, size: 20),
+                icon: const Icon(Icons.info_outline,
+                    color: AppDesign.petPink, size: 20),
                 onPressed: () => _showHelpDialog(context, l10n),
                 tooltip: l10n.vaccinationGuideTitle,
               ),
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Vaccine List
           if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: AppDesign.petPink))
+            const Center(
+                child: CircularProgressIndicator(color: AppDesign.petPink))
           else
             _buildVaccineList(l10n, vaccineLabels),
         ],
       ),
     );
   }
-  
+
   Widget _buildVaccineList(AppLocalizations l10n, Map<String, String> labels) {
     final keys = _requiredVaccines;
-    
+
     // We need to match events here since we have l10n now
     final eventProvider = ref.watch(petEventServiceProvider);
-    
+
     return eventProvider.when(
-      loading: () => const CircularProgressIndicator(),
-      error: (_,__) => const Text('Error loading data'),
-      data: (service) {
-        final events = service.getEventsByPet(widget.petId);
-        
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(), // Protected Scroll
-          itemCount: keys.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final key = keys[index];
-            final label = labels[key] ?? key;
-            
-            // Find latest event for this vaccine
-            PetEvent? latestEvent;
-            try {
-               final relevantEvents = events.where((e) => 
-                 e.type == EventType.vaccine && 
-                 e.title.toLowerCase().trim() == label.toLowerCase().trim()
-               ).toList();
-               
-               if (relevantEvents.isNotEmpty) {
-                 relevantEvents.sort((a,b) => b.dateTime.compareTo(a.dateTime));
-                 latestEvent = relevantEvents.first;
-               }
-            } catch (_) {}
-            
-            final date = latestEvent?.dateTime;
-            
-            return _VaccineRow(
-              label: label,
-              date: date,
-              onDateSelected: (newDate) => _saveVaccineDate(service, label, newDate),
-            );
-          },
-        );
-      }
-    );
+        loading: () => const CircularProgressIndicator(),
+        error: (_, __) => const Text('Error loading data'),
+        data: (service) {
+          final events = service.getEventsByPet(widget.petId);
+
+          return ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(), // Protected Scroll
+            itemCount: keys.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final key = keys[index];
+              final label = labels[key] ?? key;
+
+              // Find latest event for this vaccine
+              PetEvent? latestEvent;
+              try {
+                final relevantEvents = events
+                    .where((e) =>
+                        e.type == EventType.vaccine &&
+                        e.title.toLowerCase().trim() ==
+                            label.toLowerCase().trim())
+                    .toList();
+
+                if (relevantEvents.isNotEmpty) {
+                  relevantEvents
+                      .sort((a, b) => b.dateTime.compareTo(a.dateTime));
+                  latestEvent = relevantEvents.first;
+                }
+              } catch (_) {}
+
+              final date = latestEvent?.dateTime;
+
+              return _VaccineRow(
+                label: label,
+                date: date,
+                onDateSelected: (newDate) =>
+                    _saveVaccineDate(service, label, newDate),
+              );
+            },
+          );
+        });
   }
 
-  Future<void> _saveVaccineDate(PetEventService service, String vaccineName, DateTime date) async {
+  Future<void> _saveVaccineDate(
+      PetEventService service, String vaccineName, DateTime date) async {
     // 1. Notify Parent (Legacy Compatibility)
     final l10n = AppLocalizations.of(context)!;
     if (vaccineName == l10n.vaccineV8V10 || vaccineName == l10n.vaccineV3V4V5) {
-       widget.onV10DateSelected?.call(date);
+      widget.onV10DateSelected?.call(date);
     } else if (vaccineName == l10n.vaccineRabies) {
-       widget.onRabiesDateSelected?.call(date);
+      widget.onRabiesDateSelected?.call(date);
     }
 
     // 2. Persistent Event (Journal + Agenda Mirror)
     await PetEventRepository().init();
     final eventModel = PetEventModel(
-        id: 'vac_${DateTime.now().millisecondsSinceEpoch}',
-        petId: widget.petId,
-        group: 'health',
-        type: 'vaccine',
-        title: vaccineName,
-        notes: 'Registro de vacinação via cartão inteligente',
-        timestamp: date,
-        data: {
-          'pet_name': widget.petName,
-          'is_automatic': false,
-        },
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+      id: 'vac_${DateTime.now().millisecondsSinceEpoch}',
+      petId: widget.petId,
+      group: 'health',
+      type: 'vaccine',
+      title: vaccineName,
+      notes: 'Registro de vacinação via cartão inteligente',
+      timestamp: date,
+      data: {
+        'pet_name': widget.petName,
+        'is_automatic': false,
+      },
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
-    
+
     await PetEventRepository().addEvent(eventModel);
-    
+
     // Force rebuild local view
-    setState(() {}); 
+    setState(() {});
   }
 
   void _showHelpDialog(BuildContext context, AppLocalizations l10n) {
@@ -306,7 +321,9 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
           children: [
             const Icon(Icons.help_outline, color: AppDesign.accent),
             const SizedBox(width: 8),
-            Expanded(child: Text(l10n.vaccinationGuideTitle, style: GoogleFonts.poppins(color: Colors.white))),
+            Expanded(
+                child: Text(l10n.vaccinationGuideTitle,
+                    style: GoogleFonts.poppins(color: Colors.white))),
           ],
         ),
         content: SizedBox(
@@ -315,95 +332,148 @@ class _VaccinationCardState extends ConsumerState<VaccinationCard> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               Text(l10n.vaccinationHelpBody, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
-               const SizedBox(height: 16),
-               Flexible(
-                 child: ListView(
-                   shrinkWrap: true,
-                   children: _buildHelpItems(l10n),
-                 ),
-               ),
+              Text(l10n.vaccinationHelpBody,
+                  style:
+                      GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: _buildHelpItems(l10n),
+                ),
+              ),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.btn_close, style: GoogleFonts.poppins(color: AppDesign.accent)),
+            child: Text(l10n.btn_close,
+                style: GoogleFonts.poppins(color: AppDesign.accent)),
           ),
         ],
       ),
     );
   }
-  
+
   List<Widget> _buildHelpItems(AppLocalizations l10n) {
     // Determine items based on species
-    final isDog = widget.species.toLowerCase().contains('cão') || widget.species.toLowerCase().contains('dog');
-    
-    final List<Map<String, dynamic>> items = isDog ? [
-      {'name': l10n.vaccineV8V10, 'type': 'mandatory', 'desc': 'Essencial. Protege contra Cinomose, Parvovirose, etc.', 'freq': 'Anual (Reforço). Filhotes: 3 doses.'},
-      {'name': l10n.vaccineRabies, 'type': 'mandatory', 'desc': 'Obrigatória por lei.', 'freq': 'Anual.'},
-      {'name': l10n.vaccineGiardia, 'type': 'optional', 'desc': 'Recomendada para cães que convivem em grupos.', 'freq': 'Anual (2 doses iniciais).'},
-      {'name': l10n.vaccineFlu, 'type': 'optional', 'desc': 'Importante em invernos ou creches.', 'freq': 'Anual.'},
-      {'name': l10n.vaccineLeishmania, 'type': 'optional', 'desc': 'Essencial em áreas endêmicas.', 'freq': 'Anual (Protocolo Específico).'},
-    ] : [
-      {'name': l10n.vaccineV3V4V5, 'type': 'mandatory', 'desc': 'Essencial. Rinotraqueíte, Calicivirose, Panleucopenia.', 'freq': 'Anual (Reforço).'},
-      {'name': l10n.vaccineRabies, 'type': 'mandatory', 'desc': 'Obrigatória por lei.', 'freq': 'Anual.'},
-      {'name': l10n.vaccineFivFelv, 'type': 'optional', 'desc': 'Recomendada para gatos com acesso à rua.', 'freq': 'Anual.'},
-    ];
+    final isDog = widget.species.toLowerCase().contains('cão') ||
+        widget.species.toLowerCase().contains('dog');
+
+    final List<Map<String, dynamic>> items = isDog
+        ? [
+            {
+              'name': l10n.vaccineV8V10,
+              'type': 'mandatory',
+              'desc': 'Essencial. Protege contra Cinomose, Parvovirose, etc.',
+              'freq': 'Anual (Reforço). Filhotes: 3 doses.'
+            },
+            {
+              'name': l10n.vaccineRabies,
+              'type': 'mandatory',
+              'desc': 'Obrigatória por lei.',
+              'freq': 'Anual.'
+            },
+            {
+              'name': l10n.vaccineGiardia,
+              'type': 'optional',
+              'desc': 'Recomendada para cães que convivem em grupos.',
+              'freq': 'Anual (2 doses iniciais).'
+            },
+            {
+              'name': l10n.vaccineFlu,
+              'type': 'optional',
+              'desc': 'Importante em invernos ou creches.',
+              'freq': 'Anual.'
+            },
+            {
+              'name': l10n.vaccineLeishmania,
+              'type': 'optional',
+              'desc': 'Essencial em áreas endêmicas.',
+              'freq': 'Anual (Protocolo Específico).'
+            },
+          ]
+        : [
+            {
+              'name': l10n.vaccineV3V4V5,
+              'type': 'mandatory',
+              'desc': 'Essencial. Rinotraqueíte, Calicivirose, Panleucopenia.',
+              'freq': 'Anual (Reforço).'
+            },
+            {
+              'name': l10n.vaccineRabies,
+              'type': 'mandatory',
+              'desc': 'Obrigatória por lei.',
+              'freq': 'Anual.'
+            },
+            {
+              'name': l10n.vaccineFivFelv,
+              'type': 'optional',
+              'desc': 'Recomendada para gatos com acesso à rua.',
+              'freq': 'Anual.'
+            },
+          ];
 
     return items.map((item) {
-       final isMandatory = item['type'] == 'mandatory';
-       final color = isMandatory ? AppDesign.petPink : Colors.blue;
-       
-       return Container(
-         margin: const EdgeInsets.only(bottom: 8),
-         padding: const EdgeInsets.all(8),
-         decoration: BoxDecoration(
-           color: color.withValues(alpha: 0.1), // Sanitized per instructions
-           borderRadius: BorderRadius.circular(8),
-           border: Border.all(color: color.withValues(alpha: 0.3)),
-         ),
-         child: Column(
-           crossAxisAlignment: CrossAxisAlignment.start,
-           children: [
-             Row(
-               children: [
-                 Icon(isMandatory ? Icons.check_circle : Icons.info, color: color, size: 16),
-                 const SizedBox(width: 8),
-                 Expanded(
-                   child: Text(
-                     item['name'], 
-                     style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)
-                   ),
-                 ),
-                 Container(
-                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                   decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
-                   child: Text(
-                     isMandatory ? l10n.vaccinationMandatory : l10n.vaccinationOptional,
-                     style: GoogleFonts.poppins(
-                       color: isMandatory ? Colors.black : Colors.white,
-                       fontSize: 9, 
-                       fontWeight: FontWeight.bold
-                     )
-                   ),
-                 ),
-               ],
-             ),
-             const SizedBox(height: 4),
-             Text(
-               item['desc'],
-                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Frequência: ${item['freq']}',
-                style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w600),
-              ),
-           ],
-         ),
-       );
+      final isMandatory = item['type'] == 'mandatory';
+      final color = isMandatory ? AppDesign.petPink : Colors.blue;
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1), // Sanitized per instructions
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(isMandatory ? Icons.check_circle : Icons.info,
+                    color: color, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(item['name'],
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13)),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                      color: color, borderRadius: BorderRadius.circular(4)),
+                  child: Text(
+                      isMandatory
+                          ? l10n.vaccinationMandatory
+                          : l10n.vaccinationOptional,
+                      style: GoogleFonts.poppins(
+                          color: isMandatory ? Colors.black : Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              item['desc'],
+              style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Frequência: ${item['freq']}',
+              style: GoogleFonts.poppins(
+                  color: AppDesign.petPink,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      );
     }).toList();
   }
 }
@@ -413,12 +483,13 @@ class _VaccineRow extends StatelessWidget {
   final DateTime? date;
   final Function(DateTime) onDateSelected;
 
-  const _VaccineRow({required this.label, required this.date, required this.onDateSelected});
+  const _VaccineRow(
+      {required this.label, required this.date, required this.onDateSelected});
 
   @override
   Widget build(BuildContext context) {
     final hasDate = date != null;
-    
+
     return Row(
       children: [
         Expanded(
@@ -443,7 +514,9 @@ class _VaccineRow extends StatelessWidget {
                       onPrimary: Colors.white,
                       surface: Colors.grey,
                       onSurface: Colors.white,
-                    ), dialogTheme: DialogThemeData(backgroundColor: Colors.grey[900]),
+                    ),
+                    dialogTheme:
+                        DialogThemeData(backgroundColor: Colors.grey[900]),
                   ),
                   child: child!,
                 );
@@ -457,24 +530,26 @@ class _VaccineRow extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: hasDate 
-                  ? (date!.isBefore(DateTime.now().subtract(const Duration(days: 365))) ? Colors.red.withValues(alpha: 0.2) : AppDesign.petPink.withValues(alpha: 0.2)) 
+              color: hasDate
+                  ? (date!.isBefore(
+                          DateTime.now().subtract(const Duration(days: 365)))
+                      ? Colors.red.withValues(alpha: 0.2)
+                      : AppDesign.petPink.withValues(alpha: 0.2))
                   : Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                  color: hasDate 
-                      ? (date!.isBefore(DateTime.now().subtract(const Duration(days: 365))) ? Colors.red : AppDesign.petPink) 
-                      : Colors.white24
-              ),
+                  color: hasDate
+                      ? (date!.isBefore(DateTime.now()
+                              .subtract(const Duration(days: 365)))
+                          ? Colors.red
+                          : AppDesign.petPink)
+                      : Colors.white24),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.calendar_today, 
-                  size: 14, 
-                  color: hasDate ? Colors.white : Colors.white54
-                ),
+                Icon(Icons.calendar_today,
+                    size: 14, color: hasDate ? Colors.white : Colors.white54),
                 const SizedBox(width: 8),
                 Text(
                   hasDate ? DateFormat('dd/MM/yy').format(date!) : 'Definir',

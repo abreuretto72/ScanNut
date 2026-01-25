@@ -49,7 +49,7 @@
             android:value="2" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_key" />
+            android:value="AIzaSyAefVvG5t6c_gHCnxbJLX7sIo1rqHXuiO0" />
         <!-- ML Kit OCR Model Download -->
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

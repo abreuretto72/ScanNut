@@ -1,26 +1,29 @@
 /// Health Event Types for Pet Module
 /// Defines all possible health occurrences organized in 7 clinical groups
-/// 
+///
 /// This file provides a comprehensive classification system for health events
 
 enum HealthEventGroup {
-  dailyMonitoring,      // Grupo A: Monitoramento Diário
-  acuteSymptoms,        // Grupo B: Sintomas Agudos
-  infectiousDisease,    // Grupo C: Infeccioso/Parasitário
-  dermatological,       // Grupo D: Dermatológico
-  mobility,             // Grupo E: Mobilidade/Ortopédico
-  neurological,         // Grupo F: Neurológico/Sensorial
-  treatment,            // Grupo G: Tratamento/Procedimento
+  dailyMonitoring, // Grupo A: Monitoramento Diário
+  acuteSymptoms, // Grupo B: Sintomas Agudos
+  infectiousDisease, // Grupo C: Infeccioso/Parasitário
+  dermatological, // Grupo D: Dermatológico
+  mobility, // Grupo E: Mobilidade/Ortopédico
+  neurological, // Grupo F: Neurológico/Sensorial
+  treatment, // Grupo G: Tratamento/Procedimento
 }
 
 enum HealthEventType {
   // GRUPO A — Monitoramento Diário
-  temperature_check('daily_monitoring', HealthEventGroup.dailyMonitoring, false),
+  temperature_check(
+      'daily_monitoring', HealthEventGroup.dailyMonitoring, false),
   weight_check('daily_monitoring', HealthEventGroup.dailyMonitoring, false),
-  appetite_monitoring('daily_monitoring', HealthEventGroup.dailyMonitoring, false),
+  appetite_monitoring(
+      'daily_monitoring', HealthEventGroup.dailyMonitoring, false),
   hydration_check('daily_monitoring', HealthEventGroup.dailyMonitoring, false),
   energy_level('daily_monitoring', HealthEventGroup.dailyMonitoring, false),
-  behavior_observation('daily_monitoring', HealthEventGroup.dailyMonitoring, false),
+  behavior_observation(
+      'daily_monitoring', HealthEventGroup.dailyMonitoring, false),
 
   // GRUPO B — Sintomas Agudos
   fever('acute_symptoms', HealthEventGroup.acuteSymptoms, false),

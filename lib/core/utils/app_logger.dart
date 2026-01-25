@@ -23,17 +23,19 @@ class AppLogger {
   void error(String message, {dynamic error, StackTrace? stackTrace}) {
     _log(LogLevel.error, message, error: error, stackTrace: stackTrace);
   }
+
   void debug(String message) => _log(LogLevel.debug, message);
 
-  void _log(LogLevel level, String message, {dynamic error, StackTrace? stackTrace}) {
+  void _log(LogLevel level, String message,
+      {dynamic error, StackTrace? stackTrace}) {
     final timestamp = DateTime.now().toIso8601String();
     final prefix = level.toString().split('.').last.toUpperCase();
-    
+
     // Mask sensitive info (very basic implementation)
     final maskedMessage = _maskSecrets(message);
-    
+
     final logEntry = '[$timestamp] [$prefix] $maskedMessage';
-    
+
     if (_logs.length >= _maxLogs) {
       _logs.removeAt(0);
     }
@@ -55,8 +57,9 @@ class AppLogger {
 
   String _maskSecrets(String message) {
     // Mask potential tokens/keys
-    return message.replaceAll(RegExp(r'AIza[0-9A-Za-z-_]{35}'), 'AIza...[MASKED]')
-                 .replaceAll(RegExp(r'ya29\.[0-9A-Za-z-_]+'), 'ya29...[MASKED]');
+    return message
+        .replaceAll(RegExp(r'AIza[0-9A-Za-z-_]{35}'), 'AIza...[MASKED]')
+        .replaceAll(RegExp(r'ya29\.[0-9A-Za-z-_]+'), 'ya29...[MASKED]');
   }
 
   void clearLogs() {

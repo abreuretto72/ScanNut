@@ -9,6 +9,41 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get petChatTitle => 'Chat with ScanNut AI';
+
+  @override
+  String get petChatPrompt => 'Ask something about your pet...';
+
+  @override
+  String get petChatDangerousAlert => '⚠️ Danger Alert';
+
+  @override
+  String get petChatSafeAlert => '✅ Confirmed Info';
+
+  @override
+  String petChatNoData(Object domain) {
+    return 'I don\'t have records for $domain for this pet yet.';
+  }
+
+  @override
+  String get petChatIdentity => 'identity';
+
+  @override
+  String get petChatHealth => 'health';
+
+  @override
+  String get petChatNutrition => 'nutrition';
+
+  @override
+  String get petChatTravel => 'travel';
+
+  @override
+  String get petChatAgenda => 'agenda';
+
+  @override
+  String get petChatPlans => 'plans';
+
+  @override
   String get appTitle => 'ScanNut';
 
   @override
@@ -6954,4 +6989,109 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get travelDocFelvDesc => 'Important for pet stays and feline safety.';
+
+  @override
+  String get tabScanWalk => 'ScanWalk';
+
+  @override
+  String get scanWalkNoPetError =>
+      'It is necessary to have at least one pet registered to start a walk.';
+
+  @override
+  String get scanWalkTitle => 'Smart Walks';
+
+  @override
+  String get scanWalkMap => 'Interactive Map';
+
+  @override
+  String get scanWalkFriends => 'Friends Found';
+
+  @override
+  String get scanWalkAlerts => 'Risk Zones';
+
+  @override
+  String get scanWalkStart => 'Start Walk';
+
+  @override
+  String get scanWalkDistance => 'Distance';
+
+  @override
+  String get scanWalkDuration => 'Duration';
+
+  @override
+  String get walkXixi => 'Pee';
+
+  @override
+  String get walkFezes => 'Stool';
+
+  @override
+  String get walkAgua => 'Water';
+
+  @override
+  String get walkOutros => 'Others';
+
+  @override
+  String get walkAmigo => 'Friend';
+
+  @override
+  String get walkLatido => 'Bark';
+
+  @override
+  String get walkPerigo => 'Danger';
+
+  @override
+  String get walkBrigas => 'Fight';
+
+  @override
+  String get walkBristolScore => 'Bristol Score';
+
+  @override
+  String get walkFriendDesc => 'Friend\'s Name';
+
+  @override
+  String get walkHazardDesc => 'Danger Type';
+
+  @override
+  String get walkFightDesc => 'Fight Details';
+
+  @override
+  String get walkDemoBtn => 'Demo';
+
+  @override
+  String get walkMicRec => 'Listening...';
+
+  @override
+  String get walkCamRec => 'Photo captured';
+
+  @override
+  String get walkBristolIdeal => 'Ideal';
+
+  @override
+  String get walkBristolConstipated => 'Hard';
+
+  @override
+  String get walkBristolLiquid => 'Liquid';
+
+  @override
+  String get walkExitConfirm => 'Do you want to end the walk?';
+
+  @override
+  String get walkSaveSuccess => 'Record saved to the 9th Report!';
+
+  @override
+  String get walkVoicePromptFriend =>
+      'Say the name, sex, and age of the friend.';
+
+  @override
+  String get walkVoicePromptDanger =>
+      'Say what the danger is (e.g., glass, poison).';
+
+  @override
+  String get walkVoicePromptFight => 'Say the breed and sex of the aggressor.';
+
+  @override
+  String get walkAnalysisStool => 'Analyzing Stool (AI)...';
+
+  @override
+  String get walkAnalysisBark => 'Analyzing Bark (AI)...';
 }

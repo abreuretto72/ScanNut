@@ -42,11 +42,13 @@ class ChipsInputField extends StatelessWidget {
             ),
             filled: true,
             fillColor: AppDesign.backgroundDark,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none),
           ),
           onSubmitted: (text) {
-             final t = text.trim();
-             if (t.isNotEmpty) onAdd(t);
+            final t = text.trim();
+            if (t.isNotEmpty) onAdd(t);
           },
         ),
         if (chips.isNotEmpty) ...[
@@ -56,12 +58,30 @@ class ChipsInputField extends StatelessWidget {
             runSpacing: 8,
             children: List.generate(chips.length, (index) {
               return Chip(
-                label: Text(chips[index], style: const TextStyle(color: Colors.white, fontSize: 11)),
-                backgroundColor: chipColor ?? AppDesign.petPink.withValues(alpha: 0.1),
-                deleteIcon: const Icon(Icons.close, size: 14, color: Colors.white70),
+                label: Text(chips[index],
+                    style: TextStyle(
+                        color: (chipColor ??
+                                        AppDesign.petPink
+                                            .withValues(alpha: 0.1))
+                                    .opacity >
+                                0.5
+                            ? Colors.black
+                            : Colors.white,
+                        fontSize: 11)),
+                backgroundColor:
+                    chipColor ?? AppDesign.petPink.withValues(alpha: 0.1),
+                deleteIcon: Icon(Icons.close,
+                    size: 14,
+                    color:
+                        (chipColor ?? AppDesign.petPink.withValues(alpha: 0.1))
+                                    .opacity >
+                                0.5
+                            ? Colors.black54
+                            : Colors.white70),
                 onDeleted: () => onDelete(index),
                 side: BorderSide.none,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               );
             }),
           ),

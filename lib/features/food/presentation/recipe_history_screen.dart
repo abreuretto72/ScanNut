@@ -22,7 +22,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
   bool _isReady = false;
   bool _hasError = false;
   String _errorMessage = '';
-  
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +45,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
       debugPrint('📜 [RecipeHistoryScreen] Stack Trace: $s');
       if (mounted) {
         setState(() {
-          _isReady = true; 
+          _isReady = true;
           _hasError = true;
           _errorMessage = e.toString();
         });
@@ -58,7 +58,9 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.historyTitleRecipes, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(AppLocalizations.of(context)!.historyTitleRecipes,
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -73,52 +75,65 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
           )
         ],
       ),
-      body: !_isReady 
-          ? const Center(child: CircularProgressIndicator(color: AppDesign.foodOrange))
+      body: !_isReady
+          ? const Center(
+              child: CircularProgressIndicator(color: AppDesign.foodOrange))
           : _hasError
-            ? Center(child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(AppLocalizations.of(context)!.historyErrorLoading(_errorMessage), textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.redAccent)),
-              ))
-            : ValueListenableBuilder<Box<RecipeHistoryItem>>(
-              valueListenable: Hive.box<RecipeHistoryItem>(RecipeService.boxName).listenable(),
-              builder: (context, box, _) {
-                debugPrint('🔍 Recipe History Debug: Box Open? ${box.isOpen}, Key Count: ${box.keys.length}, Values Count: ${box.values.length}');
-                final recipes = box.values.toList();
-                recipes.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+              ? Center(
+                  child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                      AppLocalizations.of(context)!
+                          .historyErrorLoading(_errorMessage),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: Colors.redAccent)),
+                ))
+              : ValueListenableBuilder<Box<RecipeHistoryItem>>(
+                  valueListenable:
+                      Hive.box<RecipeHistoryItem>(RecipeService.boxName)
+                          .listenable(),
+                  builder: (context, box, _) {
+                    debugPrint(
+                        '🔍 Recipe History Debug: Box Open? ${box.isOpen}, Key Count: ${box.keys.length}, Values Count: ${box.values.length}');
+                    final recipes = box.values.toList();
+                    recipes.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
-                if (recipes.isEmpty) {
-                   return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.restaurant_menu, size: 60, color: AppDesign.foodOrange.withValues(alpha: 0.5)),
-                          const SizedBox(height: 16),
-                          Text(
-                            AppLocalizations.of(context)!.historyEmptyRecipes,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(color: Colors.white54, fontSize: 16),
-                          ),
-                        ],
-                      ),
-                   );
-                }
+                    if (recipes.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.restaurant_menu,
+                                size: 60,
+                                color: AppDesign.foodOrange
+                                    .withValues(alpha: 0.5)),
+                            const SizedBox(height: 16),
+                            Text(
+                              AppLocalizations.of(context)!.historyEmptyRecipes,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                  color: Colors.white54, fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: recipes.length,
-                  itemBuilder: (context, index) {
-                    return _buildRecipeCard(recipes[index]);
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: recipes.length,
+                      itemBuilder: (context, index) {
+                        return _buildRecipeCard(recipes[index]);
+                      },
+                    );
                   },
-                );
-              },
-            ),
+                ),
     );
   }
 
   Widget _buildRecipeCard(RecipeHistoryItem recipe) {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm', 'pt_BR');
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -138,7 +153,9 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                 color: Colors.black26,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Center(child: Icon(Icons.restaurant, color: AppDesign.foodOrange, size: 30)),
+              child: const Center(
+                  child: Icon(Icons.restaurant,
+                      color: AppDesign.foodOrange, size: 30)),
             ),
             const SizedBox(width: 12),
             // Content
@@ -152,25 +169,37 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                       Expanded(
                         child: Text(
                           recipe.recipeName,
-                          style: GoogleFonts.poppins(color: AppDesign.foodOrange, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: GoogleFonts.poppins(
+                              color: AppDesign.foodOrange,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: AppDesign.foodOrange.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                        child: Text(recipe.prepTime, style: GoogleFonts.poppins(color: AppDesign.foodOrange, fontSize: 10, fontWeight: FontWeight.bold)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                            color: AppDesign.foodOrange.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Text(recipe.prepTime,
+                            style: GoogleFonts.poppins(
+                                color: AppDesign.foodOrange,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${recipe.foodName} • ${dateFormat.format(recipe.timestamp)}',
-                    style: GoogleFonts.poppins(color: Colors.white38, fontSize: 10),
+                    style: GoogleFonts.poppins(
+                        color: Colors.white38, fontSize: 10),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     recipe.instructions,
-                    style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, height: 1.3),
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70, fontSize: 12, height: 1.3),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -181,7 +210,10 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                       onTap: () => _showFullRecipe(recipe),
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
-                        child: Text(AppLocalizations.of(context)!.btnViewDetails, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
+                        child: Text(
+                            AppLocalizations.of(context)!.btnViewDetails,
+                            style: GoogleFonts.poppins(
+                                color: Colors.white54, fontSize: 11)),
                       ),
                     ),
                   )
@@ -199,28 +231,39 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text(recipe.recipeName, style: GoogleFonts.poppins(color: AppDesign.foodOrange, fontWeight: FontWeight.bold)),
+        title: Text(recipe.recipeName,
+            style: GoogleFonts.poppins(
+                color: AppDesign.foodOrange, fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                  if (recipe.imagePath != null && File(recipe.imagePath!).existsSync())
-                    ClipRRect(
-                       borderRadius: BorderRadius.circular(12),
-                       child: Image.file(File(recipe.imagePath!), width: double.infinity, height: 200, fit: BoxFit.cover),
-                    ),
-                  const SizedBox(height: 16),
-                  Text(AppLocalizations.of(context)!.labelMainIngredient(recipe.foodName), style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
-                  const SizedBox(height: 16),
-                  Text(recipe.instructions, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+              if (recipe.imagePath != null &&
+                  File(recipe.imagePath!).existsSync())
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(File(recipe.imagePath!),
+                      width: double.infinity, height: 200, fit: BoxFit.cover),
+                ),
+              const SizedBox(height: 16),
+              Text(
+                  AppLocalizations.of(context)!
+                      .labelMainIngredient(recipe.foodName),
+                  style:
+                      GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+              const SizedBox(height: 16),
+              Text(recipe.instructions,
+                  style:
+                      GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.commonClose, style: GoogleFonts.poppins(color: Colors.white)),
+            child: Text(AppLocalizations.of(context)!.commonClose,
+                style: GoogleFonts.poppins(color: Colors.white)),
           ),
         ],
       ),
@@ -229,16 +272,16 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
 
   void _showExportModal(BuildContext context) {
     if (!Hive.isBoxOpen(RecipeService.boxName)) return;
-    
+
     final box = Hive.box<RecipeHistoryItem>(RecipeService.boxName);
     final allItems = box.values.toList();
     allItems.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
     if (allItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.msgNoHistoryToExport)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.msgNoHistoryToExport)));
       return;
     }
-
 
     showModalBottomSheet(
       context: context,
@@ -249,21 +292,18 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
         onGenerate: (selectedItems) async {
           // Close the modal first
           Navigator.pop(modalContext);
-          
+
           // Show loading dialog
           showDialog(
             context: context,
             barrierDismissible: false,
             builder: (dialogContext) => const Center(
-              child: CircularProgressIndicator(color: AppDesign.foodOrange)
-            ),
+                child: CircularProgressIndicator(color: AppDesign.foodOrange)),
           );
 
           try {
             final doc = await ExportService().generateRecipeBookReport(
-              items: selectedItems,
-              strings: AppLocalizations.of(context)!
-            );
+                items: selectedItems, strings: AppLocalizations.of(context)!);
 
             // Close loading dialog
             if (Navigator.canPop(context)) {
@@ -271,7 +311,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
             }
 
             if (!mounted) return;
-            
+
             // Navigate to PDF preview
             Navigator.push(
               context,
@@ -287,13 +327,13 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             }
-            
+
             debugPrint('❌ Error generating PDF: $e');
-            
+
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.pdfErrorGeneration(e.toString())))
-              );
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(AppLocalizations.of(context)!
+                      .pdfErrorGeneration(e.toString()))));
             }
           }
         },
@@ -306,11 +346,18 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text(AppLocalizations.of(context)!.dialogClearHistoryTitle, style: GoogleFonts.poppins(color: Colors.white)),
-        content: Text(AppLocalizations.of(context)!.dialogClearHistoryBody, style: GoogleFonts.poppins(color: Colors.white70)),
+        title: Text(AppLocalizations.of(context)!.dialogClearHistoryTitle,
+            style: GoogleFonts.poppins(color: Colors.white)),
+        content: Text(AppLocalizations.of(context)!.dialogClearHistoryBody,
+            style: GoogleFonts.poppins(color: Colors.white70)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.commonCancel)),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(AppLocalizations.of(context)!.commonDelete, style: const TextStyle(color: Colors.red))),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(AppLocalizations.of(context)!.commonCancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(AppLocalizations.of(context)!.commonDelete,
+                  style: const TextStyle(color: Colors.red))),
         ],
       ),
     );

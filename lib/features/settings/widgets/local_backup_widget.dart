@@ -33,10 +33,13 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
       if (await Permission.manageExternalStorage.isDenied) {
         await Permission.manageExternalStorage.request();
       }
-      
+
       final status = await Permission.storage.request();
-      if (status.isDenied && (await Permission.manageExternalStorage.isDenied)) {
-        if (mounted) SnackBarHelper.showError(context, l10n.backupPermissionError);
+      if (status.isDenied &&
+          (await Permission.manageExternalStorage.isDenied)) {
+        if (mounted) {
+          SnackBarHelper.showError(context, l10n.backupPermissionError);
+        }
         return;
       }
     }
@@ -53,7 +56,8 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
             context: context,
             builder: (context) => AlertDialog(
               backgroundColor: Colors.grey.shade900,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               title: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -77,7 +81,10 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(l10n.backupExcellent, style: GoogleFonts.poppins(color: const Color(0xFF00E676), fontWeight: FontWeight.bold)),
+                  child: Text(l10n.backupExcellent,
+                      style: GoogleFonts.poppins(
+                          color: const Color(0xFF00E676),
+                          fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -93,17 +100,21 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Colors.grey.shade900,
-            title: Text(l10n.backupTechnicalErrorTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+            title: Text(l10n.backupTechnicalErrorTitle,
+                style: GoogleFonts.poppins(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
             content: SingleChildScrollView(
               child: Text(
                 l10n.backupTechnicalErrorBody(e.toString()),
-                style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 13),
+                style:
+                    GoogleFonts.poppins(color: Colors.redAccent, fontSize: 13),
               ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text("OK", style: GoogleFonts.poppins(color: Colors.white)),
+                child:
+                    Text("OK", style: GoogleFonts.poppins(color: Colors.white)),
               )
             ],
           ),
@@ -119,7 +130,8 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
         backgroundColor: Colors.grey.shade900,
         title: Text(
           l10n.backupRestoreConfirmTitle,
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+              color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: Text(
           l10n.backupRestoreConfirmBody,
@@ -128,11 +140,14 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.commonCancel, style: GoogleFonts.poppins(color: Colors.white54)),
+            child: Text(l10n.commonCancel,
+                style: GoogleFonts.poppins(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Restaurar', style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+            child: Text('Restaurar',
+                style: GoogleFonts.poppins(
+                    color: Colors.redAccent, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -202,37 +217,45 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.lock_outline, color: Colors.indigoAccent, size: 16),
+                const Icon(Icons.lock_outline,
+                    color: Colors.indigoAccent, size: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     l10n.backupSecurityNotice,
-                    style: GoogleFonts.poppins(color: Colors.indigoAccent.shade100, fontSize: 11),
+                    style: GoogleFonts.poppins(
+                        color: Colors.indigoAccent.shade100, fontSize: 11),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
-          
+
           // 1. Export Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: _isExporting ? null : _handleExport,
-              icon: _isExporting 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.upload_file, size: 18),
-              label: Text('Fazer Backup', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+              icon: _isExporting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.upload_file, size: 18),
+              label: Text('Fazer Backup',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppDesign.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
-          
+
           const SizedBox(height: 12),
 
           // 2. Import Button
@@ -241,14 +264,20 @@ class _LocalBackupWidgetState extends State<LocalBackupWidget> {
             child: ElevatedButton.icon(
               onPressed: _isImporting ? null : _handleImport,
               icon: _isImporting
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.file_download, size: 18),
-              label: Text(l10n.backupImport, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.file_download, size: 18),
+              label: Text(l10n.backupImport,
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppDesign.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),

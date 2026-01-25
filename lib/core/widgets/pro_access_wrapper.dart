@@ -17,7 +17,8 @@ class ProAccessWrapper extends ConsumerWidget {
     super.key,
     required this.child,
     required this.featureName,
-    this.featureDescription = 'Este recurso está disponível apenas para assinantes Pro',
+    this.featureDescription =
+        'Este recurso está disponível apenas para assinantes Pro',
     this.featureIcon,
   });
 
@@ -29,7 +30,7 @@ class ProAccessWrapper extends ConsumerWidget {
     // TODO: REVERTER ANTES DE PUBLICAR NA LOJA!
     // Forçando isPro = true para captura de telas
     const bool screenshotMode = true; // ← MUDAR PARA false ANTES DE PUBLICAR!
-    
+
     // If Pro OR in screenshot mode, show the original content
     if (subscriptionState.isPro || screenshotMode) {
       return child;
@@ -58,7 +59,7 @@ class ProAccessWrapper extends ConsumerWidget {
 
   Widget _buildPaywallInvitation(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -96,7 +97,8 @@ class ProAccessWrapper extends ConsumerWidget {
 
                 // Pro Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
@@ -201,7 +203,8 @@ class ProAccessWrapper extends ConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const PaywallScreen(showRestoreFirst: true),
+                        builder: (context) =>
+                            const PaywallScreen(showRestoreFirst: true),
                       ),
                     );
                   },
@@ -220,6 +223,7 @@ class ProAccessWrapper extends ConsumerWidget {
       ),
     );
   }
+
   Widget _buildBenefitItem(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

@@ -45,7 +45,7 @@ class _AddEventModalState extends State<AddEventModal> {
   final TextEditingController _contentController = TextEditingController();
   late TimeOfDay _time;
   bool _isListening = false;
-  
+
   EventCategory _selectedCategory = EventCategory.consulta;
   String? _selectedAttendant;
   List<String> _attachments = [];
@@ -65,7 +65,7 @@ class _AddEventModalState extends State<AddEventModal> {
       _time = TimeOfDay.now();
     }
   }
-  
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -77,11 +77,17 @@ class _AddEventModalState extends State<AddEventModal> {
     if (cat == EventCategory.vacina) return EventType.vaccine;
     if (cat == EventCategory.banho) return EventType.bath;
     if (cat == EventCategory.tosa) return EventType.grooming;
-    if (cat == EventCategory.consulta || cat == EventCategory.saude || cat == EventCategory.emergencia || cat == EventCategory.exame || cat == EventCategory.cirurgia) return EventType.veterinary;
+    if (cat == EventCategory.consulta ||
+        cat == EventCategory.saude ||
+        cat == EventCategory.emergencia ||
+        cat == EventCategory.exame ||
+        cat == EventCategory.cirurgia) {
+      return EventType.veterinary;
+    }
     if (cat == EventCategory.remedios) return EventType.medication;
     return EventType.other;
   }
-  
+
   Future<void> _pickAttachment() async {
     showModalBottomSheet(
       context: context,
@@ -96,21 +102,26 @@ class _AddEventModalState extends State<AddEventModal> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt, color: AppDesign.petPink),
-              title: Text(AppLocalizations.of(context)!.commonCamera, style: const TextStyle(color: AppDesign.textPrimaryDark)),
+              title: Text(AppLocalizations.of(context)!.commonCamera,
+                  style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
-                final photo = await _imagePicker.pickImage(source: ImageSource.camera);
+                final photo =
+                    await _imagePicker.pickImage(source: ImageSource.camera);
                 if (photo != null) {
                   setState(() => _attachments.add(photo.path));
                 }
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: AppDesign.petPink),
-              title: Text(AppLocalizations.of(context)!.commonGallery, style: const TextStyle(color: AppDesign.textPrimaryDark)),
+              leading:
+                  const Icon(Icons.photo_library, color: AppDesign.petPink),
+              title: Text(AppLocalizations.of(context)!.commonGallery,
+                  style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
-                final photo = await _imagePicker.pickImage(source: ImageSource.gallery);
+                final photo =
+                    await _imagePicker.pickImage(source: ImageSource.gallery);
                 if (photo != null) {
                   setState(() => _attachments.add(photo.path));
                 }
@@ -118,7 +129,8 @@ class _AddEventModalState extends State<AddEventModal> {
             ),
             ListTile(
               leading: const Icon(Icons.attach_file, color: AppDesign.petPink),
-              title: Text(AppLocalizations.of(context)!.commonPDFFile, style: const TextStyle(color: AppDesign.textPrimaryDark)),
+              title: Text(AppLocalizations.of(context)!.commonPDFFile,
+                  style: const TextStyle(color: AppDesign.textPrimaryDark)),
               onTap: () async {
                 Navigator.pop(context);
                 final result = await FilePicker.platform.pickFiles(
@@ -140,7 +152,8 @@ class _AddEventModalState extends State<AddEventModal> {
     if (!_isListening) {
       bool available = await widget.speech.initialize(
         onStatus: (status) => debugPrint('onStatus: $status'),
-        onError: (errorNotification) => debugPrint('onError: $errorNotification'),
+        onError: (errorNotification) =>
+            debugPrint('onError: $errorNotification'),
       );
       if (available) {
         setState(() => _isListening = true);
@@ -150,7 +163,7 @@ class _AddEventModalState extends State<AddEventModal> {
               _contentController.text = val.recognizedWords;
             });
           },
-          localeId: Localizations.localeOf(context).toString(), 
+          localeId: Localizations.localeOf(context).toString(),
         );
       } else {
         await Permission.microphone.request();
@@ -174,9 +187,11 @@ class _AddEventModalState extends State<AddEventModal> {
             children: [
               Center(
                 child: Text(
-                  widget.isReadOnly 
-                    ? AppLocalizations.of(context)!.agendaAppointmentDetails 
-                    : (widget.existingEvent != null ? AppLocalizations.of(context)!.agendaEditEvent : AppLocalizations.of(context)!.agendaNewEvent),
+                  widget.isReadOnly
+                      ? AppLocalizations.of(context)!.agendaAppointmentDetails
+                      : (widget.existingEvent != null
+                          ? AppLocalizations.of(context)!.agendaEditEvent
+                          : AppLocalizations.of(context)!.agendaNewEvent),
                   style: GoogleFonts.poppins(
                     color: AppDesign.textPrimaryDark,
                     fontSize: 18,
@@ -187,21 +202,32 @@ class _AddEventModalState extends State<AddEventModal> {
               const SizedBox(height: 24),
 
               // Campo: Parceiro/Local (Visualização apenas)
-              _buildInfoField(AppLocalizations.of(context)!.agendaResponsiblePartner, widget.partner.name, Icons.location_on),
+              _buildInfoField(
+                  AppLocalizations.of(context)!.agendaResponsiblePartner,
+                  widget.partner.name,
+                  Icons.location_on),
               const SizedBox(height: 16),
 
               // Campo: Pet (Visualização apenas se houver petId)
               if (widget.petId != null) ...[
-                _buildInfoField(AppLocalizations.of(context)!.pdfFieldPet, widget.petId!, Icons.pets),
+                _buildInfoField(AppLocalizations.of(context)!.pdfFieldPet,
+                    widget.petId!, Icons.pets),
                 const SizedBox(height: 16),
               ],
 
               // Campo: Data
-              _buildInfoField(AppLocalizations.of(context)!.pdfDate, DateFormat('dd/MM/yyyy').format(widget.selectedDate), Icons.calendar_today),
+              _buildInfoField(
+                  AppLocalizations.of(context)!.pdfDate,
+                  DateFormat('dd/MM/yyyy').format(widget.selectedDate),
+                  Icons.calendar_today),
               const SizedBox(height: 16),
 
               // Campo: Hora
-              Text(AppLocalizations.of(context)!.pdfFieldTime, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(AppLocalizations.of(context)!.pdfFieldTime,
+                  style: const TextStyle(
+                      color: AppDesign.textSecondaryDark,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               InkWell(
                 onTap: () async {
@@ -227,7 +253,8 @@ class _AddEventModalState extends State<AddEventModal> {
                   if (t != null) setState(() => _time = t);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white10,
                     borderRadius: BorderRadius.circular(12),
@@ -246,108 +273,150 @@ class _AddEventModalState extends State<AddEventModal> {
                         ),
                       ),
                       const Spacer(),
-                      if (!widget.isReadOnly) 
-                        Text(AppLocalizations.of(context)!.agendaChange, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
+                      if (!widget.isReadOnly)
+                        Text(AppLocalizations.of(context)!.agendaChange,
+                            style: const TextStyle(
+                                color: AppDesign.textSecondaryDark,
+                                fontSize: 12)),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              Text(AppLocalizations.of(context)!.pdfFieldCategory, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(AppLocalizations.of(context)!.pdfFieldCategory,
+                  style: const TextStyle(
+                      color: AppDesign.textSecondaryDark,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+                  border: Border.all(
+                      color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<EventCategory>(
                     value: _selectedCategory,
                     isExpanded: true,
                     dropdownColor: AppDesign.surfaceDark,
-                    icon: const Icon(Icons.arrow_drop_down, color: AppDesign.petPink),
-                    style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 14),
+                    icon: const Icon(Icons.arrow_drop_down,
+                        color: AppDesign.petPink),
+                    style: const TextStyle(
+                        color: AppDesign.textPrimaryDark, fontSize: 14),
                     items: EventCategory.values.map((category) {
                       return DropdownMenuItem(
                         value: category,
                         child: Row(
                           children: [
-                            Icon(category.icon, color: category.color, size: 18),
+                            Icon(category.icon,
+                                color: category.color, size: 18),
                             const SizedBox(width: 12),
-                            Expanded(child: Text(category.label, style: const TextStyle(color: AppDesign.textPrimaryDark))),
+                            Expanded(
+                                child: Text(category.label,
+                                    style: const TextStyle(
+                                        color: AppDesign.textPrimaryDark))),
                           ],
                         ),
                       );
                     }).toList(),
-                    onChanged: (val) { if (val != null) setState(() => _selectedCategory = val); },
+                    onChanged: (val) {
+                      if (val != null) setState(() => _selectedCategory = val);
+                    },
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
               // ATENDENTE / ESPECIALISTA (BLINDADO)
-              Builder(
-                builder: (context) {
-                   // 1. Garantir lista segura
-                   final validMembers = widget.partner.teamMembers.where((m) => m.trim().isNotEmpty).toList();
-                   final hasMembers = validMembers.isNotEmpty;
-                   
-                   // 2. Se não houver membros, usar lista fallback para evitar erro items.isNotEmpty
-                   final safeItems = hasMembers ? validMembers : [AppLocalizations.of(context)!.agendaNoAttendants];
-                   
-                   // 3. Garantir value seguro
-                   String? safeValue = _selectedAttendant;
-                   if (hasMembers) {
-                      if (safeValue != null && !validMembers.contains(safeValue)) {
-                         safeValue = null; // Reset se não estiver na lista
-                      }
-                   } else {
-                      safeValue = safeItems.first; // Selecionar o fallback
-                   }
+              Builder(builder: (context) {
+                // 1. Garantir lista segura
+                final validMembers = widget.partner.teamMembers
+                    .where((m) => m.trim().isNotEmpty)
+                    .toList();
+                final hasMembers = validMembers.isNotEmpty;
 
-                   return Column(
-                     crossAxisAlignment: CrossAxisAlignment.start,
-                     children: [
-                        Text(AppLocalizations.of(context)!.agendaAttendantSpecialist, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white10,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white10),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: safeValue,
-                              isExpanded: true,
-                              dropdownColor: AppDesign.surfaceDark,
-                              icon: const Icon(Icons.arrow_drop_down, color: AppDesign.petPink),
-                              hint: Row(
-                                children: [
-                                  const Icon(Icons.person, color: AppDesign.textSecondaryDark, size: 18),
-                                  const SizedBox(width: 12),
-                                  Text(AppLocalizations.of(context)!.agendaSelectAttendant, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.3), fontSize: 14)),
-                                ],
-                              ),
-                              // 🛡️ PROTEÇÃO: Se não há membros, desabilitar ou mostrar mensagem informativa
-                              items: safeItems.map((name) => DropdownMenuItem(
-                                value: name, 
-                                enabled: hasMembers, // Desabilitar se for mensagem de erro
-                                child: Text(name, style: TextStyle(color: hasMembers ? AppDesign.textPrimaryDark : AppDesign.textSecondaryDark))
-                              )).toList(),
-                              onChanged: hasMembers ? (val) => setState(() => _selectedAttendant = val) : null,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                     ],
-                   );
+                // 2. Se não houver membros, usar lista fallback para evitar erro items.isNotEmpty
+                final safeItems = hasMembers
+                    ? validMembers
+                    : [AppLocalizations.of(context)!.agendaNoAttendants];
+
+                // 3. Garantir value seguro
+                String? safeValue = _selectedAttendant;
+                if (hasMembers) {
+                  if (safeValue != null && !validMembers.contains(safeValue)) {
+                    safeValue = null; // Reset se não estiver na lista
+                  }
+                } else {
+                  safeValue = safeItems.first; // Selecionar o fallback
                 }
-              ),
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        AppLocalizations.of(context)!.agendaAttendantSpecialist,
+                        style: const TextStyle(
+                            color: AppDesign.textSecondaryDark,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: safeValue,
+                          isExpanded: true,
+                          dropdownColor: AppDesign.surfaceDark,
+                          icon: const Icon(Icons.arrow_drop_down,
+                              color: AppDesign.petPink),
+                          hint: Row(
+                            children: [
+                              const Icon(Icons.person,
+                                  color: AppDesign.textSecondaryDark, size: 18),
+                              const SizedBox(width: 12),
+                              Text(
+                                  AppLocalizations.of(context)!
+                                      .agendaSelectAttendant,
+                                  style: GoogleFonts.poppins(
+                                      color: AppDesign.textPrimaryDark
+                                          .withValues(alpha: 0.3),
+                                      fontSize: 14)),
+                            ],
+                          ),
+                          // 🛡️ PROTEÇÃO: Se não há membros, desabilitar ou mostrar mensagem informativa
+                          items: safeItems
+                              .map((name) => DropdownMenuItem(
+                                  value: name,
+                                  enabled:
+                                      hasMembers, // Desabilitar se for mensagem de erro
+                                  child: Text(name,
+                                      style: TextStyle(
+                                          color: hasMembers
+                                              ? AppDesign.textPrimaryDark
+                                              : AppDesign.textSecondaryDark))))
+                              .toList(),
+                          onChanged: hasMembers
+                              ? (val) =>
+                                  setState(() => _selectedAttendant = val)
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }),
 
               TextField(
                 controller: _titleController,
@@ -355,13 +424,19 @@ class _AddEventModalState extends State<AddEventModal> {
                 style: const TextStyle(color: AppDesign.textPrimaryDark),
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.agendaEventTitle,
-                  labelStyle: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold),
+                  labelStyle: const TextStyle(
+                      color: AppDesign.petPink, fontWeight: FontWeight.bold),
                   hintText: AppLocalizations.of(context)!.agendaTitleExample,
-                  hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
+                  hintStyle:
+                      const TextStyle(color: AppDesign.textSecondaryDark),
                   filled: true,
                   fillColor: Colors.white10,
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.petPink)),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.white10)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: AppDesign.petPink)),
                   contentPadding: const EdgeInsets.all(16),
                 ),
               ),
@@ -376,13 +451,22 @@ class _AddEventModalState extends State<AddEventModal> {
                     style: const TextStyle(color: AppDesign.textPrimaryDark),
                     decoration: InputDecoration(
                       labelText: AppLocalizations.of(context)!.pdfObservations,
-                      labelStyle: const TextStyle(color: AppDesign.petPink, fontWeight: FontWeight.bold),
-                      hintText: AppLocalizations.of(context)!.agendaObservationsHint,
-                      hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
+                      labelStyle: const TextStyle(
+                          color: AppDesign.petPink,
+                          fontWeight: FontWeight.bold),
+                      hintText:
+                          AppLocalizations.of(context)!.agendaObservationsHint,
+                      hintStyle:
+                          const TextStyle(color: AppDesign.textSecondaryDark),
                       filled: true,
                       fillColor: Colors.white10,
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white10)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppDesign.petPink)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.white10)),
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide:
+                              const BorderSide(color: AppDesign.petPink)),
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
@@ -392,14 +476,16 @@ class _AddEventModalState extends State<AddEventModal> {
                       right: 8,
                       child: FloatingActionButton.small(
                         onPressed: _listen,
-                        backgroundColor: _isListening ? AppDesign.error : AppDesign.petPink,
-                        child: Icon(_isListening ? Icons.stop : Icons.mic, color: Colors.black),
+                        backgroundColor:
+                            _isListening ? AppDesign.error : AppDesign.petPink,
+                        child: Icon(_isListening ? Icons.stop : Icons.mic,
+                            color: Colors.black),
                       ),
                     ),
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -415,35 +501,65 @@ class _AddEventModalState extends State<AddEventModal> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.attach_file, color: AppDesign.petPink, size: 18),
+                            const Icon(Icons.attach_file,
+                                color: AppDesign.petPink, size: 18),
                             const SizedBox(width: 8),
-                            Text(AppLocalizations.of(context)!.agendaAttachmentsFull, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13, fontWeight: FontWeight.w600)),
+                            Text(
+                                AppLocalizations.of(context)!
+                                    .agendaAttachmentsFull,
+                                style: GoogleFonts.poppins(
+                                    color: AppDesign.textSecondaryDark,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600)),
                           ],
                         ),
                         if (!widget.isReadOnly)
-                          IconButton(icon: const Icon(Icons.add_photo_alternate, color: AppDesign.petPink, size: 20), onPressed: _pickAttachment, padding: EdgeInsets.zero, constraints: const BoxConstraints()),
+                          IconButton(
+                              icon: const Icon(Icons.add_photo_alternate,
+                                  color: AppDesign.petPink, size: 20),
+                              onPressed: _pickAttachment,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints()),
                       ],
                     ),
                     if (_attachments.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Wrap(
-                        spacing: 8, runSpacing: 8,
+                        spacing: 8,
+                        runSpacing: 8,
                         children: _attachments.asMap().entries.map((entry) {
                           final index = entry.key;
                           final path = entry.value;
                           final fileName = path.split('/').last;
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(color: AppDesign.petPink.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                                color:
+                                    AppDesign.petPink.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8)),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.attach_file, size: 14, color: AppDesign.petPink),
+                                const Icon(Icons.attach_file,
+                                    size: 14, color: AppDesign.petPink),
                                 const SizedBox(width: 6),
-                                ConstrainedBox(constraints: const BoxConstraints(maxWidth: 120), child: Text(fileName, style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 11), overflow: TextOverflow.ellipsis)),
+                                ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 120),
+                                    child: Text(fileName,
+                                        style: const TextStyle(
+                                            color: AppDesign.textPrimaryDark,
+                                            fontSize: 11),
+                                        overflow: TextOverflow.ellipsis)),
                                 const SizedBox(width: 4),
                                 if (!widget.isReadOnly)
-                                  GestureDetector(onTap: () => setState(() => _attachments.removeAt(index)), child: const Icon(Icons.close, size: 14, color: AppDesign.textSecondaryDark)),
+                                  GestureDetector(
+                                      onTap: () => setState(
+                                          () => _attachments.removeAt(index)),
+                                      child: const Icon(Icons.close,
+                                          size: 14,
+                                          color: AppDesign.textSecondaryDark)),
                               ],
                             ),
                           );
@@ -454,40 +570,59 @@ class _AddEventModalState extends State<AddEventModal> {
                 ),
               ),
               const SizedBox(height: 32),
-              
+
               if (!widget.isReadOnly) ...[
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_titleController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaEnterTitle), backgroundColor: AppDesign.warning));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                                AppLocalizations.of(context)!.agendaEnterTitle),
+                            backgroundColor: AppDesign.warning));
                         return;
                       }
                       // ... (existing code for creating event object)
                       final event = widget.existingEvent?.copyWith(
-                        category: _selectedCategory,
-                        title: _titleController.text.trim(),
-                        description: _contentController.text.trim(),
-                        dateTime: DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _time.hour, _time.minute),
-                        attendant: _selectedAttendant,
-                        attachments: _attachments,
-                      ) ?? AgendaEvent(
-                        id: DateTime.now().millisecondsSinceEpoch.toString(),
-                        partnerId: widget.partner.id,
-                        petId: widget.petId,
-                        category: _selectedCategory,
-                        title: _titleController.text.trim(),
-                        description: _contentController.text.trim(),
-                        dateTime: DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _time.hour, _time.minute),
-                        attendant: _selectedAttendant,
-                        attachments: _attachments,
-                        createdAt: DateTime.now(),
-                      );
-                      
+                            category: _selectedCategory,
+                            title: _titleController.text.trim(),
+                            description: _contentController.text.trim(),
+                            dateTime: DateTime(
+                                widget.selectedDate.year,
+                                widget.selectedDate.month,
+                                widget.selectedDate.day,
+                                _time.hour,
+                                _time.minute),
+                            attendant: _selectedAttendant,
+                            attachments: _attachments,
+                          ) ??
+                          AgendaEvent(
+                            id: DateTime.now()
+                                .millisecondsSinceEpoch
+                                .toString(),
+                            partnerId: widget.partner.id,
+                            petId: widget.petId,
+                            category: _selectedCategory,
+                            title: _titleController.text.trim(),
+                            description: _contentController.text.trim(),
+                            dateTime: DateTime(
+                                widget.selectedDate.year,
+                                widget.selectedDate.month,
+                                widget.selectedDate.day,
+                                _time.hour,
+                                _time.minute),
+                            attendant: _selectedAttendant,
+                            attachments: _attachments,
+                            createdAt: DateTime.now(),
+                          );
+
                       if (widget.petId != null) {
                         final pType = _mapCategoryToType(event.category);
-                        final attendantInfo = event.attendant != null && event.attendant!.isNotEmpty ? 'Atendente: ${event.attendant}\n\n' : '';
+                        final attendantInfo = event.attendant != null &&
+                                event.attendant!.isNotEmpty
+                            ? 'Atendente: ${event.attendant}\n\n'
+                            : '';
                         final pEvent = PetEvent(
                           id: event.id,
                           petId: widget.petId!,
@@ -500,43 +635,55 @@ class _AddEventModalState extends State<AddEventModal> {
                         await PetEventService().addEvent(pEvent);
 
                         // 🧠 AUTOMATIC INDEXING (MARE Logic)
-                        try { if (false) { // Prevent duplicate events
-                           final indexer = PetIndexingService();
-                           indexer.indexAgendaEvent(
+                        try {
+                          if (false) {
+                            // Prevent duplicate events
+                            final indexer = PetIndexingService();
+                            indexer.indexAgendaEvent(
                               petId: widget.petId!,
-                              petName: widget.petId!, // Using ID as name if name not available here
-                              attendantName: event.attendant ?? widget.partner.name,
+                              petName: widget
+                                  .petId!, // Using ID as name if name not available here
+                              attendantName:
+                                  event.attendant ?? widget.partner.name,
                               eventTitle: event.title,
                               dateTime: event.dateTime,
                               partnerId: widget.partner.id,
                               partnerName: widget.partner.name,
-                              localizedTitle: AppLocalizations.of(context)!.petIndexing_agendaTitle(
+                              localizedTitle: AppLocalizations.of(context)!
+                                  .petIndexing_agendaTitle(
                                 event.attendant ?? widget.partner.name,
                                 widget.petId!,
                               ),
-                           ); }
+                            );
+                          }
                         } catch (e) {
-                           debugPrint('⚠️ Indexing failed in AddEventModal: $e');
+                          debugPrint('⚠️ Indexing failed in AddEventModal: $e');
                         }
                       }
                       widget.onSave(event);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppDesign.petPink, 
-                      foregroundColor: Colors.black, 
-                      padding: const EdgeInsets.symmetric(vertical: 16), 
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      backgroundColor: AppDesign.petPink,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       elevation: 4,
                     ),
                     child: Text(
-                      widget.existingEvent != null ? AppLocalizations.of(context)!.agendaSaveChanges : AppLocalizations.of(context)!.agendaConfirmEvent, 
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1.1),
+                      widget.existingEvent != null
+                          ? AppLocalizations.of(context)!.agendaSaveChanges
+                          : AppLocalizations.of(context)!.agendaConfirmEvent,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          letterSpacing: 1.1),
                     ),
                   ),
                 ),
                 const SizedBox(height: 30),
               ],
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom), 
+              SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
             ],
           ),
         ),
@@ -548,20 +695,29 @@ class _AddEventModalState extends State<AddEventModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(label,
+            style: const TextStyle(
+                color: AppDesign.textSecondaryDark,
+                fontSize: 12,
+                fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           decoration: BoxDecoration(
             color: AppDesign.textPrimaryDark.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+            border: Border.all(
+                color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
-              Icon(icon, color: AppDesign.textPrimaryDark.withValues(alpha: 0.24), size: 18),
+              Icon(icon,
+                  color: AppDesign.textPrimaryDark.withValues(alpha: 0.24),
+                  size: 18),
               const SizedBox(width: 12),
-              Text(value, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 14)),
+              Text(value,
+                  style: const TextStyle(
+                      color: AppDesign.textSecondaryDark, fontSize: 14)),
             ],
           ),
         ),

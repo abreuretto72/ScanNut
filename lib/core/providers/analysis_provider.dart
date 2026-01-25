@@ -23,7 +23,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
   final GeminiService _geminiService;
   final GroqApiService _groqService;
 
-  AnalysisNotifier(this._geminiService, this._groqService) : super(AnalysisIdle());
+  AnalysisNotifier(this._geminiService, this._groqService)
+      : super(AnalysisIdle());
 
   /// Analyze image based on selected mode
   Future<AnalysisState> analyzeImage({
@@ -44,14 +45,14 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       // 🛡️ [V180] Image Deduplication Check
       final deduplication = ImageDeduplicationService();
       final hash = await deduplication.calculateHash(imageFile);
-      
+
       if (hash.isNotEmpty) {
-          final existing = await deduplication.checkDeduplication(hash);
-          if (existing != null) {
-              debugPrint('🚫 [DEDUPLICATION] Image already analyzed. Stopping.');
-              state = AnalysisError('error_image_already_analyzed');
-              return state;
-          }
+        final existing = await deduplication.checkDeduplication(hash);
+        if (existing != null) {
+          debugPrint('🚫 [DEDUPLICATION] Image already analyzed. Stopping.');
+          state = AnalysisError('error_image_already_analyzed');
+          return state;
+        }
       }
       Map<String, dynamic> jsonResponse;
       // 3. Alinhamento de Idioma (Locale)
@@ -64,20 +65,22 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         jsonResponse = await _geminiService.analyzeImage(
           imageFile: imageFile,
           mode: mode,
-          excludedBases: excludedBases, 
+          excludedBases: excludedBases,
           locale: normalizedLocale,
           contextData: contextData, // 🛡️ Pass context
         );
-      } on GeminiException catch (geminiError) { // Changed catch type to GeminiException for clarity
+      } on GeminiException catch (geminiError) {
+        // Changed catch type to GeminiException for clarity
         debugPrint('⚠️ Gemini falhou, tentando Groq: $geminiError');
-        
+
         // 1. Aumento de Timeout e Retry no Fallback
         int retries = 1;
         String? groqResponse;
-        
+
         while (retries >= 0) {
           try {
-            final prompt = PromptFactory.getPrompt(mode, locale: normalizedLocale, contextData: contextData);
+            final prompt = PromptFactory.getPrompt(mode,
+                locale: normalizedLocale, contextData: contextData);
             groqResponse = await _groqService.analyzeImage(imageFile, prompt);
             if (groqResponse != null) break;
           } catch (e) {
@@ -87,7 +90,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           retries--;
           if (retries >= 0) await Future.delayed(const Duration(seconds: 2));
         }
-        
+
         if (groqResponse == null) {
           throw Exception('analysisErrorAiFailure');
         }
@@ -101,7 +104,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         } else {
           cleanJson = cleanJson.trim();
         }
-        
+
         try {
           jsonResponse = jsonDecode(cleanJson);
         } catch (e) {
@@ -110,12 +113,12 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           throw const FormatException('Invalid JSON format from fallback');
         }
       }
-      
+
       // 4. Verificação de Erro na Resposta (Não é Pet/Planta/Comida)
       if (jsonResponse.containsKey('error')) {
         final errorVal = jsonResponse['error'].toString().toLowerCase();
-        if (errorVal.contains('not_pet') || 
-            errorVal.contains('not_food') || 
+        if (errorVal.contains('not_pet') ||
+            errorVal.contains('not_food') ||
             errorVal.contains('not_plant')) {
           state = AnalysisError('analysisErrorInvalidCategory');
           return state;
@@ -127,71 +130,83 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       }
 
       // 🛡️ SHIELDING: Enforce Source of Truth for species/breed
-      if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
-          final knownSpecies = contextData['species'];
-          final knownBreed = contextData['breed'];
+      if (contextData != null &&
+          (contextData.containsKey('species') ||
+              contextData.containsKey('breed'))) {
+        final knownSpecies = contextData['species'];
+        final knownBreed = contextData['breed'];
 
-          // Phase 4: Debug Logging of restricted fields
-          final aiSpecies = jsonResponse['species'] ?? jsonResponse['identification']?['species'];
-          final aiBreed = jsonResponse['breed'] ?? jsonResponse['identification']?['breed'];
-          
-          if (aiSpecies != null && aiSpecies.toString().toLowerCase() != 'n/a' && aiSpecies != knownSpecies) {
-               debugPrint('🛡️ DEBUG: [SOURCE OF TRUTH BREACH] AI returned species: $aiSpecies');
+        // Phase 4: Debug Logging of restricted fields
+        final aiSpecies = jsonResponse['species'] ??
+            jsonResponse['identification']?['species'];
+        final aiBreed =
+            jsonResponse['breed'] ?? jsonResponse['identification']?['breed'];
+
+        if (aiSpecies != null &&
+            aiSpecies.toString().toLowerCase() != 'n/a' &&
+            aiSpecies != knownSpecies) {
+          debugPrint(
+              '🛡️ DEBUG: [SOURCE OF TRUTH BREACH] AI returned species: $aiSpecies');
+        }
+        if (aiBreed != null &&
+            aiBreed.toString().toLowerCase() != 'n/a' &&
+            aiBreed != knownBreed) {
+          debugPrint(
+              '🛡️ DEBUG: [SOURCE OF TRUTH BREACH] AI returned breed: $aiBreed');
+        }
+
+        if (knownSpecies != null) jsonResponse['species'] = knownSpecies;
+        if (knownBreed != null) jsonResponse['breed'] = knownBreed;
+
+        if (jsonResponse.containsKey('identification') &&
+            jsonResponse['identification'] is Map) {
+          if (knownSpecies != null) {
+            jsonResponse['identification']['species'] = knownSpecies;
           }
-          if (aiBreed != null && aiBreed.toString().toLowerCase() != 'n/a' && aiBreed != knownBreed) {
-               debugPrint('🛡️ DEBUG: [SOURCE OF TRUTH BREACH] AI returned breed: $aiBreed');
+          if (knownBreed != null) {
+            jsonResponse['identification']['breed'] = knownBreed;
           }
-          
-          if (knownSpecies != null) jsonResponse['species'] = knownSpecies;
-          if (knownBreed != null) jsonResponse['breed'] = knownBreed;
-          
-          if (jsonResponse.containsKey('identification') && jsonResponse['identification'] is Map) {
-              if (knownSpecies != null) jsonResponse['identification']['species'] = knownSpecies;
-              if (knownBreed != null) jsonResponse['identification']['breed'] = knownBreed;
-          }
+        }
       }
 
       // 🛡️ V230: Master History Save moved to UI/Result Screens for better context injection
       // (Avoids duplicate entries with identical timestamps)
 
-
       // Parse response based on mode
       switch (mode) {
         case ScannutMode.food:
           final foodAnalysis = FoodAnalysisModel.fromJson(jsonResponse);
-          
+
           // AUTO-SAVE: Removed to prevent duplication (Handled by HomeView)
           // debugPrint('✅ [AnalysisNotifier] Food Analysis Ready.');
 
           state = AnalysisSuccess<FoodAnalysisModel>(foodAnalysis);
-          
+
           // 🛡️ [V180] Register hash on success
           if (hash.isNotEmpty) {
-              await deduplication.registerProcessedImage(
+            await deduplication.registerProcessedImage(
                 hash: hash,
                 type: mode.toString(),
                 extraMetadata: {
                   'timestamp': DateTime.now().toIso8601String(),
                   'mode': mode.toString(),
-                }
-              );
+                });
           }
           break;
 
         case ScannutMode.plant:
           final plantAnalysis = PlantAnalysisModel.fromJson(jsonResponse);
           state = AnalysisSuccess<PlantAnalysisModel>(plantAnalysis);
-          
+
           // 🛡️ [V180] Register hash on success
           if (hash.isNotEmpty) {
-              await deduplication.registerProcessedImage(
+            await deduplication.registerProcessedImage(
                 hash: hash,
                 type: mode.toString(),
                 extraMetadata: {
                   'timestamp': DateTime.now().toIso8601String(),
                   'mode': mode.toString(),
-                }
-              );
+                });
           }
           break;
 
@@ -202,14 +217,14 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
             if (petName != null) 'pet_name': petName,
             if (petId != null) 'pet_id': petId,
           });
-          
+
           // Save meal plan ingredients for rotation logic
-          if (mode == ScannutMode.petIdentification && 
-              petName != null && 
+          if (mode == ScannutMode.petIdentification &&
+              petName != null &&
               petAnalysis.planoSemanal.isNotEmpty) {
             final mealService = MealHistoryService();
             await mealService.init();
-            
+
             // Extract base ingredients from meal plan
             final ingredients = <String>{};
             for (var day in petAnalysis.planoSemanal) {
@@ -225,16 +240,18 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
                 }
               }
             }
-            
-            await mealService.saveWeeklyIngredients(petName, ingredients.toList());
-            debugPrint('💾 Salvos ${ingredients.length} ingredientes para rotação futura');
+
+            await mealService.saveWeeklyIngredients(
+                petName, ingredients.toList());
+            debugPrint(
+                '💾 Salvos ${ingredients.length} ingredientes para rotação futura');
           }
-          
+
           state = AnalysisSuccess<PetAnalysisResult>(petAnalysis);
-          
+
           // 🛡️ [V180] Register hash on success
           if (hash.isNotEmpty) {
-              await deduplication.registerProcessedImage(
+            await deduplication.registerProcessedImage(
                 hash: hash,
                 type: mode.toString(),
                 petId: petId,
@@ -242,15 +259,14 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
                 extraMetadata: {
                   'timestamp': DateTime.now().toIso8601String(),
                   'mode': mode.toString(),
-                }
-              );
+                });
           }
           break;
 
         default:
           throw Exception('Modo não suportado: $mode');
       }
-      
+
       return state;
     } on GeminiException {
       // Use user-friendly message key
@@ -266,9 +282,11 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       }
       debugPrint('DEBUG ERROR: $e');
       debugPrint('STACKTRACE: $stack');
-      
+
       final msg = e.toString().toLowerCase();
-      if (msg.contains('400') || msg.contains('bad request') || msg.contains('invalid category')) {
+      if (msg.contains('400') ||
+          msg.contains('bad request') ||
+          msg.contains('invalid category')) {
         state = AnalysisError('analysisErrorInvalidCategory');
       } else {
         state = AnalysisError('analysisErrorUnexpected');
@@ -276,7 +294,6 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     }
     return state;
   }
-
 
   /// Reset state to idle
   void reset() {
@@ -294,11 +311,11 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       case ScannutMode.petDiagnosis:
       case ScannutMode.petVisualAnalysis:
       case ScannutMode.petDocumentOCR:
-         return 'loadingPetHealth';
+        return 'loadingPetHealth';
       case ScannutMode.petStoolAnalysis:
-         return 'loadingPetStool';
+        return 'loadingPetStool';
       default:
-         return 'loadingGeneric';
+        return 'loadingGeneric';
     }
   }
 }

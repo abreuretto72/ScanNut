@@ -8,14 +8,14 @@ class ScanToNutritionMapper {
   static MealItem toMealItem(FoodAnalysisModel analysis) {
     try {
       final nome = analysis.identidade.nome;
-      
+
       // Criar observações com macros
       final macros = analysis.macros;
       final observacoes = '${macros.calorias100g} kcal | '
           'P: ${macros.proteinas} | '
           'C: ${macros.carboidratosLiquidos} | '
           'G: ${macros.gordurasPerfil}';
-      
+
       return MealItem(
         nome: nome,
         quantidadeTexto: '100g',
@@ -43,8 +43,9 @@ class ScanToNutritionMapper {
   }) {
     try {
       final itens = toMealItems(analysis);
-      final observacoes = 'Adicionado via scan de foto | ${analysis.dicaEspecialista}';
-      
+      final observacoes =
+          'Adicionado via scan de foto | ${analysis.dicaEspecialista}';
+
       return MealLog.fromScan(
         tipo: tipo,
         itens: itens,
@@ -74,7 +75,7 @@ class ScanToNutritionMapper {
     try {
       final itens = toMealItems(analysis);
       final observacoes = 'Adicionado via scan | ${analysis.dicaEspecialista}';
-      
+
       return Meal(
         tipo: tipo,
         itens: itens,

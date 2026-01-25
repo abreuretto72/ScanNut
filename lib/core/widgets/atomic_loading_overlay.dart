@@ -113,7 +113,8 @@ class AtomicLoadingOverlay {
   }
 
   /// Show loading for PDF generation
-  static void showPDFGeneration(BuildContext context, {String petName = 'pet'}) {
+  static void showPDFGeneration(BuildContext context,
+      {String petName = 'pet'}) {
     show(
       context,
       message: 'Gerando prontuário de $petName',
@@ -122,7 +123,8 @@ class AtomicLoadingOverlay {
   }
 
   /// Show loading for meal plan generation
-  static void showMealPlanGeneration(BuildContext context, {String petName = 'pet'}) {
+  static void showMealPlanGeneration(BuildContext context,
+      {String petName = 'pet'}) {
     show(
       context,
       message: 'Criando cardápio para $petName',

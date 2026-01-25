@@ -42,7 +42,8 @@ class HelpScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Icon(Icons.format_quote_rounded, color: AppDesign.accent, size: 32),
+                const Icon(Icons.format_quote_rounded,
+                    color: AppDesign.accent, size: 32),
                 const SizedBox(height: 12),
                 Text(
                   "O nome deste app é uma homenagem ao meu pet, o Nut. Minha ideia era criar uma ferramenta que fizesse a gestão completa da vida dele, desde a organização da rotina até a elaboração de cardápios saudáveis.\n\n"
@@ -59,15 +60,18 @@ class HelpScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 const Align(
                   alignment: Alignment.centerRight,
-                  child: Text("- Abreu", style: TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold)),
+                  child: Text("- Abreu",
+                      style: TextStyle(
+                          color: AppDesign.accent,
+                          fontWeight: FontWeight.bold)),
                 )
               ],
             ),
           ),
-          
+
           _buildWelcomeCard(l10n),
           const SizedBox(height: 24),
-          
+
           _buildSectionTitle(l10n.helpPetModule),
           _buildHelpCard(
             title: l10n.helpPetBreedTitle,
@@ -89,7 +93,7 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.folder_special,
             color: Colors.blue,
           ),
-          
+
           const SizedBox(height: 24),
           _buildSectionTitle(l10n.helpPlantModule),
           _buildHelpCard(
@@ -98,7 +102,7 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.eco,
             color: Colors.green,
           ),
-          
+
           const SizedBox(height: 24),
           _buildSectionTitle(l10n.helpFoodModule),
           _buildHelpCard(
@@ -107,7 +111,7 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.restaurant,
             color: Colors.orange,
           ),
-          
+
           const SizedBox(height: 24),
           _buildSectionTitle(l10n.helpMenuTitle),
           _buildHelpCard(
@@ -168,7 +172,8 @@ class HelpScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _buildHelpCard(
             title: 'Geração Segura de Cardápios Pet',
-            description: 'Os cardápios de pets só podem ser gerados através do Perfil do Pet, garantindo segurança e controle. '
+            description:
+                'Os cardápios de pets só podem ser gerados através do Perfil do Pet, garantindo segurança e controle. '
                 'Acesse o perfil do seu pet, vá até a seção "Nutrição" e clique em "Gerar cardápio". '
                 'O status da última atualização é exibido em tempo real.',
             icon: Icons.shield_outlined,
@@ -177,13 +182,14 @@ class HelpScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _buildHelpCard(
             title: 'PDFs Econômicos',
-            description: 'Todos os relatórios em PDF foram otimizados para impressão econômica. '
+            description:
+                'Todos os relatórios em PDF foram otimizados para impressão econômica. '
                 'Usamos apenas preto e branco, sem fundos coloridos, reduzindo o uso de tinta em até 90%. '
                 'Perfeito para imprimir prontuários, relatórios de parceiros e históricos sem gastar muito.',
             icon: Icons.print,
             color: Colors.grey,
           ),
-          
+
           const SizedBox(height: 24),
           _buildSectionTitle(l10n.backupSectionTitle),
           _buildHelpCard(
@@ -218,7 +224,7 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.workspace_premium,
             color: Colors.amber,
           ),
-          
+
           const SizedBox(height: 24),
           _buildSectionTitle(l10n.helpPrivacySection),
           _buildHelpCard(
@@ -230,7 +236,7 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.security,
             color: Colors.indigo,
           ),
-          
+
           const SizedBox(height: 24),
           _buildSectionTitle(l10n.helpFaqSection),
           _buildFAQ(
@@ -249,7 +255,7 @@ class HelpScreen extends StatelessWidget {
             question: l10n.faqWoundQ,
             answer: l10n.faqWoundA,
           ),
-          
+
           const SizedBox(height: 24),
           _buildSectionTitle(l10n.helpSupportSection),
           _buildHelpCard(
@@ -258,7 +264,7 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.support_agent,
             color: Colors.pink,
           ),
-          
+
           const SizedBox(height: 40),
           Center(
             child: Text(
@@ -346,14 +352,18 @@ class HelpScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: (icon == Icons.picture_as_pdf || icon == Icons.picture_as_pdf_rounded) ? Colors.transparent : color.withValues(alpha: 0.2),
+              color: (icon == Icons.picture_as_pdf ||
+                      icon == Icons.picture_as_pdf_rounded)
+                  ? Colors.transparent
+                  : color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon, 
-              color: (icon == Icons.picture_as_pdf || icon == Icons.picture_as_pdf_rounded) ? Colors.white : color, 
-              size: 24
-            ),
+            child: Icon(icon,
+                color: (icon == Icons.picture_as_pdf ||
+                        icon == Icons.picture_as_pdf_rounded)
+                    ? Colors.white
+                    : color,
+                size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(

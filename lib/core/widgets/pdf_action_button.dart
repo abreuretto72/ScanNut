@@ -21,7 +21,7 @@ class PdfActionButton extends StatelessWidget {
       icon: Container(
         padding: const EdgeInsets.all(6),
         decoration: const BoxDecoration(
-          color: Colors.transparent, 
+          color: Colors.transparent,
           shape: BoxShape.circle,
         ),
         child: AppPdfIcon(color: color ?? Colors.white, size: 24),
@@ -29,4 +29,3 @@ class PdfActionButton extends StatelessWidget {
     );
   }
 }
-

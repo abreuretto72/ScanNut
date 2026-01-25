@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../utils/app_logger.dart';
 import 'package:flutter/foundation.dart';
 import 'hive_atomic_manager.dart';
-import 'package:flutter_google_places_sdk/flutter_google_places_sdk.dart' as sdk;
+// import 'package:flutter_google_places_sdk/flutter_google_places_sdk.dart' as sdk;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -17,20 +17,21 @@ class PartnerService {
 
   static const String _boxName = 'partners_box';
   Box? _box;
-  sdk.FlutterGooglePlacesSdk? _places;
+  // sdk.FlutterGooglePlacesSdk? _places;
 
   Future<void> init({HiveCipher? cipher}) async {
-    if (_box != null && _box!.isOpen && _places != null) return;
+    if (_box != null && _box!.isOpen) return;
     try {
       _box = await HiveAtomicManager().ensureBoxOpen(_boxName, cipher: cipher);
-      
+
       final apiKey = dotenv.env['GOOGLE_PLACES_API_KEY'];
       if (apiKey != null && apiKey.isNotEmpty) {
-        _places = sdk.FlutterGooglePlacesSdk(apiKey);
-        logger.info('✅ Places SDK initialized');
+        // _places = sdk.FlutterGooglePlacesSdk(apiKey);
+        logger.info('✅ Places HTTP initialized (SDK Disabled)');
       }
 
-      debugPrint('✅ PartnerService initialized (Secure). Box Open: ${_box?.isOpen}');
+      debugPrint(
+          '✅ PartnerService initialized (Secure). Box Open: ${_box?.isOpen}');
     } catch (e, stack) {
       debugPrint('❌ CRITICAL: Failed to open Secure Partner Box: $e\n$stack');
     }
@@ -52,7 +53,9 @@ class PartnerService {
   }
 
   List<PartnerModel> getAllPartners() {
-    return _getBox.values.map((e) => PartnerModel.fromJson(Map<String, dynamic>.from(e))).toList();
+    return _getBox.values
+        .map((e) => PartnerModel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   Future<void> savePartner(PartnerModel partner) async {
@@ -72,7 +75,8 @@ class PartnerService {
   // Powerful search using Google Places TextSearch + Pagination + Identity Headers
   // -------------------------------------------------
   Future<List<PartnerModel>> searchPlacesByText({
-    String query = 'veterinario petshop clinica veterinaria dog walker passeador cemiterio pet crematorio pet velorio pet plano saude pet assistencia funeral pet',
+    String query =
+        'veterinario petshop clinica veterinaria dog walker passeador cemiterio pet crematorio pet velorio pet plano saude pet assistencia funeral pet',
     required double lat,
     required double lng,
     double radiusMeters = 20000,
@@ -91,15 +95,18 @@ class PartnerService {
     // Package Identity Headers for Security/SHA-1 validation
     final headers = {
       'X-Android-Package': 'com.multiversodigital.scannut',
-      'X-Android-Cert': 'AC9222DC063FB2A500056B40AE6F3E44E2A95FF6', // Clean SHA-1
+      'X-Android-Cert':
+          'AC9222DC063FB2A500056B40AE6F3E44E2A95FF6', // Clean SHA-1
     };
 
     try {
       do {
         currentPage++;
-        logger.info('📡 Efetuando TextSearch (Página $currentPage): Query: "$query"');
-        
-        const baseUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+        logger.info(
+            '📡 Efetuando TextSearch (Página $currentPage): Query: "$query"');
+
+        const baseUrl =
+            'https://maps.googleapis.com/maps/api/place/textsearch/json';
         final params = <String, String>{
           'query': query,
           'location': '$lat,$lng',
@@ -115,7 +122,9 @@ class PartnerService {
         }
 
         final uri = Uri.parse(baseUrl).replace(queryParameters: params);
-        final response = await http.get(uri, headers: headers).timeout(const Duration(seconds: 20));
+        final response = await http
+            .get(uri, headers: headers)
+            .timeout(const Duration(seconds: 20));
 
         if (response.statusCode != 200) {
           throw 'HTTP ${response.statusCode}: ${response.body}';
@@ -139,10 +148,10 @@ class PartnerService {
           return PartnerModel(
             id: r['place_id'] ?? '',
             name: r['name'] ?? 'Parceiro Pet',
-            category: 'Veterinário', 
+            category: 'Veterinário',
             latitude: lat,
             longitude: lng,
-            phone: '', 
+            phone: '',
             whatsapp: '',
             instagram: '',
             address: r['formatted_address'] ?? '',
@@ -156,21 +165,21 @@ class PartnerService {
         }).toList();
 
         allFound.addAll(pageItems);
-        logger.info('✅ Página $currentPage: Encontrados ${pageItems.length} parceiros.');
-
+        logger.info(
+            '✅ Página $currentPage: Encontrados ${pageItems.length} parceiros.');
       } while (nextPageToken != null && currentPage < maxPages);
 
-      logger.info('🏁 Busca Finalizada: Total de ${allFound.length} parceiros no Radar.');
-      
+      logger.info(
+          '🏁 Busca Finalizada: Total de ${allFound.length} parceiros no Radar.');
+
       // Sort by Distance (Closest first)
       allFound.sort((a, b) {
-          final distA = calculateDistance(lat, lng, a.latitude, a.longitude);
-          final distB = calculateDistance(lat, lng, b.latitude, b.longitude);
-          return distA.compareTo(distB);
+        final distA = calculateDistance(lat, lng, a.latitude, a.longitude);
+        final distB = calculateDistance(lat, lng, b.latitude, b.longitude);
+        return distA.compareTo(distB);
       });
 
       return allFound;
-
     } catch (e, stack) {
       logger.error('❌ Erro crítico no TextSearch', error: e, stackTrace: stack);
       rethrow;
@@ -185,11 +194,11 @@ class PartnerService {
     String? query,
   }) async {
     return await searchPlacesByText(
-      query: query ?? 'veterinario petshop clinica veterinaria dog walker passeador cemiterio pet crematorio pet velorio pet plano saude pet assistencia funeral pet',
-      lat: lat, 
-      lng: lng, 
-      radiusMeters: radiusKm * 1000
-    );
+        query: query ??
+            'veterinario petshop clinica veterinaria dog walker passeador cemiterio pet crematorio pet velorio pet plano saude pet assistencia funeral pet',
+        lat: lat,
+        lng: lng,
+        radiusMeters: radiusKm * 1000);
   }
 
   Future<void> deletePartner(String id) async {
@@ -200,7 +209,7 @@ class PartnerService {
   /// The "Intelligent Filter" logic
   List<PartnerModel> suggestPartners(PetAnalysisResult analysis) {
     final all = getAllPartners();
-    
+
     // 1. Detect issues from analysis
     bool hasWound = false;
     bool needsDiet = false;
@@ -208,18 +217,29 @@ class PartnerService {
     // Direct check in diagnosis
     if (analysis.analysisType == 'diagnosis') {
       final desc = (analysis.descricaoVisualDiag ?? '').toLowerCase();
-      if (desc.contains('ferida') || desc.contains('pele') || desc.contains('dermatite') || desc.contains('coceira')) {
+      if (desc.contains('ferida') ||
+          desc.contains('pele') ||
+          desc.contains('dermatite') ||
+          desc.contains('coceira')) {
         hasWound = true;
       }
     }
 
     // 2. Filter partners
     if (hasWound) {
-      return all.where((p) => p.specialties.contains('Dermatologia') || p.specialties.contains('Dermato')).toList();
+      return all
+          .where((p) =>
+              p.specialties.contains('Dermatologia') ||
+              p.specialties.contains('Dermato'))
+          .toList();
     }
 
     if (needsDiet) {
-       return all.where((p) => p.category == 'Pet Shop' && p.specialties.contains('Alimentação Natural')).toList();
+      return all
+          .where((p) =>
+              p.category == 'Pet Shop' &&
+              p.specialties.contains('Alimentação Natural'))
+          .toList();
     }
 
     // Fallback: show closest vets
@@ -228,9 +248,9 @@ class PartnerService {
 
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
     const p = 0.017453292519943295;
-    final a = 0.5 - cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) * cos(lat2 * p) *
-            (1 - cos((lon2 - lon1) * p)) / 2;
+    final a = 0.5 -
+        cos((lat2 - lat1) * p) / 2 +
+        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
   }
 
@@ -245,5 +265,24 @@ class PartnerService {
       final dist = calculateDistance(userLat, userLon, p.latitude, p.longitude);
       return dist <= radiusKm;
     }).toList();
+  }
+
+  // -------------------------------------------------
+  // 🐾 ScanWalk VIP: Curadoria de Locais de Passeio
+  // -------------------------------------------------
+  Future<List<PartnerModel>> searchWalkVenues({
+    required double lat,
+    required double lng,
+  }) async {
+    const vipQuery =
+        'Dog Park OR Parcão OR Praça de Cachorro OR Parque Pet OR Pet Place OR Área Canina OR Parque Público OR Praça';
+    // Raio menor (5km) para focar em locais caminháveis
+    return await searchPlacesByText(
+      query: vipQuery,
+      lat: lat,
+      lng: lng,
+      radiusMeters: 3000,
+      maxPages: 1, // Apenas os mais relevantes
+    );
   }
 }

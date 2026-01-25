@@ -36,45 +36,46 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Check if user has biometrics enabled
     if (simpleAuthService.isBiometricEnabled) {
-       debugPrint('🧬 [V123-AUTH] Biometrics Enabled. Triggering prompt automatically...');
-       
-       setState(() => _isLoading = true);
-       final result = await simpleAuthService.authenticateWithBiometrics();
-       setState(() => _isLoading = false);
+      debugPrint(
+          '🧬 [V123-AUTH] Biometrics Enabled. Triggering prompt automatically...');
 
-       if (mounted) {
-          _handleAuthResult(result);
-       }
+      setState(() => _isLoading = true);
+      final result = await simpleAuthService.authenticateWithBiometrics();
+      setState(() => _isLoading = false);
+
+      if (mounted) {
+        _handleAuthResult(result);
+      }
     }
   }
 
   void _handleAuthResult(AuthResult result) {
-      // 🛡️ Race Condition Fix: If manual login is in progress (isLoading) 
-      // or user is already logged in, ignore stale biometric errors.
-      if (!mounted || _isLoading || simpleAuthService.isUserLoggedIn) return;
-      
-      switch (result) {
-        case AuthResult.success:
-           debugPrint('✅ [V128-AUTH] Auto-trigger Success. Navigating...');
-           // Ensure clean state before navigating
-           setState(() => _errorMessage = null);
-           Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const HomeView()),
-           );
-           break;
-        case AuthResult.missingKey:
-           setState(() {
-              _errorMessage = null; 
-           });
-           // 🛡️ User reported frozen SnackBar. Using Dialog for critical auth warning.
-           _showBiometricResetDialog();
-           break;
-        case AuthResult.failed:
-           // Do nothing, maybe user cancelled
-           break;
-        case AuthResult.unavailable:
-           break;
-      }
+    // 🛡️ Race Condition Fix: If manual login is in progress (isLoading)
+    // or user is already logged in, ignore stale biometric errors.
+    if (!mounted || _isLoading || simpleAuthService.isUserLoggedIn) return;
+
+    switch (result) {
+      case AuthResult.success:
+        debugPrint('✅ [V128-AUTH] Auto-trigger Success. Navigating...');
+        // Ensure clean state before navigating
+        setState(() => _errorMessage = null);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeView()),
+        );
+        break;
+      case AuthResult.missingKey:
+        setState(() {
+          _errorMessage = null;
+        });
+        // 🛡️ User reported frozen SnackBar. Using Dialog for critical auth warning.
+        _showBiometricResetDialog();
+        break;
+      case AuthResult.failed:
+        // Do nothing, maybe user cancelled
+        break;
+      case AuthResult.unavailable:
+        break;
+    }
   }
 
   void _showBiometricResetDialog() {
@@ -91,13 +92,10 @@ class _LoginScreenState extends State<LoginScreen> {
             const Icon(Icons.lock_reset, color: AppDesign.warning),
             const SizedBox(width: 10),
             Flexible(
-              child: Text(
-                "Autenticação", 
-                style: GoogleFonts.poppins(
-                  color: AppDesign.textPrimaryDark, 
-                  fontWeight: FontWeight.bold
-                )
-              ),
+              child: Text("Autenticação",
+                  style: GoogleFonts.poppins(
+                      color: AppDesign.textPrimaryDark,
+                      fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -108,11 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppDesign.accent, 
-              foregroundColor: Colors.black
-            ),
+                backgroundColor: AppDesign.accent,
+                foregroundColor: Colors.black),
             onPressed: () => Navigator.pop(ctx),
-            child: Text("OK, Entendi", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+            child: Text("OK, Entendi",
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
           )
         ],
       ),
@@ -139,9 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null; 
+      _errorMessage = null;
     });
-    
+
     final success = await simpleAuthService.login(
       _emailController.text.trim(),
       _passwordController.text,
@@ -191,7 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(height: isSmallScreen ? 24 : 40),
-                        
+
                         // Logo/Header (Responsive)
                         Center(
                           child: Container(
@@ -211,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         SizedBox(height: isSmallScreen ? 16 : 24),
-                        
+
                         Center(
                           child: Text(
                             'ScanNut',
@@ -223,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        
+
                         Center(
                           child: Text(
                             'Sua nutrição inteligente começa aqui',
@@ -239,12 +237,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Email Field
                         Text(
                           'E-mail',
-                          style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                          style: GoogleFonts.poppins(
+                              color: AppDesign.textSecondaryDark, fontSize: 14),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _emailController,
-                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
+                          style: GoogleFonts.poppins(
+                              color: AppDesign.textPrimaryDark),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next, // Improve UX
                           decoration: _buildInputDecoration(
@@ -252,7 +252,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             prefixIcon: Icons.email_outlined,
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Por favor, insira seu e-mail';
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, insira seu e-mail';
+                            }
                             return null;
                           },
                         ),
@@ -261,7 +263,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         // Password Field
                         Text(
                           'Senha',
-                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
+                          style: GoogleFonts.poppins(
+                              color: Colors.white70, fontSize: 14),
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
@@ -269,20 +272,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: GoogleFonts.poppins(color: Colors.white),
                           obscureText: _obscurePassword,
                           textInputAction: TextInputAction.done, // Improve UX
-                          onFieldSubmitted: (_) => _handleLogin(), // Allow submit on enter
+                          onFieldSubmitted: (_) =>
+                              _handleLogin(), // Allow submit on enter
                           decoration: _buildInputDecoration(
                             hintText: 'Sua senha segura',
                             prefixIcon: Icons.lock_outline,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                color: AppDesign.textSecondaryDark.withValues(alpha: 0.5),
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: AppDesign.textSecondaryDark
+                                    .withValues(alpha: 0.5),
                               ),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
                             ),
                           ),
                           validator: (value) {
-                            if (value == null || value.isEmpty) return 'Por favor, insira sua senha';
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, insira sua senha';
+                            }
                             return null;
                           },
                         ),
@@ -296,39 +306,53 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: 24,
                               child: Checkbox(
                                 value: _rememberMe,
-                                onChanged: (value) => setState(() => _rememberMe = value ?? false),
+                                onChanged: (value) => setState(
+                                    () => _rememberMe = value ?? false),
                                 activeColor: AppDesign.accent,
                                 checkColor: Colors.black,
-                                side: const BorderSide(color: AppDesign.textPrimaryDark, width: 1.5),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                side: const BorderSide(
+                                    color: AppDesign.textPrimaryDark,
+                                    width: 1.5),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4)),
                               ),
                             ),
                             const SizedBox(width: 12),
                             GestureDetector(
-                              onTap: () => setState(() => _rememberMe = !_rememberMe),
+                              onTap: () =>
+                                  setState(() => _rememberMe = !_rememberMe),
                               child: Text(
                                 'Manter conectado',
-                                style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                                style: GoogleFonts.poppins(
+                                    color: AppDesign.textSecondaryDark,
+                                    fontSize: 14),
                               ),
                             ),
                           ],
                         ),
-                        
-                        SizedBox(height: _errorMessage != null ? 16 : (isSmallScreen ? 24 : 32)),
+
+                        SizedBox(
+                            height: _errorMessage != null
+                                ? 16
+                                : (isSmallScreen ? 24 : 32)),
 
                         // Error Message Display
                         if (_errorMessage != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 16),
                             margin: const EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
                               color: AppDesign.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppDesign.error.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                  color:
+                                      AppDesign.error.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.error_outline, color: AppDesign.error, size: 20),
+                                const Icon(Icons.error_outline,
+                                    color: AppDesign.error, size: 20),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -356,59 +380,74 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             elevation: 0,
                           ),
-                          child: _isLoading 
-                            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                            : Text(
-                                'Entrar',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.black, strokeWidth: 2))
+                              : Text(
+                                  'Entrar',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
                         ),
-                        
+
                         if (simpleAuthService.isBiometricEnabled) ...[
-                           SizedBox(height: isSmallScreen ? 12 : 16),
-                           OutlinedButton.icon(
-                              onPressed: () async {
-                                 // Clear manual error before biometric attempt
-                                 setState(() {
-                                    _errorMessage = null; 
-                                    _isLoading = true;
-                                 });
-                                 
-                                 final result = await simpleAuthService.authenticateWithBiometrics();
-                                 
-                                 setState(() => _isLoading = false);
-                                 
-                                 _handleAuthResult(result);
-                              },
-                              icon: const Icon(Icons.fingerprint, color: AppDesign.accent),
-                              label: Text('Entrar com Biometria', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
-                              style: OutlinedButton.styleFrom(
-                                 side: BorderSide(color: AppDesign.accent.withValues(alpha: 0.5)),
-                                 padding: const EdgeInsets.symmetric(vertical: 12),
-                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              ),
-                           ),
+                          SizedBox(height: isSmallScreen ? 12 : 16),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              // Clear manual error before biometric attempt
+                              setState(() {
+                                _errorMessage = null;
+                                _isLoading = true;
+                              });
+
+                              final result = await simpleAuthService
+                                  .authenticateWithBiometrics();
+
+                              setState(() => _isLoading = false);
+
+                              _handleAuthResult(result);
+                            },
+                            icon: const Icon(Icons.fingerprint,
+                                color: AppDesign.accent),
+                            label: Text('Entrar com Biometria',
+                                style: GoogleFonts.poppins(
+                                    color: AppDesign.textPrimaryDark)),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                  color:
+                                      AppDesign.accent.withValues(alpha: 0.5)),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                            ),
+                          ),
                         ],
 
                         SizedBox(height: isSmallScreen ? 16 : 24),
 
                         // Register Link
                         Padding(
-                          padding: EdgeInsets.only(bottom: isSmallScreen ? 16 : 32),
+                          padding:
+                              EdgeInsets.only(bottom: isSmallScreen ? 16 : 32),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 'Não tem uma conta? ',
-                                style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                                style: GoogleFonts.poppins(
+                                    color: AppDesign.textSecondaryDark,
+                                    fontSize: 14),
                               ),
                               GestureDetector(
                                 onTap: () {
                                   Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                                    MaterialPageRoute(
+                                        builder: (_) => const RegisterScreen()),
                                   );
                                 },
                                 child: Text(
@@ -442,8 +481,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
-      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withValues(alpha: 0.5), size: 20),
+      hintStyle: GoogleFonts.poppins(
+          color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
+      prefixIcon: Icon(prefixIcon,
+          color: AppDesign.textSecondaryDark.withValues(alpha: 0.5), size: 20),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
@@ -454,7 +495,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+        borderSide:
+            BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),

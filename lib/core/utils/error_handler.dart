@@ -13,7 +13,7 @@ class ErrorHandler {
     Duration duration = const Duration(seconds: 4),
   }) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     // Mensagem padrão amigável
     String userMessage = customMessage ?? _getUserFriendlyMessage(error, l10n);
 
@@ -69,7 +69,8 @@ class ErrorHandler {
     }
 
     // Timeout
-    if (errorString.contains('timeout') || errorString.contains('tempo limite')) {
+    if (errorString.contains('timeout') ||
+        errorString.contains('tempo limite')) {
       return l10n.errorTimeout;
     }
 
@@ -117,7 +118,8 @@ class ErrorHandler {
     }
 
     // Permissões
-    if (errorString.contains('permission') || errorString.contains('permissão')) {
+    if (errorString.contains('permission') ||
+        errorString.contains('permissão')) {
       return l10n.errorPermissionDenied;
     }
 
@@ -134,7 +136,8 @@ class ErrorHandler {
     }
 
     // Localização
-    if (errorString.contains('location') || errorString.contains('localização')) {
+    if (errorString.contains('location') ||
+        errorString.contains('localização')) {
       return l10n.errorLocation;
     }
 
@@ -173,11 +176,11 @@ class ErrorHandler {
     } catch (e, stack) {
       debugPrint('🔴 ERRO EM safeExecute: $e');
       debugPrint('Stack: $stack');
-      
+
       if (context.mounted) {
         showError(context, error: e, customMessage: errorMessage);
       }
-      
+
       return defaultValue;
     }
   }
@@ -194,11 +197,11 @@ class ErrorHandler {
     } catch (e, stack) {
       debugPrint('🔴 ERRO EM safeExecuteSync: $e');
       debugPrint('Stack: $stack');
-      
+
       if (context.mounted) {
         showError(context, error: e, customMessage: errorMessage);
       }
-      
+
       return defaultValue;
     }
   }

@@ -60,38 +60,43 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           ),
         ],
       ),
-      body: BotanyService().listenable == null 
-          ? const Center(child: CircularProgressIndicator(color: AppDesign.plantGreen))
+      body: BotanyService().listenable == null
+          ? const Center(
+              child: CircularProgressIndicator(color: AppDesign.plantGreen))
           : ValueListenableBuilder<Box<BotanyHistoryItem>>(
               valueListenable: BotanyService().listenable!,
               builder: (context, box, _) {
-          final items = box.values.whereType<BotanyHistoryItem>().toList().reversed.toList();
-          
-          if (items.isEmpty) {
-            return _buildEmptyState();
-          }
-          
-          return AnimationLimiter(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return AnimationConfiguration.staggeredList(
-                  position: index,
-                  duration: const Duration(milliseconds: 375),
-                  child: SlideAnimation(
-                    verticalOffset: 50.0,
-                    child: FadeInAnimation(
-                      child: _buildPlantCard(item),
-                    ),
+                final items = box.values
+                    .whereType<BotanyHistoryItem>()
+                    .toList()
+                    .reversed
+                    .toList();
+
+                if (items.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                return AnimationLimiter(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return AnimationConfiguration.staggeredList(
+                        position: index,
+                        duration: const Duration(milliseconds: 375),
+                        child: SlideAnimation(
+                          verticalOffset: 50.0,
+                          child: FadeInAnimation(
+                            child: _buildPlantCard(item),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -101,11 +106,13 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.local_florist, size: 80, color: AppDesign.surfaceDark),
+          const Icon(Icons.local_florist,
+              size: 80, color: AppDesign.surfaceDark),
           const SizedBox(height: 16),
           Text(
             l10n.botanyEmpty,
-            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 16),
+            style: GoogleFonts.poppins(
+                color: AppDesign.textSecondaryDark, fontSize: 16),
           ),
         ],
       ),
@@ -115,24 +122,34 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
   Widget _buildPlantCard(BotanyHistoryItem item) {
     final l10n = AppLocalizations.of(context)!;
     Color semaphoreColor;
-    
+
     // Determine Color based on Health Status
     switch (item.survivalSemaphore.toLowerCase()) {
-      case 'verde': semaphoreColor = AppDesign.success; break;
-      case 'amarelo': semaphoreColor = AppDesign.warning; break;
-      case 'vermelho': semaphoreColor = AppDesign.error; break;
-      default: semaphoreColor = AppDesign.success;
+      case 'verde':
+        semaphoreColor = AppDesign.success;
+        break;
+      case 'amarelo':
+        semaphoreColor = AppDesign.warning;
+        break;
+      case 'vermelho':
+        semaphoreColor = AppDesign.error;
+        break;
+      default:
+        semaphoreColor = AppDesign.success;
     }
 
     final isToxic = item.toxicityStatus != 'safe';
     final toxicityColor = isToxic ? Colors.redAccent : const Color(0xFF00E676);
-    final toxicityBg = isToxic ? Colors.redAccent.withValues(alpha: 0.2) : const Color(0xFF00E676).withValues(alpha: 0.15);
+    final toxicityBg = isToxic
+        ? Colors.redAccent.withValues(alpha: 0.2)
+        : const Color(0xFF00E676).withValues(alpha: 0.15);
     final toxicityText = isToxic ? (l10n.botanyToxicHuman) : l10n.labelSafe;
 
     return GestureDetector(
       onTap: () => _showFullResult(item),
       child: Container(
-        constraints: const BoxConstraints(minHeight: 130), // 📏 FLEXIBLE MIN-HEIGHT
+        constraints:
+            const BoxConstraints(minHeight: 130), // 📏 FLEXIBLE MIN-HEIGHT
         margin: const EdgeInsets.only(bottom: 12), // Tighter spacing
         decoration: BoxDecoration(
           color: AppDesign.surfaceDark,
@@ -140,11 +157,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           // Subtle border for high-end look
           border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           boxShadow: [
-             BoxShadow(
-               color: Colors.black.withValues(alpha: 0.3),
-               blurRadius: 8,
-               offset: const Offset(0, 4),
-             )
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
           ],
         ),
         child: Row(
@@ -155,28 +172,32 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: SizedBox(
-                   width: 100,
-                   height: 100,
-                   child: item.imagePath != null
+                  width: 100,
+                  height: 100,
+                  child: item.imagePath != null
                       ? Image.file(
                           File(item.imagePath!),
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                             // 🛡️ MEDIA VAULT ERROR HANDLER
-                             return Container(
-                                color: Colors.grey[800],
-                                child: const Center(child: Icon(Icons.park, color: Colors.white24, size: 30)),
-                             );
+                            // 🛡️ MEDIA VAULT ERROR HANDLER
+                            return Container(
+                              color: Colors.grey[800],
+                              child: const Center(
+                                  child: Icon(Icons.park,
+                                      color: Colors.white24, size: 30)),
+                            );
                           },
                         )
                       : Container(
                           color: Colors.grey[800],
-                          child: const Center(child: Icon(Icons.park, color: Colors.white24, size: 30)),
+                          child: const Center(
+                              child: Icon(Icons.park,
+                                  color: Colors.white24, size: 30)),
                         ),
                 ),
               ),
             ),
-            
+
             // 📝 RIGHT: METADATA COLUMN
             Expanded(
               child: Padding(
@@ -189,125 +210,155 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                         Expanded(
-                           child: Text(
-                             item.plantName,
-                             style: GoogleFonts.poppins(
-                               fontWeight: FontWeight.bold,
-                               fontSize: 15,
-                               color: Colors.white, // Preto Puro equivalent in Dark Mode
-                             ),
-                             maxLines: 1,
-                             overflow: TextOverflow.ellipsis,
-                           ),
-                         ),
-                         // Mini Delete Action
-                         GestureDetector(
-                            onTap: () => _confirmDeletePlant(item),
-                            child: const Padding(
-                              padding: EdgeInsets.only(left: 8.0),
-                              child: Icon(Icons.delete_outline, size: 18, color: Colors.white54),
+                        Expanded(
+                          child: Text(
+                            item.plantName,
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: Colors
+                                  .white, // Preto Puro equivalent in Dark Mode
                             ),
-                         ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        // Mini Delete Action
+                        GestureDetector(
+                          onTap: () => _confirmDeletePlant(item),
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: 8.0),
+                            child: Icon(Icons.delete_outline,
+                                size: 18, color: Colors.white54),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
 
                     // DATE
                     Text(
-                         DateFormat('dd MMM yyyy', Localizations.localeOf(context).toString()).format(item.timestamp),
-                         style: GoogleFonts.poppins(color: Colors.grey, fontSize: 11),
+                      DateFormat('dd MMM yyyy',
+                              Localizations.localeOf(context).toString())
+                          .format(item.timestamp),
+                      style:
+                          GoogleFonts.poppins(color: Colors.grey, fontSize: 11),
                     ),
-                    
+
                     const SizedBox(height: 8),
 
-                     // BOTTOM ROW: BADGES (Toxicity + Status)
-                     Row(
-                       children: [
-                          // 1) Health Status Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                               color: semaphoreColor.withValues(alpha: 0.2), 
-                               borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                               // Using localized abbreviated status logic
-                               _getLocalizedStatus(item.survivalSemaphore).split('/')[0].trim(),
-                               style: TextStyle(color: semaphoreColor, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
+                    // BOTTOM ROW: BADGES (Toxicity + Status)
+                    Row(
+                      children: [
+                        // 1) Health Status Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: semaphoreColor.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          const SizedBox(width: 8),
+                          child: Text(
+                            // Using localized abbreviated status logic
+                            _getLocalizedStatus(item.survivalSemaphore)
+                                .split('/')[0]
+                                .trim(),
+                            style: TextStyle(
+                                color: semaphoreColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
 
-                           // 2) Toxicity Badge (Compact)
-                           Expanded(
-                             child: Builder(
-                               builder: (context) {
-                                 final meta = item.rawMetadata;
-                                 
-                                 // Default Safe
-                                 String text = l10n.labelSafe;
-                                 Color color = const Color(0xFF00E676);
-                                 Color bg = const Color(0xFF00E676).withValues(alpha: 0.15);
-                                 
-                                 if (meta != null && meta['seguranca_biofilia'] != null) {
-                                    final sec = meta['seguranca_biofilia']['seguranca_domestica'];
-                                    if (sec != null) {
-                                       final bool toxicPets = sec['toxica_para_pets'] == true || sec['is_toxic_to_pets'] == true;
-                                       final bool toxicKids = sec['toxica_para_criancas'] == true;
-                                       
-                                       if (toxicPets) {
-                                          color = Colors.redAccent;
-                                          bg = Colors.redAccent.withValues(alpha: 0.2);
-                                          
-                                          // Try to find specific animal mention in details
-                                          final String details = (sec['sintomas_ingestao'] ?? sec['toxicity_details'] ?? '').toString().toLowerCase();
-                                          if (details.contains('gato') && details.contains('cão')) {
-                                             text = l10n.labelToxicDogsCats;
-                                          } else if (details.contains('gato') || details.contains('felino')) {
-                                             text = l10n.labelToxicCats;
-                                          } else if (details.contains('cão') || details.contains('cachorro') || details.contains('canino')) {
-                                             text = l10n.labelToxicDogs;
-                                          } else {
-                                             text = l10n.botanyDangerousPet.toUpperCase();
-                                          }
-                                       } else if (toxicKids) {
-                                           color = Colors.orangeAccent;
-                                           bg = Colors.orangeAccent.withValues(alpha: 0.2);
-                                           text = l10n.botanyToxicHuman.toUpperCase();
-                                       }
-                                    }
-                                 } else {
-                                    // Fallback legacy
-                                    if (item.toxicityStatus != 'safe') {
-                                       color = Colors.redAccent;
-                                       bg = Colors.redAccent.withValues(alpha: 0.2);
-                                       text = l10n.botanyDangerousPet.toUpperCase();
-                                    }
-                                 }
+                        // 2) Toxicity Badge (Compact)
+                        Expanded(
+                          child: Builder(builder: (context) {
+                            final meta = item.rawMetadata;
 
-                                 return Container(
-                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                   decoration: BoxDecoration(
-                                      color: bg,
-                                      borderRadius: BorderRadius.circular(6),
-                                   ),
-                                   child: Text(
-                                      text.toUpperCase(),
-                                      style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                   ),
-                                 );
-                               }
-                             ),
-                           ),
-                       ],
-                     ),
-                     
-                     // 3) New Care Requirements Row
-                     _buildCareRequirements(item),
+                            // Default Safe
+                            String text = l10n.labelSafe;
+                            Color color = const Color(0xFF00E676);
+                            Color bg =
+                                const Color(0xFF00E676).withValues(alpha: 0.15);
+
+                            if (meta != null &&
+                                meta['seguranca_biofilia'] != null) {
+                              final sec = meta['seguranca_biofilia']
+                                  ['seguranca_domestica'];
+                              if (sec != null) {
+                                final bool toxicPets =
+                                    sec['toxica_para_pets'] == true ||
+                                        sec['is_toxic_to_pets'] == true;
+                                final bool toxicKids =
+                                    sec['toxica_para_criancas'] == true;
+
+                                if (toxicPets) {
+                                  color = Colors.redAccent;
+                                  bg = Colors.redAccent.withValues(alpha: 0.2);
+
+                                  // Try to find specific animal mention in details
+                                  final String details =
+                                      (sec['sintomas_ingestao'] ??
+                                              sec['toxicity_details'] ??
+                                              '')
+                                          .toString()
+                                          .toLowerCase();
+                                  if (details.contains('gato') &&
+                                      details.contains('cão')) {
+                                    text = l10n.labelToxicDogsCats;
+                                  } else if (details.contains('gato') ||
+                                      details.contains('felino')) {
+                                    text = l10n.labelToxicCats;
+                                  } else if (details.contains('cão') ||
+                                      details.contains('cachorro') ||
+                                      details.contains('canino')) {
+                                    text = l10n.labelToxicDogs;
+                                  } else {
+                                    text =
+                                        l10n.botanyDangerousPet.toUpperCase();
+                                  }
+                                } else if (toxicKids) {
+                                  color = Colors.orangeAccent;
+                                  bg = Colors.orangeAccent
+                                      .withValues(alpha: 0.2);
+                                  text = l10n.botanyToxicHuman.toUpperCase();
+                                }
+                              }
+                            } else {
+                              // Fallback legacy
+                              if (item.toxicityStatus != 'safe') {
+                                color = Colors.redAccent;
+                                bg = Colors.redAccent.withValues(alpha: 0.2);
+                                text = l10n.botanyDangerousPet.toUpperCase();
+                              }
+                            }
+
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: bg,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                text.toUpperCase(),
+                                style: TextStyle(
+                                    color: color,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+
+                    // 3) New Care Requirements Row
+                    _buildCareRequirements(item),
                   ],
                 ),
               ),
@@ -329,7 +380,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
 
     try {
       final analysis = PlantAnalysisModel.fromJson(item.rawMetadata!);
-      
+
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -357,14 +408,15 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
         const SizedBox(height: 4),
         SizedBox(
           width: 80,
-            child: AutoSizeText(
-              value,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 10),
-              maxLines: 1,
-              minFontSize: 6,
-              overflow: TextOverflow.ellipsis,
-            ),
+          child: AutoSizeText(
+            value,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+                color: AppDesign.textSecondaryDark, fontSize: 10),
+            maxLines: 1,
+            minFontSize: 6,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
@@ -378,7 +430,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           child: ElevatedButton.icon(
             onPressed: () => _showRecoveryPlan(item),
             icon: const Icon(Icons.health_and_safety_rounded, size: 18),
-            label: Text(l10n.botanyRecovery, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 11)),
+            label: Text(l10n.botanyRecovery,
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold, fontSize: 11)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppDesign.success.withValues(alpha: 0.1),
               foregroundColor: AppDesign.success,
@@ -420,7 +474,8 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       decoration: BoxDecoration(
         color: backgroundColor ?? color.withValues(alpha: 0.1),
         shape: BoxShape.circle,
-        border: Border.all(color: backgroundColor ?? color.withValues(alpha: 0.3)),
+        border:
+            Border.all(color: backgroundColor ?? color.withValues(alpha: 0.3)),
       ),
       child: IconButton(
         icon: Icon(icon, color: color, size: 20),
@@ -443,9 +498,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
 
     try {
       final analysis = PlantAnalysisModel.fromJson(item.rawMetadata!);
-      
+
       if (!mounted) return;
-      
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -455,7 +510,8 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
               final pdf = await ExportService().generatePlantAnalysisReport(
                 analysis: analysis,
                 strings: AppLocalizations.of(context)!,
-                imageFile: item.imagePath != null ? File(item.imagePath!) : null,
+                imageFile:
+                    item.imagePath != null ? File(item.imagePath!) : null,
               );
               return pdf.save();
             },
@@ -466,7 +522,9 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       debugPrint("Erro ao gerar PDF do histórico: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.errorGeneratePdf(e.toString())), backgroundColor: AppDesign.error),
+          SnackBar(
+              content: Text(l10n.errorGeneratePdf(e.toString())),
+              backgroundColor: AppDesign.error),
         );
       }
     }
@@ -478,10 +536,15 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppDesign.surfaceDark,
-        title: Text(l10n.botanyRecoveryPlan, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
-        content: Text(item.recoveryPlan, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+        title: Text(l10n.botanyRecoveryPlan,
+            style: GoogleFonts.poppins(
+                color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
+        content: Text(item.recoveryPlan,
+            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.commonUnderstand)),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.commonUnderstand)),
         ],
       ),
     );
@@ -493,10 +556,15 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppDesign.surfaceDark,
-        title: Text(l10n.botanyFengShui, style: GoogleFonts.poppins(color: AppDesign.warning, fontWeight: FontWeight.bold)),
-        content: Text(item.fengShuiTips, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+        title: Text(l10n.botanyFengShui,
+            style: GoogleFonts.poppins(
+                color: AppDesign.warning, fontWeight: FontWeight.bold)),
+        content: Text(item.fengShuiTips,
+            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.commonClose)),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.commonClose)),
         ],
       ),
     );
@@ -508,25 +576,32 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
     // Assuming Portuguese is the base storage language for these keys 'verde', 'amarelo', 'vermelho'
     // We map them to English equivalents if we are in English mode, or return as is (uppercased)
     // Actually, checking if we have specific keys. We don't have "Green" in arb, but we can infer logical mapping.
-    
+
     // Check if current locale is English (or use localization for all)
     // We now have keys for these
     if (s.contains('verde') || s.contains('green')) return l10n.statusHealthy;
-    if (s.contains('amarelo') || s.contains('yellow')) return l10n.statusWarning;
+    if (s.contains('amarelo') || s.contains('yellow')) {
+      return l10n.statusWarning;
+    }
     if (s.contains('vermelho') || s.contains('red')) return l10n.statusCritical;
-    
+
     // Default fallback
     return status.toUpperCase();
   }
 
   void _showExportModal(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final allItems = BotanyService().listenable?.value.values.whereType<BotanyHistoryItem>().toList() ?? [];
-    
+    final allItems = BotanyService()
+            .listenable
+            ?.value
+            .values
+            .whereType<BotanyHistoryItem>()
+            .toList() ??
+        [];
+
     if (allItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.errorNoPlantsToExport))
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.errorNoPlantsToExport)));
       return;
     }
 
@@ -539,7 +614,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
         onGenerate: (selectedItems) async {
           // 1. Fecha o Modal de Configuração de forma blindada
           Navigator.of(modalContext).pop();
-          
+
           // 2. Aguarda um frame para garantir que o modal fechou
           await Future.delayed(Duration.zero);
           if (!mounted) return;
@@ -548,25 +623,22 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           showDialog(
             context: context,
             barrierDismissible: false,
-            useRootNavigator: true, 
+            useRootNavigator: true,
             builder: (loadingContext) => const Center(
-              child: CircularProgressIndicator(color: AppDesign.plantGreen)
-            ),
+                child: CircularProgressIndicator(color: AppDesign.plantGreen)),
           );
 
           try {
             final doc = await ExportService().generatePlantHistoryReport(
-              items: selectedItems,
-              strings: AppLocalizations.of(context)!
-            );
+                items: selectedItems, strings: AppLocalizations.of(context)!);
 
             // 4. Fecha o Loading Dialog (via Root Navigator)
             if (mounted) {
-               Navigator.of(context, rootNavigator: true).pop(); 
+              Navigator.of(context, rootNavigator: true).pop();
             }
 
             if (!mounted) return;
-            
+
             // 5. Navega para PDF preview
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -579,15 +651,14 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           } catch (e) {
             // Fecha Loading Dialog em caso de erro (via Root Navigator)
             if (mounted) {
-               Navigator.of(context, rootNavigator: true).pop();
+              Navigator.of(context, rootNavigator: true).pop();
             }
-            
+
             debugPrint('❌ Error generating plant PDF: $e');
-            
+
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.errorPdfGeneration))
-              );
+                  SnackBar(content: Text(l10n.errorPdfGeneration)));
             }
           }
         },
@@ -608,29 +679,48 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
 
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
-    child: FittedBox(
+      child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            _buildCareItemWithLabel(sunLevel, PlantRequirementType.sun, AppLocalizations.of(context)!.labelSun, sun ?? AppLocalizations.of(context)!.labelSun),
+            _buildCareItemWithLabel(
+                sunLevel,
+                PlantRequirementType.sun,
+                AppLocalizations.of(context)!.labelSun,
+                sun ?? AppLocalizations.of(context)!.labelSun),
             const SizedBox(width: 16),
-            _buildCareItemWithLabel(waterLevel, PlantRequirementType.water, AppLocalizations.of(context)!.labelWater, water ?? AppLocalizations.of(context)!.labelWater),
+            _buildCareItemWithLabel(
+                waterLevel,
+                PlantRequirementType.water,
+                AppLocalizations.of(context)!.labelWater,
+                water ?? AppLocalizations.of(context)!.labelWater),
             const SizedBox(width: 16),
-            _buildCareItemWithLabel(soilLevel, PlantRequirementType.soil, AppLocalizations.of(context)!.labelSoil, soil ?? AppLocalizations.of(context)!.labelSoil),
+            _buildCareItemWithLabel(
+                soilLevel,
+                PlantRequirementType.soil,
+                AppLocalizations.of(context)!.labelSoil,
+                soil ?? AppLocalizations.of(context)!.labelSoil),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCareItemWithLabel(int level, PlantRequirementType type, String label, String tooltip) {
+  Widget _buildCareItemWithLabel(
+      int level, PlantRequirementType type, String label, String tooltip) {
     Color color;
     switch (type) {
-      case PlantRequirementType.sun: color = Colors.orange; break;
-      case PlantRequirementType.water: color = Colors.blue; break;
-      case PlantRequirementType.soil: color = Colors.brown; break;
+      case PlantRequirementType.sun:
+        color = Colors.orange;
+        break;
+      case PlantRequirementType.water:
+        color = Colors.blue;
+        break;
+      case PlantRequirementType.soil:
+        color = Colors.brown;
+        break;
     }
 
     return Tooltip(
@@ -658,21 +748,42 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
     final s = value.toLowerCase();
 
     if (type == 'sun') {
-      if (s.contains('pleno') || s.contains('full') || s.contains('direta')) return 3;
-      if (s.contains('meia') || s.contains('partial') || s.contains('indireta')) return 2;
+      if (s.contains('pleno') || s.contains('full') || s.contains('direta')) {
+        return 3;
+      }
+      if (s.contains('meia') || s.contains('partial') || s.contains('indireta')) {
+        return 2;
+      }
       return 1; // Sombra
     }
 
     if (type == 'water') {
       // Robust detection for "Abundantemente", "Frequente", etc.
-      if (s.contains('abundante') || s.contains('high') || s.contains('frequente') || s.contains('muito')) return 3;
-      if (s.contains('moderada') || s.contains('average') || s.contains('regular') || s.contains('semanal')) return 2;
+      if (s.contains('abundante') ||
+          s.contains('high') ||
+          s.contains('frequente') ||
+          s.contains('muito')) {
+        return 3;
+      }
+      if (s.contains('moderada') ||
+          s.contains('average') ||
+          s.contains('regular') ||
+          s.contains('semanal')) {
+        return 2;
+      }
       return 1; // Pouca
     }
 
     if (type == 'soil') {
-      if (s.contains('rico') || s.contains('rich') || s.contains('fértil') || s.contains('humus')) return 3;
-      if (s.contains('drenado') || s.contains('drain') || s.contains('arenoso')) return 1;
+      if (s.contains('rico') ||
+          s.contains('rich') ||
+          s.contains('fértil') ||
+          s.contains('humus')) {
+        return 3;
+      }
+      if (s.contains('drenado') || s.contains('drain') || s.contains('arenoso')) {
+        return 1;
+      }
       return 2;
     }
 
@@ -693,22 +804,23 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.delete, style: const TextStyle(color: AppDesign.error)),
+            child: Text(l10n.delete,
+                style: const TextStyle(color: AppDesign.error)),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-       // Delete Image
-       if (item.imagePath != null) {
-          final file = File(item.imagePath!);
-          if (await file.exists()) {
-             await file.delete();
-          }
-       }
-       // Delete from Hive
-       await item.delete();
+      // Delete Image
+      if (item.imagePath != null) {
+        final file = File(item.imagePath!);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+      // Delete from Hive
+      await item.delete();
     }
   }
 }

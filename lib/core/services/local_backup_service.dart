@@ -56,48 +56,58 @@ class LocalBackupService {
         'box_workouts',
       ];
 
-      developer.log('📦 Lendo e compactando ${boxNames.length} boxes...', name: 'BackupTrace');
+      developer.log('📦 Lendo e compactando ${boxNames.length} boxes...',
+          name: 'BackupTrace');
       for (final boxName in boxNames) {
         try {
           Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
-          developer.log('  ✅ Box "$boxName" garantido/aberto', name: 'BackupTrace');
+          developer.log('  ✅ Box "$boxName" garantido/aberto',
+              name: 'BackupTrace');
           await box.compact();
 
           final boxData = <String, dynamic>{};
           for (var key in box.keys) {
             boxData[key.toString()] = box.get(key);
           }
-          
+
           backupData['boxes'][boxName] = boxData;
-          developer.log('  ✅ Box "$boxName" lido (${boxData.length} itens)', name: 'BackupTrace');
+          developer.log('  ✅ Box "$boxName" lido (${boxData.length} itens)',
+              name: 'BackupTrace');
         } catch (e) {
-          developer.log('  ❌ Erro no box "$boxName"', name: 'BackupTrace', error: e);
+          developer.log('  ❌ Erro no box "$boxName"',
+              name: 'BackupTrace', error: e);
         }
       }
 
       final jsonString = jsonEncode(backupData);
       final jsonBytes = utf8.encode(jsonString);
-      developer.log('📊 JSON gerado: ${jsonBytes.length} bytes', name: 'BackupTrace');
+      developer.log('📊 JSON gerado: ${jsonBytes.length} bytes',
+          name: 'BackupTrace');
 
       final compressed = const GZipEncoder().encode(jsonBytes);
-      developer.log('🗜️ Compressão concluída: ${compressed.length} bytes', name: 'BackupTrace');
+      developer.log('🗜️ Compressão concluída: ${compressed.length} bytes',
+          name: 'BackupTrace');
 
       final dateStr = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
       final fileName = '$_backupFileNamePrefix$dateStr.scannut';
 
-      developer.log('💾 Solicitando local para salvar (FilePicker)...', name: 'BackupTrace');
+      developer.log('💾 Solicitando local para salvar (FilePicker)...',
+          name: 'BackupTrace');
       String? path;
       try {
         // No Android/iOS, passar os bytes diretamente resolve o erro de 'Bytes are required'
         // e permite ao sistema salvar em pastas protegidas com segurança.
-        path = await FilePicker.platform.saveFile(
-          dialogTitle: 'Salvar Backup',
-          fileName: fileName,
-          type: FileType.any,
-          bytes: Uint8List.fromList(compressed),
-        ).timeout(const Duration(seconds: 45));
+        path = await FilePicker.platform
+            .saveFile(
+              dialogTitle: 'Salvar Backup',
+              fileName: fileName,
+              type: FileType.any,
+              bytes: Uint8List.fromList(compressed),
+            )
+            .timeout(const Duration(seconds: 45));
       } catch (e) {
-        developer.log('❌ Erro no FilePicker.saveFile', name: 'BackupTrace', error: e, level: 1000);
+        developer.log('❌ Erro no FilePicker.saveFile',
+            name: 'BackupTrace', error: e, level: 1000);
         rethrow;
       }
 
@@ -105,11 +115,13 @@ class LocalBackupService {
         developer.log('✅ EXPORTAÇÃO CONCLUÍDA: $path', name: 'BackupTrace');
         return true;
       } else {
-        developer.log('⚠️ Operação cancelada pelo usuário (caminho nulo)', name: 'BackupTrace');
+        developer.log('⚠️ Operação cancelada pelo usuário (caminho nulo)',
+            name: 'BackupTrace');
         return false;
       }
     } catch (e, stack) {
-      developer.log('❌ FALHA NA EXPORTAÇÃO', name: 'BackupTrace', error: e, stackTrace: stack, level: 1000);
+      developer.log('❌ FALHA NA EXPORTAÇÃO',
+          name: 'BackupTrace', error: e, stackTrace: stack, level: 1000);
       rethrow;
     }
   }
@@ -199,10 +211,12 @@ class LocalBackupService {
 
       FilePickerResult? result;
       try {
-        result = await FilePicker.platform.pickFiles(
-          type: FileType.any,
-          dialogTitle: 'Selecionar arquivo de backup ScanNut',
-        ).timeout(const Duration(seconds: 45));
+        result = await FilePicker.platform
+            .pickFiles(
+              type: FileType.any,
+              dialogTitle: 'Selecionar arquivo de backup ScanNut',
+            )
+            .timeout(const Duration(seconds: 45));
       } catch (e) {
         logger.error('❌ Erro no FilePicker.pickFiles: $e');
         rethrow;
@@ -228,10 +242,11 @@ class LocalBackupService {
         throw Exception('Arquivo de backup inválido ou corrompido');
       }
 
-      logger.info('📋 Restaurando dados do backup de ${backupData['timestamp']}');
+      logger
+          .info('📋 Restaurando dados do backup de ${backupData['timestamp']}');
 
       final boxes = backupData['boxes'] as Map<String, dynamic>;
-      
+
       for (var entry in boxes.entries) {
         final boxName = entry.key;
         final boxData = entry.value as Map<String, dynamic>;
@@ -247,7 +262,8 @@ class LocalBackupService {
           }
 
           await box.flush();
-          logger.debug('  ✅ Box "$boxName" restaurado (${boxData.length} itens)');
+          logger
+              .debug('  ✅ Box "$boxName" restaurado (${boxData.length} itens)');
         } catch (e) {
           logger.error('  ❌ Erro ao restaurar box "$boxName"', error: e);
         }

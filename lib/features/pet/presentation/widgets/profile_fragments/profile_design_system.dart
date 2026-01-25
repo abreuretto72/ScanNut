@@ -23,7 +23,7 @@ class ProfileDesignSystem {
         ],
       );
     }
-    
+
     return Text(
       title,
       style: GoogleFonts.poppins(
@@ -86,10 +86,12 @@ class ProfileDesignSystem {
   }) {
     return DropdownButtonFormField<String>(
       initialValue: (value == null || !options.contains(value)) ? null : value,
-      items: options.map((opt) => DropdownMenuItem(
-        value: opt,
-        child: Text(opt, style: const TextStyle(fontSize: 13)),
-      )).toList(),
+      items: options
+          .map((opt) => DropdownMenuItem(
+                value: opt,
+                child: Text(opt, style: const TextStyle(fontSize: 13)),
+              ))
+          .toList(),
       onChanged: onChanged,
       style: const TextStyle(color: Colors.white),
       dropdownColor: AppDesign.surfaceDark,
@@ -99,19 +101,27 @@ class ProfileDesignSystem {
         prefixIcon: Icon(icon, color: Colors.white30, size: 18),
         filled: true,
         fillColor: AppDesign.backgroundDark,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
       ),
     );
   }
 
-  static Widget buildDetailRow(String label, String value, {Color color = Colors.white}) {
+  static Widget buildDetailRow(String label, String value,
+      {Color color = Colors.white}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$label: ', style: const TextStyle(color: Colors.white60, fontSize: 13, fontWeight: FontWeight.bold)),
-          Expanded(child: Text(value, style: TextStyle(color: color, fontSize: 13))),
+          Text('$label: ',
+              style: const TextStyle(
+                  color: Colors.white60,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold)),
+          Expanded(
+              child: Text(value, style: TextStyle(color: color, fontSize: 13))),
         ],
       ),
     );
@@ -156,17 +166,22 @@ class ProfileDesignSystem {
               prefixIcon: Icon(icon, color: Colors.white30, size: 18),
               filled: true,
               fillColor: AppDesign.backgroundDark,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    selectedDate != null ? DateFormat('dd/MM/yyyy').format(selectedDate) : 'Selecionar data',
+                    selectedDate != null
+                        ? DateFormat('dd/MM/yyyy').format(selectedDate)
+                        : 'Selecionar data',
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ),
-                const Icon(Icons.calendar_today, color: Colors.white30, size: 16),
+                const Icon(Icons.calendar_today,
+                    color: Colors.white30, size: 16),
               ],
             ),
           ),

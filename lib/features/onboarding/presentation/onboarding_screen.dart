@@ -61,7 +61,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('onboarding_completed', true);
-    await prefs.setBool('disclaimer_accepted', true); // Onboarding already covers disclaimer
+    await prefs.setBool(
+        'disclaimer_accepted', true); // Onboarding already covers disclaimer
 
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
@@ -90,130 +91,156 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Stack(
           children: [
             // Floating particles or subtle accents could go here
-          PageView.builder(
-            controller: _pageController,
-            onPageChanged: (int page) {
-              setState(() {
-                _currentPage = page;
-              });
-            },
-            itemCount: _onboardingPages.length,
-            itemBuilder: (context, index) {
-              return _buildPage(_onboardingPages[index], l10n);
-            },
-          ),
-          
-          // Navigation Bottom Area
-          Positioned(
-            bottom: 50,
-            left: 30,
-            right: 30,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Page Indicator
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    _onboardingPages.length,
-                    (index) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.only(right: 8),
-                      height: 8,
-                      width: _currentPage == index ? 24 : 8,
-                      decoration: BoxDecoration(
-                        color: _currentPage == index 
-                            ? AppDesign.accent 
-                            : AppDesign.textPrimaryDark.withValues(alpha: 0.24),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                // Continuous Action (Terms or Button)
-                if (_currentPage == _onboardingPages.length - 1) ...[
-                  GestureDetector(
-                    onTap: () => setState(() => _termsAccepted = !_termsAccepted),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Row(
-                        children: [
-                          Checkbox(
-                            value: _termsAccepted,
-                            onChanged: (val) => setState(() => _termsAccepted = val ?? false),
-                            activeColor: AppDesign.accent,
-                            side: const BorderSide(color: AppDesign.textSecondaryDark),
-                          ),
-                          Expanded(
-                            child: Text(
-                              l10n.onboardingAcceptTerms,
-                              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 11),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_currentPage < _onboardingPages.length - 1) {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.ease,
-                        );
-                      } else {
-                        _completeOnboarding();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _currentPage == _onboardingPages.length - 1 && !_termsAccepted
-                          ? AppDesign.disabled
-                          : AppDesign.accent,
-                      foregroundColor: AppDesign.backgroundDark,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    child: Text(
-                      _currentPage == _onboardingPages.length - 1 
-                          ? l10n.onboardingGetStarted
-                          : l10n.continueButton,
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ),
-                ),
-              ],
+            PageView.builder(
+              controller: _pageController,
+              onPageChanged: (int page) {
+                setState(() {
+                  _currentPage = page;
+                });
+              },
+              itemCount: _onboardingPages.length,
+              itemBuilder: (context, index) {
+                return _buildPage(_onboardingPages[index], l10n);
+              },
             ),
-          ),
-        ],
+
+            // Navigation Bottom Area
+            Positioned(
+              bottom: 50,
+              left: 30,
+              right: 30,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Page Indicator
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _onboardingPages.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.only(right: 8),
+                        height: 8,
+                        width: _currentPage == index ? 24 : 8,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index
+                              ? AppDesign.accent
+                              : AppDesign.textPrimaryDark
+                                  .withValues(alpha: 0.24),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Continuous Action (Terms or Button)
+                  if (_currentPage == _onboardingPages.length - 1) ...[
+                    GestureDetector(
+                      onTap: () =>
+                          setState(() => _termsAccepted = !_termsAccepted),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: _termsAccepted,
+                              onChanged: (val) =>
+                                  setState(() => _termsAccepted = val ?? false),
+                              activeColor: AppDesign.accent,
+                              side: const BorderSide(
+                                  color: AppDesign.textSecondaryDark),
+                            ),
+                            Expanded(
+                              child: Text(
+                                l10n.onboardingAcceptTerms,
+                                style: GoogleFonts.poppins(
+                                    color: AppDesign.textSecondaryDark,
+                                    fontSize: 11),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_currentPage < _onboardingPages.length - 1) {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.ease,
+                          );
+                        } else {
+                          _completeOnboarding();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _currentPage == _onboardingPages.length - 1 &&
+                                    !_termsAccepted
+                                ? AppDesign.disabled
+                                : AppDesign.accent,
+                        foregroundColor: AppDesign.backgroundDark,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                      child: Text(
+                        _currentPage == _onboardingPages.length - 1
+                            ? l10n.onboardingGetStarted
+                            : l10n.continueButton,
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildPage(OnboardingData data, AppLocalizations l10n) {
     // Get translated strings
     String title = "";
     String body = "";
-    
+
     switch (data.titleKey) {
-      case 'onboardingTitle1': title = l10n.onboardingTitle1; break;
-      case 'onboardingTitle2': title = l10n.onboardingTitle2; break;
-      case 'onboardingTitle3': title = l10n.onboardingTitle3; break;
-      case 'onboardingTitle4': title = l10n.onboardingTitle4; break;
+      case 'onboardingTitle1':
+        title = l10n.onboardingTitle1;
+        break;
+      case 'onboardingTitle2':
+        title = l10n.onboardingTitle2;
+        break;
+      case 'onboardingTitle3':
+        title = l10n.onboardingTitle3;
+        break;
+      case 'onboardingTitle4':
+        title = l10n.onboardingTitle4;
+        break;
     }
-    
+
     switch (data.bodyKey) {
-      case 'onboardingBody1': body = l10n.onboardingBody1; break;
-      case 'onboardingBody2': body = l10n.onboardingBody2; break;
-      case 'onboardingBody3': body = l10n.onboardingBody3; break;
-      case 'onboardingBody4': body = l10n.onboardingBody4; break;
+      case 'onboardingBody1':
+        body = l10n.onboardingBody1;
+        break;
+      case 'onboardingBody2':
+        body = l10n.onboardingBody2;
+        break;
+      case 'onboardingBody3':
+        body = l10n.onboardingBody3;
+        break;
+      case 'onboardingBody4':
+        body = l10n.onboardingBody4;
+        break;
     }
 
     return Padding(
@@ -228,13 +255,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               shape: BoxShape.circle,
               color: data.color.withValues(alpha: 0.1),
               boxShadow: [
-                BoxShadow(color: data.color.withValues(alpha: 0.2), blurRadius: 40, spreadRadius: 10),
+                BoxShadow(
+                    color: data.color.withValues(alpha: 0.2),
+                    blurRadius: 40,
+                    spreadRadius: 10),
               ],
             ),
             child: Icon(data.icon, size: 100, color: data.color),
           ),
           const SizedBox(height: 60),
-          
+
           Text(
             title,
             textAlign: TextAlign.center,
@@ -245,7 +275,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           Text(
             body,
             textAlign: TextAlign.center,

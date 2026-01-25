@@ -22,23 +22,25 @@ class PdfPreviewScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
-        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 16)),
+        title: Text(title,
+            style: const TextStyle(color: Colors.white, fontSize: 16)),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
       body: Theme(
-        data: ThemeData.light(), // Força fundo claro para o PDF para não conflitar com o rosa
+        data: ThemeData
+            .light(), // Força fundo claro para o PDF para não conflitar com o rosa
         child: PdfPreview(
           build: buildPdf,
           canChangeOrientation: false,
           canChangePageFormat: false,
-          allowPrinting: false, 
-          allowSharing: false,  
+          allowPrinting: false,
+          allowSharing: false,
           canDebug: false,
           pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
           maxPageWidth: 700,
-          actions: const [], 
+          actions: const [],
         ),
       ),
       bottomNavigationBar: Container(
@@ -62,7 +64,8 @@ class PdfPreviewScreen extends StatelessWidget {
                 onPressed: () async {
                   final bytes = await buildPdf(PdfPageFormat.a4);
                   final tempDir = await getTemporaryDirectory();
-                  final file = File('${tempDir.path}/${title.replaceAll(' ', '_')}.pdf');
+                  final file =
+                      File('${tempDir.path}/${title.replaceAll(' ', '_')}.pdf');
                   await file.writeAsBytes(bytes);
                   await OpenFilex.open(file.path);
                 },
@@ -73,7 +76,8 @@ class PdfPreviewScreen extends StatelessWidget {
                 onPressed: () async {
                   final bytes = await buildPdf(PdfPageFormat.a4);
                   final tempDir = await getTemporaryDirectory();
-                  final file = File('${tempDir.path}/${title.replaceAll(' ', '_')}.pdf');
+                  final file =
+                      File('${tempDir.path}/${title.replaceAll(' ', '_')}.pdf');
                   await file.writeAsBytes(bytes);
                   await Share.shareXFiles([XFile(file.path)], text: title);
                 },
@@ -85,7 +89,10 @@ class PdfPreviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomAction({required IconData icon, required String tooltip, required VoidCallback onPressed}) {
+  Widget _buildBottomAction(
+      {required IconData icon,
+      required String tooltip,
+      required VoidCallback onPressed}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

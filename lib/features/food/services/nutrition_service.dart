@@ -34,30 +34,31 @@ class NutritionService {
     try {
       final box = await _ensureBox();
       final keys = box.keys.toList();
-      
+
       for (var key in keys) {
         final item = box.get(key);
         if (item != null) {
           String? path = item.imagePath;
-          if (path != null && (path.contains('cache') || path.contains('temp'))) {
-             debugPrint('🧹 [NUTRITION SANITIZER] Clearing phantom path for Food "${item.foodName}"');
-             
-             final newItem = NutritionHistoryItem(
-                 id: item.id,
-                 timestamp: item.timestamp,
-                 foodName: item.foodName,
-                 calories: item.calories,
-                 proteins: item.proteins,
-                 carbs: item.carbs,
-                 fats: item.fats,
-                 isUltraprocessed: item.isUltraprocessed,
-                 biohackingTips: item.biohackingTips,
-                 recipesList: item.recipesList,
-                 imagePath: null, // CLEAR PATH
-                 rawMetadata: item.rawMetadata
-             );
-             
-             await box.put(key, newItem);
+          if (path != null &&
+              (path.contains('cache') || path.contains('temp'))) {
+            debugPrint(
+                '🧹 [NUTRITION SANITIZER] Clearing phantom path for Food "${item.foodName}"');
+
+            final newItem = NutritionHistoryItem(
+                id: item.id,
+                timestamp: item.timestamp,
+                foodName: item.foodName,
+                calories: item.calories,
+                proteins: item.proteins,
+                carbs: item.carbs,
+                fats: item.fats,
+                isUltraprocessed: item.isUltraprocessed,
+                biohackingTips: item.biohackingTips,
+                recipesList: item.recipesList,
+                imagePath: null, // CLEAR PATH
+                rawMetadata: item.rawMetadata);
+
+            await box.put(key, newItem);
           }
         }
       }
@@ -70,7 +71,8 @@ class NutritionService {
     if (!Hive.isAdapterRegistered(20)) {
       Hive.registerAdapter(NutritionHistoryItemAdapter());
     }
-    _box = await HiveAtomicManager().ensureBoxOpen<NutritionHistoryItem>(boxName, cipher: cipher);
+    _box = await HiveAtomicManager()
+        .ensureBoxOpen<NutritionHistoryItem>(boxName, cipher: cipher);
     return _box!;
   }
 
@@ -85,37 +87,38 @@ class NutritionService {
 
   Future<void> saveFoodAnalysis(FoodAnalysisModel analysis, File? image) async {
     final box = await _ensureBox();
-    
+
     String? savedPath;
     if (image != null) {
       try {
-           savedPath = await MediaVaultService().secureClone(
-              image,
-              MediaVaultService.FOOD_DIR,
-              analysis.identidade.nome
-           );
-           debugPrint('✅ Food Image Secured in Vault: $savedPath');
+        savedPath = await MediaVaultService().secureClone(
+            image, MediaVaultService.FOOD_DIR, analysis.identidade.nome);
+        debugPrint('✅ Food Image Secured in Vault: $savedPath');
       } catch (e) {
-           debugPrint('❌ Failed to save to Vault (Food): $e');
-           // Fallback to legacy if critical, but user wants strict vault.
-           // We'll let it be null rather than cache.
+        debugPrint('❌ Failed to save to Vault (Food): $e');
+        // Fallback to legacy if critical, but user wants strict vault.
+        // We'll let it be null rather than cache.
       }
     }
 
     try {
       // 🛠️ DEBUG: Log detailed payload before saving
-      debugPrint('🔍 [NutritionService] Preparing to save analysis for: ${analysis.identidade.nome}');
-      
+      debugPrint(
+          '🔍 [NutritionService] Preparing to save analysis for: ${analysis.identidade.nome}');
+
       try {
-        final recipesListTyped = analysis.receitas.map((r) => {
-          'nome': r.nome,
-          'instrucoes': r.instrucoes,
-          'tempo': r.tempoPreparo,
-        }).toList();
+        final recipesListTyped = analysis.receitas
+            .map((r) => {
+                  'nome': r.nome,
+                  'instrucoes': r.instrucoes,
+                  'tempo': r.tempoPreparo,
+                })
+            .toList();
 
         debugPrint('   Recipes Count: ${recipesListTyped.length}');
         if (recipesListTyped.isNotEmpty) {
-           debugPrint('   Sample Recipe Type: ${recipesListTyped.first.runtimeType}');
+          debugPrint(
+              '   Sample Recipe Type: ${recipesListTyped.first.runtimeType}');
         }
 
         final item = NutritionHistoryItem(
@@ -126,7 +129,9 @@ class NutritionService {
           proteins: analysis.macros.proteinas,
           carbs: analysis.macros.carboidratosLiquidos,
           fats: analysis.macros.gordurasPerfil,
-          isUltraprocessed: analysis.identidade.statusProcessamento.toLowerCase().contains('ultra'),
+          isUltraprocessed: analysis.identidade.statusProcessamento
+              .toLowerCase()
+              .contains('ultra'),
           biohackingTips: [
             analysis.performance.impactoFocoEnergia,
             analysis.performance.momentoIdealConsumo,
@@ -137,32 +142,32 @@ class NutritionService {
           rawMetadata: analysis.toJson(),
         );
 
-        debugPrint('🔍 [NutritionService] Object created successfully. Attempting to add to Hive Box...');
+        debugPrint(
+            '🔍 [NutritionService] Object created successfully. Attempting to add to Hive Box...');
         debugPrint('   Box Name: $boxName | Is Open: ${box.isOpen}');
-        
+
         await box.add(item);
-        
-        debugPrint('✅ [NutritionService] Saved item: ${item.foodName} to box (Total items: ${box.length})');
+
+        debugPrint(
+            '✅ [NutritionService] Saved item: ${item.foodName} to box (Total items: ${box.length})');
         // Force verify save
         debugPrint('   [Verify] Box keys: ${box.keys.toList()}');
-        
+
         // 🔄 Trigger automatic permanent backup
         PermanentBackupService().createAutoBackup().then((_) {
           debugPrint('💾 Backup permanente atualizado após salvar comida');
         }).catchError((e) {
           debugPrint('⚠️ Backup automático falhou: $e');
         });
-
       } catch (innerError, innerStack) {
-         debugPrint('❌ [NutritionService] HIVE WRITE ERROR: $innerError');
-         debugPrint('   Item structure dump:');
-         // Attempt to isolate the faulty field by logging types
-         debugPrint('   - recipesList Type: ${analysis.receitas.runtimeType}');
-         debugPrint('   - rawMetadata Type: ${analysis.toJson().runtimeType}'); 
-         debugPrint(innerStack.toString());
-         rethrow;
+        debugPrint('❌ [NutritionService] HIVE WRITE ERROR: $innerError');
+        debugPrint('   Item structure dump:');
+        // Attempt to isolate the faulty field by logging types
+        debugPrint('   - recipesList Type: ${analysis.receitas.runtimeType}');
+        debugPrint('   - rawMetadata Type: ${analysis.toJson().runtimeType}');
+        debugPrint(innerStack.toString());
+        rethrow;
       }
-
     } catch (e, stack) {
       debugPrint('❌ [NutritionService] CRITICAL ERROR SAVING: $e');
       debugPrint(stack.toString());
@@ -173,11 +178,17 @@ class NutritionService {
   Future<List<NutritionHistoryItem>> getHistory() async {
     final box = await _ensureBox();
     final items = box.values.toList();
-    debugPrint('📊 [NutritionService] getHistory: Retrieved ${items.length} items from box ${box.name}');
+    debugPrint(
+        '📊 [NutritionService] getHistory: Retrieved ${items.length} items from box ${box.name}');
     if (items.isNotEmpty) {
-       debugPrint('   Last item: ${items.last.foodName} (${items.last.timestamp})');
+      debugPrint(
+          '   Last item: ${items.last.foodName} (${items.last.timestamp})');
     }
-    return box.values.whereType<NutritionHistoryItem>().toList().reversed.toList();
+    return box.values
+        .whereType<NutritionHistoryItem>()
+        .toList()
+        .reversed
+        .toList();
   }
 
   Future<void> deleteHistoryItem(NutritionHistoryItem item) async {
@@ -195,7 +206,7 @@ class NutritionService {
         item.timestamp.day == date.day);
 
     double cal = 0, prot = 0, carb = 0, fat = 0;
-    
+
     for (var item in dayItems) {
       cal += item.calories;
       prot += _extractValue(item.proteins);
@@ -222,7 +233,8 @@ class NutritionService {
 
   Future<void> clearAllFood() async {
     final box = await _ensureBox();
-    debugPrint('🔥 [NutritionService] Clearing all food history from $boxName...');
+    debugPrint(
+        '🔥 [NutritionService] Clearing all food history from $boxName...');
     await box.clear();
     // await box.compact(); // Optional optimization
     debugPrint('✅ [NutritionService] All food history cleared.');

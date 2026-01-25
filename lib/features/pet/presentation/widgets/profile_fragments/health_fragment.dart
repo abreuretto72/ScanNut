@@ -18,15 +18,15 @@ class HealthFragment extends StatelessWidget {
   final String petName;
   final List<Map<String, dynamic>> analysisHistory;
   final Function(Map<String, dynamic>)? onDeleteAnalysis;
-  
+
   final String species;
   final String petId;
-  
+
   final Function(DateTime) onV10DateSelected;
   final Function(DateTime) onAntirrabicaDateSelected;
   final Function(String) onFrequenciaBanhoChanged;
   final Function(String) onObservacoesChanged;
-  
+
   final Map<String, List<File>> attachments;
   final Widget labExamsSection;
   final Widget woundAnalysisHistory;
@@ -69,8 +69,8 @@ class HealthFragment extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        // Smart Vaccination Card (Replaces Legacy DatePickers)
-        VaccinationCard(
+          // Smart Vaccination Card (Replaces Legacy DatePickers)
+          VaccinationCard(
             petId: petId,
             petName: petName,
             species: species,
@@ -78,77 +78,77 @@ class HealthFragment extends StatelessWidget {
             legacyRabiesDate: dataUltimaAntirrabica,
             onV10DateSelected: onV10DateSelected,
             onRabiesDateSelected: onAntirrabicaDateSelected,
-        ),
-        
-        const SizedBox(height: 24),
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle(l10n.petHygiene),
-                const SizedBox(height: 16),
-                
-                ProfileDesignSystem.buildOptionSelector(
-                  value: frequenciaBanho,
-                  label: l10n.petBathFrequency,
-                  icon: Icons.water_drop,
-                  options: bathOptions,
-                  onChanged: (val) => onFrequenciaBanhoChanged(val!),
-                ),
-              ],
+          ),
+
+          const SizedBox(height: 24),
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle(l10n.petHygiene),
+                  const SizedBox(height: 16),
+                  ProfileDesignSystem.buildOptionSelector(
+                    value: frequenciaBanho,
+                    label: l10n.petBathFrequency,
+                    icon: Icons.water_drop,
+                    options: bathOptions,
+                    onChanged: (val) => onFrequenciaBanhoChanged(val!),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 24),
-        labExamsSection,
-        
-        const SizedBox(height: 24),
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle('📄 ${l10n.petMedicalDocs}'),
-                const SizedBox(height: 16),
-                
-                AttachmentSection(
-                  title: '📝 ${l10n.petPrescriptions}',
-                  files: attachments['health_prescriptions'] ?? [],
-                  onAdd: onAddAttachmentPrescription,
-                  onDelete: onDeleteAttachment,
-                ),
-                AttachmentSection(
-                  title: '💉 ${l10n.petVaccineCard}',
-                  files: attachments['health_vaccines'] ?? [],
-                  onAdd: onAddAttachmentVaccine,
-                  onDelete: onDeleteAttachment,
-                ),
-              ],
+          const SizedBox(height: 24),
+          labExamsSection,
+
+          const SizedBox(height: 24),
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle(
+                      '📄 ${l10n.petMedicalDocs}'),
+                  const SizedBox(height: 16),
+                  AttachmentSection(
+                    title: '📝 ${l10n.petPrescriptions}',
+                    files: attachments['health_prescriptions'] ?? [],
+                    onAdd: onAddAttachmentPrescription,
+                    onDelete: onDeleteAttachment,
+                  ),
+                  AttachmentSection(
+                    title: '💉 ${l10n.petVaccineCard}',
+                    files: attachments['health_vaccines'] ?? [],
+                    onAdd: onAddAttachmentVaccine,
+                    onDelete: onDeleteAttachment,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
 
+          const SizedBox(height: 24),
+          woundAnalysisHistory,
 
-        const SizedBox(height: 24),
-        woundAnalysisHistory,
-
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Saúde',
-          initialValue: observacoesSaude,
-          onChanged: onObservacoesChanged,
-          icon: Icons.medical_services,
-          accentColor: AppDesign.petPink,
-        ),
-      ],
+          const SizedBox(height: 24),
+          CumulativeObservationsField(
+            sectionName: 'Saúde',
+            initialValue: observacoesSaude,
+            onChanged: onObservacoesChanged,
+            icon: Icons.medical_services,
+            accentColor: AppDesign.petPink,
+          ),
+        ],
       ),
     );
   }

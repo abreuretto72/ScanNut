@@ -26,20 +26,21 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
   // UI State
   // Modes: 'weekly', 'monthly', 'custom'
   late String _selectedMode;
-  
+
   late DateTime _startDate;
-  late DateTime _endDate; // Only relevant for visual calculation in Weekly/Monthly, editable in Custom
-  
+  late DateTime
+      _endDate; // Only relevant for visual calculation in Weekly/Monthly, editable in Custom
+
   late String _selectedObjective;
   late List<String> _selectedRestrictions;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize from persisted params or defaults
     _selectedMode = widget.initialSelectedPeriodId ?? 'weekly';
-    
+
     // Validate loaded mode
     if (!['weekly', 'monthly', 'custom'].contains(_selectedMode)) {
       _selectedMode = 'weekly';
@@ -48,7 +49,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     // Initialize Dates
     // If we have a startDate in params, use it. Otherwise Today.
     _startDate = widget.initialParams?.startDate ?? DateTime.now();
-    
+
     // Normalize time to midnight
     _startDate = DateTime(_startDate.year, _startDate.month, _startDate.day);
 
@@ -64,13 +65,14 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     _selectedObjective = widget.initialParams?.objective ?? 'maintenance';
 
     // Initialize Restrictions
-    _selectedRestrictions = List.from(widget.initialParams?.restrictions ?? widget.userRestrictions);
+    _selectedRestrictions = List.from(
+        widget.initialParams?.restrictions ?? widget.userRestrictions);
   }
 
   void _updateEndDateBasedOnMode() {
     int days = 7;
     if (_selectedMode == 'monthly') days = 30;
-    
+
     setState(() {
       _endDate = _startDate.add(Duration(days: days - 1));
     });
@@ -110,10 +112,10 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
         _startDate = picked;
         // Maintain duration if not custom? Or reset?
         // Prompt implies "Start Date" is mandatory.
-        // If Custom, and I change Start, End should probably allow user to re-pick, 
+        // If Custom, and I change Start, End should probably allow user to re-pick,
         // or shift End to maintain duration. Let's shift to maintain duration for UX niceness.
         if (_selectedMode == 'custom') {
-           _endDate = _startDate.add(Duration(days: duration));
+          _endDate = _startDate.add(Duration(days: duration));
         } else {
           _updateEndDateBasedOnMode();
         }
@@ -126,7 +128,8 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
       context: context,
       initialDate: _endDate,
       firstDate: _startDate,
-      lastDate: _startDate.add(const Duration(days: 60)), // Max 60 days constraint in picker
+      lastDate: _startDate
+          .add(const Duration(days: 60)), // Max 60 days constraint in picker
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -147,8 +150,9 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
       final days = picked.difference(_startDate).inDays + 1;
       if (days > 60) {
         // Show error
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Período máximo: 60 dias')));
-         return;
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Período máximo: 60 dias')));
+        return;
       }
       setState(() {
         _endDate = picked;
@@ -169,8 +173,9 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     // Map objectives to localized strings manually or via l10n if available for these specific keys
     // Assuming simple mapping for now based on prompt.
     // L10n access
-    final l10n = AppLocalizations.of(context); // You might need non-null assertion or handling
-    
+    final l10n = AppLocalizations.of(
+        context); // You might need non-null assertion or handling
+
     // Labels
     final modeLabels = {
       'weekly': 'Semanal',
@@ -181,7 +186,8 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     final objectiveLabels = {
       'maintenance': 'Manter peso',
       'emagrecimento': 'Emagrecimento',
-      'ganho_massa': 'Alimentação equilibrada', // Mapping to 'Equilibrada' per prompt
+      'ganho_massa':
+          'Alimentação equilibrada', // Mapping to 'Equilibrada' per prompt
     };
 
     // Color Palette
@@ -223,7 +229,7 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
               ],
             ),
           ),
-          
+
           const Divider(height: 1, color: Colors.white10),
 
           Flexible(
@@ -251,16 +257,26 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: isSelected ? colorAccent.withValues(alpha: 0.2) : Colors.transparent,
+                                color: isSelected
+                                    ? colorAccent.withValues(alpha: 0.2)
+                                    : Colors.transparent,
                                 borderRadius: BorderRadius.circular(8),
-                                border: isSelected ? Border.all(color: colorAccent.withValues(alpha: 0.5)) : null,
+                                border: isSelected
+                                    ? Border.all(
+                                        color:
+                                            colorAccent.withValues(alpha: 0.5))
+                                    : null,
                               ),
                               child: Text(
                                 e.value,
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.poppins(
-                                  color: isSelected ? colorAccent : colorTextSecondary,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                  color: isSelected
+                                      ? colorAccent
+                                      : colorTextSecondary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
                                   fontSize: 13,
                                 ),
                               ),
@@ -273,10 +289,11 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                   if (_selectedMode == 'weekly')
                     _buildHelperText('Gera 7 dias a partir da data de início.'),
                   if (_selectedMode == 'monthly')
-                    _buildHelperText('Gera 30 dias a partir da data de início.'),
+                    _buildHelperText(
+                        'Gera 30 dias a partir da data de início.'),
                   if (_selectedMode == 'custom')
                     _buildHelperText('Escolha as datas. Máximo de 60 dias.'),
-                  
+
                   const SizedBox(height: 24),
 
                   // BLOCO 2 - DATAS
@@ -303,13 +320,14 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                     ],
                   ),
                   if (_selectedMode == 'custom' && _currentDurationDays > 60)
-                     Padding(
-                       padding: const EdgeInsets.only(top: 8),
-                       child: Text(
-                         'Período excede 60 dias!',
-                         style: GoogleFonts.poppins(color: Colors.redAccent, fontSize: 12),
-                       ),
-                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Período excede 60 dias!',
+                        style: GoogleFonts.poppins(
+                            color: Colors.redAccent, fontSize: 12),
+                      ),
+                    ),
 
                   const SizedBox(height: 24),
 
@@ -319,24 +337,25 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                     spacing: 8,
                     runSpacing: 8,
                     children: objectiveLabels.entries.map((e) {
-                       final isSelected = _selectedObjective == e.key;
-                       return ChoiceChip(
-                         label: Text(e.value),
-                         selected: isSelected,
-                         onSelected: (val) => setState(() => _selectedObjective = e.key),
-                         selectedColor: colorAccent.withValues(alpha: 0.2),
-                         backgroundColor: colorCard,
-                         labelStyle: GoogleFonts.poppins(
-                           color: isSelected ? colorAccent : colorTextSecondary,
-                           fontSize: 13,
-                         ),
-                         shape: RoundedRectangleBorder(
-                           borderRadius: BorderRadius.circular(20),
-                           side: BorderSide(
-                             color: isSelected ? colorAccent : Colors.white12,
-                           ),
-                         ),
-                       );
+                      final isSelected = _selectedObjective == e.key;
+                      return ChoiceChip(
+                        label: Text(e.value),
+                        selected: isSelected,
+                        onSelected: (val) =>
+                            setState(() => _selectedObjective = e.key),
+                        selectedColor: colorAccent.withValues(alpha: 0.2),
+                        backgroundColor: colorCard,
+                        labelStyle: GoogleFonts.poppins(
+                          color: isSelected ? colorAccent : colorTextSecondary,
+                          fontSize: 13,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? colorAccent : Colors.white12,
+                          ),
+                        ),
+                      );
                     }).toList(),
                   ),
 
@@ -347,7 +366,8 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: ['Sem lactose', 'Sem glúten', 'Vegetariano'].map((pref) {
+                    children: ['Sem lactose', 'Sem glúten', 'Vegetariano']
+                        .map((pref) {
                       final isSelected = _selectedRestrictions.contains(pref);
                       return FilterChip(
                         label: Text(pref),
@@ -361,22 +381,23 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                             }
                           });
                         },
-                         selectedColor: colorAccent.withValues(alpha: 0.2),
-                         backgroundColor: colorCard,
-                         labelStyle: GoogleFonts.poppins(
-                           color: isSelected ? colorAccent : colorTextSecondary,
-                           fontSize: 13,
-                         ),
-                         shape: RoundedRectangleBorder(
-                           borderRadius: BorderRadius.circular(20),
-                           side: BorderSide(
-                             color: isSelected ? colorAccent : Colors.white12,
-                           ),
-                         ),
+                        selectedColor: colorAccent.withValues(alpha: 0.2),
+                        backgroundColor: colorCard,
+                        labelStyle: GoogleFonts.poppins(
+                          color: isSelected ? colorAccent : colorTextSecondary,
+                          fontSize: 13,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? colorAccent : Colors.white12,
+                          ),
+                        ),
                       );
                     }).toList(),
                   ),
-                  _buildHelperText('Se não marcar nada, o cardápio será padrão.'),
+                  _buildHelperText(
+                      'Se não marcar nada, o cardápio será padrão.'),
 
                   const SizedBox(height: 24),
 
@@ -392,29 +413,42 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('RESUMO DO PEDIDO', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 10, letterSpacing: 1.0, fontWeight: FontWeight.bold)),
+                        Text('RESUMO DO PEDIDO',
+                            style: GoogleFonts.poppins(
+                                color: Colors.white54,
+                                fontSize: 10,
+                                letterSpacing: 1.0,
+                                fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(modeLabels[_selectedMode]!, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-                            Text('$_currentDurationDays dias', style: GoogleFonts.poppins(color: colorAccent, fontWeight: FontWeight.bold)),
+                            Text(modeLabels[_selectedMode]!,
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold)),
+                            Text('$_currentDurationDays dias',
+                                style: GoogleFonts.poppins(
+                                    color: colorAccent,
+                                    fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${DateFormat('dd/MM', 'pt_BR').format(_startDate)} até ${DateFormat('dd/MM', 'pt_BR').format(_endDate)}',
-                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                          style: GoogleFonts.poppins(
+                              color: Colors.white70, fontSize: 13),
                         ),
                         const SizedBox(height: 4),
-                         Text(
-                          objectiveLabels[_selectedObjective] ?? _selectedObjective,
-                          style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                        Text(
+                          objectiveLabels[_selectedObjective] ??
+                              _selectedObjective,
+                          style: GoogleFonts.poppins(
+                              color: Colors.white54, fontSize: 12),
                         ),
                       ],
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -434,11 +468,13 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
                   disabledBackgroundColor: Colors.white10,
                   disabledForegroundColor: Colors.white38,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: Text(
                   'GERAR CARDÁPIO',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ),
             ),
@@ -476,7 +512,10 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     );
   }
 
-  Widget _buildDateInput({required String label, required DateTime date, required VoidCallback onTap}) {
+  Widget _buildDateInput(
+      {required String label,
+      required DateTime date,
+      required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -490,15 +529,19 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11)),
+            Text(label,
+                style:
+                    GoogleFonts.poppins(color: Colors.white38, fontSize: 11)),
             const SizedBox(height: 2),
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 14, color: AppDesign.foodOrange),
+                const Icon(Icons.calendar_today,
+                    size: 14, color: AppDesign.foodOrange),
                 const SizedBox(width: 8),
                 Text(
                   DateFormat('dd/MM/yy').format(date),
-                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.poppins(
+                      color: Colors.white, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -513,15 +556,15 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     // We are using 'custom' + customDays for maximum flexibility as decided
     // But we might want to preserve the semantical 'weekly' / 'monthly' in data if needed
     // The Generator now supports customDays.
-    
-    // Actually, if we use 'weekly' in periodType, the generator overrides numDays to 7. 
+
+    // Actually, if we use 'weekly' in periodType, the generator overrides numDays to 7.
     /// This is fine if duration is 7.
     // However, we want to respect Start Date strictly.
     // The Generator modification I made uses anchorDate = (periodType == 'custom') ? now : _getMonday(now)
     // So if I want to respect strict StartDate (e.g. Wednesday), I MUST use 'custom'.
-    
+
     final params = MenuCreationParams(
-      periodType: 'custom', 
+      periodType: 'custom',
       customDays: _currentDurationDays,
       startDate: _startDate,
       objective: _selectedObjective,
@@ -532,7 +575,8 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
 
     final result = MenuCreationResult(
       params: params,
-      selectedPeriodId: _selectedMode, // Persist 'weekly', 'monthly' or 'custom'
+      selectedPeriodId:
+          _selectedMode, // Persist 'weekly', 'monthly' or 'custom'
     );
 
     if (!mounted) return;
@@ -540,4 +584,3 @@ class _CreateMenuDialogState extends State<CreateMenuDialog> {
     Navigator.pop(context, result);
   }
 }
-

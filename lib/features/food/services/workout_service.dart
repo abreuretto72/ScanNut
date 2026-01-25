@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+
 /// ============================================================================
 /// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
 /// Este módulo de Treinos e Exercícios foi concluído e validado.
@@ -24,7 +25,8 @@ class WorkoutService {
       if (!Hive.isAdapterRegistered(22)) {
         Hive.registerAdapter(WorkoutItemAdapter());
       }
-      _box = await HiveAtomicManager().ensureBoxOpen<WorkoutItem>(boxName, cipher: cipher);
+      _box = await HiveAtomicManager()
+          .ensureBoxOpen<WorkoutItem>(boxName, cipher: cipher);
       debugPrint('✅ WorkoutService initialized (Secure).');
     } catch (e) {
       debugPrint('❌ Error initializing Secure WorkoutService: $e');

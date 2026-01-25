@@ -31,14 +31,16 @@ class PetIndexingService {
       group: 'health',
       type: 'ai_analysis',
       title: localizedTitle ?? 'Análise de IA: $analysisType ($petName)',
-      notes: localizedNotes ?? 'Análise clínica gerada por Inteligência Artificial.',
+      notes: localizedNotes ??
+          'Análise clínica gerada por Inteligência Artificial.',
       timestamp: DateTime.now(),
       data: {
         'pet_name': petName,
         'analysis_type': analysisType,
         'result_id': resultId,
         'deep_link': 'scannut://pet/analysis/$resultId',
-        'raw_result': rawResult != null ? jsonEncode(rawResult) : null, // 🛡️ Store JSON
+        'raw_result':
+            rawResult != null ? jsonEncode(rawResult) : null, // 🛡️ Store JSON
         'image_path': imagePath, // 🛡️ Store Path
         'is_automatic': true,
         'indexing_origin': 'mare_ia',
@@ -112,8 +114,10 @@ class PetIndexingService {
         'partner_id': partnerId,
         'partner_name': partnerName,
         'is_automatic': true,
-        'distance_id': dateTime.millisecondsSinceEpoch.toString(), // For deep linking matching
-        'deep_link': 'scannut://agenda/event/${dateTime.millisecondsSinceEpoch}',
+        'distance_id': dateTime.millisecondsSinceEpoch
+            .toString(), // For deep linking matching
+        'deep_link':
+            'scannut://agenda/event/${dateTime.millisecondsSinceEpoch}',
         'indexing_origin': 'agenda',
       },
       createdAt: DateTime.now(),
@@ -130,7 +134,8 @@ class PetIndexingService {
     required String petId,
     required String petName,
     required String partnerName,
-    required String interactionType, // 'favorited', 'scheduled', 'contacted', 'linked_partner'
+    required String
+        interactionType, // 'favorited', 'scheduled', 'contacted', 'linked_partner'
     String? partnerId,
     String? localizedTitle,
     String? localizedNotes,
@@ -170,7 +175,8 @@ class PetIndexingService {
         'interaction_type': interactionType,
         'is_automatic': true,
         'indexing_origin': 'radar_geo',
-        if (partnerId != null) 'deep_link': 'scannut://partners/profile/$partnerId',
+        if (partnerId != null)
+          'deep_link': 'scannut://partners/profile/$partnerId',
       },
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -191,24 +197,27 @@ class PetIndexingService {
     String? localizedTitle,
     String? localizedNotes,
   }) async {
-      // 🧠 Smart Inference based on Filename
-    String inferredNote = localizedNotes ?? 'Documento indexado no Media Vault.';
+    // 🧠 Smart Inference based on Filename
+    String inferredNote =
+        localizedNotes ?? 'Documento indexado no Media Vault.';
     String displayTitle = localizedTitle ?? 'Arquivo: $fileName ($petName)';
-      
+
     final lowerName = fileName.toLowerCase();
-    
+
     if (lowerName.contains('card') || lowerName.contains('menu')) {
-        inferredNote = 'Cardápio Nutricional';
-        displayTitle = 'Cardápio Indexado ($petName)';
-    } else if (lowerName.contains('exame') || lowerName.contains('laudo') || lowerName.contains('result')) {
-        inferredNote = 'Exame / Laudo Técnico';
-        displayTitle = 'Exame Indexado ($petName)';
+      inferredNote = 'Cardápio Nutricional';
+      displayTitle = 'Cardápio Indexado ($petName)';
+    } else if (lowerName.contains('exame') ||
+        lowerName.contains('laudo') ||
+        lowerName.contains('result')) {
+      inferredNote = 'Exame / Laudo Técnico';
+      displayTitle = 'Exame Indexado ($petName)';
     } else if (lowerName.contains('vacina') || lowerName.contains('cart')) {
-        inferredNote = 'Cartão de Vacinas';
-        displayTitle = 'Vacina Indexada ($petName)';
+      inferredNote = 'Cartão de Vacinas';
+      displayTitle = 'Vacina Indexada ($petName)';
     } else if (lowerName.contains('receita') || lowerName.contains('presc')) {
-        inferredNote = 'Prescrição Veterinária';
-        displayTitle = 'Receita Indexada ($petName)';
+      inferredNote = 'Prescrição Veterinária';
+      displayTitle = 'Receita Indexada ($petName)';
     }
 
     final event = PetEventModel(
@@ -249,29 +258,29 @@ class PetIndexingService {
     await _repository.init();
 
     // 1. Idempotency Check (De-duplication)
-    final alreadyExists = _repository.box.values.any((e) => 
-      e.data['original_task_id'] == taskId && 
-      e.data['indexing_origin'] == 'agenda_completion'
-    );
+    final alreadyExists = _repository.box.values.any((e) =>
+        e.data['original_task_id'] == taskId &&
+        e.data['indexing_origin'] == 'agenda_completion');
 
     if (alreadyExists) {
-       debugPrint('⚠️ [PET_INDEXER] Duplicate task completion ignored: $taskId');
-       return;
+      debugPrint('⚠️ [PET_INDEXER] Duplicate task completion ignored: $taskId');
+      return;
     }
 
     // 2. Smart Title Parsing (Avoid repetitive prefixes)
     // If the title already starts with the localized prefix concept (e.g. "Tarefa concluída"), use it raw.
-    // Since we receive localizedTitle which might be "Tarefa concluída: Vacina", 
+    // Since we receive localizedTitle which might be "Tarefa concluída: Vacina",
     // we check if taskTitle (Vacina) was already "Tarefa concluída: ...".
-    
+
     // Simpler approach: If taskTitle starts with "Tarefa" or "Task", assume it's already formatted.
-    // However, localizedTitle is constructed in UI. 
+    // However, localizedTitle is constructed in UI.
     // If taskTitle is "Vacina", localizedTitle is "Tarefa concluída: Vacina".
     // If taskTitle is "Tarefa concluída: Vacina", localizedTitle leads to "Tarefa concluída: Tarefa concluída: Vacina".
-    
-    final effectiveTitle = (taskTitle.startsWith('Tarefa') || taskTitle.startsWith('Task')) 
-        ? taskTitle 
-        : (localizedTitle ?? 'Tarefa concluída: $taskTitle');
+
+    final effectiveTitle =
+        (taskTitle.startsWith('Tarefa') || taskTitle.startsWith('Task'))
+            ? taskTitle
+            : (localizedTitle ?? 'Tarefa concluída: $taskTitle');
 
     final event = PetEventModel(
       id: 'idx_tsk_${_uuid.v4()}',

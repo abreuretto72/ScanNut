@@ -100,7 +100,9 @@ class WeeklyPlan extends HiveObject {
       version: json['version'] ?? 1,
       status: json['status'] ?? 'active',
       seed: json['seed'] ?? 0,
-      days: (json['days'] as List).map((dayJson) => PlanDay.fromJson(dayJson)).toList(),
+      days: (json['days'] as List)
+          .map((dayJson) => PlanDay.fromJson(dayJson))
+          .toList(),
       criadoEm: DateTime.parse(json['criadoEm']),
       atualizadoEm: DateTime.parse(json['atualizadoEm']),
       dicasPreparo: json['dicasPreparo'],
@@ -122,9 +124,10 @@ class WeeklyPlan extends HiveObject {
   PlanDay? getDayByDate(DateTime date) {
     try {
       return days.firstWhere(
-        (day) => day.date.year == date.year && 
-                 day.date.month == date.month && 
-                 day.date.day == date.day,
+        (day) =>
+            day.date.year == date.year &&
+            day.date.month == date.month &&
+            day.date.day == date.day,
       );
     } catch (e) {
       return null;

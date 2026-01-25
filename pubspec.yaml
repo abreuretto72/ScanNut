@@ -1,7 +1,7 @@
 name: scannut
 description: AI Visual Assistant for Nutrition, Botany and Pet Care.
 publish_to: "none"
-version: 7.2.2+25
+version: 7.3.0+26
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
@@ -38,8 +38,8 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.2.0
 
-  google_maps_apis: ^1.0.5
-  flutter_google_places_sdk: ^0.3.0
+  # google_maps_apis: ^1.0.5
+  # flutter_google_places_sdk: ^0.3.0
   cupertino_icons: ^1.0.8
   fl_chart: ^1.1.1
   pdf: ^3.11.3
@@ -58,6 +58,7 @@ dependencies:
   permission_handler: ^12.0.1
   google_mlkit_text_recognition: ^0.13.0
   purchases_flutter: ^9.10.2
+  google_maps_flutter: ^2.12.3
   auto_size_text: ^3.0.0
 
   # --- Segurança e Backup ---

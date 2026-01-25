@@ -19,9 +19,10 @@ class MenuFilterService {
   }
 
   /// Salva a configuração atual
-  Future<void> saveLastConfig(MenuCreationParams params, {String? selectedPeriodId}) async {
+  Future<void> saveLastConfig(MenuCreationParams params,
+      {String? selectedPeriodId}) async {
     if (_box == null) await init();
-    
+
     final data = {
       'mealsPerDay': params.mealsPerDay,
       'style': params.style,

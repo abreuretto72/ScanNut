@@ -36,10 +36,11 @@ class GroqApiService {
 
           debugPrint('🚨 [DIO ERROR] status=$status type=${e.type}');
           debugPrint('🚨 [DIO ERROR] URL=$method $uri');
-          debugPrint('🚨 [DIO ERROR] REQUEST_HEADERS=${e.requestOptions.headers}');
+          debugPrint(
+              '🚨 [DIO ERROR] REQUEST_HEADERS=${e.requestOptions.headers}');
           debugPrint('🚨 [DIO ERROR] REQUEST_BODY=${e.requestOptions.data}');
           debugPrint('🚨 [DIO ERROR] RESPONSE_BODY=${e.response?.data}');
-          
+
           _showErrorSnackBar(e);
           return handler.next(e);
         },
@@ -56,7 +57,7 @@ class GroqApiService {
       final response = await _dio.post(
         '/chat/completions',
         data: {
-          'model': 'llava-v1.5-7b-4096-preview', 
+          'model': 'llava-v1.5-7b-4096-preview',
           'messages': [
             {
               'role': 'user',
@@ -92,7 +93,7 @@ class GroqApiService {
       final response = await _dio.post(
         '/chat/completions',
         data: {
-          'model': 'llama3-70b-8192', 
+          'model': 'llama3-70b-8192',
           'messages': [
             {
               'role': 'user',

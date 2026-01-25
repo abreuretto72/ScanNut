@@ -18,13 +18,13 @@ class SafeLocalizedWidget extends StatelessWidget {
     try {
       // Tenta acessar as localizações
       Localizations.of(context, WidgetsLocalizations);
-      
+
       // Se chegou aqui, o contexto está pronto
       return builder(context);
     } catch (e) {
       // Se falhou, mostra loading ou erro
       debugPrint('⚠️ Localizations not ready yet: $e');
-      
+
       return loadingWidget ??
           Scaffold(
             backgroundColor: Colors.black,

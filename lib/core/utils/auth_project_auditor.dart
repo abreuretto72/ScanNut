@@ -18,26 +18,26 @@ class AuthProjectAuditor {
     // Package Name Verification
     bool packageOk = report['packageName'] == 'com.multiversodigital.scannut';
     report['checks'].add({
-      'name': 'Package Name Integrity', 
-      'ok': packageOk, 
+      'name': 'Package Name Integrity',
+      'ok': packageOk,
       'value': report['packageName']
     });
 
     // SHA-1 Configuration Reminder (Debug vs Release)
     report['checks'].add({
-      'name': 'Environment Mode', 
-      'ok': true, 
-      'value': kDebugMode ? 'DEBUG (Requires Debug SHA-1)' : 'RELEASE (Requires Play Console SHA-1)'
+      'name': 'Environment Mode',
+      'ok': true,
+      'value': kDebugMode
+          ? 'DEBUG (Requires Debug SHA-1)'
+          : 'RELEASE (Requires Play Console SHA-1)'
     });
 
-    report['checks'].add({
-      'name': 'Google Services Plugin', 
-      'ok': true, 
-      'value': 'Active'
-    });
+    report['checks']
+        .add({'name': 'Google Services Plugin', 'ok': true, 'value': 'Active'});
 
     if (!packageOk) {
-      report['issues'].add('Package Name mismatch! Expected com.multiversodigital.scannut');
+      report['issues']
+          .add('Package Name mismatch! Expected com.multiversodigital.scannut');
     }
 
     // Write report to local file
@@ -45,7 +45,7 @@ class AuthProjectAuditor {
       final directory = await getApplicationDocumentsDirectory();
       final logsDir = Directory('${directory.path}/logs');
       if (!await logsDir.exists()) await logsDir.create(recursive: true);
-      
+
       final file = File('${logsDir.path}/auth_audit_report.txt');
       final content = _formatReport(report);
       await file.writeAsString(content);
@@ -64,7 +64,8 @@ class AuthProjectAuditor {
     buffer.writeln('Package: ${report['packageName']}');
     buffer.writeln('\nChecks:');
     for (var check in report['checks']) {
-      buffer.writeln('  [${check['ok'] ? "OK" : "!!"}] ${check['name']}: ${check['value']}');
+      buffer.writeln(
+          '  [${check['ok'] ? "OK" : "!!"}] ${check['name']}: ${check['value']}');
     }
     return buffer.toString();
   }

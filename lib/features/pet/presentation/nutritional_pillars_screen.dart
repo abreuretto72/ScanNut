@@ -15,10 +15,7 @@ class NutritionalPillarsScreen extends StatelessWidget {
         title: Text(
           l10n.nutritionGuideTitle,
           style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold
-          ),
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -107,16 +104,14 @@ class NutritionalPillarsScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
+                  const Icon(Icons.warning_amber_rounded,
+                      color: Colors.orangeAccent),
                   const SizedBox(width: 12),
                   Expanded(
                     child: RichText(
                       text: TextSpan(
                         style: GoogleFonts.poppins(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          height: 1.4
-                        ),
+                            color: Colors.white70, fontSize: 12, height: 1.4),
                         children: [
                           TextSpan(
                             text: '${l10n.ngWarningTitle} ',
@@ -142,7 +137,8 @@ class NutritionalPillarsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPillarCard(BuildContext context, {
+  Widget _buildPillarCard(
+    BuildContext context, {
     required String title,
     required String subtitle,
     required IconData icon,
@@ -198,14 +194,16 @@ class NutritionalPillarsScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     whatIs,
-                    style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
                   _buildSectionTitle(l10n.ngSectionScanNut, AppDesign.petPink),
                   const SizedBox(height: 4),
                   Text(
                     scanNutAction,
-                    style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70, fontSize: 13),
                   ),
                 ],
               ),

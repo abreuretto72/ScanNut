@@ -14,23 +14,34 @@ class PartnerExportConfigurationModal extends StatefulWidget {
   });
 
   @override
-  State<PartnerExportConfigurationModal> createState() => _PartnerExportConfigurationModalState();
+  State<PartnerExportConfigurationModal> createState() =>
+      _PartnerExportConfigurationModalState();
 }
 
-class _PartnerExportConfigurationModalState extends State<PartnerExportConfigurationModal> {
-  String _filterMode = 'all'; // 'all', 'veterinario', 'petshop', 'banho', 'farmacia', 'manual'
+class _PartnerExportConfigurationModalState
+    extends State<PartnerExportConfigurationModal> {
+  String _filterMode =
+      'all'; // 'all', 'veterinario', 'petshop', 'banho', 'farmacia', 'manual'
   final Set<String> _selectedIds = {};
 
   List<PartnerModel> get _filteredPartners {
     switch (_filterMode) {
       case 'veterinario':
-        return widget.allPartners.where((p) => p.category == 'Veterinário').toList();
+        return widget.allPartners
+            .where((p) => p.category == 'Veterinário')
+            .toList();
       case 'petshop':
-        return widget.allPartners.where((p) => p.category == 'Pet Shop').toList();
+        return widget.allPartners
+            .where((p) => p.category == 'Pet Shop')
+            .toList();
       case 'banho':
-        return widget.allPartners.where((p) => p.category == 'Banho e Tosa').toList();
+        return widget.allPartners
+            .where((p) => p.category == 'Banho e Tosa')
+            .toList();
       case 'farmacia':
-        return widget.allPartners.where((p) => p.category == 'Farmácias').toList();
+        return widget.allPartners
+            .where((p) => p.category == 'Farmácias')
+            .toList();
       case 'manual':
         return widget.allPartners;
       case 'all':
@@ -64,7 +75,10 @@ class _PartnerExportConfigurationModalState extends State<PartnerExportConfigura
                   Expanded(
                     child: Text(
                       'Exportar Guia de Parceiros',
-                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                   IconButton(
@@ -76,12 +90,14 @@ class _PartnerExportConfigurationModalState extends State<PartnerExportConfigura
               const SizedBox(height: 20),
 
               // FILTER OPTIONS
-              Text('Filtrar por categoria:', style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
+              Text('Filtrar por categoria:',
+                  style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
               const SizedBox(height: 10),
 
               _buildFilterOption('Todos os Parceiros', 'all', Icons.business),
               const SizedBox(height: 8),
-              _buildFilterOption('Veterinários', 'veterinario', Icons.local_hospital),
+              _buildFilterOption(
+                  'Veterinários', 'veterinario', Icons.local_hospital),
               const SizedBox(height: 8),
               _buildFilterOption('Pet Shops', 'petshop', Icons.shopping_basket),
               const SizedBox(height: 8),
@@ -95,23 +111,34 @@ class _PartnerExportConfigurationModalState extends State<PartnerExportConfigura
 
               // MANUAL SELECTION LIST
               if (_filterMode == 'manual') ...[
-                Text('Selecione os parceiros:', style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
+                Text('Selecione os parceiros:',
+                    style:
+                        GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
                 const SizedBox(height: 8),
                 Container(
                   height: 200,
-                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(8)),
                   child: filteredList.isEmpty
-                      ? const Center(child: Text('Nenhum parceiro encontrado.', style: TextStyle(color: Colors.white30)))
+                      ? const Center(
+                          child: Text('Nenhum parceiro encontrado.',
+                              style: TextStyle(color: Colors.white30)))
                       : ListView.builder(
                           shrinkWrap: true,
                           physics: const ClampingScrollPhysics(),
                           itemCount: filteredList.length,
                           itemBuilder: (context, index) {
                             final partner = filteredList[index];
-                            final isSelected = _selectedIds.contains(partner.id);
+                            final isSelected =
+                                _selectedIds.contains(partner.id);
                             return CheckboxListTile(
-                              title: Text(partner.name, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                              subtitle: Text(partner.category, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                              title: Text(partner.name,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 13)),
+                              subtitle: Text(partner.category,
+                                  style: const TextStyle(
+                                      color: Colors.white54, fontSize: 11)),
                               value: isSelected,
                               activeColor: AppDesign.petPink,
                               checkColor: Colors.black,
@@ -170,7 +197,9 @@ class _PartnerExportConfigurationModalState extends State<PartnerExportConfigura
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected ? AppDesign.petPink.withValues(alpha: 0.2) : Colors.white10,
+          color: isSelected
+              ? AppDesign.petPink.withValues(alpha: 0.2)
+              : Colors.white10,
           border: Border.all(
             color: isSelected ? AppDesign.petPink : Colors.white24,
             width: isSelected ? 2 : 1,
@@ -179,7 +208,9 @@ class _PartnerExportConfigurationModalState extends State<PartnerExportConfigura
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppDesign.petPink : Colors.white54, size: 20),
+            Icon(icon,
+                color: isSelected ? AppDesign.petPink : Colors.white54,
+                size: 20),
             const SizedBox(width: 10),
             Text(
               label,
@@ -198,7 +229,8 @@ class _PartnerExportConfigurationModalState extends State<PartnerExportConfigura
     List<PartnerModel> finalPartners = _filteredPartners;
 
     if (_filterMode == 'manual') {
-      finalPartners = finalPartners.where((p) => _selectedIds.contains(p.id)).toList();
+      finalPartners =
+          finalPartners.where((p) => _selectedIds.contains(p.id)).toList();
     }
 
     Navigator.pop(context);

@@ -19,21 +19,23 @@ class MealPlanGenerator {
   }) async {
     // Get recent ingredients to exclude
     final mealHistoryService = _ref.read(mealHistoryServiceProvider);
-    final excludedIngredients = await mealHistoryService.getRecentIngredients(petName);
+    final excludedIngredients =
+        await mealHistoryService.getRecentIngredients(petName);
 
     // Use Gemini to generate new plan
     final geminiService = GeminiService();
-    
+
     // If we have an image, use it; otherwise, create a text-only request
     // For now, we'll create a simplified prompt for meal generation only
     final prompt = _buildMealGenerationPrompt(raceName, excludedIngredients);
-    
+
     // TODO: Implement text-only Gemini request or use cached pet data
     // For now, return a placeholder response
     throw UnimplementedError('Meal generation requires pet analysis data');
   }
 
-  String _buildMealGenerationPrompt(String raceName, List<String> excludedIngredients) {
+  String _buildMealGenerationPrompt(
+      String raceName, List<String> excludedIngredients) {
     final exclusionText = excludedIngredients.isEmpty
         ? 'Nenhuma restrição.'
         : 'EVITE os seguintes ingredientes usados recentemente: ${excludedIngredients.join(", ")}.';

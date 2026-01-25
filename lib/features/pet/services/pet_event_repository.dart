@@ -24,13 +24,15 @@ class PetEventRepository {
       if (!Hive.isAdapterRegistered(41)) {
         Hive.registerAdapter(PetEventModelAdapter());
       }
-      
-      _box = await HiveAtomicManager().ensureBoxOpen<PetEventModel>(_boxName, cipher: cipher);
-      
+
+      _box = await HiveAtomicManager()
+          .ensureBoxOpen<PetEventModel>(_boxName, cipher: cipher);
+
       // 🚀 MIGRATION SCRIPT: Reset volatile cache paths to avoid 'Photo Not Found' errors
       await _sanitizeOrphanedCachePaths();
-      
-      debugPrint('✅ PET_EVENTS: Repository initialized. Items: ${_box?.length}');
+
+      debugPrint(
+          '✅ PET_EVENTS: Repository initialized. Items: ${_box?.length}');
     } catch (e, stack) {
       debugPrint('❌ PET_EVENTS: Failed to initialize Repository: $e\n$stack');
     }
@@ -39,7 +41,7 @@ class PetEventRepository {
   /// 🧹 RESET TÉCNICO: Limpeza de Paths Órfãos (Cache) conforme PROMPT V6
   Future<void> _sanitizeOrphanedCachePaths() async {
     if (_box == null) return;
-    
+
     bool changedGlobal = false;
     for (var key in _box!.keys) {
       final event = _box!.get(key);
@@ -48,7 +50,8 @@ class PetEventRepository {
         final updatedAttachments = event.attachments.map((a) {
           if (a.path.contains('/cache/') || a.path.contains('/tmp/')) {
             eventChanged = true;
-            debugPrint('🧹 [SANITIZER] Clearing volatile path for event ${event.id}: ${a.path}');
+            debugPrint(
+                '🧹 [SANITIZER] Clearing volatile path for event ${event.id}: ${a.path}');
             // We return a "placeholder" or null-path as per user instruction (Icone neutro)
             // But AttachmentModel.path is usually required. Let's set it to an empty but detectable string.
             return a.copyWith(path: 'REMOVED_BY_SANITIZER');
@@ -64,7 +67,8 @@ class PetEventRepository {
     }
     if (changedGlobal) {
       await _box!.flush();
-      debugPrint('✨ [SANITIZER] Pet Event pathways cleaned and reset to safe defaults.');
+      debugPrint(
+          '✨ [SANITIZER] Pet Event pathways cleaned and reset to safe defaults.');
     }
   }
 
@@ -91,24 +95,24 @@ class PetEventRepository {
       // 🧠 AUTOMATIC INDEXING (MUO Logic)
       // If the event is NOT an automatic index (differentiated by idx_ prefix), we index it
       if (!event.id.startsWith('idx_')) {
-          try {
-              final indexer = PetIndexingService();
-              // Don't await to avoid recursive loop if indexing engine uses repository (which it does)
-              // But we have the 'idx_' check to prevent loop.
-              await indexer.indexOccurrence(
-                  petId: event.petId,
-                  petName: event.petId, // Defaulting to ID as Name
-                  group: event.group,
-                  title: event.title,
-                  notes: event.notes,
-                  extraData: {
-                    'original_event_id': event.id,
-                    'type': event.type,
-                  },
-              );
-          } catch (e) {
-              debugPrint('⚠️ Occurrence indexing failed: $e');
-          }
+        try {
+          final indexer = PetIndexingService();
+          // Don't await to avoid recursive loop if indexing engine uses repository (which it does)
+          // But we have the 'idx_' check to prevent loop.
+          await indexer.indexOccurrence(
+            petId: event.petId,
+            petName: event.petId, // Defaulting to ID as Name
+            group: event.group,
+            title: event.title,
+            notes: event.notes,
+            extraData: {
+              'original_event_id': event.id,
+              'type': event.type,
+            },
+          );
+        } catch (e) {
+          debugPrint('⚠️ Occurrence indexing failed: $e');
+        }
       }
     } catch (e) {
       debugPrint('❌ PET_EVENTS: Save error: $e');
@@ -124,25 +128,55 @@ class PetEventRepository {
 
       EventType type;
       if (model.type == 'vaccine') {
-          type = EventType.vaccine;
+        type = EventType.vaccine;
       } else {
-          switch (model.group) {
-            case 'food': type = EventType.food; break;
-            case 'health': type = EventType.veterinary; break;
-            case 'elimination': type = EventType.elimination; break;
-            case 'grooming': type = EventType.grooming; break;
-            case 'activity': type = EventType.activity; break;
-            case 'behavior': type = EventType.behavior; break;
-            case 'medication': type = EventType.medication; break;
-            case 'documents': type = EventType.documents; break;
-            case 'exams': type = EventType.exams; break;
-            case 'dentistry': type = EventType.dentistry; break;
-            case 'metrics': type = EventType.metrics; break;
-            case 'media': type = EventType.media; break;
-            case 'allergies': type = EventType.veterinary; break; 
-            case 'schedule': type = EventType.other; break;
-            default: type = EventType.other; break;
-          }
+        switch (model.group) {
+          case 'food':
+            type = EventType.food;
+            break;
+          case 'health':
+            type = EventType.veterinary;
+            break;
+          case 'elimination':
+            type = EventType.elimination;
+            break;
+          case 'grooming':
+            type = EventType.grooming;
+            break;
+          case 'activity':
+            type = EventType.activity;
+            break;
+          case 'behavior':
+            type = EventType.behavior;
+            break;
+          case 'medication':
+            type = EventType.medication;
+            break;
+          case 'documents':
+            type = EventType.documents;
+            break;
+          case 'exams':
+            type = EventType.exams;
+            break;
+          case 'dentistry':
+            type = EventType.dentistry;
+            break;
+          case 'metrics':
+            type = EventType.metrics;
+            break;
+          case 'media':
+            type = EventType.media;
+            break;
+          case 'allergies':
+            type = EventType.veterinary;
+            break;
+          case 'schedule':
+            type = EventType.other;
+            break;
+          default:
+            type = EventType.other;
+            break;
+        }
       }
 
       final agendaEvent = PetEvent(
@@ -158,28 +192,36 @@ class PetEventRepository {
       await agendaService.addEvent(agendaEvent);
       debugPrint('🔗 PET_EVENTS: Agenda Mirrored for ${model.id}');
     } catch (e) {
-       debugPrint('⚠️ PET_EVENTS: Mirror Agenda failed: $e');
+      debugPrint('⚠️ PET_EVENTS: Mirror Agenda failed: $e');
     }
   }
 
-  List<PetEventModel> listEventsByPet(String petId, {DateTime? from, DateTime? to, String? petName}) {
+  List<PetEventModel> listEventsByPet(String petId,
+      {DateTime? from, DateTime? to, String? petName}) {
     try {
       // 🛡️ HYBRID QUERY: Matches either ID (UUID) OR Name (Legacy/Data)
       var events = _openBox.values.where((e) {
         final matchesId = e.petId == petId;
         final matchesName = (petName != null && e.petId == petName);
-        final matchesDataName = (e.data['pet_name'] == petId || (petName != null && e.data['pet_name'] == petName));
-        
+        final matchesDataName = (e.data['pet_name'] == petId ||
+            (petName != null && e.data['pet_name'] == petName));
+
         return (matchesId || matchesName || matchesDataName) && !e.isDeleted;
       }).toList();
-      
+
       if (from != null) {
-        events = events.where((e) => e.timestamp.isAfter(from) || e.timestamp.isAtSameMomentAs(from)).toList();
+        events = events
+            .where((e) =>
+                e.timestamp.isAfter(from) || e.timestamp.isAtSameMomentAs(from))
+            .toList();
       }
       if (to != null) {
-        events = events.where((e) => e.timestamp.isBefore(to) || e.timestamp.isAtSameMomentAs(to)).toList();
+        events = events
+            .where((e) =>
+                e.timestamp.isBefore(to) || e.timestamp.isAtSameMomentAs(to))
+            .toList();
       }
-      
+
       events.sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Newest first
       return events;
     } catch (e) {
@@ -190,10 +232,8 @@ class PetEventRepository {
 
   Map<String, int> listTotalCountByGroup(String petId) {
     final counts = <String, int>{};
-    final events = _openBox.values.where((e) => 
-      (e.petId == petId || e.data['pet_name'] == petId) && 
-      !e.isDeleted
-    );
+    final events = _openBox.values.where((e) =>
+        (e.petId == petId || e.data['pet_name'] == petId) && !e.isDeleted);
 
     for (var e in events) {
       counts[e.group] = (counts[e.group] ?? 0) + 1;
@@ -207,12 +247,11 @@ class PetEventRepository {
     final tomorrow = today.add(const Duration(days: 1));
 
     final counts = <String, int>{};
-    final events = _openBox.values.where((e) => 
-      (e.petId == petId || e.data['pet_name'] == petId) && 
-      !e.isDeleted &&
-      (e.timestamp.isAfter(today) || e.timestamp.isAtSameMomentAs(today)) &&
-      e.timestamp.isBefore(tomorrow)
-    );
+    final events = _openBox.values.where((e) =>
+        (e.petId == petId || e.data['pet_name'] == petId) &&
+        !e.isDeleted &&
+        (e.timestamp.isAfter(today) || e.timestamp.isAtSameMomentAs(today)) &&
+        e.timestamp.isBefore(tomorrow));
 
     for (var e in events) {
       counts[e.group] = (counts[e.group] ?? 0) + 1;
@@ -227,8 +266,8 @@ class PetEventRepository {
       debugPrint('✅ PET_EVENTS: Event updated: ${event.id}');
       await _mirrorToAgenda(event);
     } catch (e) {
-       debugPrint('❌ PET_EVENTS: Update error: $e');
-       rethrow;
+      debugPrint('❌ PET_EVENTS: Update error: $e');
+      rethrow;
     }
   }
 
@@ -239,7 +278,7 @@ class PetEventRepository {
       await _openBox.put(eventId, deleted);
       await _openBox.flush();
       debugPrint('🗑️ PET_EVENTS: Event soft-deleted: $eventId');
-      
+
       // Cleanup Agenda
       try {
         final agendaService = PetEventService();
@@ -253,15 +292,18 @@ class PetEventRepository {
 
   Future<void> deleteEventsByWeek(String petId, DateTime weekStart) async {
     final weekEnd = weekStart.add(const Duration(days: 7));
-    final toDelete = _openBox.values.where((e) => 
-      e.petId == petId && 
-      (e.timestamp.isAfter(weekStart) || e.timestamp.isAtSameMomentAs(weekStart)) &&
-      e.timestamp.isBefore(weekEnd)
-    ).toList();
+    final toDelete = _openBox.values
+        .where((e) =>
+            e.petId == petId &&
+            (e.timestamp.isAfter(weekStart) ||
+                e.timestamp.isAtSameMomentAs(weekStart)) &&
+            e.timestamp.isBefore(weekEnd))
+        .toList();
 
     for (var e in toDelete) {
       await deleteEventSoft(e.id);
     }
-    debugPrint('🗑️ PET_EVENTS: Weekly events soft-deleted for $petId starting $weekStart');
+    debugPrint(
+        '🗑️ PET_EVENTS: Weekly events soft-deleted for $petId starting $weekStart');
   }
 }

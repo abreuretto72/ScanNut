@@ -54,46 +54,49 @@ class PermissionHelper {
   ) async {
     final l10n = AppLocalizations.of(context)!;
     return await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF00E676), width: 1),
-        ),
-        icon: Icon(icon, color: const Color(0xFF00E676), size: 40),
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          body,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              l10n.petNamePromptCancel,
-              style: const TextStyle(color: Colors.white54),
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            backgroundColor: Colors.grey[900],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFF00E676), width: 1),
             ),
+            icon: Icon(icon, color: const Color(0xFF00E676), size: 40),
+            title: Text(
+              title,
+              style: GoogleFonts.poppins(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            content: Text(
+              body,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  l10n.petNamePromptCancel,
+                  style: const TextStyle(color: Colors.white54),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00E676),
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25)),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(
+                  l10n.continueButton,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E676),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              l10n.continueButton,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 }

@@ -8,7 +8,8 @@ import 'package:path/path.dart' as path;
 /// 🛡️ V70.1: IMAGE OPTIMIZATION SERVICE FOR PDF GENERATION
 /// Prevents memory crashes by downsampling images before PDF rendering
 class ImageOptimizationService {
-  static final ImageOptimizationService _instance = ImageOptimizationService._internal();
+  static final ImageOptimizationService _instance =
+      ImageOptimizationService._internal();
   factory ImageOptimizationService() => _instance;
   ImageOptimizationService._internal();
 
@@ -16,7 +17,7 @@ class ImageOptimizationService {
   static const int maxImageWidth = 800;
   static const int maxImageHeight = 800;
   static const int jpegQuality = 70; // 70% quality = good visual + 90% smaller
-  
+
   /// Optimize image for PDF rendering
   /// Returns optimized file path or null if optimization fails
   Future<File?> optimizeForPDF({
@@ -24,8 +25,9 @@ class ImageOptimizationService {
     String? customName,
   }) async {
     try {
-      debugPrint('🔄 [V70.1-IMG] Optimizing image: ${path.basename(originalPath)}');
-      
+      debugPrint(
+          '🔄 [V70.1-IMG] Optimizing image: ${path.basename(originalPath)}');
+
       final originalFile = File(originalPath);
       if (!await originalFile.exists()) {
         debugPrint('⚠️ [V70.1-IMG] Original file not found: $originalPath');
@@ -34,7 +36,8 @@ class ImageOptimizationService {
 
       // Get original file size
       final originalSize = await originalFile.length();
-      debugPrint('📊 [V70.1-IMG] Original size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
+      debugPrint(
+          '📊 [V70.1-IMG] Original size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
 
       // Create temp directory for optimized images
       final tempDir = await getTemporaryDirectory();
@@ -65,9 +68,11 @@ class ImageOptimizationService {
 
       // Get optimized file size
       final optimizedSize = await result.length();
-      final reduction = ((1 - (optimizedSize / originalSize)) * 100).toStringAsFixed(1);
-      
-      debugPrint('✅ [V70.1-IMG] Optimized size: ${(optimizedSize / 1024).toStringAsFixed(2)} KB');
+      final reduction =
+          ((1 - (optimizedSize / originalSize)) * 100).toStringAsFixed(1);
+
+      debugPrint(
+          '✅ [V70.1-IMG] Optimized size: ${(optimizedSize / 1024).toStringAsFixed(2)} KB');
       debugPrint('📉 [V70.1-IMG] Size reduction: $reduction%');
 
       return File(result.path);
@@ -83,8 +88,9 @@ class ImageOptimizationService {
     required List<String> imagePaths,
     Function(int current, int total)? onProgress,
   }) async {
-    debugPrint('🔄 [V70.1-IMG] Starting batch optimization: ${imagePaths.length} images');
-    
+    debugPrint(
+        '🔄 [V70.1-IMG] Starting batch optimization: ${imagePaths.length} images');
+
     final Map<String, String> optimizedPaths = {};
     int processed = 0;
 
@@ -94,17 +100,20 @@ class ImageOptimizationService {
 
       final optimized = await optimizeForPDF(
         originalPath: originalPath,
-        customName: 'batch_${processed}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        customName:
+            'batch_${processed}_${DateTime.now().millisecondsSinceEpoch}.jpg',
       );
 
       if (optimized != null) {
         optimizedPaths[originalPath] = optimized.path;
       } else {
-        debugPrint('⚠️ [V70.1-IMG] Skipping failed optimization: $originalPath');
+        debugPrint(
+            '⚠️ [V70.1-IMG] Skipping failed optimization: $originalPath');
       }
     }
 
-    debugPrint('✅ [V70.1-IMG] Batch complete: ${optimizedPaths.length}/${imagePaths.length} successful');
+    debugPrint(
+        '✅ [V70.1-IMG] Batch complete: ${optimizedPaths.length}/${imagePaths.length} successful');
     return optimizedPaths;
   }
 
@@ -154,7 +163,7 @@ class ImageOptimizationService {
       // Clear Flutter's image cache
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
-      
+
       debugPrint('🧹 [V70.1-IMG] Memory cleanup executed');
     } catch (e) {
       debugPrint('⚠️ [V70.1-IMG] Memory cleanup warning: $e');
@@ -166,7 +175,7 @@ class ImageOptimizationService {
     try {
       final tempDir = await getTemporaryDirectory();
       final optimizedDir = Directory('${tempDir.path}/pdf_optimized');
-      
+
       if (await optimizedDir.exists()) {
         await optimizedDir.delete(recursive: true);
         debugPrint('🧹 [V70.1-IMG] Cleaned up temp optimized images');
@@ -196,7 +205,7 @@ class ImageOptimizationService {
   /// Estimate memory usage for image list
   Future<double> estimateMemoryUsageMB(List<String> imagePaths) async {
     double totalMB = 0;
-    
+
     for (final imagePath in imagePaths) {
       try {
         final file = File(imagePath);
@@ -208,7 +217,7 @@ class ImageOptimizationService {
         // Skip
       }
     }
-    
+
     return totalMB;
   }
 }

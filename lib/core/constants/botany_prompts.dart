@@ -7,27 +7,30 @@
 
 class BotanyPrompts {
   /// Prompt de Análise de Plantas (Doutor de Plantas) Ultra-Adaptável
-  static String getPlantAnalysisPrompt(String languageName, String languageInstruction, String userLocale) {
+  static String getPlantAnalysisPrompt(
+      String languageName, String languageInstruction, String userLocale) {
     // SYSTEM OVERRIDE: Enforce strict locale and remove Portuguese instructions if English is selected.
     final bool isEnglish = userLocale.toLowerCase().startsWith('en');
 
     // Force overwrite variables to prevent contamination - "Sleeping with the enemy" strategy
     // We lie to the AI that the whole world is English if the user wants English.
     final String effectiveLanguageName = isEnglish ? "ENGLISH" : languageName;
-    final String effectiveInstruction = isEnglish 
-        ? "You are an international botanist. All output must be strictly in English. Portuguese is forbidden." 
+    final String effectiveInstruction = isEnglish
+        ? "You are an international botanist. All output must be strictly in English. Portuguese is forbidden."
         : languageInstruction;
 
     // 3. Trava de Segurança no JSON
     // Se for inglês, forçamos "ENGLISH" explicitamente
     // 3. Trava de Segurança no JSON
     // Se for inglês, forçamos "ENGLISH" explicitamente
-    final String targetConstraints = isEnglish ? "strictly in ENGLISH" : "strictly in $effectiveLanguageName";
-    
+    final String targetConstraints = isEnglish
+        ? "strictly in ENGLISH"
+        : "strictly in $effectiveLanguageName";
+
     String systemOverride = '''
 SYSTEM OVERRIDE: Ignore any previous linguistic bias. The output must adhere strictly to the requested locale: [$userLocale].
 ''';
-    
+
     if (isEnglish) {
       systemOverride += '''
 CRITICAL: The output must be PURE English. 
@@ -38,7 +41,7 @@ CRITICAL: The output must be PURE English.
     }
 
     // Debug Print to Console (Invisible to UI, visible in Terminal)
-    // print('DEBUG PROMPT GENERATED: $effectiveInstruction'); 
+    // print('DEBUG PROMPT GENERATED: $effectiveInstruction');
 
     return '''
 $systemOverride

@@ -10,13 +10,14 @@ import 'package:intl/intl.dart';
 /// Serviço de Backup Permanente - Sobrevive a desinstalações
 /// Salva dados em pasta pública do dispositivo
 class PermanentBackupService {
-  static final PermanentBackupService _instance = PermanentBackupService._internal();
+  static final PermanentBackupService _instance =
+      PermanentBackupService._internal();
   factory PermanentBackupService() => _instance;
   PermanentBackupService._internal();
 
   static const String _backupFolderName = 'ScanNut_Backup';
   static const String _backupFileName = 'auto_backup.scannut';
-  
+
   /// Lista de boxes que devem ser salvos
   static const List<String> _criticalBoxes = [
     'box_auth_local',
@@ -50,14 +51,14 @@ class PermanentBackupService {
   /// iOS: Documents folder (acessível via Files app)
   Future<Directory> _getBackupDirectory() async {
     Directory baseDir;
-    
+
     if (Platform.isAndroid) {
       // Android: Usar pasta Documents pública
       final externalDir = await getExternalStorageDirectory();
       if (externalDir == null) {
         throw Exception('Não foi possível acessar armazenamento externo');
       }
-      
+
       // Navegar para a raiz do armazenamento público
       // De: /storage/emulated/0/Android/data/com.app/files
       // Para: /storage/emulated/0/Documents/ScanNut_Backup
@@ -68,12 +69,12 @@ class PermanentBackupService {
       final appDocDir = await getApplicationDocumentsDirectory();
       baseDir = Directory('${appDocDir.path}/$_backupFolderName');
     }
-    
+
     if (!await baseDir.exists()) {
       await baseDir.create(recursive: true);
       debugPrint('📁 Pasta de backup criada: ${baseDir.path}');
     }
-    
+
     return baseDir;
   }
 
@@ -81,7 +82,7 @@ class PermanentBackupService {
   Future<bool> createAutoBackup() async {
     try {
       debugPrint('🔄 Iniciando auto-backup permanente...');
-      
+
       final backupData = <String, dynamic>{
         'version': '2.0.0', // Nova versão com suporte a auto-recovery
         'timestamp': DateTime.now().toIso8601String(),
@@ -98,7 +99,7 @@ class PermanentBackupService {
           for (var key in box.keys) {
             boxData[key.toString()] = box.get(key);
           }
-          
+
           backupData['boxes'][boxName] = boxData;
           debugPrint('  ✅ Box "$boxName" salvo (${boxData.length} itens)');
         } catch (e) {
@@ -115,10 +116,10 @@ class PermanentBackupService {
       final backupDir = await _getBackupDirectory();
       final backupFile = File('${backupDir.path}/$_backupFileName');
       await backupFile.writeAsBytes(compressed);
-      
+
       debugPrint('✅ Auto-backup salvo: ${backupFile.path}');
       debugPrint('📊 Tamanho: ${compressed.length} bytes');
-      
+
       return true;
     } catch (e, stack) {
       debugPrint('❌ Erro no auto-backup: $e');
@@ -132,17 +133,17 @@ class PermanentBackupService {
   Future<bool> autoRecovery() async {
     try {
       debugPrint('🔍 Verificando backup permanente...');
-      
+
       final backupDir = await _getBackupDirectory();
       final backupFile = File('${backupDir.path}/$_backupFileName');
-      
+
       if (!await backupFile.exists()) {
         debugPrint('ℹ️ Nenhum backup encontrado');
         return false;
       }
 
       debugPrint('📦 Backup encontrado! Iniciando auto-recovery...');
-      
+
       final bytes = await backupFile.readAsBytes();
       final decompressed = const GZipDecoder().decodeBytes(bytes);
       final jsonString = utf8.decode(decompressed);
@@ -157,7 +158,7 @@ class PermanentBackupService {
 
       final boxes = backupData['boxes'] as Map<String, dynamic>;
       int restoredBoxes = 0;
-      
+
       for (var entry in boxes.entries) {
         final boxName = entry.key;
         final boxData = entry.value as Map<String, dynamic>;
@@ -172,7 +173,8 @@ class PermanentBackupService {
             }
             await box.flush();
             restoredBoxes++;
-            debugPrint('  ✅ Box "$boxName" restaurado (${boxData.length} itens)');
+            debugPrint(
+                '  ✅ Box "$boxName" restaurado (${boxData.length} itens)');
           } else {
             debugPrint('  ⏭️ Box "$boxName" já contém dados, pulando');
           }
@@ -196,7 +198,7 @@ class PermanentBackupService {
       final backupDir = await _getBackupDirectory();
       final dateStr = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final fileName = 'backup_$dateStr.scannut';
-      
+
       // Usar mesma lógica de createAutoBackup mas com nome diferente
       final backupData = <String, dynamic>{
         'version': '2.0.0',
@@ -224,7 +226,7 @@ class PermanentBackupService {
 
       final backupFile = File('${backupDir.path}/$fileName');
       await backupFile.writeAsBytes(compressed);
-      
+
       debugPrint('✅ Backup timestamped criado: ${backupFile.path}');
       return backupFile.path;
     } catch (e) {
@@ -244,7 +246,7 @@ class PermanentBackupService {
     try {
       final backupDir = await _getBackupDirectory();
       final backupFile = File('${backupDir.path}/$_backupFileName');
-      
+
       if (await backupFile.exists()) {
         await backupFile.delete();
         debugPrint('🗑️ Backup permanente excluído com sucesso.');

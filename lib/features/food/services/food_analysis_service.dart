@@ -28,7 +28,7 @@ class FoodAnalysisService {
 
     try {
       final jsonString = await _groqService.analyzeImage(image, prompt);
-      
+
       if (jsonString == null) {
         throw Exception("Não foi possível analisar o alimento.");
       }
@@ -44,7 +44,7 @@ class FoodAnalysisService {
           .trim();
 
       final Map<String, dynamic> data = jsonDecode(cleanJson);
-      
+
       // Handle potential API response errors
       if (data.containsKey('error')) {
         throw Exception("Erro da IA: ${data['error']}");

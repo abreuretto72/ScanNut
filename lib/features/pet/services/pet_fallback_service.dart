@@ -2,7 +2,7 @@ class PetFallbackService {
   /// Default growth curve data based on size category
   static Map<String, dynamic> getGrowthCurve(String size) {
     String s = size.toLowerCase();
-    
+
     if (s.contains('pequen') || s.contains('small')) {
       return {
         'weight_3_months': '2-3 kg',
@@ -25,7 +25,7 @@ class PetFallbackService {
         'adult_weight': '60-80 kg'
       };
     }
-    
+
     // Default to Medium
     return {
       'weight_3_months': '5-7 kg',
@@ -48,7 +48,7 @@ class PetFallbackService {
     } else if (s.contains('grande') || s.contains('large')) {
       return {
         'kcal_filhote': '1800-2200 kcal',
-        'kcal_adulto': '1400-1600 kcal', 
+        'kcal_adulto': '1400-1600 kcal',
         'kcal_senior': '1100-1300 kcal'
       };
     } else if (s.contains('gigante') || s.contains('giant')) {
@@ -70,7 +70,9 @@ class PetFallbackService {
   /// Default grooming frequency based on coat type inference or default
   static String getGroomingFrequency(String coatType) {
     String c = coatType.toLowerCase();
-    if (c.contains('long') || c.contains('curly') || c.contains('encaracolado')) {
+    if (c.contains('long') ||
+        c.contains('curly') ||
+        c.contains('encaracolado')) {
       return 'Diária / Daily';
     } else if (c.contains('curt') || c.contains('short')) {
       return 'Semanal / Weekly';

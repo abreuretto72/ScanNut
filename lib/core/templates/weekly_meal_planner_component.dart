@@ -8,31 +8,32 @@ class WeeklyMealPlanner extends StatelessWidget {
   final DateTime? startDate;
   final String? dailyKcal; // Added Kcal Goal
 
-    const WeeklyMealPlanner({
-      super.key, 
-      required this.weeklyPlan, 
-      this.generalGuidelines, 
-      this.startDate,
-      this.dailyKcal,
-    });
+  const WeeklyMealPlanner({
+    super.key,
+    required this.weeklyPlan,
+    this.generalGuidelines,
+    this.startDate,
+    this.dailyKcal,
+  });
 
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> displayedPlan = [];
-    
+
     for (int i = 0; i < weeklyPlan.length; i++) {
-        final item = Map<String, String>.from(weeklyPlan[i]);
-        
-        if (startDate != null) {
-            final dateForDay = startDate!.add(Duration(days: i));
-            final dateStr = DateFormat('dd/MM').format(dateForDay);
-            final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay); 
-            final weekDayCap = weekDayName[0].toUpperCase() + weekDayName.substring(1);
-            item['dia'] = "$weekDayCap - $dateStr";
-        } else {
-            item['dia'] = item['dia'] ?? 'Dia ${i + 1}';
-        }
-        displayedPlan.add(item);
+      final item = Map<String, String>.from(weeklyPlan[i]);
+
+      if (startDate != null) {
+        final dateForDay = startDate!.add(Duration(days: i));
+        final dateStr = DateFormat('dd/MM').format(dateForDay);
+        final weekDayName = DateFormat('EEEE', 'pt_BR').format(dateForDay);
+        final weekDayCap =
+            weekDayName[0].toUpperCase() + weekDayName.substring(1);
+        item['dia'] = "$weekDayCap - $dateStr";
+      } else {
+        item['dia'] = item['dia'] ?? 'Dia ${i + 1}';
+      }
+      displayedPlan.add(item);
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,9 +67,9 @@ class WeeklyMealPlanner extends StatelessWidget {
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-        itemCount: displayedPlan.length,
-        itemBuilder: (context, index) {
-          final dayData = displayedPlan[index];
+          itemCount: displayedPlan.length,
+          itemBuilder: (context, index) {
+            final dayData = displayedPlan[index];
             final dia = dayData['dia'] ?? 'Dia ${index + 1}';
             final refeicao = dayData['refeicao'] ?? '';
             final beneficio = dayData['beneficio'] ?? '';
@@ -110,8 +111,14 @@ class WeeklyMealPlanner extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Principais Nutrientes', style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11)),
-                          Text('$dailyKcal', style: GoogleFonts.poppins(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text('Principais Nutrientes',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.white54, fontSize: 11)),
+                          Text('$dailyKcal',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.orangeAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -128,7 +135,8 @@ class WeeklyMealPlanner extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.check_circle, color: Colors.greenAccent, size: 14),
+                        const Icon(Icons.check_circle,
+                            color: Colors.greenAccent, size: 14),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(

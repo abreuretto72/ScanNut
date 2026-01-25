@@ -20,12 +20,13 @@ class _PdfSectionFilterDialogState extends State<PdfSectionFilterDialog> {
     'parc': false,
   };
 
-  bool get _hasSelection => _selectedSections.values.any((selected) => selected);
+  bool get _hasSelection =>
+      _selectedSections.values.any((selected) => selected);
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     final Map<String, String> sectionLabels = {
       'identity': '🐾 ${l10n.sectionIdentity}',
       'health': '💉 ${l10n.sectionHealth}',

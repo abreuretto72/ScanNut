@@ -17,19 +17,21 @@ class MealHistoryService {
   }
 
   // Save the ingredients used in a weekly plan for a specific pet
-  Future<void> saveWeeklyIngredients(String petName, List<String> ingredients) async {
+  Future<void> saveWeeklyIngredients(
+      String petName, List<String> ingredients) async {
     final box = await _getOpenBox();
     final key = 'meal_history_${petName.toLowerCase().trim()}';
-    
+
     // We store a list of past weeks. Each entry is a list of ingredients.
-    // We'll keep only the last 2 weeks to avoid accumulating too much old data 
+    // We'll keep only the last 2 weeks to avoid accumulating too much old data
     // unless we want a longer history.
     List<List<String>> history = [];
-    
+
     if (box.containsKey(key)) {
       final data = box.get(key);
       if (data is List) {
-        history = List<List<String>>.from(data.map((e) => List<String>.from(e)));
+        history =
+            List<List<String>>.from(data.map((e) => List<String>.from(e)));
       }
     }
 
@@ -38,7 +40,7 @@ class MealHistoryService {
 
     // Keep only last 4 weeks (approx 1 month) for rotation logic
     if (history.length > 4) {
-      history.removeAt(0); 
+      history.removeAt(0);
     }
 
     await box.put(key, history);
@@ -48,13 +50,14 @@ class MealHistoryService {
   Future<List<String>> getRecentIngredients(String petName) async {
     final box = await _getOpenBox();
     final key = 'meal_history_${petName.toLowerCase().trim()}';
-    
+
     if (!box.containsKey(key)) return [];
 
     final data = box.get(key);
     if (data is List) {
-      final history = List<List<String>>.from(data.map((e) => List<String>.from(e)));
-      
+      final history =
+          List<List<String>>.from(data.map((e) => List<String>.from(e)));
+
       // Flatten the list to get all ingredients used recently
       final Set<String> uniqueIngredients = {};
       for (var week in history) {
@@ -62,7 +65,7 @@ class MealHistoryService {
       }
       return uniqueIngredients.toList();
     }
-    
+
     return [];
   }
 }

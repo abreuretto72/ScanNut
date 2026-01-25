@@ -11,7 +11,7 @@ class PlansFragment extends StatefulWidget {
   final Map<String, dynamic>? funeralPlan;
   final Map<String, dynamic>? lifeInsurance;
   final TextEditingController observacoesController;
-  
+
   final Function(Map<String, dynamic>?) onHealthPlanChanged;
   final Function(Map<String, dynamic>?) onAssistancePlanChanged;
   final Function(Map<String, dynamic>?) onFuneralPlanChanged;
@@ -50,14 +50,22 @@ class _PlansFragmentState extends State<PlansFragment> {
   @override
   void initState() {
     super.initState();
-    _hpNameController = TextEditingController(text: widget.healthPlan?['name'] ?? '');
-    _hpValueController = TextEditingController(text: widget.healthPlan?['monthly_value']?.toString() ?? '');
-    _apNameController = TextEditingController(text: widget.assistancePlan?['name'] ?? '');
-    _apMaxValueController = TextEditingController(text: widget.assistancePlan?['max_value']?.toString() ?? '');
-    _fpNameController = TextEditingController(text: widget.funeralPlan?['name'] ?? '');
-    _fpContactController = TextEditingController(text: widget.funeralPlan?['emergency_contact'] ?? '');
-    _liInsurerController = TextEditingController(text: widget.lifeInsurance?['insurer'] ?? '');
-    _liValueController = TextEditingController(text: widget.lifeInsurance?['insured_value']?.toString() ?? '');
+    _hpNameController =
+        TextEditingController(text: widget.healthPlan?['name'] ?? '');
+    _hpValueController = TextEditingController(
+        text: widget.healthPlan?['monthly_value']?.toString() ?? '');
+    _apNameController =
+        TextEditingController(text: widget.assistancePlan?['name'] ?? '');
+    _apMaxValueController = TextEditingController(
+        text: widget.assistancePlan?['max_value']?.toString() ?? '');
+    _fpNameController =
+        TextEditingController(text: widget.funeralPlan?['name'] ?? '');
+    _fpContactController = TextEditingController(
+        text: widget.funeralPlan?['emergency_contact'] ?? '');
+    _liInsurerController =
+        TextEditingController(text: widget.lifeInsurance?['insurer'] ?? '');
+    _liValueController = TextEditingController(
+        text: widget.lifeInsurance?['insured_value']?.toString() ?? '');
   }
 
   @override
@@ -111,30 +119,40 @@ class _PlansFragmentState extends State<PlansFragment> {
                 icon: Icons.business,
                 onChanged: () {
                   final current = widget.healthPlan ?? {};
-                  widget.onHealthPlanChanged({...current, 'name': _hpNameController.text});
+                  widget.onHealthPlanChanged(
+                      {...current, 'name': _hpNameController.text});
                 },
               ),
               const SizedBox(height: 16),
               _buildSubsectionTitle(l10n.healthPlanCoverage),
               _buildCheckboxGrid([
-                 _buildCheckboxItem(l10n.healthPlanConsultations, 'covers_consults', widget.healthPlan),
-                 _buildCheckboxItem(l10n.healthPlanExams, 'covers_exams', widget.healthPlan),
-                 _buildCheckboxItem(l10n.healthPlanSurgeries, 'covers_surgeries', widget.healthPlan),
-                 _buildCheckboxItem(l10n.healthPlanEmergencies, 'covers_emergencies', widget.healthPlan),
-                 _buildCheckboxItem(l10n.healthPlanHospitalization, 'covers_hospitalization', widget.healthPlan),
-                 _buildCheckboxItem(l10n.healthPlanVaccines, 'covers_vaccines', widget.healthPlan),
+                _buildCheckboxItem(l10n.healthPlanConsultations,
+                    'covers_consults', widget.healthPlan),
+                _buildCheckboxItem(
+                    l10n.healthPlanExams, 'covers_exams', widget.healthPlan),
+                _buildCheckboxItem(l10n.healthPlanSurgeries, 'covers_surgeries',
+                    widget.healthPlan),
+                _buildCheckboxItem(l10n.healthPlanEmergencies,
+                    'covers_emergencies', widget.healthPlan),
+                _buildCheckboxItem(l10n.healthPlanHospitalization,
+                    'covers_hospitalization', widget.healthPlan),
+                _buildCheckboxItem(l10n.healthPlanVaccines, 'covers_vaccines',
+                    widget.healthPlan),
               ]),
               const SizedBox(height: 16),
               _buildSubsectionTitle(l10n.healthPlanType),
               Row(
                 children: [
-                  _buildRadioItem(l10n.healthPlanNetwork, 'network', widget.healthPlan?['type'], (v) {
+                  _buildRadioItem(l10n.healthPlanNetwork, 'network',
+                      widget.healthPlan?['type'], (v) {
                     final current = widget.healthPlan ?? {};
                     widget.onHealthPlanChanged({...current, 'type': 'network'});
                   }),
-                  _buildRadioItem(l10n.healthPlanReimbursement, 'reimbursement', widget.healthPlan?['type'], (v) {
+                  _buildRadioItem(l10n.healthPlanReimbursement, 'reimbursement',
+                      widget.healthPlan?['type'], (v) {
                     final current = widget.healthPlan ?? {};
-                    widget.onHealthPlanChanged({...current, 'type': 'reimbursement'});
+                    widget.onHealthPlanChanged(
+                        {...current, 'type': 'reimbursement'});
                   }),
                 ],
               ),
@@ -146,7 +164,8 @@ class _PlansFragmentState extends State<PlansFragment> {
                 keyboardType: TextInputType.number,
                 onChanged: () {
                   final current = widget.healthPlan ?? {};
-                  widget.onHealthPlanChanged({...current, 'monthly_value': _hpValueController.text});
+                  widget.onHealthPlanChanged(
+                      {...current, 'monthly_value': _hpValueController.text});
                 },
               ),
             ],
@@ -169,20 +188,25 @@ class _PlansFragmentState extends State<PlansFragment> {
                 icon: Icons.business,
                 onChanged: () {
                   final current = widget.assistancePlan ?? {};
-                  widget.onAssistancePlanChanged({...current, 'name': _apNameController.text});
+                  widget.onAssistancePlanChanged(
+                      {...current, 'name': _apNameController.text});
                 },
               ),
               const SizedBox(height: 16),
               _buildSubsectionTitle(l10n.assistancePlanReimbursementType),
               Row(
                 children: [
-                  _buildRadioItem(l10n.assistancePlanTotal, 'total', widget.assistancePlan?['reimbursement_type'], (v) {
+                  _buildRadioItem(l10n.assistancePlanTotal, 'total',
+                      widget.assistancePlan?['reimbursement_type'], (v) {
                     final current = widget.assistancePlan ?? {};
-                    widget.onAssistancePlanChanged({...current, 'reimbursement_type': 'total'});
+                    widget.onAssistancePlanChanged(
+                        {...current, 'reimbursement_type': 'total'});
                   }),
-                  _buildRadioItem(l10n.assistancePlanPartial, 'partial', widget.assistancePlan?['reimbursement_type'], (v) {
+                  _buildRadioItem(l10n.assistancePlanPartial, 'partial',
+                      widget.assistancePlan?['reimbursement_type'], (v) {
                     final current = widget.assistancePlan ?? {};
-                    widget.onAssistancePlanChanged({...current, 'reimbursement_type': 'partial'});
+                    widget.onAssistancePlanChanged(
+                        {...current, 'reimbursement_type': 'partial'});
                   }),
                 ],
               ),
@@ -194,13 +218,16 @@ class _PlansFragmentState extends State<PlansFragment> {
                 keyboardType: TextInputType.number,
                 onChanged: () {
                   final current = widget.assistancePlan ?? {};
-                  widget.onAssistancePlanChanged({...current, 'max_value': _apMaxValueController.text});
+                  widget.onAssistancePlanChanged(
+                      {...current, 'max_value': _apMaxValueController.text});
                 },
               ),
               const SizedBox(height: 12),
-              _buildSwitchItem(l10n.assistancePlanNeedsInvoice, 'needs_invoice', widget.assistancePlan, (v) {
+              _buildSwitchItem(l10n.assistancePlanNeedsInvoice, 'needs_invoice',
+                  widget.assistancePlan, (v) {
                 final current = widget.assistancePlan ?? {};
-                widget.onAssistancePlanChanged({...current, 'needs_invoice': v});
+                widget
+                    .onAssistancePlanChanged({...current, 'needs_invoice': v});
               }),
             ],
           ),
@@ -222,35 +249,43 @@ class _PlansFragmentState extends State<PlansFragment> {
                 icon: Icons.business,
                 onChanged: () {
                   final current = widget.funeralPlan ?? {};
-                  widget.onFuneralPlanChanged({...current, 'name': _fpNameController.text});
+                  widget.onFuneralPlanChanged(
+                      {...current, 'name': _fpNameController.text});
                 },
               ),
               const SizedBox(height: 16),
               _buildSubsectionTitle(l10n.funeralPlanServices),
               _buildCheckboxGrid([
-                 _buildCheckboxItem(l10n.funeralPlanWake, 'incl_wake', widget.funeralPlan, (v, field) {
-                   final current = widget.funeralPlan ?? {};
-                   widget.onFuneralPlanChanged({...current, field: v});
-                 }),
-                 _buildCheckboxItem(l10n.funeralPlanIndivCremation, 'incl_crem_indiv', widget.funeralPlan, (v, field) {
-                   final current = widget.funeralPlan ?? {};
-                   widget.onFuneralPlanChanged({...current, field: v});
-                 }),
-                 _buildCheckboxItem(l10n.funeralPlanCollCremation, 'incl_crem_coll', widget.funeralPlan, (v, field) {
-                   final current = widget.funeralPlan ?? {};
-                   widget.onFuneralPlanChanged({...current, field: v});
-                 }),
-                 _buildCheckboxItem(l10n.funeralPlanTransport, 'incl_transport', widget.funeralPlan, (v, field) {
-                   final current = widget.funeralPlan ?? {};
-                   widget.onFuneralPlanChanged({...current, field: v});
-                 }),
-                 _buildCheckboxItem(l10n.funeralPlanMemorial, 'incl_memorial', widget.funeralPlan, (v, field) {
-                   final current = widget.funeralPlan ?? {};
-                   widget.onFuneralPlanChanged({...current, field: v});
-                 }),
+                _buildCheckboxItem(
+                    l10n.funeralPlanWake, 'incl_wake', widget.funeralPlan,
+                    (v, field) {
+                  final current = widget.funeralPlan ?? {};
+                  widget.onFuneralPlanChanged({...current, field: v});
+                }),
+                _buildCheckboxItem(l10n.funeralPlanIndivCremation,
+                    'incl_crem_indiv', widget.funeralPlan, (v, field) {
+                  final current = widget.funeralPlan ?? {};
+                  widget.onFuneralPlanChanged({...current, field: v});
+                }),
+                _buildCheckboxItem(l10n.funeralPlanCollCremation,
+                    'incl_crem_coll', widget.funeralPlan, (v, field) {
+                  final current = widget.funeralPlan ?? {};
+                  widget.onFuneralPlanChanged({...current, field: v});
+                }),
+                _buildCheckboxItem(l10n.funeralPlanTransport, 'incl_transport',
+                    widget.funeralPlan, (v, field) {
+                  final current = widget.funeralPlan ?? {};
+                  widget.onFuneralPlanChanged({...current, field: v});
+                }),
+                _buildCheckboxItem(l10n.funeralPlanMemorial, 'incl_memorial',
+                    widget.funeralPlan, (v, field) {
+                  final current = widget.funeralPlan ?? {};
+                  widget.onFuneralPlanChanged({...current, field: v});
+                }),
               ]),
               const SizedBox(height: 16),
-              _buildSwitchItem(l10n.funeralPlan24h, 'support_24h', widget.funeralPlan, (v) {
+              _buildSwitchItem(
+                  l10n.funeralPlan24h, 'support_24h', widget.funeralPlan, (v) {
                 final current = widget.funeralPlan ?? {};
                 widget.onFuneralPlanChanged({...current, 'support_24h': v});
               }),
@@ -262,7 +297,10 @@ class _PlansFragmentState extends State<PlansFragment> {
                 keyboardType: TextInputType.phone,
                 onChanged: () {
                   final current = widget.funeralPlan ?? {};
-                  widget.onFuneralPlanChanged({...current, 'emergency_contact': _fpContactController.text});
+                  widget.onFuneralPlanChanged({
+                    ...current,
+                    'emergency_contact': _fpContactController.text
+                  });
                 },
               ),
             ],
@@ -285,7 +323,8 @@ class _PlansFragmentState extends State<PlansFragment> {
                 icon: Icons.security,
                 onChanged: () {
                   final current = widget.lifeInsurance ?? {};
-                  widget.onLifeInsuranceChanged({...current, 'insurer': _liInsurerController.text});
+                  widget.onLifeInsuranceChanged(
+                      {...current, 'insurer': _liInsurerController.text});
                 },
               ),
               const SizedBox(height: 16),
@@ -296,29 +335,36 @@ class _PlansFragmentState extends State<PlansFragment> {
                 keyboardType: TextInputType.number,
                 onChanged: () {
                   final current = widget.lifeInsurance ?? {};
-                  widget.onLifeInsuranceChanged({...current, 'insured_value': _liValueController.text});
+                  widget.onLifeInsuranceChanged(
+                      {...current, 'insured_value': _liValueController.text});
                 },
               ),
               const SizedBox(height: 16),
               _buildSubsectionTitle(l10n.lifeInsuranceCoverages),
               _buildCheckboxGrid([
-                 _buildCheckboxItem(l10n.lifeInsuranceDeath, 'cov_death', widget.lifeInsurance, (v, field) {
-                   final current = widget.lifeInsurance ?? {};
-                   widget.onLifeInsuranceChanged({...current, field: v});
-                 }),
-                 _buildCheckboxItem(l10n.lifeInsuranceGraveIllness, 'cov_illness', widget.lifeInsurance, (v, field) {
-                   final current = widget.lifeInsurance ?? {};
-                   widget.onLifeInsuranceChanged({...current, field: v});
-                 }),
-                 _buildCheckboxItem(l10n.lifeInsuranceEuthanasia, 'cov_euthanasia', widget.lifeInsurance, (v, field) {
-                   final current = widget.lifeInsurance ?? {};
-                   widget.onLifeInsuranceChanged({...current, field: v});
-                 }),
+                _buildCheckboxItem(
+                    l10n.lifeInsuranceDeath, 'cov_death', widget.lifeInsurance,
+                    (v, field) {
+                  final current = widget.lifeInsurance ?? {};
+                  widget.onLifeInsuranceChanged({...current, field: v});
+                }),
+                _buildCheckboxItem(l10n.lifeInsuranceGraveIllness,
+                    'cov_illness', widget.lifeInsurance, (v, field) {
+                  final current = widget.lifeInsurance ?? {};
+                  widget.onLifeInsuranceChanged({...current, field: v});
+                }),
+                _buildCheckboxItem(l10n.lifeInsuranceEuthanasia,
+                    'cov_euthanasia', widget.lifeInsurance, (v, field) {
+                  final current = widget.lifeInsurance ?? {};
+                  widget.onLifeInsuranceChanged({...current, field: v});
+                }),
               ]),
               const SizedBox(height: 16),
-              _buildSwitchItem(l10n.lifeInsuranceEconomicValue, 'has_economic_value', widget.lifeInsurance, (v) {
+              _buildSwitchItem(l10n.lifeInsuranceEconomicValue,
+                  'has_economic_value', widget.lifeInsurance, (v) {
                 final current = widget.lifeInsurance ?? {};
-                widget.onLifeInsuranceChanged({...current, 'has_economic_value': v});
+                widget.onLifeInsuranceChanged(
+                    {...current, 'has_economic_value': v});
               }),
             ],
           ),
@@ -357,7 +403,9 @@ class _PlansFragmentState extends State<PlansFragment> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(child: ProfileDesignSystem.buildSectionTitle(title, icon: icon)),
+                Expanded(
+                    child: ProfileDesignSystem.buildSectionTitle(title,
+                        icon: icon)),
                 Switch(
                   value: isActive,
                   onChanged: (v) {
@@ -368,12 +416,13 @@ class _PlansFragmentState extends State<PlansFragment> {
                 ),
               ],
             ),
-            
             Text(
               helpText,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11, fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic),
             ),
-            
             if (isActive) ...[
               const Divider(color: Colors.white10, height: 24),
               ...children,
@@ -389,7 +438,8 @@ class _PlansFragmentState extends State<PlansFragment> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+            color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -402,37 +452,42 @@ class _PlansFragmentState extends State<PlansFragment> {
     );
   }
 
-  Widget _buildCheckboxItem(String label, String field, Map<String, dynamic>? data, [Function(bool, String)? customOnChanged]) {
+  Widget _buildCheckboxItem(
+      String label, String field, Map<String, dynamic>? data,
+      [Function(bool, String)? customOnChanged]) {
     final bool isChecked = data?[field] == true;
     return SizedBox(
       width: (MediaQuery.of(context).size.width - 80) / 2,
       child: CheckboxListTile(
         value: isChecked,
-        title: Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+        title: Text(label,
+            style: const TextStyle(color: Colors.white, fontSize: 12)),
         dense: true,
         contentPadding: EdgeInsets.zero,
         controlAffinity: ListTileControlAffinity.leading,
         activeColor: AppDesign.petPink,
         onChanged: (v) {
-           if (customOnChanged != null) {
-             customOnChanged(v ?? false, field);
-           } else {
-             // Default notify/change (to be handled by parent logic if generic)
-             final current = widget.healthPlan ?? {}; // Example for health set
-             widget.onHealthPlanChanged({...current, field: v});
-           }
-           _notifyInteraction();
+          if (customOnChanged != null) {
+            customOnChanged(v ?? false, field);
+          } else {
+            // Default notify/change (to be handled by parent logic if generic)
+            final current = widget.healthPlan ?? {}; // Example for health set
+            widget.onHealthPlanChanged({...current, field: v});
+          }
+          _notifyInteraction();
         },
       ),
     );
   }
 
-  Widget _buildRadioItem(String label, String value, dynamic groupValue, Function(String?)? onChanged) {
+  Widget _buildRadioItem(String label, String value, dynamic groupValue,
+      Function(String?)? onChanged) {
     return Expanded(
       child: RadioListTile<String>(
         value: value,
         groupValue: groupValue?.toString(),
-        title: Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
+        title: Text(label,
+            style: const TextStyle(color: Colors.white, fontSize: 12)),
         dense: true,
         contentPadding: EdgeInsets.zero,
         activeColor: AppDesign.petPink,
@@ -444,10 +499,12 @@ class _PlansFragmentState extends State<PlansFragment> {
     );
   }
 
-  Widget _buildSwitchItem(String label, String field, Map<String, dynamic>? data, Function(bool) onChanged) {
+  Widget _buildSwitchItem(String label, String field,
+      Map<String, dynamic>? data, Function(bool) onChanged) {
     return SwitchListTile(
       value: data?[field] == true,
-      title: Text(label, style: const TextStyle(color: Colors.white, fontSize: 13)),
+      title: Text(label,
+          style: const TextStyle(color: Colors.white, fontSize: 13)),
       contentPadding: EdgeInsets.zero,
       dense: true,
       activeThumbColor: AppDesign.petPink,

@@ -15,7 +15,6 @@ import '../../../../core/services/simple_auth_service.dart';
 import '../../../auth/presentation/login_screen.dart';
 import '../../../settings/screens/data_archiving_screen.dart';
 
-
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
 
@@ -54,7 +53,9 @@ class AppDrawer extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    settings.userName.isEmpty ? l10n.menuHello : l10n.menuHelloUser(settings.userName),
+                    settings.userName.isEmpty
+                        ? l10n.menuHello
+                        : l10n.menuHelloUser(settings.userName),
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -89,20 +90,23 @@ class AppDrawer extends ConsumerWidget {
                       );
                     },
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFADADD),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFADADD).withValues(alpha: 0.5),
+                            color:
+                                const Color(0xFFFADADD).withValues(alpha: 0.5),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: ListTile(
-                        leading: const Icon(Icons.star, color: AppDesign.textPrimaryLight),
+                        leading: const Icon(Icons.star,
+                            color: AppDesign.textPrimaryLight),
                         title: Text(
                           l10n.drawerProTitle,
                           style: GoogleFonts.poppins(
@@ -112,9 +116,12 @@ class AppDrawer extends ConsumerWidget {
                         ),
                         subtitle: Text(
                           l10n.drawerProSubtitle,
-                          style: GoogleFonts.poppins(color: AppDesign.textSecondaryLight, fontSize: 12),
+                          style: GoogleFonts.poppins(
+                              color: AppDesign.textSecondaryLight,
+                              fontSize: 12),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_ios, color: AppDesign.textSecondaryLight, size: 16),
+                        trailing: const Icon(Icons.arrow_forward_ios,
+                            color: AppDesign.textSecondaryLight, size: 16),
                       ),
                     ),
                   ),
@@ -141,7 +148,11 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: l10n.menuNutritionalPillarsSubtitle,
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const NutritionalPillarsScreen()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const NutritionalPillarsScreen()));
                     },
                   ),
 
@@ -152,10 +163,12 @@ class AppDrawer extends ConsumerWidget {
                     subtitle: 'Backup, Limpeza e Arquivos',
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const DataManagerScreen()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const DataManagerScreen()));
                     },
                   ),
-
 
                   _buildMenuItem(
                     context,
@@ -170,12 +183,13 @@ class AppDrawer extends ConsumerWidget {
                   FutureBuilder<PackageInfo>(
                     future: PackageInfo.fromPlatform(),
                     builder: (context, snapshot) {
-                      final version = snapshot.hasData 
+                      final version = snapshot.hasData
                           ? 'Versão ${snapshot.data!.version}'
                           : 'Carregando...';
                       return _buildMenuItem(
                         context,
-                        icon: Icons.info_outline, // Keep generic or add to AppDesign if needed. User provided list didn't have info icon explicitly? "Icons.xxx -> AppDesign.iconXXX" - let's see. iconAlert is warning. iconInfo? No. So I'll keep generic or map to something close. Or just use Icons.info_outline as exception? "Icons. fora do app_design.dart -> apenas exceções do MaterialApp". info_outline is material. But let's check if I can add it to AppDesign or reuse. I'll use AppDesign.iconAlert for now or just generic. Actually, I shouldn't add to AppDesign unless I edit it. I'll stick to Icons.info_outline for now as it's not in the replaced list provided by user, but I should try to remove all Icons. usages.
+                        icon: Icons
+                            .info_outline, // Keep generic or add to AppDesign if needed. User provided list didn't have info icon explicitly? "Icons.xxx -> AppDesign.iconXXX" - let's see. iconAlert is warning. iconInfo? No. So I'll keep generic or map to something close. Or just use Icons.info_outline as exception? "Icons. fora do app_design.dart -> apenas exceções do MaterialApp". info_outline is material. But let's check if I can add it to AppDesign or reuse. I'll use AppDesign.iconAlert for now or just generic. Actually, I shouldn't add to AppDesign unless I edit it. I'll stick to Icons.info_outline for now as it's not in the replaced list provided by user, but I should try to remove all Icons. usages.
                         // User list: iconFood, iconPlant, iconPet, iconScan, iconMenu, iconConfig, iconDelete, iconBackup, iconRestore, iconAlert.
                         // info_outline is not there. I will leave it as Icons.info_outline but be careful.
                         // Wait, "Substituir ícones diretos: Icons.xxx -> AppDesign.iconXXX" implies those that exist in AppDesign.
@@ -199,10 +213,11 @@ class AppDrawer extends ConsumerWidget {
                       Navigator.pop(context); // Close drawer first
                       const url = 'https://abreuretto72.github.io/ScanNut/';
                       try {
-                        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                        await launchUrl(Uri.parse(url),
+                            mode: LaunchMode.externalApplication);
                       } catch (e) {
-                         // Fallback or ignore
-                         debugPrint('Could not launch policy URL: $e');
+                        // Fallback or ignore
+                        debugPrint('Could not launch policy URL: $e');
                       }
                     },
                   ),
@@ -216,7 +231,8 @@ class AppDrawer extends ConsumerWidget {
                       await simpleAuthService.logout();
                       if (context.mounted) {
                         Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
                           (route) => false,
                         );
                       }
@@ -254,8 +270,9 @@ class AppDrawer extends ConsumerWidget {
     bool isDestructive = false,
     Color? customColor,
   }) {
-    final color = customColor ?? (isDestructive ? AppDesign.error : AppDesign.accent);
-    
+    final color =
+        customColor ?? (isDestructive ? AppDesign.error : AppDesign.accent);
+
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -282,8 +299,6 @@ class AppDrawer extends ConsumerWidget {
       onTap: onTap,
     );
   }
-
-
 
   void _showExitDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -339,12 +354,12 @@ class AppDrawer extends ConsumerWidget {
       packageInfo = await PackageInfo.fromPlatform();
       if (!context.mounted) return;
     }
-    
+
     final version = packageInfo.version;
     final buildNumber = packageInfo.buildNumber;
-    
+
     if (!context.mounted) return;
-    
+
     final l10n = AppLocalizations.of(context)!;
 
     showDialog(
@@ -369,18 +384,18 @@ class AppDrawer extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               'Versão: $version (Build $buildNumber)',
-              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13),
+              style: GoogleFonts.poppins(
+                  color: AppDesign.textSecondaryDark, fontSize: 13),
             ),
             const SizedBox(height: 16),
             Text(
               l10n.aboutDescription,
-              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+              style: GoogleFonts.poppins(
+                  color: AppDesign.textSecondaryDark, fontSize: 14),
             ),
-            
             const SizedBox(height: 24),
             const Divider(color: Colors.white12),
             const SizedBox(height: 16),
-            
             Text(
               'Desenvolvido por',
               style: GoogleFonts.poppins(
@@ -398,28 +413,32 @@ class AppDrawer extends ConsumerWidget {
             ),
             Text(
               'Copyright © 2026',
-              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
+              style: GoogleFonts.poppins(
+                  color: AppDesign.textSecondaryDark, fontSize: 12),
             ),
             const SizedBox(height: 4),
             InkWell(
               onTap: () async {
-                 final Uri emailLaunchUri = Uri(
-                   scheme: 'mailto',
-                   path: 'contato@multiversodigital.com.br',
-                   query: 'subject=${l10n.contactSubject}',
-                 );
-                 // Best effort launch
-                 try {
-                   await launchUrl(emailLaunchUri);
-                 } catch (e) {
-                   // ignore
-                 }
+                final Uri emailLaunchUri = Uri(
+                  scheme: 'mailto',
+                  path: 'contato@multiversodigital.com.br',
+                  query: 'subject=${l10n.contactSubject}',
+                );
+                // Best effort launch
+                try {
+                  await launchUrl(emailLaunchUri);
+                } catch (e) {
+                  // ignore
+                }
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
                   'contato@multiversodigital.com.br',
-                  style: GoogleFonts.poppins(color: Colors.blue, fontSize: 12, decoration: TextDecoration.none),
+                  style: GoogleFonts.poppins(
+                      color: Colors.blue,
+                      fontSize: 12,
+                      decoration: TextDecoration.none),
                 ),
               ),
             ),
@@ -450,10 +469,12 @@ class AppDrawer extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppDesign.accent.withValues(alpha: 0.2), // withValues -> withOpacity
+                color: AppDesign.accent
+                    .withValues(alpha: 0.2), // withValues -> withOpacity
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.help_outline, color: AppDesign.accent, size: 24),
+              child: const Icon(Icons.help_outline,
+                  color: AppDesign.accent, size: 24),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -484,7 +505,8 @@ class AppDrawer extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.format_quote_rounded, color: AppDesign.accent, size: 28),
+                    const Icon(Icons.format_quote_rounded,
+                        color: AppDesign.accent, size: 28),
                     const SizedBox(height: 12),
                     Text(
                       "O nome deste app é uma homenagem ao meu pet, o Nut. Minha ideia era criar uma ferramenta que fizesse a gestão completa da vida dele, desde a organização da rotina até a elaboração de cardápios saudáveis.\n\n"
@@ -501,7 +523,11 @@ class AppDrawer extends ConsumerWidget {
                     const SizedBox(height: 12),
                     const Align(
                       alignment: Alignment.centerRight,
-                      child: Text("- Abreu", style: TextStyle(color: AppDesign.accent, fontWeight: FontWeight.bold, fontSize: 12)),
+                      child: Text("- Abreu",
+                          style: TextStyle(
+                              color: AppDesign.accent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12)),
                     )
                   ],
                 ),
@@ -512,13 +538,17 @@ class AppDrawer extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [AppDesign.primary, AppDesign.info], // Replaced purple/blue shades
+                    colors: [
+                      AppDesign.primary,
+                      AppDesign.info
+                    ], // Replaced purple/blue shades
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.auto_awesome, color: AppDesign.textPrimaryDark, size: 32),
+                    const Icon(Icons.auto_awesome,
+                        color: AppDesign.textPrimaryDark, size: 32),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -533,23 +563,25 @@ class AppDrawer extends ConsumerWidget {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // AVISO DE RESPONSABILIDADE DA IA
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppDesign.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.error.withValues(alpha: 0.4), width: 2),
+                  border: Border.all(
+                      color: AppDesign.error.withValues(alpha: 0.4), width: 2),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.warning_amber_rounded, color: AppDesign.error, size: 28),
+                        const Icon(Icons.warning_amber_rounded,
+                            color: AppDesign.error, size: 28),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -575,9 +607,9 @@ class AppDrawer extends ConsumerWidget {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // MÓDULO PET
               Text(
                 '🐾 MÓDULO PET',
@@ -588,7 +620,7 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: AppDesign.iconScan,
                 color: AppDesign.primary,
@@ -598,9 +630,9 @@ class AppDrawer extends ConsumerWidget {
                     '3. Receba perfil biológico completo\n'
                     '4. Plano alimentar personalizado',
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: Icons.healing, // Keep or find replacement
                 color: AppDesign.error,
@@ -611,9 +643,9 @@ class AppDrawer extends ConsumerWidget {
                     '• Primeiros socorros\n'
                     '⚠️ NÃO substitui veterinário!',
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: Icons.folder_special,
                 color: AppDesign.info, // Blue -> Info
@@ -624,11 +656,11 @@ class AppDrawer extends ConsumerWidget {
                     '✅ Agenda de eventos\n'
                     '✅ Rede de parceiros',
               ),
-              
+
               const SizedBox(height: 24),
               Divider(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
               const SizedBox(height: 16),
-              
+
               // MÓDULO PLANTAS
               Text(
                 '🌿 MÓDULO PLANTAS',
@@ -639,9 +671,9 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
-                icon: AppDesign.iconPlant, 
+                icon: AppDesign.iconPlant,
                 color: AppDesign.accent, // Green -> Accent (as requested)
                 title: 'Identificação Botânica',
                 description: '1. Fotografe a planta\n'
@@ -649,9 +681,9 @@ class AppDrawer extends ConsumerWidget {
                     '3. Família botânica\n'
                     '4. Cuidados necessários',
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: AppDesign.iconAlert,
                 color: AppDesign.warning,
@@ -661,9 +693,9 @@ class AppDrawer extends ConsumerWidget {
                     '🔴 TÓXICA - Manter afastado!\n\n'
                     'Proteção para pets e crianças',
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: Icons.water_drop,
                 color: AppDesign.info,
@@ -673,11 +705,11 @@ class AppDrawer extends ConsumerWidget {
                     '🌱 Tipo de solo ideal\n'
                     '🌡️ Temperatura adequada',
               ),
-              
+
               const SizedBox(height: 24),
               Divider(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
               const SizedBox(height: 16),
-              
+
               // MÓDULO COMIDA
               Text(
                 '🍎 MÓDULO COMIDA',
@@ -688,10 +720,11 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: AppDesign.iconFood,
-                color: AppDesign.warning, // DeepOrange -> Warning? Or Primary? Food usually warm color. Warning is orange.
+                color: AppDesign
+                    .warning, // DeepOrange -> Warning? Or Primary? Food usually warm color. Warning is orange.
                 title: 'Análise Nutricional',
                 description: '1. Fotografe o alimento\n'
                     '2. IA calcula macros:\n'
@@ -700,11 +733,9 @@ class AppDrawer extends ConsumerWidget {
                     '   • Carboidratos\n'
                     '   • Gorduras',
               ),
-              
 
-              
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: Icons.calendar_month,
                 color: AppDesign.primary, // Indigo -> Primary
@@ -714,11 +745,11 @@ class AppDrawer extends ConsumerWidget {
                     '📋 Lista de compras\n'
                     '⏰ Lembretes personalizados',
               ),
-              
+
               const SizedBox(height: 24),
               const Divider(color: Colors.white24),
               const SizedBox(height: 16),
-              
+
               // BACKUP LOCAL
               Text(
                 '💾 BACKUP LOCAL',
@@ -729,7 +760,7 @@ class AppDrawer extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: Icons.upload_file,
                 color: AppDesign.info,
@@ -739,9 +770,9 @@ class AppDrawer extends ConsumerWidget {
                     '→ Salve o arquivo .scannut\n\n'
                     '✅ Tudo fica em um único arquivo',
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               _buildModuleCard(
                 icon: Icons.file_download,
                 color: AppDesign.warning,
@@ -751,25 +782,27 @@ class AppDrawer extends ConsumerWidget {
                     '→ Selecione seu arquivo .scannut\n\n'
                     '✅ Dados restaurados na hora!',
               ),
-              
+
               const SizedBox(height: 24),
               const Divider(color: Colors.white24),
               const SizedBox(height: 16),
-              
+
               // DICAS FINAIS
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppDesign.accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.accent.withValues(alpha: 0.3)),
+                  border: Border.all(
+                      color: AppDesign.accent.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.lightbulb, color: AppDesign.accent, size: 24),
+                        const Icon(Icons.lightbulb,
+                            color: AppDesign.accent, size: 24),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -798,9 +831,9 @@ class AppDrawer extends ConsumerWidget {
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Footer
               Center(
                 child: Text(

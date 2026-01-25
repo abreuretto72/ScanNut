@@ -7,12 +7,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 /// Box: nutrition_meal_logs
 class MealLogService {
   static const String _boxName = 'nutrition_meal_logs';
-  
+
   Box<MealLog>? _box;
 
   /// Inicializa o box
   Future<void> init({HiveCipher? cipher}) async {
-    _box = await HiveAtomicManager().ensureBoxOpen<MealLog>(_boxName, cipher: cipher);
+    _box = await HiveAtomicManager()
+        .ensureBoxOpen<MealLog>(_boxName, cipher: cipher);
   }
 
   /// Adiciona um log de refeição
@@ -30,10 +31,11 @@ class MealLogService {
   List<MealLog> getLogsByDate(DateTime date) {
     try {
       return _box?.values.where((log) {
-        return log.dateTime.year == date.year &&
-               log.dateTime.month == date.month &&
-               log.dateTime.day == date.day;
-      }).toList() ?? [];
+            return log.dateTime.year == date.year &&
+                log.dateTime.month == date.month &&
+                log.dateTime.day == date.day;
+          }).toList() ??
+          [];
     } catch (e) {
       debugPrint('❌ Error getting logs by date: $e');
       return [];
@@ -49,9 +51,11 @@ class MealLogService {
   List<MealLog> getLogsByPeriod(DateTime start, DateTime end) {
     try {
       return _box?.values.where((log) {
-        return log.dateTime.isAfter(start.subtract(const Duration(days: 1))) &&
-               log.dateTime.isBefore(end.add(const Duration(days: 1)));
-      }).toList() ?? [];
+            return log.dateTime
+                    .isAfter(start.subtract(const Duration(days: 1))) &&
+                log.dateTime.isBefore(end.add(const Duration(days: 1)));
+          }).toList() ??
+          [];
     } catch (e) {
       debugPrint('❌ Error getting logs by period: $e');
       return [];
@@ -91,7 +95,7 @@ class MealLogService {
     try {
       final logs = getLogsByPeriod(start, end);
       if (logs.isEmpty) return 0.0;
-      
+
       final adherentLogs = logs.where((log) => log.aderenteAoPlano).length;
       return (adherentLogs / logs.length) * 100;
     } catch (e) {

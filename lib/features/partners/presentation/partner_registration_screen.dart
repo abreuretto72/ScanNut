@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,26 +20,28 @@ import '../../pet/services/pet_indexing_service.dart';
 
 class PartnerRegistrationScreen extends StatefulWidget {
   final PartnerModel? initialData;
-  final List<Map<String, dynamic>>? linkedNotes; // If provided, shows notes section
+  final List<Map<String, dynamic>>?
+      linkedNotes; // If provided, shows notes section
   final String? petId;
   final String? petName;
 
   const PartnerRegistrationScreen({
-    super.key, 
-    this.initialData, 
+    super.key,
+    this.initialData,
     this.linkedNotes,
     this.petId,
     this.petName,
   });
 
   @override
-  State<PartnerRegistrationScreen> createState() => _PartnerRegistrationScreenState();
+  State<PartnerRegistrationScreen> createState() =>
+      _PartnerRegistrationScreenState();
 }
 
 class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _service = PartnerService();
-  
+
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -52,9 +53,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   final _cnpjController = TextEditingController();
   final _whatsappController = TextEditingController();
   final _teamController = TextEditingController(); // Input auxiliar para o time
-  
+
   List<String> _teamMembers = [];
-  
+
   // Notes Logic
   final _noteController = TextEditingController();
   List<Map<String, dynamic>> _notes = [];
@@ -74,7 +75,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       _phoneController.text = widget.initialData!.phone;
       _instagramController.text = widget.initialData!.instagram ?? '';
       _specialtiesController.text = widget.initialData!.specialties.join(', ');
-      _openingHoursController.text = widget.initialData!.openingHours['raw'] ?? '';
+      _openingHoursController.text =
+          widget.initialData!.openingHours['raw'] ?? '';
       _is24h = widget.initialData!.openingHours['plantao24h'] ?? false;
       _category = widget.initialData!.category;
       _lat = widget.initialData!.latitude;
@@ -87,7 +89,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       _isFavorite = widget.initialData!.isFavorite;
     }
     if (widget.linkedNotes != null) {
-        _notes = List.from(widget.linkedNotes!);
+      _notes = List.from(widget.linkedNotes!);
     }
   }
 
@@ -123,35 +125,34 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     // Check if partner is linked to any pet (Stub logic - Replace with real check when relational DB is ready)
     // For now, we assume no pets are linked to partners directly in the PartnerModel.
     // Use PetProfileService or similar to iterate pets and check foreign keys if they existed.
-    
+
     // Simulate check (always false for now in this MVP structure)
-    bool isLinkedToPet = false; 
+    bool isLinkedToPet = false;
 
     if (isLinkedToPet) {
-        if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text(AppLocalizations.of(context)!.partnerCantDeleteLinked),
-                    backgroundColor: AppDesign.error
-                ),
-            );
-        }
-        return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(AppLocalizations.of(context)!.partnerCantDeleteLinked),
+              backgroundColor: AppDesign.error),
+        );
+      }
+      return;
     }
 
     // 1. 🛡️ SECURITY CHALLENGE FIRST
     final auth = SimpleAuthService();
     final bool isVerified = await auth.verifyIdentity(
-      reason: 'Autentique-se para excluir este parceiro'
-    );
+        reason: 'Autentique-se para excluir este parceiro');
 
     if (!isVerified) {
-        if(mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Autenticação falhou. Exclusão cancelada.'), backgroundColor: AppDesign.error)
-            );
-        }
-        return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Autenticação falhou. Exclusão cancelada.'),
+            backgroundColor: AppDesign.error));
+      }
+      return;
     }
 
     if (!mounted) return;
@@ -161,13 +162,22 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppDesign.surfaceDark,
-        title: Text(AppLocalizations.of(context)!.partnerDeleteTitle, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
-        content: Text(AppLocalizations.of(context)!.partnerDeleteContent(widget.initialData!.name), style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+        title: Text(AppLocalizations.of(context)!.partnerDeleteTitle,
+            style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
+        content: Text(
+            AppLocalizations.of(context)!
+                .partnerDeleteContent(widget.initialData!.name),
+            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.btnCancel, style: const TextStyle(color: AppDesign.textSecondaryDark))),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(AppLocalizations.of(context)!.btnCancel,
+                  style: const TextStyle(color: AppDesign.textSecondaryDark))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: AppDesign.error, fontWeight: FontWeight.bold)),
+            child: Text(AppLocalizations.of(context)!.btnDelete,
+                style: const TextStyle(
+                    color: AppDesign.error, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -178,7 +188,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       await _service.deletePartner(widget.initialData!.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.partnerDeleted), backgroundColor: AppDesign.error),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.partnerDeleted),
+              backgroundColor: AppDesign.error),
         );
         Navigator.pop(context, true);
       }
@@ -201,8 +213,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         latitude: _lat ?? 0.0,
         longitude: _lng ?? 0.0,
         phone: _phoneController.text,
-        whatsapp: _whatsappController.text.isNotEmpty ? _whatsappController.text : _phoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
-        instagram: _instagramController.text.isNotEmpty ? _instagramController.text : null,
+        whatsapp: _whatsappController.text.isNotEmpty
+            ? _whatsappController.text
+            : _phoneController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+        instagram: _instagramController.text.isNotEmpty
+            ? _instagramController.text
+            : null,
         address: _addressController.text,
         specialties: specialties,
         email: _emailController.text,
@@ -210,7 +226,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         teamMembers: _teamMembers,
         website: _websiteController.text,
         metadata: {
-            // website removed from here as it's now a formal field
+          // website removed from here as it's now a formal field
         },
         openingHours: {
           'plantao24h': _is24h,
@@ -227,22 +243,27 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context)!.partnerSaved(partner.name), style: const TextStyle(color: Colors.black)),
+              content: Text(
+                  AppLocalizations.of(context)!.partnerSaved(partner.name),
+                  style: const TextStyle(color: Colors.black)),
               backgroundColor: AppDesign.petPink,
             ),
           );
-          
+
           if (widget.linkedNotes != null) {
-              Navigator.pop(context, {'updated': true, 'notes': _notes});
+            Navigator.pop(context, {'updated': true, 'notes': _notes});
           } else {
-              Navigator.pop(context, true);
+            Navigator.pop(context, true);
           }
         }
       } catch (e) {
         debugPrint("Erro fatal ao salvar: $e");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.partnerSaveError(e.toString())), backgroundColor: AppDesign.error),
+            SnackBar(
+                content: Text(AppLocalizations.of(context)!
+                    .partnerSaveError(e.toString())),
+                backgroundColor: AppDesign.error),
           );
         }
       }
@@ -254,8 +275,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   Future<void> _generatePdf() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.agendaRequired)));
-        return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(AppLocalizations.of(context)!.agendaRequired)));
+      return;
     }
 
     final specialties = _specialtiesController.text
@@ -266,27 +288,27 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
 
     // Construct model from current state
     final partner = PartnerModel(
-        id: widget.initialData?.id ?? '',
-        name: name,
-        category: _category,
-        latitude: _lat ?? 0.0,
-        longitude: _lng ?? 0.0,
-        phone: _phoneController.text.trim(),
-        address: _addressController.text.trim(),
-        email: _emailController.text.trim(),
-        website: _websiteController.text.trim(),
-        instagram: _instagramController.text.trim(),
-        whatsapp: _whatsappController.text.trim(),
-        cnpj: _cnpjController.text.trim(),
-        openingHours: {
-          'plantao24h': _is24h,
-          'raw': _openingHoursController.text.trim(),
-        },
-        metadata: {'notes': _notes},
-        teamMembers: _teamMembers,
-        specialties: specialties,
-        rating: widget.initialData?.rating ?? 0.0,
-        isFavorite: _isFavorite,
+      id: widget.initialData?.id ?? '',
+      name: name,
+      category: _category,
+      latitude: _lat ?? 0.0,
+      longitude: _lng ?? 0.0,
+      phone: _phoneController.text.trim(),
+      address: _addressController.text.trim(),
+      email: _emailController.text.trim(),
+      website: _websiteController.text.trim(),
+      instagram: _instagramController.text.trim(),
+      whatsapp: _whatsappController.text.trim(),
+      cnpj: _cnpjController.text.trim(),
+      openingHours: {
+        'plantao24h': _is24h,
+        'raw': _openingHoursController.text.trim(),
+      },
+      metadata: {'notes': _notes},
+      teamMembers: _teamMembers,
+      specialties: specialties,
+      rating: widget.initialData?.rating ?? 0.0,
+      isFavorite: _isFavorite,
     );
 
     Navigator.push(
@@ -311,7 +333,11 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     return Scaffold(
       backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
-        title: Text(widget.initialData != null ? AppLocalizations.of(context)!.partnerEditTitle : AppLocalizations.of(context)!.partnerRegisterTitle, style: GoogleFonts.poppins()),
+        title: Text(
+            widget.initialData != null
+                ? AppLocalizations.of(context)!.partnerEditTitle
+                : AppLocalizations.of(context)!.partnerRegisterTitle,
+            style: GoogleFonts.poppins()),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -324,15 +350,17 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               onPressed: () {
                 setState(() => _isFavorite = !_isFavorite);
                 if (_isFavorite && widget.petId != null) {
-                   PetIndexingService().indexPartnerInteraction(
-                      petId: widget.petId!,
-                      petName: widget.petName ?? 'Pet',
-                      partnerName: _nameController.text,
-                      partnerId: widget.initialData?.id,
-                      interactionType: 'favorited',
-                      localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerFavorited(_nameController.text),
-                      localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
-                   );
+                  PetIndexingService().indexPartnerInteraction(
+                    petId: widget.petId!,
+                    petName: widget.petName ?? 'Pet',
+                    partnerName: _nameController.text,
+                    partnerId: widget.initialData?.id,
+                    interactionType: 'favorited',
+                    localizedTitle: AppLocalizations.of(context)!
+                        .petIndexing_partnerFavorited(_nameController.text),
+                    localizedNotes: AppLocalizations.of(context)!
+                        .petIndexing_partnerInteractionNotes,
+                  );
                 }
               },
             ),
@@ -349,32 +377,53 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
             children: [
               _buildRadarButton(),
               const SizedBox(height: 32),
-              _buildTextField(_nameController, AppLocalizations.of(context)!.partnerFieldEstablishment, Icons.business),
+              _buildTextField(
+                  _nameController,
+                  AppLocalizations.of(context)!.partnerFieldEstablishment,
+                  Icons.business),
               const SizedBox(height: 16),
               _buildCategoryDropdown(),
               const SizedBox(height: 16),
-              _buildTextField(_phoneController, AppLocalizations.of(context)!.partnerFieldPhone, Icons.phone),
+              _buildTextField(_phoneController,
+                  AppLocalizations.of(context)!.partnerFieldPhone, Icons.phone),
               const SizedBox(height: 16),
-              _buildTextField(_instagramController, AppLocalizations.of(context)!.partnerFieldInstagram, Icons.camera_alt),
+              _buildTextField(
+                  _instagramController,
+                  AppLocalizations.of(context)!.partnerFieldInstagram,
+                  Icons.camera_alt),
               const SizedBox(height: 16),
-              _buildTextField(_openingHoursController, AppLocalizations.of(context)!.partnerFieldHours, Icons.access_time),
+              _buildTextField(
+                  _openingHoursController,
+                  AppLocalizations.of(context)!.partnerFieldHours,
+                  Icons.access_time),
               const SizedBox(height: 16),
               _build24hSwitch(),
               const SizedBox(height: 16),
-              _buildTextField(_specialtiesController, AppLocalizations.of(context)!.partnerFieldSpecialties, Icons.stars),
+              _buildTextField(
+                  _specialtiesController,
+                  AppLocalizations.of(context)!.partnerFieldSpecialties,
+                  Icons.stars),
               const SizedBox(height: 16),
-              _buildTextField(_websiteController, AppLocalizations.of(context)!.partnerFieldWebsite, Icons.language),
+              _buildTextField(
+                  _websiteController,
+                  AppLocalizations.of(context)!.partnerFieldWebsite,
+                  Icons.language),
               const SizedBox(height: 16),
-              _buildTextField(_emailController, AppLocalizations.of(context)!.partnerFieldEmail, Icons.email),
+              _buildTextField(_emailController,
+                  AppLocalizations.of(context)!.partnerFieldEmail, Icons.email),
               const SizedBox(height: 16),
               _buildTeamSection(),
               const SizedBox(height: 16),
-              _buildTextField(_addressController, AppLocalizations.of(context)!.partnerFieldAddress, Icons.location_on, maxLines: 2),
+              _buildTextField(
+                  _addressController,
+                  AppLocalizations.of(context)!.partnerFieldAddress,
+                  Icons.location_on,
+                  maxLines: 2),
               const SizedBox(height: 32),
-              
+
               if (widget.linkedNotes != null) ...[
-                 _buildNotesSection(),
-                 const SizedBox(height: 32),
+                _buildNotesSection(),
+                const SizedBox(height: 32),
               ],
 
               ElevatedButton(
@@ -383,14 +432,18 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
                   backgroundColor: AppDesign.petPink,
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 20),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)),
                   elevation: 8,
                 ),
-                child: Text(AppLocalizations.of(context)!.partnerBtnSave, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
+                child: Text(AppLocalizations.of(context)!.partnerBtnSave,
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
               ),
               const SizedBox(height: 32),
               if (widget.initialData != null) _buildDangerZone(),
-              const SizedBox(height: 100), // Extra space to scroll past the keyboard
+              const SizedBox(
+                  height: 100), // Extra space to scroll past the keyboard
             ],
           ),
         ),
@@ -413,13 +466,18 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
             children: [
               const Icon(Icons.warning_amber_rounded, color: AppDesign.error),
               const SizedBox(width: 8),
-              Text(AppLocalizations.of(context)!.partnerDangerZone, style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(AppLocalizations.of(context)!.partnerDangerZone,
+                  style: GoogleFonts.poppins(
+                      color: AppDesign.error,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16)),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             AppLocalizations.of(context)!.partnerDangerZoneDesc,
-            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
+            style: GoogleFonts.poppins(
+                color: AppDesign.textSecondaryDark, fontSize: 12),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -428,7 +486,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               backgroundColor: const Color(0x3357315D),
               foregroundColor: AppDesign.error,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: const BorderSide(color: AppDesign.error)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: const BorderSide(color: AppDesign.error)),
             ),
             child: Text(AppLocalizations.of(context)!.partnerBtnDelete),
           ),
@@ -450,9 +510,15 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [AppDesign.petPink, Color(0xFFFFB7C5)]),
+          gradient: const LinearGradient(
+              colors: [AppDesign.petPink, Color(0xFFFFB7C5)]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: AppDesign.petPink.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 2)],
+          boxShadow: [
+            BoxShadow(
+                color: AppDesign.petPink.withValues(alpha: 0.3),
+                blurRadius: 10,
+                spreadRadius: 2)
+          ],
         ),
         child: Row(
           children: [
@@ -462,8 +528,14 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppLocalizations.of(context)!.partnerRadarButtonTitle, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text(AppLocalizations.of(context)!.partnerRadarButtonDesc, style: GoogleFonts.poppins(color: Colors.black54, fontSize: 12)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonTitle,
+                      style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
+                  Text(AppLocalizations.of(context)!.partnerRadarButtonDesc,
+                      style: GoogleFonts.poppins(
+                          color: Colors.black54, fontSize: 12)),
                 ],
               ),
             ),
@@ -480,8 +552,12 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: SwitchListTile(
-        title: Text(AppLocalizations.of(context)!.partnerField24h, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 14)),
-        subtitle: Text(AppLocalizations.of(context)!.partnerField24hSub, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 11)),
+        title: Text(AppLocalizations.of(context)!.partnerField24h,
+            style: GoogleFonts.poppins(
+                color: AppDesign.textPrimaryDark, fontSize: 14)),
+        subtitle: Text(AppLocalizations.of(context)!.partnerField24hSub,
+            style: const TextStyle(
+                color: AppDesign.textSecondaryDark, fontSize: 11)),
         value: _is24h,
         activeThumbColor: AppDesign.petPink,
         onChanged: (v) => setState(() => _is24h = v),
@@ -490,7 +566,9 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {int maxLines = 1}) {
+  Widget _buildTextField(
+      TextEditingController controller, String label, IconData icon,
+      {int maxLines = 1}) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
@@ -501,124 +579,151 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         prefixIcon: Icon(icon, color: AppDesign.petPink),
         filled: true,
         fillColor: Colors.black45,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none),
       ),
       validator: (v) {
-          if (label == AppLocalizations.of(context)!.partnerFieldEstablishment && (v == null || v.isEmpty)) return AppLocalizations.of(context)!.agendaRequired;
-          if (label == AppLocalizations.of(context)!.partnerFieldEmail && v != null && v.isNotEmpty) {
-              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-              if (!emailRegex.hasMatch(v)) return 'E-mail inválido';
+        if (label == AppLocalizations.of(context)!.partnerFieldEstablishment &&
+            (v == null || v.isEmpty)) {
+          return AppLocalizations.of(context)!.agendaRequired;
+        }
+        if (label == AppLocalizations.of(context)!.partnerFieldEmail &&
+            v != null &&
+            v.isNotEmpty) {
+          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+          if (!emailRegex.hasMatch(v)) return 'E-mail inválido';
+        }
+        if (label == AppLocalizations.of(context)!.partnerFieldWebsite &&
+            v != null &&
+            v.isNotEmpty) {
+          if (!v.startsWith('http')) {
+            return 'Deve começar com http:// ou https://';
           }
-          if (label == AppLocalizations.of(context)!.partnerFieldWebsite && v != null && v.isNotEmpty) {
-              if (!v.startsWith('http')) return 'Deve começar com http:// ou https://';
-          }
-          return null;
+        }
+        return null;
       },
     );
   }
 
   Widget _buildNotesSection() {
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-            Row(
-              children: [
-                const Icon(Icons.note_alt_outlined, color: AppDesign.warning),
-                const SizedBox(width: 8),
-                Text(AppLocalizations.of(context)!.partnerNotesTitle, style: GoogleFonts.poppins(color: AppDesign.warning, fontWeight: FontWeight.bold, fontSize: 16)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.black45,
-                borderRadius: BorderRadius.circular(12),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.note_alt_outlined, color: AppDesign.warning),
+            const SizedBox(width: 8),
+            Text(AppLocalizations.of(context)!.partnerNotesTitle,
+                style: GoogleFonts.poppins(
+                    color: AppDesign.warning,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            color: Colors.black45,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: _notes.isEmpty
+              ? Center(
+                  child: Text(
+                    AppLocalizations.of(context)!.partnerNotesEmpty,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                        color: AppDesign.textSecondaryDark, fontSize: 12),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: _notes.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: Colors.white10),
+                  itemBuilder: (context, index) {
+                    final note = _notes[index];
+                    final date = DateTime.parse(note['date']);
+                    final formattedDate =
+                        DateFormat('dd/MM/yy HH:mm').format(date);
+
+                    return Dismissible(
+                      key: Key(note['id']),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 16),
+                        color: const Color(0x4DD32F2F),
+                        child: const Icon(Icons.delete, color: Colors.red),
+                      ),
+                      onDismissed: (_) => _deleteNote(index),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(note['content'],
+                              style: GoogleFonts.poppins(
+                                  color: AppDesign.textPrimaryDark,
+                                  fontSize: 13)),
+                          const SizedBox(height: 4),
+                          Text(formattedDate,
+                              style: const TextStyle(
+                                  color: AppDesign.textSecondaryDark,
+                                  fontSize: 10)),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _noteController,
+                style: const TextStyle(color: AppDesign.textPrimaryDark),
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.partnerNotesHint,
+                  hintStyle:
+                      const TextStyle(color: AppDesign.textSecondaryDark),
+                  filled: true,
+                  fillColor: Colors.black45,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                ),
+                onSubmitted: (_) => _addNote(),
               ),
-              child: _notes.isEmpty 
-                ? Center(
-                    child: Text(
-                      AppLocalizations.of(context)!.partnerNotesEmpty,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: _notes.length,
-                    separatorBuilder: (_, __) => const Divider(color: Colors.white10),
-                    itemBuilder: (context, index) {
-                      final note = _notes[index];
-                      final date = DateTime.parse(note['date']);
-                      final formattedDate = DateFormat('dd/MM/yy HH:mm').format(date);
-                      
-                      return Dismissible(
-                          key: Key(note['id']),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                              alignment: Alignment.centerRight,
-                              padding: const EdgeInsets.only(right: 16),
-                              color: const Color(0x4DD32F2F),
-                              child: const Icon(Icons.delete, color: Colors.red),
-                          ),
-                          onDismissed: (_) => _deleteNote(index),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(note['content'], style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 13)),
-                              const SizedBox(height: 4),
-                              Text(formattedDate, style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 10)),
-                            ],
-                          ),
-                      );
-                    },
-                  ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _noteController,
-                    style: const TextStyle(color: AppDesign.textPrimaryDark),
-                    decoration: InputDecoration(
-                      hintText: AppLocalizations.of(context)!.partnerNotesHint,
-                      hintStyle: const TextStyle(color: AppDesign.textSecondaryDark),
-                      filled: true,
-                      fillColor: Colors.black45,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                    ),
-                    onSubmitted: (_) => _addNote(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: AppDesign.petPink,
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.black, size: 20),
-                    onPressed: _addNote,
-                  ),
-                ),
-                 // Mic button placeholder
-                 const SizedBox(width: 8),
-                 CircleAvatar(
-                  backgroundColor: Colors.white10,
-                  child: IconButton(
-                    icon: const Icon(Icons.mic, color: AppDesign.warning, size: 20),
-                     onPressed: () {
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(
-                             content: Text('Gravação de voz: Em breve'),
-                              backgroundColor: AppDesign.petPink,
-                           ),
-                         );
-                     },
-                  ),
-                ),
-              ],
+            const SizedBox(width: 8),
+            CircleAvatar(
+              backgroundColor: AppDesign.petPink,
+              child: IconButton(
+                icon: const Icon(Icons.send, color: Colors.black, size: 20),
+                onPressed: _addNote,
+              ),
             ),
-        ],
+            // Mic button placeholder
+            const SizedBox(width: 8),
+            CircleAvatar(
+              backgroundColor: Colors.white10,
+              child: IconButton(
+                icon: const Icon(Icons.mic, color: AppDesign.warning, size: 20),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Gravação de voz: Em breve'),
+                      backgroundColor: AppDesign.petPink,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -638,85 +743,92 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
   }
 
   void _deleteNote(int index) {
-      setState(() {
-          _notes.removeAt(index);
-      });
+    setState(() {
+      _notes.removeAt(index);
+    });
   }
 
   Widget _buildTeamSection() {
-      return Container(
-          decoration: BoxDecoration(
-              color: Colors.black45,
-              borderRadius: BorderRadius.circular(15),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black45,
+        borderRadius: BorderRadius.circular(15),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.people, color: AppDesign.petPink),
+              const SizedBox(width: 8),
+              Text(AppLocalizations.of(context)!.partnerTeamTitle,
+                  style:
+                      GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+            ],
           ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                   Row(
-                       children: [
-                           const Icon(Icons.people, color: AppDesign.petPink),
-                           const SizedBox(width: 8),
-                           Text(AppLocalizations.of(context)!.partnerTeamTitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
-                       ],
-                   ),
-                   const SizedBox(height: 8),
-                   Wrap(
-                       spacing: 8,
-                       runSpacing: 4,
-                       children: _teamMembers.map((member) => Chip(
-                           label: Text(member, style: const TextStyle(fontSize: 12)),
-                           backgroundColor: AppDesign.petPink.withValues(alpha: 0.2),
-                           deleteIcon: const Icon(Icons.close, size: 14),
-                           onDeleted: () {
-                               setState(() {
-                                   _teamMembers.remove(member);
-                               });
-                           },
-                       )).toList(),
-                   ),
-                   const SizedBox(height: 8),
-                   Row(
-                       children: [
-                           Expanded(
-                               child: TextField(
-                                   controller: _teamController,
-                                   style: const TextStyle(color: AppDesign.textPrimaryDark, fontSize: 13),
-                                   decoration: InputDecoration(
-                                       hintText: AppLocalizations.of(context)!.partnerTeamAddHint,
-                                       hintStyle: const TextStyle(color: Colors.white24),
-                                       isDense: true,
-                                       filled: true,
-                                       fillColor: Colors.black45,
-                                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-                                   ),
-                                   onSubmitted: (_) => _addTeamMember(),
-                               ),
-                           ),
-                           IconButton(
-                               icon: const Icon(Icons.add_circle, color: AppDesign.petPink),
-                               onPressed: _addTeamMember,
-                           )
-                       ],
-                   )
-              ],
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: _teamMembers
+                .map((member) => Chip(
+                      label: Text(member, style: const TextStyle(fontSize: 12)),
+                      backgroundColor: AppDesign.petPink.withValues(alpha: 0.2),
+                      deleteIcon: const Icon(Icons.close, size: 14),
+                      onDeleted: () {
+                        setState(() {
+                          _teamMembers.remove(member);
+                        });
+                      },
+                    ))
+                .toList(),
           ),
-      );
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _teamController,
+                  style: const TextStyle(
+                      color: AppDesign.textPrimaryDark, fontSize: 13),
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.partnerTeamAddHint,
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    isDense: true,
+                    filled: true,
+                    fillColor: Colors.black45,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none),
+                  ),
+                  onSubmitted: (_) => _addTeamMember(),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle, color: AppDesign.petPink),
+                onPressed: _addTeamMember,
+              )
+            ],
+          )
+        ],
+      ),
+    );
   }
 
   void _addTeamMember() {
-      final name = _teamController.text.trim();
-      if (name.isNotEmpty && !_teamMembers.contains(name)) {
-          setState(() {
-              _teamMembers.add(name);
-              _teamController.clear();
-          });
-      }
+    final name = _teamController.text.trim();
+    if (name.isNotEmpty && !_teamMembers.contains(name)) {
+      setState(() {
+        _teamMembers.add(name);
+        _teamController.clear();
+      });
+    }
   }
 
   Widget _buildCategoryDropdown() {
     final strings = AppLocalizations.of(context)!;
-    
+
     // Detailed Category Groups
     final groups = [
       {
@@ -765,7 +877,8 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         'title': strings.catHeaderRetail,
         'items': [
           strings.catPetShop,
-          strings.partnersFilterPetShop, // Keep legacy as fallback or alias? "Pet Shop" is common. Use specific keys if distinct.
+          strings
+              .partnersFilterPetShop, // Keep legacy as fallback or alias? "Pet Shop" is common. Use specific keys if distinct.
           strings.catSupplies,
           strings.catTransport,
         ]
@@ -796,27 +909,30 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
       // Actually DropdownButton value must match one of the items.
       // Headers should NOT be values. But DropdownMenuItem requires a value?
       // Yes. We give it a value that user never selects.
-      
+
       menuItems.add(DropdownMenuItem<String>(
-        value: "HEADER_$title", 
+        value: "HEADER_$title",
         enabled: false,
         child: Text(
-          title, 
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: AppDesign.petPink, fontSize: 13),
+          title,
+          style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: AppDesign.petPink,
+              fontSize: 13),
         ),
       ));
 
       for (var item in items) {
         // Dedup
         if (!allSelectableItems.contains(item)) {
-            allSelectableItems.add(item);
-            menuItems.add(DropdownMenuItem<String>(
-              value: item,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12.0),
-                child: Text(item, style: GoogleFonts.poppins(fontSize: 14)),
-              ),
-            ));
+          allSelectableItems.add(item);
+          menuItems.add(DropdownMenuItem<String>(
+            value: item,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12.0),
+              child: Text(item, style: GoogleFonts.poppins(fontSize: 14)),
+            ),
+          ));
         }
       }
     }
@@ -824,12 +940,13 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     // Ensure current _category is valid
     if (!allSelectableItems.contains(_category)) {
       // Try to match partial or default
-       if (allSelectableItems.isNotEmpty) {
-           // If it's a legacy value, maybe add it nicely?
-           // No, force default or add it temporarily?
-           // Better to add it to the list to avoid crash (DropdownButton value must be in items)
-           menuItems.add(DropdownMenuItem(value: _category, child: Text(_category)));
-       }
+      if (allSelectableItems.isNotEmpty) {
+        // If it's a legacy value, maybe add it nicely?
+        // No, force default or add it temporarily?
+        // Better to add it to the list to avoid crash (DropdownButton value must be in items)
+        menuItems
+            .add(DropdownMenuItem(value: _category, child: Text(_category)));
+      }
     }
 
     return DropdownButtonFormField<String>(
@@ -843,12 +960,14 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         prefixIcon: const Icon(Icons.category, color: AppDesign.petPink),
         filled: true,
         fillColor: Colors.black45,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide.none),
       ),
       items: menuItems,
       onChanged: (v) {
         if (v != null && !v.startsWith("HEADER_")) {
-             setState(() => _category = v);
+          setState(() => _category = v);
         }
       },
     );
@@ -858,7 +977,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
     if (catA == catB) return true;
     final a = catA.toLowerCase();
     final b = catB.toLowerCase();
-    
+
     final List<List<String>> synonymGroups = [
       ['veterinário', 'veterinary', 'veterinarian', 'veterinario', 'vet'],
       ['pet shop', 'petshop', 'tienda de mascotas'],
@@ -913,8 +1032,9 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission != LocationPermission.always && permission != LocationPermission.whileInUse) {
-           throw 'Permissão de localização necessária.';
+        if (permission != LocationPermission.always &&
+            permission != LocationPermission.whileInUse) {
+          throw 'Permissão de localização necessária.';
         }
       }
 
@@ -926,7 +1046,7 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
           timeLimit: const Duration(seconds: 10),
         );
       } catch (_) {
-          pos = await Geolocator.getLastKnownPosition();
+        pos = await Geolocator.getLastKnownPosition();
       }
 
       if (pos == null || (pos.latitude == 0.0 && pos.longitude == 0.0)) {
@@ -943,7 +1063,8 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
         lat: pos.latitude,
         lng: pos.longitude,
         radiusKm: 10.0,
-        query: widget.initialQuery != null ? '${widget.initialQuery} Pet' : null,
+        query:
+            widget.initialQuery != null ? '${widget.initialQuery} Pet' : null,
       );
 
       // 4. Step 2: Auto-Expand to 20KM if empty
@@ -956,7 +1077,8 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
           lat: pos.latitude,
           lng: pos.longitude,
           radiusKm: 20.0,
-          query: widget.initialQuery != null ? '${widget.initialQuery} Pet' : null,
+          query:
+              widget.initialQuery != null ? '${widget.initialQuery} Pet' : null,
         );
       }
 
@@ -964,7 +1086,9 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
         setState(() {
           _discovered = results;
           _isLoading = false;
-          _error = results.isEmpty ? AppLocalizations.of(context)!.partnersEmpty : '';
+          _error = results.isEmpty
+              ? AppLocalizations.of(context)!.partnersEmpty
+              : '';
         });
       }
     } catch (e) {
@@ -1005,13 +1129,16 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Radar Geo (${ref.watch(settingsProvider).partnerSearchRadius.toInt()}km)', 
-                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)
-                      ),
-                      Text(
-                          AppLocalizations.of(context)!.partnerRadarHint, 
-                        style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.w500)
-                      ),
+                          'Radar Geo (${ref.watch(settingsProvider).partnerSearchRadius.toInt()}km)',
+                          style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold)),
+                      Text(AppLocalizations.of(context)!.partnerRadarHint,
+                          style: const TextStyle(
+                              color: AppDesign.petPink,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
@@ -1028,40 +1155,63 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          Text("${AppLocalizations.of(context)!.partnerRadarFoundTitle} ${widget.initialQuery ?? ''}", style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
+          Text(
+              "${AppLocalizations.of(context)!.partnerRadarFoundTitle} ${widget.initialQuery ?? ''}",
+              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
           const SizedBox(height: 24),
           Expanded(
-            child: _isLoading 
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const CircularProgressIndicator(color: AppDesign.petPink),
-                      const SizedBox(height: 16),
-                      Text(AppLocalizations.of(context)!.partnerRadarScanning, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
-                    ],
-                  ),
-                )
-              : _error.isNotEmpty
-                ? Center(child: Text(_error, style: const TextStyle(color: Colors.redAccent)))
-                : _discovered.isEmpty
-                  ? Center(child: Text(AppLocalizations.of(context)!.partnerRadarNoResults, style: GoogleFonts.poppins(color: Colors.white38)))
-                  : ListView.builder(
-                      itemCount: _discovered.length,
-                      itemBuilder: (context, index) {
-                        final p = _discovered[index];
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                          leading: CircleAvatar(
-                            backgroundColor: AppDesign.petPink.withValues(alpha: 0.15),
-                            child: Icon(_getIcon(p.category), color: AppDesign.petPink, size: 20),
-                          ),
-                          title: Text(p.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
-                          subtitle: Text('${p.category} • ${p.address}', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: Colors.white38, fontSize: 11)),
-                          onTap: () => widget.onPartnerSelected(p),
-                        );
-                      },
+            child: _isLoading
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(
+                            color: AppDesign.petPink),
+                        const SizedBox(height: 16),
+                        Text(AppLocalizations.of(context)!.partnerRadarScanning,
+                            style: GoogleFonts.poppins(
+                                color: Colors.white70, fontSize: 12)),
+                      ],
                     ),
+                  )
+                : _error.isNotEmpty
+                    ? Center(
+                        child: Text(_error,
+                            style: const TextStyle(color: Colors.redAccent)))
+                    : _discovered.isEmpty
+                        ? Center(
+                            child: Text(
+                                AppLocalizations.of(context)!
+                                    .partnerRadarNoResults,
+                                style:
+                                    GoogleFonts.poppins(color: Colors.white38)))
+                        : ListView.builder(
+                            itemCount: _discovered.length,
+                            itemBuilder: (context, index) {
+                              final p = _discovered[index];
+                              return ListTile(
+                                contentPadding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      AppDesign.petPink.withValues(alpha: 0.15),
+                                  child: Icon(_getIcon(p.category),
+                                      color: AppDesign.petPink, size: 20),
+                                ),
+                                title: Text(p.name,
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14)),
+                                subtitle: Text('${p.category} • ${p.address}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.white38, fontSize: 11)),
+                                onTap: () => widget.onPartnerSelected(p),
+                              );
+                            },
+                          ),
           ),
         ],
       ),
@@ -1081,12 +1231,14 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
             MaterialPageRoute(
               builder: (context) => PdfPreviewScreen(
                 title: 'Relatório Radar Geo',
-                buildPdf: (format) => ExportService().generateRadarReport(
-                  partners: partners,
-                  userLat: _currentPosition?.latitude ?? 0.0,
-                  userLng: _currentPosition?.longitude ?? 0.0,
-                  strings: AppLocalizations.of(context)!,
-                ).then((pdf) => pdf.save()),
+                buildPdf: (format) => ExportService()
+                    .generateRadarReport(
+                      partners: partners,
+                      userLat: _currentPosition?.latitude ?? 0.0,
+                      userLng: _currentPosition?.longitude ?? 0.0,
+                      strings: AppLocalizations.of(context)!,
+                    )
+                    .then((pdf) => pdf.save()),
               ),
             ),
           );
@@ -1099,8 +1251,12 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
     final c = category.toLowerCase();
     if (c.contains('vet')) return Icons.local_hospital;
     if (c.contains('farm') || c.contains('pharm')) return Icons.medication;
-    if (c.contains('shop') || c.contains('tienda')) return Icons.shopping_basket;
-    if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) return Icons.content_cut;
+    if (c.contains('shop') || c.contains('tienda')) {
+      return Icons.shopping_basket;
+    }
+    if (c.contains('banho') || c.contains('grooming') || c.contains('peluquer')) {
+      return Icons.content_cut;
+    }
     if (c.contains('hotel')) return Icons.hotel;
     if (c.contains('lab')) return Icons.biotech;
     return Icons.pets;

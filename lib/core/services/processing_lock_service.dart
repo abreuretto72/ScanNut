@@ -3,7 +3,8 @@ import 'package:flutter/foundation.dart';
 /// 🛡️ V70: ATOMIC PROCESSING LOCK SERVICE
 /// Prevents multiple simultaneous operations that could cause UI/Hive conflicts
 class ProcessingLockService {
-  static final ProcessingLockService _instance = ProcessingLockService._internal();
+  static final ProcessingLockService _instance =
+      ProcessingLockService._internal();
   factory ProcessingLockService() => _instance;
   ProcessingLockService._internal();
 
@@ -18,12 +19,17 @@ class ProcessingLockService {
   bool get isProcessingPDF => _isProcessingPDF;
   bool get isProcessingHive => _isProcessingHive;
   bool get isProcessingImage => _isProcessingImage;
-  bool get isAnyProcessing => _isProcessingAI || _isProcessingPDF || _isProcessingHive || _isProcessingImage;
+  bool get isAnyProcessing =>
+      _isProcessingAI ||
+      _isProcessingPDF ||
+      _isProcessingHive ||
+      _isProcessingImage;
 
   /// Lock AI processing
   bool lockAI() {
     if (_isProcessingAI) {
-      debugPrint('⚠️ [V70-LOCK] AI processing already in progress. Ignoring request.');
+      debugPrint(
+          '⚠️ [V70-LOCK] AI processing already in progress. Ignoring request.');
       return false;
     }
     _isProcessingAI = true;
@@ -40,7 +46,8 @@ class ProcessingLockService {
   /// Lock PDF generation
   bool lockPDF() {
     if (_isProcessingPDF) {
-      debugPrint('⚠️ [V70-LOCK] PDF generation already in progress. Ignoring request.');
+      debugPrint(
+          '⚠️ [V70-LOCK] PDF generation already in progress. Ignoring request.');
       return false;
     }
     _isProcessingPDF = true;
@@ -57,7 +64,8 @@ class ProcessingLockService {
   /// Lock Hive operations
   bool lockHive() {
     if (_isProcessingHive) {
-      debugPrint('⚠️ [V70-LOCK] Hive operation already in progress. Ignoring request.');
+      debugPrint(
+          '⚠️ [V70-LOCK] Hive operation already in progress. Ignoring request.');
       return false;
     }
     _isProcessingHive = true;
@@ -74,7 +82,8 @@ class ProcessingLockService {
   /// Lock Image processing
   bool lockImage() {
     if (_isProcessingImage) {
-      debugPrint('⚠️ [V70-LOCK] Image processing already in progress. Ignoring request.');
+      debugPrint(
+          '⚠️ [V70-LOCK] Image processing already in progress. Ignoring request.');
       return false;
     }
     _isProcessingImage = true;
@@ -103,7 +112,7 @@ class ProcessingLockService {
     required Future<T> Function() operation,
   }) async {
     bool locked = false;
-    
+
     try {
       // Acquire lock based on operation type
       switch (operationType.toLowerCase()) {
@@ -128,8 +137,9 @@ class ProcessingLockService {
 
       debugPrint('🔄 [V70-LOCK] Step 2: Executing $operationType operation...');
       final result = await operation();
-      debugPrint('✅ [V70-LOCK] Step 3: $operationType operation completed successfully');
-      
+      debugPrint(
+          '✅ [V70-LOCK] Step 3: $operationType operation completed successfully');
+
       return result;
     } catch (e) {
       debugPrint('❌ [V70-LOCK] Error in $operationType operation: $e');

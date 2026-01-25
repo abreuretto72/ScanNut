@@ -8,7 +8,7 @@ class ShoppingListGenerator {
   List<ShoppingListItem> generateFromWeeklyPlan(WeeklyPlan plan) {
     try {
       final Map<String, int> itemCount = {};
-      
+
       // Agregar todos os itens do plano
       for (final day in plan.days) {
         for (final meal in day.meals) {

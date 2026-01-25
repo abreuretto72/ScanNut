@@ -1,4 +1,3 @@
-
 class MenuCreationParams {
   final int mealsPerDay;
   final String style; // simples, economico, rapido, saudavel
@@ -46,7 +45,9 @@ class MenuCreationParams {
     return MenuCreationParams(
       mealsPerDay: map['mealsPerDay'] ?? 4,
       style: map['style'] ?? 'simples',
-      restrictions: (map['restrictions'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      restrictions:
+          (map['restrictions'] as List?)?.map((e) => e.toString()).toList() ??
+              [],
       allowRepetition: map['allowRepetition'] ?? true,
       periodType: map['periodType'] ?? 'weekly',
       objective: map['objective'] ?? 'maintenance',

@@ -39,7 +39,7 @@ class PlantLevelIcon extends StatelessWidget {
       case PlantRequirementType.sun:
         return Colors.amber;
       case PlantRequirementType.water:
-        return Colors.blue; 
+        return Colors.blue;
       case PlantRequirementType.soil:
         return Colors.brown;
     }
@@ -51,7 +51,8 @@ class _RequirementPainter extends CustomPainter {
   final Color color;
   final PlantRequirementType type;
 
-  _RequirementPainter({required this.level, required this.color, required this.type});
+  _RequirementPainter(
+      {required this.level, required this.color, required this.type});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -61,7 +62,8 @@ class _RequirementPainter extends CustomPainter {
       ..strokeWidth = 2.0;
 
     final fillPaint = Paint()
-      ..color = color.withValues(alpha: 0.8) // Preenchimento sólido quase opaco para visibility
+      ..color = color.withValues(
+          alpha: 0.8) // Preenchimento sólido quase opaco para visibility
       ..style = PaintingStyle.fill;
 
     // 1. Desenhar o Contorno (Shape conforme o domínio)
@@ -77,10 +79,10 @@ class _RequirementPainter extends CustomPainter {
       // Copo (Trapézio simples)
       final width = size.width;
       final height = size.height;
-      path.moveTo(width * 0.15, 0);       // Top Left
-      path.lineTo(width * 0.85, 0);       // Top Right
-      path.lineTo(width * 0.70, height);  // Bottom Right (tapered)
-      path.lineTo(width * 0.30, height);  // Bottom Left (tapered)
+      path.moveTo(width * 0.15, 0); // Top Left
+      path.lineTo(width * 0.85, 0); // Top Right
+      path.lineTo(width * 0.70, height); // Bottom Right (tapered)
+      path.lineTo(width * 0.30, height); // Bottom Left (tapered)
       path.close();
     }
     canvas.drawPath(path, paint);
@@ -88,18 +90,17 @@ class _RequirementPainter extends CustomPainter {
     // 2. Desenhar o Preenchimento (Níveis)
     if (level >= 1) {
       // User requested: Level 1 = 1/4 fill (25%), Level 2 = 1/2 fill (50%), Level 3 = Full fill (100%)
-      double fillRatio = 0.25; 
+      double fillRatio = 0.25;
       if (level == 2) fillRatio = 0.5;
       if (level >= 3) fillRatio = 1.0;
-      
+
       if (fillRatio > 0) {
         double fillHeight = size.height * fillRatio;
         canvas.save();
         canvas.clipPath(path);
         canvas.drawRect(
-          Rect.fromLTWH(0, size.height - fillHeight, size.width, fillHeight),
-          fillPaint
-        );
+            Rect.fromLTWH(0, size.height - fillHeight, size.width, fillHeight),
+            fillPaint);
         canvas.restore();
       }
     }
@@ -107,6 +108,6 @@ class _RequirementPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RequirementPainter oldDelegate) {
-     return oldDelegate.level != level || oldDelegate.color != color;
+    return oldDelegate.level != level || oldDelegate.color != color;
   }
 }

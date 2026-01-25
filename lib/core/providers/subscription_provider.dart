@@ -38,7 +38,8 @@ class SubscriptionState {
 class SubscriptionNotifier extends StateNotifier<SubscriptionState> {
   final SubscriptionService _subscriptionService;
 
-  SubscriptionNotifier(this._subscriptionService) : super(const SubscriptionState()) {
+  SubscriptionNotifier(this._subscriptionService)
+      : super(const SubscriptionState()) {
     _init();
   }
 
@@ -52,7 +53,7 @@ class SubscriptionNotifier extends StateNotifier<SubscriptionState> {
   Future<void> checkProStatus() async {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
-      
+
       final isPro = await _subscriptionService.isPro();
       final expirationDate = _subscriptionService.getProExpirationDate();
       final willRenew = _subscriptionService.willRenew();
@@ -75,9 +76,9 @@ class SubscriptionNotifier extends StateNotifier<SubscriptionState> {
   Future<bool> restorePurchases() async {
     try {
       state = state.copyWith(isLoading: true, errorMessage: null);
-      
+
       final success = await _subscriptionService.restorePurchases();
-      
+
       if (success) {
         await checkProStatus();
       } else {
@@ -86,7 +87,7 @@ class SubscriptionNotifier extends StateNotifier<SubscriptionState> {
           errorMessage: 'Nenhuma compra encontrada para restaurar',
         );
       }
-      
+
       return success;
     } catch (e) {
       state = state.copyWith(
@@ -110,7 +111,8 @@ final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {
 });
 
 /// Provider for subscription state
-final subscriptionProvider = StateNotifierProvider<SubscriptionNotifier, SubscriptionState>((ref) {
+final subscriptionProvider =
+    StateNotifierProvider<SubscriptionNotifier, SubscriptionState>((ref) {
   final service = ref.watch(subscriptionServiceProvider);
   return SubscriptionNotifier(service);
 });

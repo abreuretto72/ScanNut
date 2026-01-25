@@ -1,6 +1,6 @@
 /// Feeding Event Constants and Utilities
 /// Provides helper methods for feeding event classification and display
-/// 
+///
 /// This file complements feeding_event_types.dart with practical utilities
 
 import 'package:flutter/material.dart';
@@ -8,7 +8,6 @@ import 'feeding_event_types.dart';
 
 /// Helper class for feeding event utilities
 class FeedingEventHelper {
-  
   /// Get Material Icon for event type
   static IconData getIconForEventType(FeedingEventType eventType) {
     switch (eventType.group) {
@@ -162,7 +161,8 @@ class FeedingEventHelper {
   }
 
   /// Check if event requires immediate veterinary attention
-  static bool requiresImmediateAttention(FeedingEventType eventType, String? severity) {
+  static bool requiresImmediateAttention(
+      FeedingEventType eventType, String? severity) {
     // Critical events
     final criticalEvents = [
       FeedingEventType.choking,
@@ -173,7 +173,8 @@ class FeedingEventHelper {
     if (criticalEvents.contains(eventType)) return true;
 
     // Severe events
-    if (severity?.toLowerCase() == 'severe' || severity?.toLowerCase() == 'grave') {
+    if (severity?.toLowerCase() == 'severe' ||
+        severity?.toLowerCase() == 'grave') {
       return eventType.isClinicalIntercurrence;
     }
 
@@ -181,13 +182,15 @@ class FeedingEventHelper {
   }
 
   /// Get recommended action for event type
-  static String getRecommendedAction(FeedingEventType eventType, String? severity) {
+  static String getRecommendedAction(
+      FeedingEventType eventType, String? severity) {
     if (requiresImmediateAttention(eventType, severity)) {
       return 'URGENTE: Consultar veterinário imediatamente';
     }
 
     if (eventType.isClinicalIntercurrence) {
-      if (severity?.toLowerCase() == 'moderate' || severity?.toLowerCase() == 'moderada') {
+      if (severity?.toLowerCase() == 'moderate' ||
+          severity?.toLowerCase() == 'moderada') {
         return 'Agendar consulta veterinária em 24-48h';
       }
       return 'Monitorar e registrar. Consultar vet se persistir';
@@ -236,21 +239,21 @@ class FeedingEventHelper {
 extension FeedingEventTypeExtensions on FeedingEventType {
   /// Get Material Icon
   IconData get icon => FeedingEventHelper.getSpecificIcon(this);
-  
+
   /// Get group icon
   IconData get groupIcon => FeedingEventHelper.getIconForEventType(this);
-  
+
   /// Get group color
   Color get groupColor => FeedingEventHelper.getColorForGroup(group);
-  
+
   /// Get display priority
   int get displayPriority => FeedingEventHelper.getDisplayPriority(this);
-  
+
   /// Check if requires immediate attention
   bool requiresImmediateAttention([String? severity]) {
     return FeedingEventHelper.requiresImmediateAttention(this, severity);
   }
-  
+
   /// Get recommended action
   String getRecommendedAction([String? severity]) {
     return FeedingEventHelper.getRecommendedAction(this, severity);

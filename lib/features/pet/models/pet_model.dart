@@ -1,4 +1,3 @@
-
 /// ARQUITETURA DE DADOS DO PET (PROTOCOLO SCANNUT)
 /// 4 Conjuntos de Dados Vinculados, indexados pela Chave Primária `petName`.
 
@@ -99,7 +98,9 @@ class PetIdentitySet {
         sex: json['sex'],
         isNeutered: json['isNeutered'] ?? false,
         microchip: json['microchip'],
-        birthDate: json['birthDate'] != null ? DateTime.parse(json['birthDate']) : null,
+        birthDate: json['birthDate'] != null
+            ? DateTime.parse(json['birthDate'])
+            : null,
       );
 }
 
@@ -141,7 +142,7 @@ class PetHealthSet {
                 .toList() ??
             [],
       );
-  
+
   // Helper to add biometric data without overwriting
   void addBiometric(double weight, int? conditionScore) {
     biometricsHistory.add(BiometricEntry(
@@ -158,7 +159,8 @@ class BiometricEntry {
   final double weightKg;
   final int? bodyConditionScore; // 1-9 scale
 
-  BiometricEntry({required this.date, required this.weightKg, this.bodyConditionScore});
+  BiometricEntry(
+      {required this.date, required this.weightKg, this.bodyConditionScore});
 
   Map<String, dynamic> toJson() => {
         'date': date.toIso8601String(),
@@ -195,14 +197,14 @@ class ConditionEntry {
         'severity': severity,
         'notes': notes,
       };
-      
+
   factory ConditionEntry.fromJson(Map<String, dynamic> json) => ConditionEntry(
-    title: json['title'],
-    status: json['status'],
-    diagnosedAt: DateTime.parse(json['diagnosedAt']),
-    severity: json['severity'],
-    notes: json['notes'],
-  );
+        title: json['title'],
+        status: json['status'],
+        diagnosedAt: DateTime.parse(json['diagnosedAt']),
+        severity: json['severity'],
+        notes: json['notes'],
+      );
 }
 
 class MedicalAttachment {
@@ -224,13 +226,14 @@ class MedicalAttachment {
         'ocrData': ocrData,
         'addedAt': addedAt.toIso8601String(),
       };
-      
-  factory MedicalAttachment.fromJson(Map<String, dynamic> json) => MedicalAttachment(
-    type: json['type'],
-    filePath: json['filePath'],
-    ocrData: json['ocrData'],
-    addedAt: DateTime.parse(json['addedAt']),
-  );
+
+  factory MedicalAttachment.fromJson(Map<String, dynamic> json) =>
+      MedicalAttachment(
+        type: json['type'],
+        filePath: json['filePath'],
+        ocrData: json['ocrData'],
+        addedAt: DateTime.parse(json['addedAt']),
+      );
 }
 
 // 3. CONJUNTO: CARDÁPIO (ALIMENTAÇÃO NATURAL - AN)
@@ -299,14 +302,14 @@ class MenuCycle {
         'supplements': supplements,
         'caloricGoal': caloricGoal,
       };
-      
+
   factory MenuCycle.fromJson(Map<String, dynamic> json) => MenuCycle(
-    weekId: json['weekId'],
-    proteins: List<String>.from(json['proteins'] ?? []),
-    vegetables: List<String>.from(json['vegetables'] ?? []),
-    supplements: List<String>.from(json['supplements'] ?? []),
-    caloricGoal: Map<String, dynamic>.from(json['caloricGoal'] ?? {}),
-  );
+        weekId: json['weekId'],
+        proteins: List<String>.from(json['proteins'] ?? []),
+        vegetables: List<String>.from(json['vegetables'] ?? []),
+        supplements: List<String>.from(json['supplements'] ?? []),
+        caloricGoal: Map<String, dynamic>.from(json['caloricGoal'] ?? {}),
+      );
 }
 
 // 4. CONJUNTO: AGENDA (PREVENTIVA & ROTINA)
@@ -371,10 +374,10 @@ class AgendaEvent {
       };
 
   factory AgendaEvent.fromJson(Map<String, dynamic> json) => AgendaEvent(
-    title: json['title'],
-    category: json['category'],
-    date: DateTime.parse(json['date']),
-    isRecurring: json['isRecurring'] ?? false,
-    recurrenceRule: json['recurrenceRule'],
-  );
+        title: json['title'],
+        category: json['category'],
+        date: DateTime.parse(json['date']),
+        isRecurring: json['isRecurring'] ?? false,
+        recurrenceRule: json['recurrenceRule'],
+      );
 }

@@ -1,4 +1,3 @@
-
 class ShoppingItem {
   final String id;
   final String name;
@@ -23,28 +22,28 @@ class ShoppingItem {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'normalizedName': normalizedName,
-    'quantity': quantity.toJson(),
-    'quantityDisplay': quantityDisplay,
-    'kcalTotal': kcalTotal,
-    'occurrences': occurrences,
-    'checkbox': checkbox.toJson(),
-    'category': category,
-  };
+        'id': id,
+        'name': name,
+        'normalizedName': normalizedName,
+        'quantity': quantity.toJson(),
+        'quantityDisplay': quantityDisplay,
+        'kcalTotal': kcalTotal,
+        'occurrences': occurrences,
+        'checkbox': checkbox.toJson(),
+        'category': category,
+      };
 
   factory ShoppingItem.fromJson(Map<String, dynamic> json) => ShoppingItem(
-    id: json['id'],
-    name: json['name'],
-    normalizedName: json['normalizedName'],
-    quantity: ShoppingQuantity.fromJson(json['quantity']),
-    quantityDisplay: json['quantityDisplay'],
-    kcalTotal: json['kcalTotal'],
-    occurrences: json['occurrences'],
-    checkbox: ShoppingCheckbox.fromJson(json['checkbox']),
-    category: json['category'],
-  );
+        id: json['id'],
+        name: json['name'],
+        normalizedName: json['normalizedName'],
+        quantity: ShoppingQuantity.fromJson(json['quantity']),
+        quantityDisplay: json['quantityDisplay'],
+        kcalTotal: json['kcalTotal'],
+        occurrences: json['occurrences'],
+        checkbox: ShoppingCheckbox.fromJson(json['checkbox']),
+        category: json['category'],
+      );
 }
 
 class ShoppingQuantity {
@@ -55,10 +54,11 @@ class ShoppingQuantity {
 
   Map<String, dynamic> toJson() => {'value': value, 'unit': unit};
 
-  factory ShoppingQuantity.fromJson(Map<String, dynamic> json) => ShoppingQuantity(
-    value: (json['value'] as num).toDouble(),
-    unit: json['unit'],
-  );
+  factory ShoppingQuantity.fromJson(Map<String, dynamic> json) =>
+      ShoppingQuantity(
+        value: (json['value'] as num).toDouble(),
+        unit: json['unit'],
+      );
 }
 
 class ShoppingCheckbox {
@@ -68,9 +68,10 @@ class ShoppingCheckbox {
 
   Map<String, dynamic> toJson() => {'defaultChecked': defaultChecked};
 
-  factory ShoppingCheckbox.fromJson(Map<String, dynamic> json) => ShoppingCheckbox(
-    defaultChecked: json['defaultChecked'] ?? false,
-  );
+  factory ShoppingCheckbox.fromJson(Map<String, dynamic> json) =>
+      ShoppingCheckbox(
+        defaultChecked: json['defaultChecked'] ?? false,
+      );
 }
 
 class ShoppingListCategory {
@@ -87,18 +88,21 @@ class ShoppingListCategory {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'order': order,
-    'items': items.map((e) => e.toJson()).toList(),
-  };
+        'id': id,
+        'title': title,
+        'order': order,
+        'items': items.map((e) => e.toJson()).toList(),
+      };
 
-  factory ShoppingListCategory.fromJson(Map<String, dynamic> json) => ShoppingListCategory(
-    id: json['id'],
-    title: json['title'],
-    order: json['order'],
-    items: (json['items'] as List).map((e) => ShoppingItem.fromJson(e)).toList(),
-  );
+  factory ShoppingListCategory.fromJson(Map<String, dynamic> json) =>
+      ShoppingListCategory(
+        id: json['id'],
+        title: json['title'],
+        order: json['order'],
+        items: (json['items'] as List)
+            .map((e) => ShoppingItem.fromJson(e))
+            .toList(),
+      );
 }
 
 class WeeklyShoppingList {
@@ -127,28 +131,31 @@ class WeeklyShoppingList {
   });
 
   Map<String, dynamic> toJson() => {
-    'schemaVersion': schemaVersion,
-    'menuId': menuId,
-    'periodType': periodType,
-    'weekIndex': weekIndex,
-    'weekLabel': weekLabel,
-    'startDate': startDate.toIso8601String(),
-    'endDate': endDate.toIso8601String(),
-    'objective': objective,
-    'generatedAt': generatedAt.toIso8601String(),
-    'categories': categories.map((e) => e.toJson()).toList(),
-  };
+        'schemaVersion': schemaVersion,
+        'menuId': menuId,
+        'periodType': periodType,
+        'weekIndex': weekIndex,
+        'weekLabel': weekLabel,
+        'startDate': startDate.toIso8601String(),
+        'endDate': endDate.toIso8601String(),
+        'objective': objective,
+        'generatedAt': generatedAt.toIso8601String(),
+        'categories': categories.map((e) => e.toJson()).toList(),
+      };
 
-  factory WeeklyShoppingList.fromJson(Map<String, dynamic> json) => WeeklyShoppingList(
-    schemaVersion: json['schemaVersion'] ?? 1,
-    menuId: json['menuId'],
-    periodType: json['periodType'],
-    weekIndex: json['weekIndex'],
-    weekLabel: json['weekLabel'],
-    startDate: DateTime.parse(json['startDate']),
-    endDate: DateTime.parse(json['endDate']),
-    objective: json['objective'],
-    generatedAt: DateTime.parse(json['generatedAt']),
-    categories: (json['categories'] as List).map((e) => ShoppingListCategory.fromJson(e)).toList(),
-  );
+  factory WeeklyShoppingList.fromJson(Map<String, dynamic> json) =>
+      WeeklyShoppingList(
+        schemaVersion: json['schemaVersion'] ?? 1,
+        menuId: json['menuId'],
+        periodType: json['periodType'],
+        weekIndex: json['weekIndex'],
+        weekLabel: json['weekLabel'],
+        startDate: DateTime.parse(json['startDate']),
+        endDate: DateTime.parse(json['endDate']),
+        objective: json['objective'],
+        generatedAt: DateTime.parse(json['generatedAt']),
+        categories: (json['categories'] as List)
+            .map((e) => ShoppingListCategory.fromJson(e))
+            .toList(),
+      );
 }

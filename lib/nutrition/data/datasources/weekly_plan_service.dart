@@ -8,20 +8,21 @@ import '../../../../core/services/hive_atomic_manager.dart';
 /// SINGLETON - sempre retorna a mesma instância
 class WeeklyPlanService {
   static const String _boxName = 'nutrition_weekly_plans';
-  
+
   // SINGLETON PATTERN
   static final WeeklyPlanService _instance = WeeklyPlanService._internal();
   factory WeeklyPlanService() => _instance;
   WeeklyPlanService._internal();
-  
+
   Box<WeeklyPlan>? _box;
-  
+
   /// Get listenable for UI updates
   ValueListenable<Box<WeeklyPlan>>? get listenable => _box?.listenable();
 
   /// Ensure box is open
   Future<Box<WeeklyPlan>> _ensureBox({HiveCipher? cipher}) async {
-    _box = await HiveAtomicManager().ensureBoxOpen<WeeklyPlan>(_boxName, cipher: cipher);
+    _box = await HiveAtomicManager()
+        .ensureBoxOpen<WeeklyPlan>(_boxName, cipher: cipher);
     return _box!;
   }
 
@@ -34,29 +35,31 @@ class WeeklyPlanService {
   Future<void> savePlan(WeeklyPlan plan) async {
     try {
       final box = await _ensureBox();
-      
+
       // Gerar ID se não tiver
-      plan.id ??= DateTime.now().millisecondsSinceEpoch.toString(); 
+      plan.id ??= DateTime.now().millisecondsSinceEpoch.toString();
       plan.atualizadoEm = DateTime.now();
-      
+
       // Regra de Versão: Se estivermos salvando um novo plano 'Ativo' para este período,
       // devemos arquivar os anteriores do mesmo período.
       if (plan.status == 'active') {
-         final existing = getAllPlans().where((p) => 
-            p.weekStartDate == plan.weekStartDate && 
-            p.id != plan.id && 
-            p.status == 'active'
-         ).toList();
-         
-         for (var p in existing) {
-            p.status = 'archived';
-            await p.save(); // HiveObject.save() works if it was already in box
-            // If not in box (which shouldn't happen here), we'd use box.put
-         }
+        final existing = getAllPlans()
+            .where((p) =>
+                p.weekStartDate == plan.weekStartDate &&
+                p.id != plan.id &&
+                p.status == 'active')
+            .toList();
+
+        for (var p in existing) {
+          p.status = 'archived';
+          await p.save(); // HiveObject.save() works if it was already in box
+          // If not in box (which shouldn't happen here), we'd use box.put
+        }
       }
 
       await box.put(plan.id, plan);
-      debugPrint('[WeeklyMenu] SAVE id=${plan.id} start=${plan.weekStartDate} status=${plan.status}');
+      debugPrint(
+          '[WeeklyMenu] SAVE id=${plan.id} start=${plan.weekStartDate} status=${plan.status}');
     } catch (e) {
       debugPrint('❌ Error saving plan: $e');
       rethrow;
@@ -88,27 +91,29 @@ class WeeklyPlanService {
   /// Retorna o plano da semana atual (Ativo)
   WeeklyPlan? getCurrentWeekPlan() {
     if (_box == null || !_box!.isOpen) {
-       debugPrint('⚠️ [WeeklyPlanService] Sync access to closed box. Returning null.');
-       return null; 
+      debugPrint(
+          '⚠️ [WeeklyPlanService] Sync access to closed box. Returning null.');
+      return null;
     }
-    
+
     try {
       final now = DateTime.now();
       final monday = getMonday(now);
-      
+
       final activePlans = getAllActivePlans();
       if (activePlans.isEmpty) return null;
 
       // Try exact match first
       try {
-        return activePlans.firstWhere((p) => isSameDay(p.weekStartDate, monday));
+        return activePlans
+            .firstWhere((p) => isSameDay(p.weekStartDate, monday));
       } catch (_) {
         // Try period overlap
         try {
-          return activePlans.firstWhere((p) => 
-            p.weekStartDate.isBefore(now.add(const Duration(seconds: 1))) && 
-            (p.endDate?.isAfter(now.subtract(const Duration(seconds: 1))) ?? false)
-          );
+          return activePlans.firstWhere((p) =>
+              p.weekStartDate.isBefore(now.add(const Duration(seconds: 1))) &&
+              (p.endDate?.isAfter(now.subtract(const Duration(seconds: 1))) ??
+                  false));
         } catch (_) {
           return null;
         }
@@ -142,7 +147,8 @@ class WeeklyPlanService {
     try {
       final all = _box!.values.toList();
       final filtered = all.where((p) => p.status != 'deleted').toList();
-      debugPrint('[WeeklyPlanService] getAllPlans: total=${all.length}, filtered=${filtered.length} (deleted=${all.length - filtered.length})');
+      debugPrint(
+          '[WeeklyPlanService] getAllPlans: total=${all.length}, filtered=${filtered.length} (deleted=${all.length - filtered.length})');
       return filtered;
     } catch (e) {
       debugPrint('❌ Error getting all plans: $e');

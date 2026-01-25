@@ -29,7 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     setState(() => _isLoading = true);
-    
+
     final success = await simpleAuthService.register(
       _emailController.text.trim(),
       _passwordController.text,
@@ -39,9 +39,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (mounted) {
       if (success) {
-        debugPrint('✅ [V113-AUTH] Auto-Login successful. Navigating to Home...');
-        SnackBarHelper.showSuccess(context, 'Bem-vindo ao ScanNut! Login realizado com sucesso.');
-        
+        debugPrint(
+            '✅ [V113-AUTH] Auto-Login successful. Navigating to Home...');
+        SnackBarHelper.showSuccess(
+            context, 'Bem-vindo ao ScanNut! Login realizado com sucesso.');
+
         // Navigate to Home and clear navigation stack (Force session entry point)
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const HomeView()),
@@ -95,7 +97,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Email Field
                 Text(
                   'E-mail',
-                  style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                  style: GoogleFonts.poppins(
+                      color: AppDesign.textSecondaryDark, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -107,7 +110,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icons.email_outlined,
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Campo obrigatório';
+                    if (value == null || value.isEmpty) {
+                      return 'Campo obrigatório';
+                    }
                     if (!value.contains('@')) return 'E-mail inválido';
                     return null;
                   },
@@ -117,7 +122,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Password Field
                 Text(
                   'Senha',
-                  style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                  style: GoogleFonts.poppins(
+                      color: AppDesign.textSecondaryDark, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -129,7 +135,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icons.lock_outline,
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Campo obrigatório';
+                    if (value == null || value.isEmpty) {
+                      return 'Campo obrigatório';
+                    }
                     if (value.length < 6) return 'Senha muito curta';
                     return null;
                   },
@@ -139,7 +147,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // Confirm Password Field
                 Text(
                   'Confirmar Senha',
-                  style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                  style: GoogleFonts.poppins(
+                      color: AppDesign.textSecondaryDark, fontSize: 14),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -151,7 +160,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icons.lock_reset_outlined,
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Campo obrigatório';
+                    if (value == null || value.isEmpty) {
+                      return 'Campo obrigatório';
+                    }
                     return null;
                   },
                 ),
@@ -169,15 +180,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: _isLoading 
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2))
-                    : Text(
-                        'Cadastrar-se',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                              color: Colors.black, strokeWidth: 2))
+                      : Text(
+                          'Cadastrar-se',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
                 ),
               ],
             ),
@@ -193,8 +208,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
-      prefixIcon: Icon(prefixIcon, color: AppDesign.textSecondaryDark.withValues(alpha: 0.5), size: 20),
+      hintStyle: GoogleFonts.poppins(
+          color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
+      prefixIcon: Icon(prefixIcon,
+          color: AppDesign.textSecondaryDark.withValues(alpha: 0.5), size: 20),
       filled: true,
       fillColor: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -204,7 +221,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+        borderSide:
+            BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),

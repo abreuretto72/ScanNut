@@ -8,8 +8,9 @@ import 'hive_atomic_manager.dart';
 /// Uses SHA-256 hashing to prevent redundant analysis of the same image.
 class ImageDeduplicationService {
   static const String boxName = 'processed_images_box';
-  
-  static final ImageDeduplicationService _instance = ImageDeduplicationService._internal();
+
+  static final ImageDeduplicationService _instance =
+      ImageDeduplicationService._internal();
   factory ImageDeduplicationService() => _instance;
   ImageDeduplicationService._internal();
 
@@ -30,17 +31,18 @@ class ImageDeduplicationService {
   /// Generates a SHA-256 hash from image bytes
   Future<String> calculateHash(File imageFile) async {
     try {
-        final Uint8List bytes = await imageFile.readAsBytes();
-        
-        // Use compute for large files to avoid UI jank if not on web
-        if (!kIsWeb && bytes.length > 1024 * 1024) { // > 1MB
-            return await compute(_generateHash, bytes);
-        }
-        
-        return _generateHash(bytes);
+      final Uint8List bytes = await imageFile.readAsBytes();
+
+      // Use compute for large files to avoid UI jank if not on web
+      if (!kIsWeb && bytes.length > 1024 * 1024) {
+        // > 1MB
+        return await compute(_generateHash, bytes);
+      }
+
+      return _generateHash(bytes);
     } catch (e) {
-        debugPrint('❌ [DEDUPLICATION] Hash calculation failed: $e');
-        return '';
+      debugPrint('❌ [DEDUPLICATION] Hash calculation failed: $e');
+      return '';
     }
   }
 
@@ -54,11 +56,11 @@ class ImageDeduplicationService {
   Future<Map<String, dynamic>?> checkDeduplication(String hash) async {
     if (hash.isEmpty) return null;
     await _init();
-    
+
     final result = _box?.get(hash);
     if (result != null) {
-        debugPrint('🎯 [DEDUPLICATION] Match found for hash: $hash');
-        return Map<String, dynamic>.from(result as Map);
+      debugPrint('🎯 [DEDUPLICATION] Match found for hash: $hash');
+      return Map<String, dynamic>.from(result as Map);
     }
     return null;
   }
@@ -73,7 +75,7 @@ class ImageDeduplicationService {
   }) async {
     if (hash.isEmpty) return;
     await _init();
-    
+
     final entry = {
       'timestamp': DateTime.now().toIso8601String(),
       'type': type,
@@ -81,12 +83,12 @@ class ImageDeduplicationService {
       'petName': petName,
       ...?extraMetadata,
     };
-    
+
     await _box!.put(hash, entry);
     await _box!.flush();
     debugPrint('💾 [DEDUPLICATION] Recorded new hash: $hash ($type)');
   }
-  
+
   /// Clears the deduplication history (Danger Zone)
   Future<void> clearHistory() async {
     await _init();

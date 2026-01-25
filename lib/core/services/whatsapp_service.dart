@@ -7,14 +7,15 @@ class WhatsAppService {
   }) async {
     // Remove caracteres não numéricos do telefone
     String numeroLimpo = telefone.replaceAll(RegExp(r'[^0-9]'), '');
-    
+
     // Se o número não começar com o código do país, assume 55 (Brasil)
     if (numeroLimpo.length <= 11) {
       numeroLimpo = '55$numeroLimpo';
     }
-    
+
     // Codifica a mensagem para URL
-    String url = "https://wa.me/$numeroLimpo?text=${Uri.encodeComponent(mensagem)}";
+    String url =
+        "https://wa.me/$numeroLimpo?text=${Uri.encodeComponent(mensagem)}";
 
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -32,7 +33,8 @@ class WhatsAppService {
   }) {
     String msg = "Olá, sou tutor do $petName (Raça: $raca). ";
     if (statusSaude != null && statusSaude.isNotEmpty) {
-      msg += "Ele realizou um scan de saúde no ScanNut que indicou: $statusSaude. ";
+      msg +=
+          "Ele realizou um scan de saúde no ScanNut que indicou: $statusSaude. ";
     }
     msg += "Gostaria de agendar uma consulta.";
     return msg;

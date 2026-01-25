@@ -1,4 +1,3 @@
-
 class AnaliseFeridaModel {
   final DateTime dataAnalise;
   final String imagemRef;
@@ -9,7 +8,8 @@ class AnaliseFeridaModel {
   final String? profundidadeEstimada; // Cubagem
   final List<String> diagnosticosProvaveis;
   final Map<String, dynamic>? rawClinicalSigns; // Dados brutos da IA
-  final String? categoria; // 🛡️ V460: Tag de Especialidade (olhos, dentes, pele, ferida)
+  final String?
+      categoria; // 🛡️ V460: Tag de Especialidade (olhos, dentes, pele, ferida)
   final String? descricaoVisual;
   final String? caracteristicas;
 
@@ -36,9 +36,10 @@ class AnaliseFeridaModel {
       recomendacao: json['recomendacao'] ?? '',
       categoria: json['categoria'],
       profundidadeEstimada: json['profundidadeEstimada'],
-      diagnosticosProvaveis: List<String>.from(json['diagnosticosProvaveis'] ?? []),
-      rawClinicalSigns: json['rawClinicalSigns'] != null 
-          ? Map<String, dynamic>.from(json['rawClinicalSigns']) 
+      diagnosticosProvaveis:
+          List<String>.from(json['diagnosticosProvaveis'] ?? []),
+      rawClinicalSigns: json['rawClinicalSigns'] != null
+          ? Map<String, dynamic>.from(json['rawClinicalSigns'])
           : null,
       descricaoVisual: json['descricaoVisual'],
       caracteristicas: json['caracteristicas'],

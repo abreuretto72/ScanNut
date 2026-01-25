@@ -103,7 +103,7 @@ class ExamCategory {
   );
 
   static List<ExamCategory> get all => [blood, urine, feces, other];
-  
+
   static ExamCategory fromId(String id) {
     return all.firstWhere((cat) => cat.id == id, orElse: () => other);
   }

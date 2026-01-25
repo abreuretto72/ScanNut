@@ -14,13 +14,14 @@ class ResultCard extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
   final VoidCallback onSave;
 
-    const ResultCard({super.key, required this.analysis, required this.onSave});
+  const ResultCard({super.key, required this.analysis, required this.onSave});
 
   @override
   ConsumerState<ResultCard> createState() => _ResultCardState();
 }
 
-class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProviderStateMixin {
+class _ResultCardState extends ConsumerState<ResultCard>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isSaved = false;
 
@@ -83,161 +84,168 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
               ),
             ),
             child: Column(
-                children: [
-                  // Handle Bar
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppDesign.textSecondaryDark.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+              children: [
+                // Handle Bar
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppDesign.textSecondaryDark.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
+                ),
 
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                onTap: () => _showRecipesDialog(context),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        widget.analysis.itemName
-                                            .replaceAll('aproximadamente', '±')
-                                            .replaceAll('Aproximadamente', '±'),
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppDesign.textPrimaryDark,
-                                          decoration: TextDecoration.underline,
-                                          decorationColor: AppDesign.textSecondaryDark.withValues(alpha: 0.3),
-                                          decorationStyle: TextDecorationStyle.dotted,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () => _showRecipesDialog(context),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.analysis.itemName
+                                          .replaceAll('aproximadamente', '±')
+                                          .replaceAll('Aproximadamente', '±'),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppDesign.textPrimaryDark,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: AppDesign
+                                            .textSecondaryDark
+                                            .withValues(alpha: 0.3),
+                                        decorationStyle:
+                                            TextDecorationStyle.dotted,
                                       ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const Icon(
-                                      Icons.menu_book_rounded,
-                                      color: AppDesign.textSecondaryDark,
-                                      size: 20,
-                                    ),
-                                  ],
+                                  ),
+                                  const Icon(
+                                    Icons.menu_book_rounded,
+                                    color: AppDesign.textSecondaryDark,
+                                    size: 20,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              l10n.cardTapForRecipes,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: _themeColor,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => _showVitalityScoreDialog(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: _themeColor.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: _themeColor.withValues(alpha: 0.5)),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                _vitalityScore.toStringAsFixed(1),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: _themeColor,
                                 ),
                               ),
-                                Text(
-                                  l10n.cardTapForRecipes,
+                              Text(
+                                l10n.cardScore,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: _themeColor,
-                                  fontStyle: FontStyle.italic,
+                                  fontSize: 10,
+                                  color: _themeColor.withValues(alpha: 0.8),
                                 ),
+                              ),
+                              Icon(
+                                Icons.info_outline,
+                                size: 12,
+                                color: _themeColor.withValues(alpha: 0.6),
                               ),
                             ],
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () => _showVitalityScoreDialog(context),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: _themeColor.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: _themeColor.withValues(alpha: 0.5)),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  _vitalityScore.toStringAsFixed(1),
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: _themeColor,
-                                  ),
-                                ),
-                                Text(
-                                  l10n.cardScore,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    color: _themeColor.withValues(alpha: 0.8),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.info_outline,
-                                  size: 12,
-                                  color: _themeColor.withValues(alpha: 0.6),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // TabBar
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
                       ),
-                    ),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicatorColor: _themeColor,
-                      indicatorWeight: 3,
-                      labelColor: _themeColor,
-                      unselectedLabelColor: AppDesign.textSecondaryDark,
-                      labelStyle: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                        tabs: [
-                          Tab(text: l10n.cardTabOverview),
-                          Tab(text: l10n.cardTabDetails),
-                          Tab(text: l10n.cardTabTips),
-                        ],
+                    ],
+                  ),
+                ),
+
+                // TabBar
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                          color:
+                              AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
                     ),
                   ),
-
-                  // TabBarView
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildOverviewTab(scrollController),
-                        _buildDetailsTab(scrollController),
-                        _buildInsightsTab(scrollController),
-                      ],
+                  child: TabBar(
+                    controller: _tabController,
+                    indicatorColor: _themeColor,
+                    indicatorWeight: 3,
+                    labelColor: _themeColor,
+                    unselectedLabelColor: AppDesign.textSecondaryDark,
+                    labelStyle: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
+                    tabs: [
+                      Tab(text: l10n.cardTabOverview),
+                      Tab(text: l10n.cardTabDetails),
+                      Tab(text: l10n.cardTabTips),
+                    ],
                   ),
+                ),
 
-                  // Footer Button
-                  _buildFooter(),
-                ],
-              ),
+                // TabBarView
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildOverviewTab(scrollController),
+                      _buildDetailsTab(scrollController),
+                      _buildInsightsTab(scrollController),
+                    ],
+                  ),
+                ),
+
+                // Footer Button
+                _buildFooter(),
+              ],
             ),
-          );
-        },
-      );
-    }
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildOverviewTab(ScrollController scrollController) {
     final l10n = AppLocalizations.of(context)!;
     final settings = ref.watch(settingsProvider);
     final dailyGoal = settings.dailyCalorieGoal;
-    
+
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.all(24),
@@ -262,7 +270,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 lineWidth: 10.0,
                 animation: true,
                 animationDuration: 1200,
-                percent: (widget.analysis.estimatedCalories / dailyGoal).clamp(0.0, 1.0),
+                percent: (widget.analysis.estimatedCalories / dailyGoal)
+                    .clamp(0.0, 1.0),
                 center: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -284,7 +293,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                   ],
                 ),
                 circularStrokeCap: CircularStrokeCap.round,
-                backgroundColor: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
+                backgroundColor:
+                    AppDesign.textPrimaryDark.withValues(alpha: 0.1),
                 progressColor: _themeColor,
               ),
               const SizedBox(height: 16),
@@ -317,7 +327,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
           decoration: BoxDecoration(
             color: AppDesign.surfaceDark,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+            border: Border.all(
+                color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
           ),
           child: PieChart(
             PieChartData(
@@ -329,21 +340,30 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                   color: AppDesign.info,
                   title: l10n.foodProt,
                   radius: 50,
-                  titleStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark),
+                  titleStyle: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppDesign.textPrimaryDark),
                 ),
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.carbs),
                   color: AppDesign.warning,
                   title: l10n.foodCarb,
                   radius: 50,
-                  titleStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark),
+                  titleStyle: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppDesign.textPrimaryDark),
                 ),
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.fats),
                   color: AppDesign.primary,
                   title: l10n.foodFat,
                   radius: 50,
-                  titleStyle: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppDesign.textPrimaryDark),
+                  titleStyle: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppDesign.textPrimaryDark),
                 ),
               ],
             ),
@@ -505,26 +525,29 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                      color: AppDesign.textPrimaryDark,
+                        color: AppDesign.textPrimaryDark,
+                      ),
                     ),
+                    progressColor: _themeColor,
+                    backgroundColor:
+                        AppDesign.textPrimaryDark.withValues(alpha: 0.1),
+                    circularStrokeCap: CircularStrokeCap.round,
                   ),
-                  progressColor: _themeColor,
-                  backgroundColor: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
-                  circularStrokeCap: CircularStrokeCap.round,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         ),
       ],
     );
   }
 
-  Widget _buildMacroCard(String label, String value, IconData icon, Color color) {
+  Widget _buildMacroCard(
+      String label, String value, IconData icon, Color color) {
     // Extract numeric value and clean up
     final numericValue = value
-        .split('(').first
+        .split('(')
+        .first
         .trim()
         .replaceAll('aproximadamente', '±')
         .replaceAll('Aproximadamente', '±');
@@ -586,7 +609,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String value, String label, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -661,7 +685,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         const SizedBox(height: 16),
         Text(
           l10n.cardDisclaimer,
-          style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12),
+          style:
+              const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12),
           textAlign: TextAlign.center,
         ),
       ],
@@ -714,14 +739,17 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
     final numericValue = value
         .replaceAll('aproximadamente', '±')
         .replaceAll('Aproximadamente', '±')
-        .split('(').first.trim();
+        .split('(')
+        .first
+        .trim();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+        border:
+            Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -757,7 +785,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         decoration: BoxDecoration(
           color: AppDesign.surfaceDark,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+          border: Border.all(
+              color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -785,7 +814,9 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
             ),
             const SizedBox(height: 8),
             Text(
-              fullValue.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'),
+              fullValue
+                  .replaceAll('aproximadamente', '±')
+                  .replaceAll('Aproximadamente', '±'),
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: AppDesign.textSecondaryDark,
@@ -834,7 +865,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+        border:
+            Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -895,7 +927,10 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: _isSaved
-                    ? [AppDesign.accent, AppDesign.accent.withValues(alpha: 0.8)]
+                    ? [
+                        AppDesign.accent,
+                        AppDesign.accent.withValues(alpha: 0.8)
+                      ]
                     : [_themeColor, _themeColor.withValues(alpha: 0.8)],
               ),
               borderRadius: BorderRadius.circular(16),
@@ -912,7 +947,9 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
               children: [
                 Icon(
                   _isSaved ? Icons.check_circle : Icons.bookmark_add_outlined,
-                  color: _isSaved ? AppDesign.textPrimaryDark : AppDesign.backgroundDark,
+                  color: _isSaved
+                      ? AppDesign.textPrimaryDark
+                      : AppDesign.backgroundDark,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -921,7 +958,9 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _isSaved ? AppDesign.textPrimaryDark : AppDesign.backgroundDark,
+                    color: _isSaved
+                        ? AppDesign.textPrimaryDark
+                        : AppDesign.backgroundDark,
                   ),
                 ),
               ],
@@ -973,7 +1012,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: _themeColor.withValues(alpha: 0.5)),
+                    border:
+                        Border.all(color: _themeColor.withValues(alpha: 0.5)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -1028,7 +1068,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                   ),
                 ),
                 const SizedBox(height: 6),
-                _buildScoreItem('✅', 'Benefícios', '+0.3 pts', AppDesign.success),
+                _buildScoreItem(
+                    '✅', 'Benefícios', '+0.3 pts', AppDesign.success),
                 _buildScoreItem('⚠️', 'Alertas', '-0.5 pts', AppDesign.warning),
                 const SizedBox(height: 12),
 
@@ -1043,8 +1084,10 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                 ),
                 const SizedBox(height: 6),
                 _buildScaleItem('9-10', 'Excelente', AppDesign.success),
-                _buildScaleItem('7-9', 'Muito Bom', AppDesign.success.withValues(alpha: 0.7)),
-                _buildScaleItem('5-7', 'Bom', AppDesign.warning.withValues(alpha: 0.7)),
+                _buildScaleItem('7-9', 'Muito Bom',
+                    AppDesign.success.withValues(alpha: 0.7)),
+                _buildScaleItem(
+                    '5-7', 'Bom', AppDesign.warning.withValues(alpha: 0.7)),
                 _buildScaleItem('3-5', 'Regular', AppDesign.warning),
                 _buildScaleItem('1-3', 'Atenção', AppDesign.error),
               ],
@@ -1067,7 +1110,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
     );
   }
 
-  Widget _buildScoreItem(String emoji, String label, String value, Color color) {
+  Widget _buildScoreItem(
+      String emoji, String label, String value, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -1121,7 +1165,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
           const SizedBox(width: 8),
           Text(
             '•',
-            style: TextStyle(color: AppDesign.textSecondaryDark.withValues(alpha: 0.3)),
+            style: TextStyle(
+                color: AppDesign.textSecondaryDark.withValues(alpha: 0.3)),
           ),
           const SizedBox(width: 8),
           Text(
@@ -1239,7 +1284,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: AppDesign.warning, size: 24),
+            const Icon(Icons.warning_amber_rounded,
+                color: AppDesign.warning, size: 24),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -1332,7 +1378,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         'icon': Icons.fitness_center,
         'color': AppDesign.info,
         'title': 'Proteínas',
-        'description': 'As proteínas são macronutrientes essenciais formados por aminoácidos, fundamentais para a construção e reparação de tecidos.',
+        'description':
+            'As proteínas são macronutrientes essenciais formados por aminoácidos, fundamentais para a construção e reparação de tecidos.',
         'functions': [
           'Construção e reparação muscular',
           'Produção de enzimas e hormônios',
@@ -1351,7 +1398,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         'icon': Icons.grain,
         'color': AppDesign.warning,
         'title': 'Carboidratos',
-        'description': 'Os carboidratos são a principal fonte de energia do corpo, sendo convertidos em glicose para fornecer combustível às células.',
+        'description':
+            'Os carboidratos são a principal fonte de energia do corpo, sendo convertidos em glicose para fornecer combustível às células.',
         'functions': [
           'Fonte primária de energia',
           'Combustível para o cérebro e sistema nervoso',
@@ -1370,7 +1418,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         'icon': Icons.opacity,
         'color': AppDesign.warning,
         'title': 'Gorduras',
-        'description': 'As gorduras são macronutrientes essenciais que fornecem energia concentrada e são vitais para diversas funções corporais.',
+        'description':
+            'As gorduras são macronutrientes essenciais que fornecem energia concentrada e são vitais para diversas funções corporais.',
         'functions': [
           'Absorção de vitaminas A, D, E e K',
           'Produção de hormônios',
@@ -1397,7 +1446,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
         contentPadding: const EdgeInsets.all(20),
         title: Row(
           children: [
-            Icon(info['icon'] as IconData, color: info['color'] as Color, size: 24),
+            Icon(info['icon'] as IconData,
+                color: info['color'] as Color, size: 24),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -1590,7 +1640,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Row(
                 children: [
-                  Icon(Icons.restaurant_menu_rounded, color: _themeColor, size: 28),
+                  Icon(Icons.restaurant_menu_rounded,
+                      color: _themeColor, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -1622,7 +1673,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                         color: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close, color: AppDesign.textPrimaryDark, size: 20),
+                      child: const Icon(Icons.close,
+                          color: AppDesign.textPrimaryDark, size: 20),
                     ),
                   ),
                 ],
@@ -1640,7 +1692,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                           Icon(
                             Icons.no_meals_rounded,
                             size: 64,
-                            color: AppDesign.textPrimaryDark.withValues(alpha: 0.24),
+                            color: AppDesign.textPrimaryDark
+                                .withValues(alpha: 0.24),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -1654,7 +1707,8 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                           Text(
                             'Tente analisar outro alimento.',
                             style: GoogleFonts.poppins(
-                              color: AppDesign.textSecondaryDark.withValues(alpha: 0.5),
+                              color: AppDesign.textSecondaryDark
+                                  .withValues(alpha: 0.5),
                               fontSize: 14,
                             ),
                           ),
@@ -1671,7 +1725,9 @@ class _ResultCardState extends ConsumerState<ResultCard> with SingleTickerProvid
                           decoration: BoxDecoration(
                             color: AppDesign.surfaceDark,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+                            border: Border.all(
+                                color: AppDesign.textPrimaryDark
+                                    .withValues(alpha: 0.1)),
                           ),
                           child: Theme(
                             data: Theme.of(context).copyWith(

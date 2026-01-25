@@ -9,13 +9,14 @@ import '../../data/datasources/meal_log_service.dart';
 import '../../data/datasources/shopping_list_service.dart';
 import '../../data/datasources/nutrition_data_service.dart';
 import '../../domain/usecases/weekly_plan_generator.dart';
-import '../../domain/usecases/shopping_list_generator.dart';
 import '../../data/models/meal.dart';
 import '../../data/models/plan_day.dart';
 import '../../data/models/menu_creation_params.dart';
 
 /// Provider para o perfil nutricional
-final nutritionProfileProvider = StateNotifierProvider<NutritionProfileNotifier, UserNutritionProfile?>((ref) {
+final nutritionProfileProvider =
+    StateNotifierProvider<NutritionProfileNotifier, UserNutritionProfile?>(
+        (ref) {
   return NutritionProfileNotifier();
 });
 
@@ -55,11 +56,14 @@ class NutritionProfileNotifier extends StateNotifier<UserNutritionProfile?> {
 final weeklyPlanHistoryProvider = FutureProvider<List<WeeklyPlan>>((ref) async {
   final service = WeeklyPlanService();
   await service.init();
-  return service.getAllPlans()..sort((a,b) => b.weekStartDate.compareTo(a.weekStartDate)); // Newest first
+  return service.getAllPlans()
+    ..sort(
+        (a, b) => b.weekStartDate.compareTo(a.weekStartDate)); // Newest first
 });
 
 /// Provider para o plano semanal atual
-final currentWeekPlanProvider = StateNotifierProvider<WeeklyPlanNotifier, WeeklyPlan?>((ref) {
+final currentWeekPlanProvider =
+    StateNotifierProvider<WeeklyPlanNotifier, WeeklyPlan?>((ref) {
   return WeeklyPlanNotifier(ref);
 });
 
@@ -77,32 +81,40 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     state = _service.getCurrentWeekPlan();
   }
 
-  Future<void> generateNewPlan(UserNutritionProfile profile, {
-    MenuCreationParams? params, 
-    DateTime? startDate, 
+  Future<void> generateNewPlan(
+    UserNutritionProfile profile, {
+    MenuCreationParams? params,
+    DateTime? startDate,
     String? languageCode,
     bool replace = false,
   }) async {
     // Check if a plan already exists for this date to determine version
-    final targetStart = startDate ?? params?.startDate ?? _service.getMonday(DateTime.now());
-    final existingPlans = _service.getAllPlans().where((p) => _service.isSameDay(p.weekStartDate, targetStart)).toList();
-    final nextVersion = existingPlans.isEmpty ? 1 : (existingPlans.map((p) => p.version).reduce((a, b) => a > b ? a : b) + 1);
+    final targetStart =
+        startDate ?? params?.startDate ?? _service.getMonday(DateTime.now());
+    final existingPlans = _service
+        .getAllPlans()
+        .where((p) => _service.isSameDay(p.weekStartDate, targetStart))
+        .toList();
+    final nextVersion = existingPlans.isEmpty
+        ? 1
+        : (existingPlans.map((p) => p.version).reduce((a, b) => a > b ? a : b) +
+            1);
 
     final plan = await _generator.generateWeeklyPlan(
-      profile: profile, 
-      params: params, 
-      startDate: startDate ?? params?.startDate,
-      languageCode: languageCode
-    );
-    
+        profile: profile,
+        params: params,
+        startDate: startDate ?? params?.startDate,
+        languageCode: languageCode);
+
     if (plan != null) {
       plan.version = nextVersion;
       plan.objective = params?.objective ?? profile.objetivo ?? 'maintenance';
       plan.periodType = params?.periodType ?? 'weekly';
-      
+
       // Generate and save shopping list JSON
-      plan.shoppingListJson = _shoppingService.generateMainShoppingListJson(plan);
-      
+      plan.shoppingListJson =
+          _shoppingService.generateMainShoppingListJson(plan);
+
       if (replace) {
         // Soft delete all active plans in this slot before saving new one
         for (var p in existingPlans) {
@@ -111,24 +123,25 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
           }
         }
       }
-      
+
       await _service.savePlan(plan);
-      state = plan; 
-      
+      state = plan;
+
       // Sync shopping list automatically
       await ref.read(shoppingListProvider.notifier).generateFromPlan(plan);
     }
   }
 
-  Future<void> regeneratePlan(UserNutritionProfile profile, {String? languageCode}) async {
+  Future<void> regeneratePlan(UserNutritionProfile profile,
+      {String? languageCode}) async {
     if (state == null) return;
-    
+
     final currentPlan = state!;
     final nextVersion = currentPlan.version + 1;
-    
+
     final newSeed = DateTime.now().millisecondsSinceEpoch;
     final plan = await _generator.generateWeeklyPlan(
-      profile: profile, 
+      profile: profile,
       seed: newSeed,
       startDate: currentPlan.weekStartDate,
       languageCode: languageCode,
@@ -137,15 +150,16 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
         objective: currentPlan.objective ?? 'maintenance',
       ),
     );
-    
+
     if (plan != null) {
       plan.version = nextVersion;
       plan.objective = currentPlan.objective;
       plan.periodType = currentPlan.periodType;
-      
+
       // Generate and save shopping list JSON
-      plan.shoppingListJson = _shoppingService.generateMainShoppingListJson(plan);
-      
+      plan.shoppingListJson =
+          _shoppingService.generateMainShoppingListJson(plan);
+
       await _service.savePlan(plan);
       state = plan;
     }
@@ -162,10 +176,11 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
         meals[mealIndex] = newMeal;
         plan.days[dayIndex].meals = meals;
         plan.atualizadoEm = DateTime.now();
-        
+
         // Regenerate shopping list since ingredients changed
-        plan.shoppingListJson = _shoppingService.generateMainShoppingListJson(plan);
-        
+        plan.shoppingListJson =
+            _shoppingService.generateMainShoppingListJson(plan);
+
         await _service.savePlan(plan);
         state = WeeklyPlan.fromJson(plan.toJson()); // Rebuild UI
       }
@@ -176,7 +191,8 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     state = plan;
   }
 
-  Future<void> swapMeal(PlanDay day, Meal oldMeal, UserNutritionProfile profile) async {
+  Future<void> swapMeal(
+      PlanDay day, Meal oldMeal, UserNutritionProfile profile) async {
     final newMeal = await _generator.swapMeal(
       tipo: oldMeal.tipo,
       profile: profile,
@@ -204,7 +220,8 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
 }
 
 /// Provider para logs de refeições
-final mealLogsProvider = StateNotifierProvider<MealLogsNotifier, List<MealLog>>((ref) {
+final mealLogsProvider =
+    StateNotifierProvider<MealLogsNotifier, List<MealLog>>((ref) {
   return MealLogsNotifier();
 });
 
@@ -239,13 +256,13 @@ class MealLogsNotifier extends StateNotifier<List<MealLog>> {
 }
 
 /// Provider para lista de compras
-final shoppingListProvider = StateNotifierProvider<ShoppingListNotifier, List<ShoppingListItem>>((ref) {
+final shoppingListProvider =
+    StateNotifierProvider<ShoppingListNotifier, List<ShoppingListItem>>((ref) {
   return ShoppingListNotifier();
 });
 
 class ShoppingListNotifier extends StateNotifier<List<ShoppingListItem>> {
   final ShoppingListService _service = ShoppingListService();
-
 
   ShoppingListNotifier() : super([]) {
     _loadList();
@@ -257,33 +274,33 @@ class ShoppingListNotifier extends StateNotifier<List<ShoppingListItem>> {
 
   Future<void> generateFromPlan(WeeklyPlan plan) async {
     await _service.clearAll();
-    
+
     // Use the new professional generation (returns one list per week)
     final weeklyLists = _service.generateWeeklyListsFromPlan(plan);
     if (weeklyLists.isEmpty) return;
-    
+
     // For the UI (Interactive List), we populate the first week
     final List<ShoppingListItem> hiveItems = [];
     final now = DateTime.now();
-    
+
     for (var cat in weeklyLists.first.categories) {
       for (var item in cat.items) {
-          hiveItems.add(ShoppingListItem(
-            nome: item.name,
-            quantidadeTexto: item.quantityDisplay,
-            criadoEm: now,
-            marcado: false,
-          ));
+        hiveItems.add(ShoppingListItem(
+          nome: item.name,
+          quantidadeTexto: item.quantityDisplay,
+          criadoEm: now,
+          marcado: false,
+        ));
       }
     }
-    
+
     await _service.addItems(hiveItems);
     _loadList();
   }
 
   Future<void> addItem(String nome, String quantidade) async {
     final item = ShoppingListItem(
-      nome: nome, 
+      nome: nome,
       quantidadeTexto: quantidade,
       criadoEm: DateTime.now(),
     );

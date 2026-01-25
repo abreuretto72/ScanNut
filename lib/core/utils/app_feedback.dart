@@ -5,7 +5,7 @@ import '../../core/theme/app_design.dart';
 enum FeedbackType { success, error, warning, info }
 
 /// Classe centralizada para exibição padronizada de feedback ao usuário.
-/// 
+///
 /// Uso:
 /// AppFeedback.showSuccess(context, 'Operação realizada com sucesso!');
 /// AppFeedback.showError(context, 'Falha ao conectar.');
@@ -28,9 +28,10 @@ class AppFeedback {
     _showSnackBar(context, message, FeedbackType.info);
   }
 
-  static void _showSnackBar(BuildContext context, String message, FeedbackType type) {
+  static void _showSnackBar(
+      BuildContext context, String message, FeedbackType type) {
     final messenger = ScaffoldMessenger.of(context);
-    
+
     // Remove snackbars anteriores para evitar fila longa
     messenger.hideCurrentSnackBar();
 

@@ -74,7 +74,8 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
         children: [
           _buildRow('Package Name:', 'com.multiversodigital.scannut'),
           _buildRow('Build Type:', kDebugMode ? 'DEBUG' : 'RELEASE'),
-          _buildRow('Device:', defaultTargetPlatform.toString().split('.').last),
+          _buildRow(
+              'Device:', defaultTargetPlatform.toString().split('.').last),
         ],
       ),
     );
@@ -86,39 +87,61 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
-          Text(value, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(label,
+              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+          Text(value,
+              style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
   Widget _buildAuditSection() {
-    if (_isAuditing) return const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)));
-    
+    if (_isAuditing) {
+      return const Center(
+          child: CircularProgressIndicator(color: Color(0xFF00E676)));
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Relatório de Auditoria', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+        Text('Relatório de Auditoria',
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         if (_auditResults != null)
           ...(_auditResults!['checks'] as List).map((check) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: check['ok'] ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: check['ok'] ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                Icon(check['ok'] ? Icons.check_circle : Icons.error, color: check['ok'] ? Colors.green : Colors.red, size: 16),
-                const SizedBox(width: 12),
-                Expanded(child: Text(check['name'], style: GoogleFonts.poppins(color: Colors.white, fontSize: 13))),
-                Text(check['value'], style: GoogleFonts.poppins(color: Colors.white70, fontSize: 11)),
-              ],
-            ),
-          )),
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: check['ok']
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: check['ok']
+                          ? Colors.green.withValues(alpha: 0.3)
+                          : Colors.red.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(check['ok'] ? Icons.check_circle : Icons.error,
+                        color: check['ok'] ? Colors.green : Colors.red,
+                        size: 16),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: Text(check['name'],
+                            style: GoogleFonts.poppins(
+                                color: Colors.white, fontSize: 13))),
+                    Text(check['value'],
+                        style: GoogleFonts.poppins(
+                            color: Colors.white70, fontSize: 11)),
+                  ],
+                ),
+              )),
       ],
     );
   }
@@ -138,7 +161,9 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
             children: [
               const Icon(Icons.info, color: Colors.amber, size: 20),
               const SizedBox(width: 8),
-              Text('Instruções SHA-1', style: GoogleFonts.poppins(color: Colors.amber, fontWeight: FontWeight.bold)),
+              Text('Instruções SHA-1',
+                  style: GoogleFonts.poppins(
+                      color: Colors.amber, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 12),
@@ -149,18 +174,21 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+                color: Colors.black, borderRadius: BorderRadius.circular(8)),
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     'cd android && ./gradlew signingReport',
-                    style: GoogleFonts.robotoMono(color: Colors.greenAccent, fontSize: 11),
+                    style: GoogleFonts.robotoMono(
+                        color: Colors.greenAccent, fontSize: 11),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.copy, color: Colors.white54, size: 18),
-                  onPressed: () => _copyCommand('cd android && ./gradlew signingReport'),
+                  onPressed: () =>
+                      _copyCommand('cd android && ./gradlew signingReport'),
                 ),
               ],
             ),
@@ -168,7 +196,10 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
           const SizedBox(height: 12),
           Text(
             '⚠️ Registre os certificados SHA-1 e SHA-256 no Firebase e no Google Cloud Console para evitar erros "10" e "12500".',
-            style: GoogleFonts.poppins(color: Colors.amberAccent, fontSize: 11, fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(
+                color: Colors.amberAccent,
+                fontSize: 11,
+                fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -185,17 +216,25 @@ class _AuthCertificatesScreenState extends State<AuthCertificatesScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Último Trace de Auth', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-            TextButton(onPressed: () => setState(() => authTrace.clearTrace()), child: const Text('Limpar')),
+            Text('Último Trace de Auth',
+                style: GoogleFonts.poppins(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+            TextButton(
+                onPressed: () => setState(() => authTrace.clearTrace()),
+                child: const Text('Limpar')),
           ],
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.grey.shade900, borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(
+              color: Colors.grey.shade900,
+              borderRadius: BorderRadius.circular(12)),
           height: 250,
           child: SingleChildScrollView(
-            child: Text(trace, style: GoogleFonts.robotoMono(color: Colors.white70, fontSize: 10)),
+            child: Text(trace,
+                style: GoogleFonts.robotoMono(
+                    color: Colors.white70, fontSize: 10)),
           ),
         ),
       ],

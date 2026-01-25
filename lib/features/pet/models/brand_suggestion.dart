@@ -18,20 +18,20 @@ class BrandSuggestion {
   factory BrandSuggestion.fromJson(Map<String, dynamic> json) {
     return BrandSuggestion(
       brand: json['marca']?.toString() ?? json['brand']?.toString() ?? '',
-      reason: json['por_que_escolhemos']?.toString() ?? 
-              json['reason']?.toString() ?? 
-              json['justificativa']?.toString() ?? 
-              'Marca selecionada por critérios de qualidade Super Premium para o perfil do pet.', // 🛡️ Fallback
+      reason: json['por_que_escolhemos']?.toString() ??
+          json['reason']?.toString() ??
+          json['justificativa']?.toString() ??
+          'Marca selecionada por critérios de qualidade Super Premium para o perfil do pet.', // 🛡️ Fallback
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'marca': brand,
-    'por_que_escolhemos': reason,
-  };
+        'marca': brand,
+        'por_que_escolhemos': reason,
+      };
 
   // 🛡️ Helper para garantir que sempre há uma razão válida
-  String get safeReason => reason.isEmpty 
-    ? 'Marca selecionada por critérios de qualidade Super Premium para o perfil do pet.'
-    : reason;
+  String get safeReason => reason.isEmpty
+      ? 'Marca selecionada por critérios de qualidade Super Premium para o perfil do pet.'
+      : reason;
 }

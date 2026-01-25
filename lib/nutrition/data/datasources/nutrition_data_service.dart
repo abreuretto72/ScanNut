@@ -122,7 +122,7 @@ class RecipeItem {
   /// Verifica se a receita atende às restrições
   bool atendeRestricoes(List<String> restricoesUsuario) {
     if (restricoesUsuario.isEmpty) return true;
-    
+
     // Se o usuário tem restrições, a receita deve ter TODAS as restrições do usuário
     for (final restricao in restricoesUsuario) {
       if (!restricoes.contains(restricao)) {
@@ -135,7 +135,8 @@ class RecipeItem {
 
 /// Serviço para carregar dados offline (JSON)
 class NutritionDataService {
-  static final NutritionDataService _instance = NutritionDataService._internal();
+  static final NutritionDataService _instance =
+      NutritionDataService._internal();
   factory NutritionDataService() => _instance;
   NutritionDataService._internal();
 
@@ -153,25 +154,27 @@ class NutritionDataService {
   Future<bool> loadData() async {
     try {
       debugPrint('📦 Loading nutrition data from assets...');
-      
+
       // Carregar alimentos
-      final foodsJson = await rootBundle.loadString('assets/data/foods_ptbr.json');
+      final foodsJson =
+          await rootBundle.loadString('assets/data/foods_ptbr.json');
       final foodsData = json.decode(foodsJson);
       _foods = (foodsData['alimentos'] as List)
           .map((item) => FoodItem.fromJson(item))
           .toList();
-      
+
       debugPrint('✅ Loaded ${_foods.length} foods');
-      
+
       // Carregar receitas
-      final recipesJson = await rootBundle.loadString('assets/data/recipes_ptbr.json');
+      final recipesJson =
+          await rootBundle.loadString('assets/data/recipes_ptbr.json');
       final recipesData = json.decode(recipesJson);
       _recipes = (recipesData['receitas'] as List)
           .map((item) => RecipeItem.fromJson(item))
           .toList();
-      
+
       debugPrint('✅ Loaded ${_recipes.length} recipes');
-      
+
       _isLoaded = true;
       _lastError = null;
       return true;
@@ -186,18 +189,18 @@ class NutritionDataService {
   /// Busca alimentos por nome
   List<FoodItem> searchFoods(String query) {
     if (query.isEmpty) return _foods;
-    
+
     final lowerQuery = query.toLowerCase();
     return _foods.where((food) {
       return food.nome.toLowerCase().contains(lowerQuery) ||
-             food.categoria.toLowerCase().contains(lowerQuery);
+          food.categoria.toLowerCase().contains(lowerQuery);
     }).toList();
   }
 
   /// Busca receitas por nome
   List<RecipeItem> searchRecipes(String query) {
     if (query.isEmpty) return _recipes;
-    
+
     final lowerQuery = query.toLowerCase();
     return _recipes.where((recipe) {
       return recipe.nome.toLowerCase().contains(lowerQuery);
@@ -207,7 +210,7 @@ class NutritionDataService {
   /// Retorna receitas que atendem às restrições
   List<RecipeItem> getRecipesByRestrictions(List<String> restricoes) {
     if (restricoes.isEmpty) return _recipes;
-    
+
     return _recipes.where((recipe) {
       return recipe.atendeRestricoes(restricoes);
     }).toList();
@@ -235,7 +238,7 @@ class NutritionDataService {
     List<RecipeItem> available = restricoes != null && restricoes.isNotEmpty
         ? getRecipesByRestrictions(restricoes)
         : _recipes;
-    
+
     if (available.isEmpty) return null;
     available.shuffle();
     return available.first;

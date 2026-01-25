@@ -31,7 +31,7 @@ class PetWeightDatabase {
     'Poodle Toy': {'ideal': 3.0, 'porte': 'Pequeno'},
     'Spitz Alemão': {'ideal': 4.5, 'porte': 'Pequeno'},
     'Dachshund': {'ideal': 9.0, 'porte': 'Pequeno'},
-    
+
     // Médio Porte
     'Beagle': {'ideal': 12.0, 'porte': 'Médio'},
     'Cocker Spaniel': {'ideal': 14.0, 'porte': 'Médio'},
@@ -43,7 +43,7 @@ class PetWeightDatabase {
     'Basset Hound': {'ideal': 25.0, 'porte': 'Médio'},
     'Shar Pei': {'ideal': 22.0, 'porte': 'Médio'},
     'Corgi': {'ideal': 12.0, 'porte': 'Médio'},
-    
+
     // Grande Porte
     'Labrador': {'ideal': 32.0, 'porte': 'Grande'},
     'Golden Retriever': {'ideal': 32.0, 'porte': 'Grande'},
@@ -55,7 +55,7 @@ class PetWeightDatabase {
     'Doberman': {'ideal': 38.0, 'porte': 'Grande'},
     'Weimaraner': {'ideal': 32.0, 'porte': 'Grande'},
     'Akita': {'ideal': 40.0, 'porte': 'Grande'},
-    
+
     // Gigante
     'São Bernardo': {'ideal': 70.0, 'porte': 'Gigante'},
     'Dogue Alemão': {'ideal': 65.0, 'porte': 'Gigante'},
@@ -64,7 +64,7 @@ class PetWeightDatabase {
     'Terra Nova': {'ideal': 60.0, 'porte': 'Gigante'},
     'Bernese': {'ideal': 45.0, 'porte': 'Gigante'},
     'Leonberger': {'ideal': 65.0, 'porte': 'Gigante'},
-    
+
     // Gatos (peso em kg)
     'Persa': {'ideal': 4.5, 'porte': 'Pequeno', 'species': 'cat'},
     'Siamês': {'ideal': 4.0, 'porte': 'Pequeno', 'species': 'cat'},
@@ -84,22 +84,22 @@ class PetWeightDatabase {
       if (breedWeights.containsKey(raca)) {
         return breedWeights[raca]!['ideal'] as double;
       }
-      
+
       // Busca fuzzy (case insensitive, partial match)
       final racaLower = raca.toLowerCase();
       for (var entry in breedWeights.entries) {
-        if (entry.key.toLowerCase().contains(racaLower) || 
+        if (entry.key.toLowerCase().contains(racaLower) ||
             racaLower.contains(entry.key.toLowerCase())) {
           return entry.value['ideal'] as double;
         }
       }
     }
-    
+
     // Prioridade 2: Buscar por porte
     if (porte != null && porte.isNotEmpty && porteWeights.containsKey(porte)) {
       return porteWeights[porte]!['ideal'];
     }
-    
+
     // Fallback: Médio porte
     return porteWeights['Médio']!['ideal'];
   }
@@ -107,15 +107,15 @@ class PetWeightDatabase {
   /// Detecta o porte baseado na raça
   static String? getPorteFromRaca(String? raca) {
     if (raca == null || raca.isEmpty) return null;
-    
+
     final racaLower = raca.toLowerCase();
     for (var entry in breedWeights.entries) {
-      if (entry.key.toLowerCase().contains(racaLower) || 
+      if (entry.key.toLowerCase().contains(racaLower) ||
           racaLower.contains(entry.key.toLowerCase())) {
         return entry.value['porte'] as String?;
       }
     }
-    
+
     return null;
   }
 
@@ -127,11 +127,12 @@ class PetWeightDatabase {
   }) {
     final ratio = currentWeight / idealWeight;
     const suffix = 'kg'; // Fallback ou passar via settings
-    
+
     if (ratio < 0.90) {
       return WeightStatus(
         status: WeightStatusType.underweight,
-        message: '${strings.weightStatusUnderweight}: ${idealWeight.toStringAsFixed(1)} $suffix.',
+        message:
+            '${strings.weightStatusUnderweight}: ${idealWeight.toStringAsFixed(1)} $suffix.',
         color: Colors.blue,
         icon: Icons.trending_down,
         percentage: (ratio * 100).toInt(),
@@ -139,7 +140,8 @@ class PetWeightDatabase {
     } else if (ratio > 1.10) {
       return WeightStatus(
         status: WeightStatusType.overweight,
-        message: '${strings.weightStatusOverweight}: ${idealWeight.toStringAsFixed(1)} $suffix.',
+        message:
+            '${strings.weightStatusOverweight}: ${idealWeight.toStringAsFixed(1)} $suffix.',
         color: Colors.orange,
         icon: Icons.trending_up,
         percentage: (ratio * 100).toInt(),
@@ -157,7 +159,7 @@ class PetWeightDatabase {
 
   /// Lista de raças disponíveis para autocomplete
   static List<String> get allBreeds => breedWeights.keys.toList()..sort();
-  
+
   /// Lista de portes disponíveis
   static List<String> get allPortes => porteWeights.keys.toList();
 }

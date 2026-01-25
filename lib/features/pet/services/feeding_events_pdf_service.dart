@@ -1,6 +1,6 @@
 /// Feeding Events PDF Generator
 /// Generates professional clinical PDF reports for feeding events
-/// 
+///
 /// This service creates veterinary-grade PDF reports with:
 /// - Chronological event timeline
 /// - Clinical intercurrence highlighting
@@ -17,7 +17,6 @@ import '../models/feeding_event_constants.dart';
 import 'feeding_event_alert_system.dart';
 
 class FeedingEventsPdfService {
-  
   /// Generate comprehensive feeding events PDF report
   static Future<File> generateFeedingReport({
     required String petName,
@@ -28,13 +27,13 @@ class FeedingEventsPdfService {
     required String outputPath,
   }) async {
     final pdf = pw.Document();
-    
+
     // Filter and sort events
     final events = feedingEvents.where((e) {
       return e.group == 'food' &&
-             e.timestamp.isAfter(startDate.subtract(const Duration(days: 1))) &&
-             e.timestamp.isBefore(endDate.add(const Duration(days: 1))) &&
-             !e.isDeleted;
+          e.timestamp.isAfter(startDate.subtract(const Duration(days: 1))) &&
+          e.timestamp.isBefore(endDate.add(const Duration(days: 1))) &&
+          !e.isDeleted;
     }).toList()
       ..sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Most recent first
 
@@ -45,11 +44,11 @@ class FeedingEventsPdfService {
     // Build PDF pages
     pdf.addPage(_buildCoverPage(petName, petBreed, startDate, endDate));
     pdf.addPage(_buildAlertSummaryPage(alerts, alertSummary));
-    
+
     for (final p in _buildEventTimelinePages(events)) {
       pdf.addPage(p);
     }
-    
+
     pdf.addPage(_buildStatisticsPage(events));
     pdf.addPage(_buildRecommendationsPage(events, alerts));
 
@@ -174,19 +173,22 @@ class FeedingEventsPdfService {
           children: [
             _buildSectionHeader('⚠️ RESUMO DE ALERTAS CLÍNICOS'),
             pw.SizedBox(height: 20),
-            
+
             // Alert summary boxes
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
               children: [
-                _buildAlertBox('EMERGÊNCIA', summary[AlertSeverity.emergency] ?? 0, PdfColors.red),
-                _buildAlertBox('URGENTE', summary[AlertSeverity.urgent] ?? 0, PdfColors.orange),
-                _buildAlertBox('ATENÇÃO', summary[AlertSeverity.warning] ?? 0, PdfColors.yellow800),
+                _buildAlertBox('EMERGÊNCIA',
+                    summary[AlertSeverity.emergency] ?? 0, PdfColors.red),
+                _buildAlertBox('URGENTE', summary[AlertSeverity.urgent] ?? 0,
+                    PdfColors.orange),
+                _buildAlertBox('ATENÇÃO', summary[AlertSeverity.warning] ?? 0,
+                    PdfColors.yellow800),
               ],
             ),
-            
+
             pw.SizedBox(height: 30),
-            
+
             // Detailed alerts
             if (alerts.isEmpty)
               pw.Container(
@@ -198,7 +200,8 @@ class FeedingEventsPdfService {
                 ),
                 child: pw.Row(
                   children: [
-                    pw.Icon(const pw.IconData(0xe86c), color: PdfColors.green, size: 24),
+                    pw.Icon(const pw.IconData(0xe86c),
+                        color: PdfColors.green, size: 24),
                     pw.SizedBox(width: 12),
                     pw.Text(
                       'Nenhum alerta detectado. Padrão alimentar normal.',
@@ -256,7 +259,7 @@ class FeedingEventsPdfService {
   /// Build alert card
   static pw.Widget _buildAlertCard(FeedingAlert alert) {
     final color = _getPdfColorForSeverity(alert.severity);
-    
+
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 12),
       padding: const pw.EdgeInsets.all(12),
@@ -302,10 +305,10 @@ class FeedingEventsPdfService {
   static List<pw.Page> _buildEventTimelinePages(List<PetEventModel> events) {
     final pages = <pw.Page>[];
     const eventsPerPage = 8;
-    
+
     for (var i = 0; i < events.length; i += eventsPerPage) {
       final pageEvents = events.skip(i).take(eventsPerPage).toList();
-      
+
       pages.add(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
@@ -313,7 +316,8 @@ class FeedingEventsPdfService {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('📅 LINHA DO TEMPO - EVENTOS DE ALIMENTAÇÃO'),
+                _buildSectionHeader(
+                    '📅 LINHA DO TEMPO - EVENTOS DE ALIMENTAÇÃO'),
                 pw.SizedBox(height: 20),
                 ...pageEvents.map((event) => _buildEventCard(event)),
               ],
@@ -322,7 +326,7 @@ class FeedingEventsPdfService {
         ),
       );
     }
-    
+
     return pages;
   }
 
@@ -330,14 +334,17 @@ class FeedingEventsPdfService {
   static pw.Widget _buildEventCard(PetEventModel event) {
     final eventType = event.data['feeding_event_type'] as String?;
     final severity = event.data['severity'] as String?;
-    final isClinical = event.data['is_clinical_intercurrence'] as bool? ?? false;
+    final isClinical =
+        event.data['is_clinical_intercurrence'] as bool? ?? false;
     final acceptance = event.data['acceptance'] as String?;
     final quantity = event.data['quantity'] as String?;
-    
-    final borderColor = isClinical 
-        ? (severity != null ? FeedingEventHelper.getColorForSeverity(severity) : PdfColors.orange)
+
+    final borderColor = isClinical
+        ? (severity != null
+            ? FeedingEventHelper.getColorForSeverity(severity)
+            : PdfColors.orange)
         : PdfColors.grey400;
-    
+
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 12),
       padding: const pw.EdgeInsets.all(12),
@@ -367,15 +374,16 @@ class FeedingEventsPdfService {
               ),
               pw.Text(
                 DateFormat('dd/MM/yyyy HH:mm').format(event.timestamp),
-                style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+                style:
+                    const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
               ),
             ],
           ),
-          
           if (isClinical) ...[
             pw.SizedBox(height: 6),
             pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding:
+                  const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: pw.BoxDecoration(
                 color: PdfColors.red,
                 borderRadius: pw.BorderRadius.circular(4),
@@ -389,7 +397,6 @@ class FeedingEventsPdfService {
               ),
             ),
           ],
-          
           if (severity != null) ...[
             pw.SizedBox(height: 6),
             pw.Text(
@@ -397,25 +404,26 @@ class FeedingEventsPdfService {
               style: pw.TextStyle(
                 fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
-                color: _convertFlutterColorToPdf(FeedingEventHelper.getColorForSeverity(severity)),
+                color: _convertFlutterColorToPdf(
+                    FeedingEventHelper.getColorForSeverity(severity)),
               ),
             ),
           ],
-          
           if (quantity != null || acceptance != null) ...[
             pw.SizedBox(height: 6),
             pw.Row(
               children: [
                 if (quantity != null)
-                  pw.Text('Quantidade: $quantity', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text('Quantidade: $quantity',
+                      style: const pw.TextStyle(fontSize: 10)),
                 if (quantity != null && acceptance != null)
                   pw.SizedBox(width: 12),
                 if (acceptance != null)
-                  pw.Text('Aceitação: $acceptance', style: const pw.TextStyle(fontSize: 10)),
+                  pw.Text('Aceitação: $acceptance',
+                      style: const pw.TextStyle(fontSize: 10)),
               ],
             ),
           ],
-          
           if (event.notes.isNotEmpty) ...[
             pw.SizedBox(height: 6),
             pw.Container(
@@ -426,7 +434,8 @@ class FeedingEventsPdfService {
               ),
               child: pw.Text(
                 event.notes,
-                style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
+                style:
+                    const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
               ),
             ),
           ],
@@ -439,19 +448,20 @@ class FeedingEventsPdfService {
   static pw.Page _buildStatisticsPage(List<PetEventModel> events) {
     // Calculate statistics
     final totalEvents = events.length;
-    final clinicalEvents = events.where((e) => e.data['is_clinical_intercurrence'] == true).length;
+    final clinicalEvents =
+        events.where((e) => e.data['is_clinical_intercurrence'] == true).length;
     final normalEvents = totalEvents - clinicalEvents;
-    
+
     // Group by event type
     final eventTypeCounts = <String, int>{};
     for (final event in events) {
       final type = event.data['feeding_event_type'] as String? ?? 'unknown';
       eventTypeCounts[type] = (eventTypeCounts[type] ?? 0) + 1;
     }
-    
+
     final topEvents = eventTypeCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
+
     return pw.Page(
       pageFormat: PdfPageFormat.a4,
       build: (context) {
@@ -460,26 +470,29 @@ class FeedingEventsPdfService {
           children: [
             _buildSectionHeader('📊 ESTATÍSTICAS DO PERÍODO'),
             pw.SizedBox(height: 20),
-            
+
             // Summary boxes
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatBox('Total de Eventos', '$totalEvents', PdfColors.blue),
-                _buildStatBox('Eventos Normais', '$normalEvents', PdfColors.green),
-                _buildStatBox('Intercorrências', '$clinicalEvents', PdfColors.red),
+                _buildStatBox(
+                    'Total de Eventos', '$totalEvents', PdfColors.blue),
+                _buildStatBox(
+                    'Eventos Normais', '$normalEvents', PdfColors.green),
+                _buildStatBox(
+                    'Intercorrências', '$clinicalEvents', PdfColors.red),
               ],
             ),
-            
+
             pw.SizedBox(height: 30),
-            
+
             // Top events table
             pw.Text(
               'Eventos Mais Frequentes',
               style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 12),
-            
+
             pw.Table(
               border: pw.TableBorder.all(color: PdfColors.grey300),
               children: [
@@ -492,7 +505,8 @@ class FeedingEventsPdfService {
                   ],
                 ),
                 ...topEvents.take(10).map((entry) {
-                  final percentage = ((entry.value / totalEvents) * 100).toStringAsFixed(1);
+                  final percentage =
+                      ((entry.value / totalEvents) * 100).toStringAsFixed(1);
                   return pw.TableRow(
                     children: [
                       _buildTableCell(entry.key),
@@ -553,35 +567,29 @@ class FeedingEventsPdfService {
           children: [
             _buildSectionHeader('💡 RECOMENDAÇÕES CLÍNICAS'),
             pw.SizedBox(height: 20),
-            
             if (alerts.any((a) => a.severity == AlertSeverity.emergency))
               _buildRecommendationBox(
                 '🚨 AÇÃO IMEDIATA NECESSÁRIA',
                 'Foram detectadas intercorrências clínicas GRAVES que requerem atendimento veterinário IMEDIATO.',
                 PdfColors.red,
               ),
-            
             if (alerts.any((a) => a.severity == AlertSeverity.urgent))
               _buildRecommendationBox(
                 '⚠️ CONSULTA URGENTE',
                 'Agendar consulta veterinária nas próximas 24-48h para avaliação dos eventos registrados.',
                 PdfColors.orange,
               ),
-            
             _buildRecommendationBox(
               '📋 MONITORAMENTO CONTÍNUO',
               'Continuar registrando todos os eventos de alimentação, especialmente:\n• Recusas alimentares\n• Vômitos ou diarreias\n• Mudanças no apetite\n• Reações adversas a alimentos',
               PdfColors.blue,
             ),
-            
             _buildRecommendationBox(
               '🏥 ACOMPANHAMENTO VETERINÁRIO',
               'Levar este relatório nas consultas veterinárias para auxiliar no diagnóstico e tratamento.',
               PdfColors.green,
             ),
-            
             pw.SizedBox(height: 30),
-            
             pw.Container(
               padding: const pw.EdgeInsets.all(12),
               decoration: pw.BoxDecoration(
@@ -590,7 +598,8 @@ class FeedingEventsPdfService {
               ),
               child: pw.Text(
                 '⚠️ AVISO IMPORTANTE: Este relatório é gerado automaticamente com base nos eventos registrados e NÃO substitui a avaliação de um médico veterinário. Sempre consulte um profissional qualificado para diagnóstico e tratamento.',
-                style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
+                style:
+                    const pw.TextStyle(fontSize: 9, color: PdfColors.grey800),
                 textAlign: pw.TextAlign.justify,
               ),
             ),
@@ -601,7 +610,8 @@ class FeedingEventsPdfService {
   }
 
   /// Build recommendation box
-  static pw.Widget _buildRecommendationBox(String title, String content, PdfColor color) {
+  static pw.Widget _buildRecommendationBox(
+      String title, String content, PdfColor color) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 16),
       padding: const pw.EdgeInsets.all(12),

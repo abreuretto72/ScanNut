@@ -26,7 +26,9 @@ class _EditMealDialogState extends State<EditMealDialog> {
     _nameController = TextEditingController(text: widget.meal.nomePrato);
     _obsController = TextEditingController(text: widget.meal.observacoes);
     // Create a mutable copy of items
-    _items = widget.meal.itens.map((i) => MealItem(nome: i.nome, quantidadeTexto: i.quantidadeTexto)).toList();
+    _items = widget.meal.itens
+        .map((i) => MealItem(nome: i.nome, quantidadeTexto: i.quantidadeTexto))
+        .toList();
   }
 
   @override
@@ -99,27 +101,31 @@ class _EditMealDialogState extends State<EditMealDialog> {
                     decoration: InputDecoration(
                       labelText: l10n.mealDefault,
                       labelStyle: const TextStyle(color: Colors.white54),
-                      enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                      focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.accent)),
+                      enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white24)),
+                      focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: AppDesign.accent)),
                     ),
                     style: const TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Observações
                   TextField(
                     controller: _obsController,
                     decoration: const InputDecoration(
                       labelText: 'Kcal / Info',
                       labelStyle: TextStyle(color: Colors.white54),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.accent)),
+                      enabledBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white24)),
+                      focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: AppDesign.accent)),
                     ),
                     style: const TextStyle(color: Colors.white),
                   ),
 
                   const SizedBox(height: 24),
-                  
+
                   // Ingredientes Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -134,9 +140,14 @@ class _EditMealDialogState extends State<EditMealDialog> {
                       ),
                       TextButton.icon(
                         onPressed: _addItem,
-                        icon: const Icon(Icons.add, size: 16, color: AppDesign.accent),
-                        label: Text('Adicionar', style: GoogleFonts.poppins(color: AppDesign.accent, fontSize: 12)),
-                        style: TextButton.styleFrom(padding: EdgeInsets.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                        icon: const Icon(Icons.add,
+                            size: 16, color: AppDesign.accent),
+                        label: Text('Adicionar',
+                            style: GoogleFonts.poppins(
+                                color: AppDesign.accent, fontSize: 12)),
+                        style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap),
                       ),
                     ],
                   ),
@@ -146,7 +157,10 @@ class _EditMealDialogState extends State<EditMealDialog> {
                   if (_items.isEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('Nenhum ingrediente', style: GoogleFonts.poppins(color: Colors.white30, fontStyle: FontStyle.italic)),
+                      child: Text('Nenhum ingrediente',
+                          style: GoogleFonts.poppins(
+                              color: Colors.white30,
+                              fontStyle: FontStyle.italic)),
                     )
                   else
                     ..._items.asMap().entries.map((entry) {
@@ -164,12 +178,17 @@ class _EditMealDialogState extends State<EditMealDialog> {
                                 onChanged: (val) => item.nome = val,
                                 decoration: const InputDecoration(
                                   hintText: 'Ingrediente',
-                                  hintStyle: TextStyle(color: Colors.white30, fontSize: 12),
+                                  hintStyle: TextStyle(
+                                      color: Colors.white30, fontSize: 12),
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
-                                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white12)),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
+                                  enabledBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.white12)),
                                 ),
-                                style: const TextStyle(color: Colors.white, fontSize: 13),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 13),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -180,16 +199,22 @@ class _EditMealDialogState extends State<EditMealDialog> {
                                 onChanged: (val) => item.quantidadeTexto = val,
                                 decoration: const InputDecoration(
                                   hintText: 'Qtd.',
-                                  hintStyle: TextStyle(color: Colors.white30, fontSize: 12),
+                                  hintStyle: TextStyle(
+                                      color: Colors.white30, fontSize: 12),
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8),
-                                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white12)),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 8),
+                                  enabledBorder: UnderlineInputBorder(
+                                      borderSide:
+                                          BorderSide(color: Colors.white12)),
                                 ),
-                                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 13),
                               ),
                             ),
-                             IconButton(
-                              icon: const Icon(Icons.close, color: AppDesign.error, size: 16),
+                            IconButton(
+                              icon: const Icon(Icons.close,
+                                  color: AppDesign.error, size: 16),
                               onPressed: () => _removeItem(index),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -199,7 +224,6 @@ class _EditMealDialogState extends State<EditMealDialog> {
                         ),
                       );
                     }),
-
                 ],
               ),
             ),
@@ -211,16 +235,20 @@ class _EditMealDialogState extends State<EditMealDialog> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(l10n.commonCancel, style: const TextStyle(color: Colors.white54)),
+                  child: Text(l10n.commonCancel,
+                      style: const TextStyle(color: Colors.white54)),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: _save,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppDesign.accent,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: Text(l10n.saveChanges, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                  child: Text(l10n.saveChanges,
+                      style: const TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

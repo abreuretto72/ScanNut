@@ -48,7 +48,7 @@ class DataManagementService {
 
       // 3. Delete Physical Files (Medical Docs, captured images)
       final appDir = await getApplicationDocumentsDirectory();
-      
+
       // Delete medical_docs
       final medicalDocsDir = Directory('${appDir.path}/medical_docs');
       if (await medicalDocsDir.exists()) {

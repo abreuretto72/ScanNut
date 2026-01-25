@@ -8,16 +8,20 @@ class PromptFactory {
   static String getMasterSystemPrompt({String locale = 'pt'}) {
     final normalizedLocale = locale.replaceAll('-', '_');
     String title = "VOCÊ É O ARQUITETO DE DADOS E MOTOR DE IA DO ScanNut.";
-    String mission = "**MISSÃO CRÍTICA:** Processar imagens de pets e categorizá-las nos CONJUNTOS DE DADOS corretos, garantindo SEMPRE o vínculo pelo nome_do_pet.";
-    String langInstr = "Responda SEMPRE em Português do Brasil (PT-BR) para os valores.";
+    String mission =
+        "**MISSÃO CRÍTICA:** Processar imagens de pets e categorizá-las nos CONJUNTOS DE DADOS corretos, garantindo SEMPRE o vínculo pelo nome_do_pet.";
+    String langInstr =
+        "Responda SEMPRE em Português do Brasil (PT-BR) para os valores.";
 
     if (normalizedLocale.startsWith('en')) {
       title = "YOU ARE THE DATA ARCHITECT AND AI ENGINE OF ScanNut.";
-      mission = "**CRITICAL MISSION:** Process pet images and categorize them into the CORRECT DATA SETS, ALWAYS ensuring the link via name_of_pet.";
+      mission =
+          "**CRITICAL MISSION:** Process pet images and categorize them into the CORRECT DATA SETS, ALWAYS ensuring the link via name_of_pet.";
       langInstr = "ALWAYS respond in English for the values.";
     } else if (normalizedLocale.startsWith('es')) {
       title = "ERES EL ARQUITECTO DE DATOS Y MOTOR DE IA DE ScanNut.";
-      mission = "**MISIÓN CRÍTICA:** Procesar imágenes de mascotas y categorizarlas en los CONJUNTOS DE DATOS correctos, garantizando SIEMPRE el vínculo por el nombre_de_la_mascota.";
+      mission =
+          "**MISIÓN CRÍTICA:** Procesar imágenes de mascotas y categorizarlas en los CONJUNTOS DE DATOS correctos, garantizando SIEMPRE el vínculo por el nombre_de_la_mascota.";
       langInstr = "Responda SIEMPRE en Español para los valores.";
     }
 
@@ -85,10 +89,11 @@ Mantenha as chaves JSON em inglês conforme especificado.
   }
 
   /// Edit Profile Mode - Structured data collection and intelligent recalculation
-  static String getEditProfilePrompt(Map<String, dynamic> currentData, {String locale = 'pt'}) {
+  static String getEditProfilePrompt(Map<String, dynamic> currentData,
+      {String locale = 'pt'}) {
     final normalizedLocale = locale.replaceAll('-', '_');
     String langInstr = "Responda em Português do Brasil (PT-BR).";
-    
+
     if (normalizedLocale.startsWith('en')) {
       langInstr = "Respond in English.";
     } else if (normalizedLocale.startsWith('es')) {
@@ -178,10 +183,11 @@ Mantenha as chaves JSON em inglês.
   }
 
   /// Medical Attachment Management - OCR and Document Indexing
-  static String getMedicalAttachmentPrompt(String type, String petName, {String locale = 'pt'}) {
+  static String getMedicalAttachmentPrompt(String type, String petName,
+      {String locale = 'pt'}) {
     final normalizedLocale = locale.replaceAll('-', '_');
     String langInstr = "Responda em Português do Brasil (PT-BR).";
-    
+
     if (normalizedLocale.startsWith('en')) {
       langInstr = "Respond in English.";
     } else if (normalizedLocale.startsWith('es')) {
@@ -228,10 +234,12 @@ Mantenha as chaves JSON em inglês.
   }
 
   /// Biometric Time Series - Weight/Height tracking and trend analysis
-  static String getBiometricTimeSeriesPrompt(List<Map<String, dynamic>> weightHistory, {String locale = 'pt'}) {
+  static String getBiometricTimeSeriesPrompt(
+      List<Map<String, dynamic>> weightHistory,
+      {String locale = 'pt'}) {
     final normalizedLocale = locale.replaceAll('-', '_');
     String langInstr = "Responda em Português do Brasil (PT-BR).";
-    
+
     if (normalizedLocale.startsWith('en')) {
       langInstr = "Respond in English.";
     } else if (normalizedLocale.startsWith('es')) {
@@ -336,88 +344,110 @@ Mantenha as chaves JSON em inglês.
         ''';
   }
 
-  static String getPrompt(ScannutMode mode, {String locale = 'pt', Map<String, String>? contextData}) {
+  static String getPrompt(ScannutMode mode,
+      {String locale = 'pt', Map<String, String>? contextData}) {
     // Map locale code to full language name and strict instruction
     String languageName;
     String languageInstruction;
-    
+
     // Normalize locale string
     final normalizedLocale = locale.replaceAll('-', '_');
-    
+
     if (normalizedLocale.startsWith('en')) {
       languageName = "English";
-      languageInstruction = "Respond in English. CRITICAL: Do not use any Portuguese terms. Translate all plant names and technical symptoms.";
+      languageInstruction =
+          "Respond in English. CRITICAL: Do not use any Portuguese terms. Translate all plant names and technical symptoms.";
     } else if (normalizedLocale.startsWith('es')) {
       languageName = "Spanish";
-      languageInstruction = "Responda en Español. CRITICAL: Traduzca todos los nombres de plantas y términos técnicos.";
+      languageInstruction =
+          "Responda en Español. CRITICAL: Traduzca todos los nombres de plantas y términos técnicos.";
     } else if (normalizedLocale == 'pt_PT') {
       languageName = "Portuguese-PT";
-      languageInstruction = "Responda em Português de Portugal (ex: telemóvel, frigorífico, sumo).";
+      languageInstruction =
+          "Responda em Português de Portugal (ex: telemóvel, frigorífico, sumo).";
     } else {
       // Default to pt_BR
       languageName = "Portuguese-BR";
       languageInstruction = "Responda em Português do Brasil.";
     }
-    
+
     final isPortuguese = languageName.contains('Portuguese');
 
     switch (mode) {
       case ScannutMode.food:
-        return NutritionPrompts.getFoodAnalysisPrompt(languageName, languageInstruction);
+        return NutritionPrompts.getFoodAnalysisPrompt(
+            languageName, languageInstruction);
 
       case ScannutMode.plant:
-        return BotanyPrompts.getPlantAnalysisPrompt(languageName, languageInstruction, normalizedLocale);
+        return BotanyPrompts.getPlantAnalysisPrompt(
+            languageName, languageInstruction, normalizedLocale);
 
       case ScannutMode.petIdentification:
-        return PetPrompts.getPetIdentificationPrompt(languageName, languageInstruction);
+        return PetPrompts.getPetIdentificationPrompt(
+            languageName, languageInstruction);
 
       case ScannutMode.petDiagnosis:
-        return PetPrompts.getPetDiagnosisPrompt(languageName, languageInstruction, isPortuguese, contextData: contextData);
+        return PetPrompts.getPetDiagnosisPrompt(
+            languageName, languageInstruction, isPortuguese,
+            contextData: contextData);
 
       case ScannutMode.petVisualAnalysis:
-        return getPetVisualPrompt(languageName, languageInstruction, contextData: contextData);
+        return getPetVisualPrompt(languageName, languageInstruction,
+            contextData: contextData);
 
       case ScannutMode.petDocumentOCR:
         return getPetOCRPrompt(languageName, languageInstruction);
 
       case ScannutMode.petStoolAnalysis:
-        return PetPrompts.getPetStoolAnalysisPrompt(languageName, languageInstruction, isPortuguese, contextData: contextData);
+        return PetPrompts.getPetStoolAnalysisPrompt(
+            languageName, languageInstruction, isPortuguese,
+            contextData: contextData);
     }
   }
 
-  static String getPetVisualPrompt(String languageName, String languageInstruction, {Map<String, String>? contextData}) {
+  static String getPetVisualPrompt(
+      String languageName, String languageInstruction,
+      {Map<String, String>? contextData}) {
     // 🛡️ Context Injection
     String contextBlock = "";
     final groupId = contextData?['groupId'] ?? 'generic';
-    
+
     // Domain Specific Contextual Instructions
     String specializedInstr = "";
     switch (groupId) {
       case 'food':
       case 'dentistry':
-        specializedInstr = "ANALYSIS FOCUS: Objects, food items, bones, or oral tools. EXPLICITLY FORBIDDEN: Do not attempt to identify pet breeds or animals in this specific analysis. Focus on the condition of the object or food quality.";
+        specializedInstr =
+            "ANALYSIS FOCUS: Objects, food items, bones, or oral tools. EXPLICITLY FORBIDDEN: Do not attempt to identify pet breeds or animals in this specific analysis. Focus on the condition of the object or food quality.";
         break;
       case 'exams':
       case 'medication':
       case 'documents':
-        specializedInstr = "ANALYSIS FOCUS: OCR (Text reading). Extract technical terms, dosages, numerical values from charts, and specific medical findings. Precision in text transcription is the priority.";
+        specializedInstr =
+            "ANALYSIS FOCUS: OCR (Text reading). Extract technical terms, dosages, numerical values from charts, and specific medical findings. Precision in text transcription is the priority.";
         break;
       case 'health':
       case 'allergies':
-        specializedInstr = "ANALYSIS FOCUS: Clinical symptoms, skin lesions, wounds, or allergic reactions. Describe texture, color, and level of inflammation. Provide urgency level based on clinical appearance.";
+        specializedInstr =
+            "ANALYSIS FOCUS: Clinical symptoms, skin lesions, wounds, or allergic reactions. Describe texture, color, and level of inflammation. Provide urgency level based on clinical appearance.";
         break;
       case 'behavior':
-        specializedInstr = "ANALYSIS FOCUS: Posture, facial expression, and behavioral cues. Infer emotional state or physical discomfort from the pet's body language.";
+        specializedInstr =
+            "ANALYSIS FOCUS: Posture, facial expression, and behavioral cues. Infer emotional state or physical discomfort from the pet's body language.";
         break;
       case 'grooming':
-        specializedInstr = "ANALYSIS FOCUS: Coat condition, cleanliness, nail length, and hygiene highlights. Identify areas that need attention.";
+        specializedInstr =
+            "ANALYSIS FOCUS: Coat condition, cleanliness, nail length, and hygiene highlights. Identify areas that need attention.";
         break;
       default:
-        specializedInstr = "ANALYSIS FOCUS: General pet observation. Identify the subject and any noteworthy details relevant to the event category: $groupId.";
+        specializedInstr =
+            "ANALYSIS FOCUS: General pet observation. Identify the subject and any noteworthy details relevant to the event category: $groupId.";
     }
 
-    if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
-        contextBlock = '''
+    if (contextData != null &&
+        (contextData.containsKey('species') ||
+            contextData.containsKey('breed'))) {
+      contextBlock = '''
         CONTEXT (SOURCE OF TRUTH): 
         Target Pet Species: ${contextData['species'] ?? 'Unknown'}
         Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
@@ -429,7 +459,7 @@ Mantenha as chaves JSON em inglês.
         Customize your analysis for a ${contextData['breed']}.
         ''';
     } else {
-        contextBlock = '''
+      contextBlock = '''
         Category Context: $groupId
         $specializedInstr
         ''';
@@ -459,9 +489,10 @@ Mantenha as chaves JSON em inglês.
     ''';
   }
 
-  static String getPetOCRPrompt(String languageName, String languageInstruction, {Map<String, String>? contextData}) {
+  static String getPetOCRPrompt(String languageName, String languageInstruction,
+      {Map<String, String>? contextData}) {
     final groupId = contextData?['groupId'] ?? 'documents';
-    
+
     return '''
             $languageInstruction
             
@@ -485,5 +516,4 @@ Mantenha as chaves JSON em inglês.
             Respond in $languageName. Keep keys in English.
     ''';
   }
-
 }

@@ -45,7 +45,8 @@ class ShoppingListItem extends HiveObject {
       quantidadeTexto: json['quantidadeTexto'] ?? '1 unidade',
       marcado: json['marcado'] ?? false,
       criadoEm: DateTime.parse(json['criadoEm']),
-      marcadoEm: json['marcadoEm'] != null ? DateTime.parse(json['marcadoEm']) : null,
+      marcadoEm:
+          json['marcadoEm'] != null ? DateTime.parse(json['marcadoEm']) : null,
     );
   }
 

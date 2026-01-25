@@ -10,7 +10,8 @@ class UserNutritionProfile extends HiveObject {
   String objetivo; // emagrecer, manter, saude, ganhar_massa
 
   @HiveField(1)
-  List<String> restricoes; // sem_lactose, sem_gluten, diabetes, hipertensao, vegetariano, vegano
+  List<String>
+      restricoes; // sem_lactose, sem_gluten, diabetes, hipertensao, vegetariano, vegano
 
   @HiveField(2)
   int metaRefeicoesSemanais; // ex: 21 (3 refeições x 7 dias)
@@ -19,7 +20,8 @@ class UserNutritionProfile extends HiveObject {
   int metaAguaDiaria; // em ml, ex: 2000
 
   @HiveField(4)
-  Map<String, String> horariosRefeicoes; // cafe: "07:00", almoco: "12:00", jantar: "19:00", lanche: "15:00"
+  Map<String, String>
+      horariosRefeicoes; // cafe: "07:00", almoco: "12:00", jantar: "19:00", lanche: "15:00"
 
   @HiveField(5)
   DateTime criadoEm;
@@ -74,7 +76,8 @@ class UserNutritionProfile extends HiveObject {
       restricoes: List<String>.from(json['restricoes'] ?? []),
       metaRefeicoesSemanais: json['metaRefeicoesSemanais'] ?? 21,
       metaAguaDiaria: json['metaAguaDiaria'] ?? 2000,
-      horariosRefeicoes: Map<String, String>.from(json['horariosRefeicoes'] ?? {}),
+      horariosRefeicoes:
+          Map<String, String>.from(json['horariosRefeicoes'] ?? {}),
       criadoEm: DateTime.parse(json['criadoEm']),
       atualizadoEm: DateTime.parse(json['atualizadoEm']),
     );

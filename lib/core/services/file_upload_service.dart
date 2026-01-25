@@ -106,7 +106,8 @@ class FileUploadService {
     try {
       final XFile? photo = await _imagePicker.pickImage(
         source: source,
-        imageQuality: 70, // 🛡️ V_FIX: Enforce compression for storage efficiency
+        imageQuality:
+            70, // 🛡️ V_FIX: Enforce compression for storage efficiency
         maxWidth: 1600,
         maxHeight: 1600,
       );
@@ -129,7 +130,7 @@ class FileUploadService {
   }) async {
     try {
       final vault = MediaVaultService();
-      
+
       // 🛡️ V124: Fix category selection
       // All pet-related attachments (including health) go to PETS_DIR
       // Only standalone wound analysis goes to WOUNDS_DIR
@@ -140,7 +141,7 @@ class FileUploadService {
         category = MediaVaultService.BOTANY_DIR;
       } else if (attachmentType.startsWith('travel_')) {
         // 🛡️ V_FIX: Travel documents categorized for later bulk treatment if needed
-        category = MediaVaultService.PETS_DIR; 
+        category = MediaVaultService.PETS_DIR;
       }
       // Note: health_prescriptions, health_vaccines, etc. stay in PETS_DIR
 
@@ -149,28 +150,25 @@ class FileUploadService {
       final extension = path.extension(originalName);
       final nameWithoutExt = path.basenameWithoutExtension(originalName);
       final prefixedName = '${attachmentType}_$nameWithoutExt$extension';
-      
+
       // Create temporary file with prefixed name
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/$prefixedName');
       await file.copy(tempFile.path);
-      
-      debugPrint('📎 [V124] Prefixed filename: $prefixedName (type: $attachmentType, category: $category)');
 
-      final result = await vault.secureClone(
-        tempFile, 
-        category, 
-        petName.replaceAll(RegExp(r'\s+'), '_').toLowerCase(),
-        skipIndexing
-      );
-      
+      debugPrint(
+          '📎 [V124] Prefixed filename: $prefixedName (type: $attachmentType, category: $category)');
+
+      final result = await vault.secureClone(tempFile, category,
+          petName.replaceAll(RegExp(r'\s+'), '_').toLowerCase(), skipIndexing);
+
       // Clean up temp file
       try {
         await tempFile.delete();
       } catch (e) {
         debugPrint('⚠️ Failed to delete temp file: $e');
       }
-      
+
       return result;
     } catch (e) {
       debugPrint('❌ MediaVault Error: $e');
@@ -179,18 +177,20 @@ class FileUploadService {
   }
 
   /// Backup legacy save (for fallback)
-  Future<String?> _legacySaveMedicalDocument(File file, String petName, String attachmentType) async {
-       // ... simplified legacy logic or just fail safely
-       try {
-          final appDir = await getApplicationDocumentsDirectory();
-          final dir = Directory('${appDir.path}/medical_docs/$petName');
-          if (!await dir.exists()) await dir.create(recursive: true);
-          final newPath = '${dir.path}/${DateTime.now().millisecondsSinceEpoch}_legacy_${path.basename(file.path)}';
-          await file.copy(newPath);
-          return newPath;
-       } catch (e) {
-          return null;
-       }
+  Future<String?> _legacySaveMedicalDocument(
+      File file, String petName, String attachmentType) async {
+    // ... simplified legacy logic or just fail safely
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final dir = Directory('${appDir.path}/medical_docs/$petName');
+      if (!await dir.exists()) await dir.create(recursive: true);
+      final newPath =
+          '${dir.path}/${DateTime.now().millisecondsSinceEpoch}_legacy_${path.basename(file.path)}';
+      await file.copy(newPath);
+      return newPath;
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Get all medical documents (Vault + Legacy)
@@ -200,8 +200,9 @@ class FileUploadService {
       // 1. Check Vault
       final appDir = await getApplicationSupportDirectory();
       final safePetName = petName.replaceAll(RegExp(r'\s+'), '_').toLowerCase();
-      final vaultDir = Directory('${appDir.path}/media_vault/pets/$safePetName');
-      
+      final vaultDir =
+          Directory('${appDir.path}/media_vault/pets/$safePetName');
+
       if (await vaultDir.exists()) {
         allFiles.addAll(vaultDir.listSync().whereType<File>());
       }
@@ -210,9 +211,8 @@ class FileUploadService {
       final docDir = await getApplicationDocumentsDirectory();
       final legacyDir = Directory('${docDir.path}/medical_docs/$petName');
       if (await legacyDir.exists()) {
-         allFiles.addAll(legacyDir.listSync().whereType<File>());
+        allFiles.addAll(legacyDir.listSync().whereType<File>());
       }
-      
     } catch (e) {
       debugPrint('❌ Error getting vault/legacy documents: $e');
     }
@@ -244,20 +244,21 @@ class FileUploadService {
       final appDir = await getApplicationSupportDirectory();
       final category = type == 'food' ? 'food' : 'plants';
       final vaultDir = Directory('${appDir.path}/media_vault/$category');
-      
+
       if (!await vaultDir.exists()) {
         await vaultDir.create(recursive: true);
       }
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final extension = path.extension(file.path);
-      final safeName = name.replaceAll(RegExp(r'[^\w\s]+'), '').replaceAll(' ', '_');
+      final safeName =
+          name.replaceAll(RegExp(r'[^\w\s]+'), '').replaceAll(' ', '_');
       final fileName = '${safeName}_$timestamp$extension';
       final newPath = '${vaultDir.path}/$fileName';
 
       final savedFile = await file.copy(newPath);
       debugPrint('🔐 MediaVault: Securely archived $type image at $newPath');
-      
+
       return savedFile.path;
     } catch (e) {
       debugPrint('❌ MediaVault Analysis Error: $e');
@@ -272,12 +273,14 @@ class FileUploadService {
       if (await tempDir.exists()) {
         final List<FileSystemEntity> entities = tempDir.listSync();
         int deletedCount = 0;
-        
+
         for (var entity in entities) {
           if (entity is File) {
             final fileName = path.basename(entity.path);
-            if (fileName.contains('image_picker') || fileName.contains('scaled_') || 
-                ((fileName.endsWith('.jpg') || fileName.endsWith('.png')) && !fileName.contains('vault'))) {
+            if (fileName.contains('image_picker') ||
+                fileName.contains('scaled_') ||
+                ((fileName.endsWith('.jpg') || fileName.endsWith('.png')) &&
+                    !fileName.contains('vault'))) {
               final stat = await entity.stat();
               if (DateTime.now().difference(stat.modified).inMinutes > 30) {
                 await entity.delete();

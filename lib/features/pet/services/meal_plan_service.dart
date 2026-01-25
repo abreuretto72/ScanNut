@@ -11,7 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/weekly_meal_plan.dart';
 import '../../../core/services/hive_atomic_manager.dart';
 
-final mealPlanServiceProvider = Provider<MealPlanService>((ref) => MealPlanService());
+final mealPlanServiceProvider =
+    Provider<MealPlanService>((ref) => MealPlanService());
 
 class MealPlanService {
   static final MealPlanService _instance = MealPlanService._internal();
@@ -27,7 +28,8 @@ class MealPlanService {
   }
 
   Future<Box<WeeklyMealPlan>> _ensureBox({HiveCipher? cipher}) async {
-    _box = await HiveAtomicManager().ensureBoxOpen<WeeklyMealPlan>(_boxName, cipher: cipher);
+    _box = await HiveAtomicManager()
+        .ensureBoxOpen<WeeklyMealPlan>(_boxName, cipher: cipher);
     return _box!;
   }
 
@@ -36,25 +38,30 @@ class MealPlanService {
     final box = await _ensureBox();
     await box.put(plan.id, plan);
     await box.flush(); // Force write to disk
-    debugPrint('🍽️ Menu saved: ${plan.id} for ${plan.petId} (Week: ${plan.startDate})');
+    debugPrint(
+        '🍽️ Menu saved: ${plan.id} for ${plan.petId} (Week: ${plan.startDate})');
   }
 
   // Get Plan for a Specific Date (Finds the week covering this date)
-  Future<WeeklyMealPlan?> getPlanForDate(String petId, DateTime date, {String? fallbackName}) async {
+  Future<WeeklyMealPlan?> getPlanForDate(String petId, DateTime date,
+      {String? fallbackName}) async {
     final box = await _ensureBox();
 
     final normalizedDate = DateTime(date.year, date.month, date.day);
-    
+
     try {
-      final plans = box.values.where((p) => p.petId == petId || (fallbackName != null && p.petId == fallbackName));
-      
+      final plans = box.values.where((p) =>
+          p.petId == petId ||
+          (fallbackName != null && p.petId == fallbackName));
+
       for (var plan in plans) {
-         // Check if date falls within start and end
-         if (normalizedDate.isAtSameMomentAs(plan.startDate) || 
-             normalizedDate.isAtSameMomentAs(plan.endDate) ||
-             (normalizedDate.isAfter(plan.startDate) && normalizedDate.isBefore(plan.endDate))) {
-             return plan;
-         }
+        // Check if date falls within start and end
+        if (normalizedDate.isAtSameMomentAs(plan.startDate) ||
+            normalizedDate.isAtSameMomentAs(plan.endDate) ||
+            (normalizedDate.isAfter(plan.startDate) &&
+                normalizedDate.isBefore(plan.endDate))) {
+          return plan;
+        }
       }
       return null;
     } catch (e) {
@@ -62,15 +69,18 @@ class MealPlanService {
       return null;
     }
   }
-  
+
   // Get All Plans for Pet (History)
-  Future<List<WeeklyMealPlan>> getPlansForPet(String petId, {String? fallbackName}) async {
+  Future<List<WeeklyMealPlan>> getPlansForPet(String petId,
+      {String? fallbackName}) async {
     final box = await _ensureBox();
-    
+
     return box.values
-        .where((p) => p.petId == petId || (fallbackName != null && p.petId == fallbackName))
+        .where((p) =>
+            p.petId == petId ||
+            (fallbackName != null && p.petId == fallbackName))
         .toList()
-        ..sort((a, b) => b.startDate.compareTo(a.startDate)); // Newest first
+      ..sort((a, b) => b.startDate.compareTo(a.startDate)); // Newest first
   }
 
   // Delete Plan
@@ -85,16 +95,20 @@ class MealPlanService {
     final original = box.get(planId);
     if (original == null) return null;
 
-    final newStartDate = original.endDate.add(const Duration(days: 1)); // Next Monday
-    
+    final newStartDate =
+        original.endDate.add(const Duration(days: 1)); // Next Monday
+
     final newPlan = WeeklyMealPlan.create(
       petId: original.petId,
       startDate: newStartDate,
       dietType: original.dietType,
       nutritionalGoal: original.nutritionalGoal,
-      meals: original.meals, // Deep copy might be needed if we mutate, but mostly immutable
+      meals: original
+          .meals, // Deep copy might be needed if we mutate, but mostly immutable
       metadata: original.metadata,
-      templateName: original.templateName != null ? '${original.templateName} (Copy)' : null,
+      templateName: original.templateName != null
+          ? '${original.templateName} (Copy)'
+          : null,
     );
 
     await savePlan(newPlan);

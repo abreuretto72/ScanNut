@@ -22,7 +22,7 @@ class NutritionFragment extends StatelessWidget {
   final String observacoesNutricao;
   final List<Map<String, dynamic>> analysisHistory;
   final Function(Map<String, dynamic>)? onDeleteAnalysis;
-  
+
   final Function(String) onAddAlergia;
   final Function(int) onDeleteAlergia;
   final Function(String) onAddRestricao;
@@ -30,7 +30,7 @@ class NutritionFragment extends StatelessWidget {
   final Function(String) onAddPreferencial;
   final Function(int) onDeletePreferencial;
   final Function(String) onObservacoesChanged;
-  
+
   final TextEditingController pesoController;
   final String? raca;
   final String? porte;
@@ -80,128 +80,130 @@ class NutritionFragment extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        PetFoodAnalysisCard(
-          petId: petId,
-          petName: petName,
-          analysisHistory: analysisHistory,
-          onDeleteAnalysis: onDeleteAnalysis,
-          onAnalysisSaved: onAnalysisSaved,
-        ),
-        const SizedBox(height: 24),
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle('⚠️ ${l10n.petFoodAllergies}'),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.petFoodAllergiesDesc,
-                  style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
-                ),
-                const SizedBox(height: 16),
-                
-                ChipsInputField(
-                  controller: alergiasController,
-                  label: l10n.petAddAllergy,
-                  icon: Icons.warning,
-                  chips: alergiasConhecidas,
-                  onAdd: onAddAlergia,
-                  onDelete: onDeleteAlergia,
-                ),
-              ],
+          PetFoodAnalysisCard(
+            petId: petId,
+            petName: petName,
+            analysisHistory: analysisHistory,
+            onDeleteAnalysis: onDeleteAnalysis,
+            onAnalysisSaved: onAnalysisSaved,
+          ),
+          const SizedBox(height: 24),
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle(
+                      '⚠️ ${l10n.petFoodAllergies}'),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.petFoodAllergiesDesc,
+                    style: GoogleFonts.poppins(
+                        color: Colors.white60, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+                  ChipsInputField(
+                    controller: alergiasController,
+                    label: l10n.petAddAllergy,
+                    icon: Icons.warning,
+                    chips: alergiasConhecidas,
+                    onAdd: onAddAlergia,
+                    onDelete: onDeleteAlergia,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-
-        const SizedBox(height: 24),
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle('🚫 ${l10n.petFoodRestrictions ?? 'Restrições'}'),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.petFoodRestrictionsDesc ?? 'Ingredientes proibidos ou a evitar (ex: sem frango, sem glúten).',
-                  style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
-                ),
-                const SizedBox(height: 16),
-                
-                ChipsInputField(
-                  controller: restricoesController,
-                  label: l10n.petAddRestriction ?? 'Adicionar restrição',
-                  icon: Icons.block,
-                  chips: restricoes,
-                  chipColor: AppDesign.petPink.withValues(alpha: 0.8),
-                  onAdd: onAddRestricao,
-                  onDelete: onDeleteRestricao,
-                ),
-              ],
+          const SizedBox(height: 24),
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle(
+                      '🚫 ${l10n.petFoodRestrictions ?? 'Restrições'}'),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.petFoodRestrictionsDesc ??
+                        'Ingredientes proibidos ou a evitar (ex: sem frango, sem glúten).',
+                    style: GoogleFonts.poppins(
+                        color: Colors.white60, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+                  ChipsInputField(
+                    controller: restricoesController,
+                    label: l10n.petAddRestriction ?? 'Adicionar restrição',
+                    icon: Icons.block,
+                    chips: restricoes,
+                    chipColor: AppDesign.petPink.withValues(alpha: 0.8),
+                    onAdd: onAddRestricao,
+                    onDelete: onDeleteRestricao,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        
-        const SizedBox(height: 24),
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle('❤️ ${l10n.petFoodPreferences}'),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.petFoodPreferencesDesc,
-                  style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12),
-                ),
-                const SizedBox(height: 16),
-                
-                ChipsInputField(
-                  controller: preferenciasController,
-                  label: l10n.petAddPreference,
-                  icon: Icons.favorite,
-                  chips: preferencias,
-                  chipColor: AppDesign.petPink,
-                  onAdd: onAddPreferencial,
-                  onDelete: onDeletePreferencial,
-                ),
-              ],
+          const SizedBox(height: 24),
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle(
+                      '❤️ ${l10n.petFoodPreferences}'),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.petFoodPreferencesDesc,
+                    style: GoogleFonts.poppins(
+                        color: Colors.white60, fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+                  ChipsInputField(
+                    controller: preferenciasController,
+                    label: l10n.petAddPreference,
+                    icon: Icons.favorite,
+                    chips: preferencias,
+                    chipColor: AppDesign.petPink,
+                    onAdd: onAddPreferencial,
+                    onDelete: onDeletePreferencial,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-
-        WeightFeedbackSection(
-          pesoController: pesoController,
-          raca: raca,
-          porte: porte,
-        ),
-        weeklyPlanSection,
-
-        AttachmentSection(
-          title: l10n.petDietRecipes,
-          files: attachments,
-          onAdd: onAddAttachment,
-          onDelete: onDeleteAttachment,
-        ),
-        
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Nutrição',
-          initialValue: observacoesNutricao,
-          onChanged: onObservacoesChanged,
-          icon: Icons.restaurant,
-          accentColor: AppDesign.petPink,
-        ),
-      ],
+          WeightFeedbackSection(
+            pesoController: pesoController,
+            raca: raca,
+            porte: porte,
+          ),
+          weeklyPlanSection,
+          AttachmentSection(
+            title: l10n.petDietRecipes,
+            files: attachments,
+            onAdd: onAddAttachment,
+            onDelete: onDeleteAttachment,
+          ),
+          const SizedBox(height: 24),
+          CumulativeObservationsField(
+            sectionName: 'Nutrição',
+            initialValue: observacoesNutricao,
+            onChanged: onObservacoesChanged,
+            icon: Icons.restaurant,
+            accentColor: AppDesign.petPink,
+          ),
+        ],
       ),
     );
   }

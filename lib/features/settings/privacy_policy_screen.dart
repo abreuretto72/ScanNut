@@ -17,7 +17,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
         elevation: 0,
         title: Text(
           l10n.privacyPolicy,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.white),
+          style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600, color: Colors.white),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -36,7 +37,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               color: Colors.cyanAccent,
             ),
             const SizedBox(height: 32),
-            
+
             // Add a note about the full web policy
             Container(
               padding: const EdgeInsets.all(16),
@@ -50,7 +51,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   Text(
                     l10n.aboutDescription, // Could use another string if available
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                    style: GoogleFonts.poppins(
+                        color: Colors.white54, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   GestureDetector(
@@ -64,7 +66,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       "Para a versão completa e detalhada, visite nosso portal online.",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        color: Colors.cyanAccent.withValues(alpha: 0.7), 
+                        color: Colors.cyanAccent.withValues(alpha: 0.7),
                         fontSize: 11,
                         decoration: TextDecoration.underline,
                       ),

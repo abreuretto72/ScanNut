@@ -50,7 +50,9 @@ class MealLog extends HiveObject {
       dateTime: DateTime.parse(json['dateTime']),
       tipo: json['tipo'] ?? '',
       origem: json['origem'] ?? 'manual',
-      itens: (json['itens'] as List?)?.map((i) => MealItem.fromJson(i)).toList() ?? [],
+      itens:
+          (json['itens'] as List?)?.map((i) => MealItem.fromJson(i)).toList() ??
+              [],
       aderenteAoPlano: json['aderenteAoPlano'] ?? false,
       observacoes: json['observacoes'] ?? '',
     );

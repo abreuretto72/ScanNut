@@ -17,7 +17,8 @@ class PetDataEnvelope {
       targetPet: json['target_pet'] as String,
       category: _parseCategoryFrom(json['category'] as String),
       dataPayload: json['data_payload'] as Map<String, dynamic>,
-      metadata: PetDataMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
+      metadata:
+          PetDataMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
     );
   }
 
@@ -48,10 +49,10 @@ class PetDataEnvelope {
 
 /// Pet Data Category - 4 main data buckets
 enum PetDataCategory {
-  racaId,   // Breed & ID
-  saude,    // Health records
+  racaId, // Breed & ID
+  saude, // Health records
   cardapio, // Weekly menu
-  agenda,   // Schedule/events
+  agenda, // Schedule/events
 }
 
 /// Metadata for pet data envelope
@@ -71,7 +72,7 @@ class PetDataMetadata {
   factory PetDataMetadata.fromJson(Map<String, dynamic> json) {
     return PetDataMetadata(
       hasExistingProfile: json['has_existing_profile'] as bool? ?? false,
-      timestamp: json['timestamp'] != null 
+      timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'] as String)
           : DateTime.now(),
       linkedBreedData: json['linked_breed_data'] as String?,

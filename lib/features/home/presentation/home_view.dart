@@ -49,6 +49,8 @@ import '../../../core/theme/app_design.dart';
 import '../../../nutrition/presentation/screens/nutrition_home_screen.dart';
 import '../../food/presentation/nutrition_history_screen.dart';
 import '../../plant/presentation/botany_history_screen.dart';
+import '../../pet/presentation/screens/scan_walk_fullscreen.dart';
+import '../../pet/services/session_guard.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -57,14 +59,16 @@ class HomeView extends ConsumerStatefulWidget {
   ConsumerState<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver {
+class _HomeViewState extends ConsumerState<HomeView>
+    with WidgetsBindingObserver {
   String? _petName; // stores pet name entered by user
   String? _petId; // 🛡️ UUID Link
   String? _displayPetName; // 🛡️ FIX: Pet name for loading overlay display
   CameraController? _controller;
   List<CameraDescription>? _cameras;
   int _currentIndex = -1; // -1 = Dashboard / No mode
-  int _petMode = 0; // 0 = Identification, 1 = Diagnosis, 2 = Stool (if supported)
+  int _petMode =
+      0; // 0 = Identification, 1 = Diagnosis, 2 = Stool (if supported)
   bool _isCameraInitialized = false;
   bool _isInitializingCamera = false; // 🛡️ Lock Atômico
   bool _isProcessingAnalysis = false; // 🛡️ V231: Analysis Guard
@@ -89,7 +93,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (_controller == null || !_isCameraInitialized) return;
 
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       // 🛡️ Safe Disposal with state update
       _disposeCamera();
     } else if (state == AppLifecycleState.resumed) {
@@ -102,10 +107,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   Future<void> _initialize() async {
     await _checkDisclaimer();
-    
+
     // 🧬 V114: Biometria Inteligente
     if (mounted) {
-      final shouldPrompt = await simpleAuthService.shouldPromptBiometricActivation();
+      final shouldPrompt =
+          await simpleAuthService.shouldPromptBiometricActivation();
       if (shouldPrompt) {
         _showBiometricActivationDialog();
       }
@@ -125,11 +131,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       final petService = PetProfileService();
       await petService.init();
       final pets = await petService.getAllProfiles();
-      final toiExists = pets.any((p) => p['name']?.toString().toUpperCase() == 'TOI');
-      
-      debugPrint('🛡️ [V115-AUDIT] Pets Validados (${pets.length}): ${pets.map((p) => p['name']).toList()}');
+      final toiExists =
+          pets.any((p) => p['name']?.toString().toUpperCase() == 'TOI');
+
+      debugPrint(
+          '🛡️ [V115-AUDIT] Pets Validados (${pets.length}): ${pets.map((p) => p['name']).toList()}');
       if (toiExists) {
-        debugPrint('🚨 [V115-AUDIT] GHOST DETECTADO: "TOI" ainda presente. Iniciando eliminação...');
+        debugPrint(
+            '🚨 [V115-AUDIT] GHOST DETECTADO: "TOI" ainda presente. Iniciando eliminação...');
         // Atomic wipe of TOI is handled at service level if needed, but here we just audit.
       } else {
         debugPrint('✅ [V115-AUDIT] Sistema limpo de pets fantasmas.');
@@ -154,7 +163,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             children: [
               const Icon(Icons.fingerprint, color: AppDesign.success),
               const SizedBox(width: 10),
-              Text(l10n.homeBiometricTitle, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+              Text(l10n.homeBiometricTitle,
+                  style: GoogleFonts.poppins(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ],
           ),
           content: Text(
@@ -164,19 +175,23 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel, style: GoogleFonts.poppins(color: Colors.white54)),
+              child: Text(l10n.cancel,
+                  style: GoogleFonts.poppins(color: Colors.white54)),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppDesign.success),
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: AppDesign.success),
               onPressed: () async {
                 await simpleAuthService.setBiometricEnabled(true);
                 if (mounted) {
-                   Navigator.pop(context);
-                   if (!mounted) return;
-                   AppFeedback.showSuccess(context, l10n.homeBiometricSuccess);
+                  Navigator.pop(context);
+                  if (!mounted) return;
+                  AppFeedback.showSuccess(context, l10n.homeBiometricSuccess);
                 }
               },
-              child: Text(l10n.homeBiometricAction, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: Text(l10n.homeBiometricAction,
+                  style: GoogleFonts.poppins(
+                      color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -219,9 +234,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool('disclaimer_accepted', true);
-                 if (mounted) {
-                   Navigator.pop(context);
-                 }
+                if (mounted) {
+                  Navigator.pop(context);
+                }
               },
               child: Text(l10n.disclaimerButton,
                   style: const TextStyle(
@@ -236,7 +251,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   Future<void> _initCamera() async {
     // 🛡️ Atomic Guard: Prevent parallel initialization attempts
     if (_isInitializingCamera) {
-      debugPrint('🛡️ [Camera] Initialization already in progress. Bailing out.');
+      debugPrint(
+          '🛡️ [Camera] Initialization already in progress. Bailing out.');
       return;
     }
 
@@ -245,12 +261,14 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       try {
         // If controller exists but is not initialized, it might be disposed
         if (!_controller!.value.isInitialized) {
-          debugPrint('🔴 [Camera] Controller exists but not initialized. Disposing...');
+          debugPrint(
+              '🔴 [Camera] Controller exists but not initialized. Disposing...');
           await _controller!.dispose();
           _controller = null;
         } else {
           // Controller is already initialized and working
-          debugPrint('🛡️ [Camera] Controller already initialized. Bailing out.');
+          debugPrint(
+              '🛡️ [Camera] Controller already initialized. Bailing out.');
           return;
         }
       } catch (e) {
@@ -270,10 +288,10 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       final granted = await PermissionHelper.requestCameraPermission(context);
       if (granted) {
         if (!mounted) return;
-        
+
         debugPrint('📸 [Camera] Starting initialization sequence...');
         _cameras = await availableCameras();
-        
+
         if (_cameras != null && _cameras!.isNotEmpty) {
           // 🛡️ FIX: Ensure previous controller is fully disposed
           if (_controller != null) {
@@ -293,7 +311,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           );
 
           await _controller!.initialize();
-          
+
           if (_controller != null && _controller!.value.isInitialized) {
             await _controller!.setFlashMode(FlashMode.off);
           }
@@ -306,24 +324,29 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           debugPrint('✅ [Camera] Initialization successful.');
         }
       } else {
-         // Reset current index if permission denied
-         if (mounted) {
-           final l10n = AppLocalizations.of(context)!;
-           if (!mounted) return;
-           AppFeedback.showError(context, l10n.cameraPermission);
-         }
-         setState(() {
-           _currentIndex = -1;
-         });
+        // Reset current index if permission denied
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          if (!mounted) return;
+          AppFeedback.showError(context, l10n.cameraPermission);
+        }
+        setState(() {
+          _currentIndex = -1;
+        });
       }
     } catch (e) {
       debugPrint('❌ [Camera] Initialization error: $e');
-      
+
       // 🛡️ V230: SILENT FAIL FOR TRANSIENT ERRORS (Avoids "Resource Busy" spam)
       final errorStr = e.toString().toLowerCase();
-      final isResourceBusy = errorStr.contains('resource_busy') || errorStr.contains('multiple_init') || errorStr.contains('busy') || errorStr.contains('used');
-      final isPermissionError = errorStr.contains('permissiondenied') || errorStr.contains('access denied');
-      final isDisposedError = errorStr.contains('disposed') || errorStr.contains('cameracontroller');
+      final isResourceBusy = errorStr.contains('resource_busy') ||
+          errorStr.contains('multiple_init') ||
+          errorStr.contains('busy') ||
+          errorStr.contains('used');
+      final isPermissionError = errorStr.contains('permissiondenied') ||
+          errorStr.contains('access denied');
+      final isDisposedError = errorStr.contains('disposed') ||
+          errorStr.contains('cameracontroller');
 
       // 🛡️ FIX: If disposed error, clear the controller
       if (isDisposedError) {
@@ -336,8 +359,12 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         }
       }
 
-      if (mounted && !isResourceBusy && !isPermissionError && !isDisposedError) {
-        AppFeedback.showError(context, '${AppLocalizations.of(context)!.cameraError} (${e.toString().split(':').last.trim()})');
+      if (mounted &&
+          !isResourceBusy &&
+          !isPermissionError &&
+          !isDisposedError) {
+        AppFeedback.showError(context,
+            '${AppLocalizations.of(context)!.cameraError} (${e.toString().split(':').last.trim()})');
       }
     } finally {
       if (mounted) {
@@ -347,10 +374,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       }
     }
   }
+
   Future<void> _disposeCamera() async {
     if (_controller != null) {
       debugPrint('🔴 _disposeCamera: Starting disposal sequence...');
-      
+
       // 1. Immediately update state to remove CameraPreview from tree
       if (mounted) {
         setState(() {
@@ -363,8 +391,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
       // 2. Perform actual disposal in background
       final controllerToDispose = _controller;
-      _controller = null; // Important: Clear immediately to prevent re-use attempt
-      
+      _controller =
+          null; // Important: Clear immediately to prevent re-use attempt
+
       try {
         if (controllerToDispose != null) {
           await controllerToDispose.dispose();
@@ -380,7 +409,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   /// Handles camera capture
   Future<void> _onCapture() async {
     debugPrint('🔵 _onCapture: START');
-    
+
     if (_controller == null || !_controller!.value.isInitialized) {
       debugPrint('❌ _onCapture: Camera not initialized');
       return;
@@ -396,13 +425,15 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       HapticFeedback.mediumImpact();
       final XFile image = await _controller!.takePicture();
       debugPrint('✅ _onCapture: Picture taken: ${image.path}');
-      
+
       await _processCapturedImage(File(image.path));
-      
     } catch (e) {
       debugPrint('❌❌❌ ERROR in _onCapture: $e');
-       if (!mounted) return;
-       if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorCapturePrefix}$e');
+      if (!mounted) return;
+      if (mounted) {
+        AppFeedback.showError(
+            context, '${AppLocalizations.of(context)!.errorCapturePrefix}$e');
+      }
     }
   }
 
@@ -413,7 +444,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     try {
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      
+
       if (image != null) {
         debugPrint('🖼️ _pickFromGallery: Image selected: ${image.path}');
         await _processCapturedImage(File(image.path));
@@ -423,115 +454,131 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     } catch (e) {
       debugPrint('❌ Error picking from gallery: $e');
       if (!mounted) return;
-      if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorGalleryPrefix}$e');
+      if (mounted) {
+        AppFeedback.showError(
+            context, '${AppLocalizations.of(context)!.errorGalleryPrefix}$e');
+      }
     }
   }
 
   /// 🛡️ [V85] CORE PROCESSOR: Otimização Atômica e Injeção
   Future<void> _processCapturedImage(File rawImage) async {
-      try {
-          // 1. Otimização Atômica (V70.1) - 1080px / 70%
-          final optimizedImage = await _optimizeImage(rawImage);
-          
-           setState(() {
-            _capturedImage = optimizedImage;
+    try {
+      // 1. Otimização Atômica (V70.1) - 1080px / 70%
+      final optimizedImage = await _optimizeImage(rawImage);
+
+      setState(() {
+        _capturedImage = optimizedImage;
+      });
+      debugPrint('✅ _process: Image optimized & State updated.');
+
+      // 2. Dispose Camera (if active) to free resources
+      // We only dispose if we are NOT going to restart it immediately,
+      // but for analysis it is good to pause/dispose.
+      if (_isCameraInitialized) {
+        debugPrint('🔴 _process: Disposing camera for analysis...');
+        await _disposeCamera();
+      }
+
+      final capturedMode = _currentIndex;
+      final capturedPetMode = _petMode;
+
+      // 3. Logic for Pet Selection (Unified)
+      if (capturedMode == 2 && (capturedPetMode == 1 || capturedPetMode == 2)) {
+        // Health or Stool 💩
+        debugPrint(
+            '🏥 _process: Clinical mode detected, showing pet selection...');
+        final selectedPet = await _showPetSelectionDialog();
+
+        if (selectedPet == null) {
+          debugPrint('❌ _process: User cancelled pet selection');
+          return;
+        }
+        if (selectedPet == '<NOVO>') {
+          setState(() {
+            _petId = null;
+            _petName = null;
+            _displayPetName = null; // 🛡️ FIX: Clear display name too
           });
-          debugPrint('✅ _process: Image optimized & State updated.');
+        }
+        // 🛡️ FIX: Capture pet name for loading overlay
+        _displayPetName = _petName;
+        debugPrint('🔍 [DEBUG] _displayPetName set to: "$_displayPetName"');
+        // Small delay to ensure setState is processed before analysis starts
+        await Future.delayed(const Duration(milliseconds: 100));
+        // Else: _petId and _petName are already updated inside _showPetSelectionDialog
+      } else if (capturedMode == 2 && capturedPetMode == 0) {
+        // ID
+        debugPrint('🐾 _process: Prompting for pet name...');
+        final name = await _promptPetName();
+        if (name == null || name.trim().isEmpty) return;
+        setState(() {
+          _petId = null; // New ID identification has no ID yet
+          _petName = name.trim();
+        });
+        // 🛡️ FIX: Capture pet name for loading overlay
+        _displayPetName = name.trim();
+        debugPrint('🔍 [DEBUG] _displayPetName set to: "$_displayPetName"');
+        // Small delay to ensure setState is processed before analysis starts
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
 
-          // 2. Dispose Camera (if active) to free resources
-          // We only dispose if we are NOT going to restart it immediately, 
-          // but for analysis it is good to pause/dispose.
-          if (_isCameraInitialized) {
-             debugPrint('🔴 _process: Disposing camera for analysis...');
-             await _disposeCamera();
+      // 4. Injeção na IA Gemini
+      debugPrint('🔍 _process: Configuring Analysis Mode...');
+      ScannutMode mode;
+      switch (capturedMode) {
+        case 0:
+          mode = ScannutMode.food;
+          break;
+        case 1:
+          mode = ScannutMode.plant;
+          break;
+        case 2:
+          if (capturedPetMode == 0) {
+            mode = ScannutMode.petIdentification;
+          } else {
+            mode = ScannutMode
+                .petDiagnosis; // 🛡️ V144: Unified Health Mode (Includes Stool)
           }
+          break;
+        default:
+          mode = ScannutMode.petIdentification;
+          break;
+      }
 
-          final capturedMode = _currentIndex;
-          final capturedPetMode = _petMode;
+      List<String> excludedIngredients = [];
+      if (mode == ScannutMode.petIdentification && _petName != null) {
+        excludedIngredients = await ref
+            .read(mealHistoryServiceProvider)
+            .getRecentIngredients(_petName!);
+      }
 
-          // 3. Logic for Pet Selection (Unified)
-          if (capturedMode == 2 && (capturedPetMode == 1 || capturedPetMode == 2)) { // Health or Stool 💩
-             debugPrint('🏥 _process: Clinical mode detected, showing pet selection...');
-             final selectedPet = await _showPetSelectionDialog();
-             
-             if (selectedPet == null) {
-               debugPrint('❌ _process: User cancelled pet selection');
-               return; 
-             }
-             if (selectedPet == '<NOVO>') {
-                setState(() {
-                  _petId = null;
-                  _petName = null;
-                  _displayPetName = null; // 🛡️ FIX: Clear display name too
-                });
-             }
-             // 🛡️ FIX: Capture pet name for loading overlay
-             _displayPetName = _petName;
-             debugPrint('🔍 [DEBUG] _displayPetName set to: "$_displayPetName"');
-             // Small delay to ensure setState is processed before analysis starts
-             await Future.delayed(const Duration(milliseconds: 100));
-             // Else: _petId and _petName are already updated inside _showPetSelectionDialog
-          } else if (capturedMode == 2 && capturedPetMode == 0) { // ID
-             debugPrint('🐾 _process: Prompting for pet name...');
-             final name = await _promptPetName();
-             if (name == null || name.trim().isEmpty) return;
-             setState(() {
-                _petId = null; // New ID identification has no ID yet
-                _petName = name.trim();
-             });
-             // 🛡️ FIX: Capture pet name for loading overlay
-             _displayPetName = name.trim();
-             debugPrint('🔍 [DEBUG] _displayPetName set to: "$_displayPetName"');
-             // Small delay to ensure setState is processed before analysis starts
-             await Future.delayed(const Duration(milliseconds: 100));
+      // 🛡️ Context Injection
+      Map<String, String>? contextData;
+      if (_petName != null) {
+        try {
+          final pSrv = PetProfileService();
+          await pSrv.init();
+          final pMap = await pSrv.getProfile(_petName!);
+          if (pMap != null && pMap['data'] != null) {
+            final pd = pMap['data'];
+            contextData = {
+              'species': pd['especie']?.toString() ?? 'Unknown',
+              'breed': pd['raca']?.toString() ?? 'Unknown',
+              'weight': pd['peso']?.toString() ??
+                  'Unknown', // 💩 V231: Crucial for stool volume
+            };
           }
+        } catch (e) {
+          debugPrint('Error loading context: $e');
+        }
+      }
 
-
-          // 4. Injeção na IA Gemini
-          debugPrint('🔍 _process: Configuring Analysis Mode...');
-          ScannutMode mode;
-          switch (capturedMode) {
-            case 0: mode = ScannutMode.food; break;
-            case 1: mode = ScannutMode.plant; break;
-            case 2: 
-              if (capturedPetMode == 0) {
-                mode = ScannutMode.petIdentification;
-              } else {
-                mode = ScannutMode.petDiagnosis; // 🛡️ V144: Unified Health Mode (Includes Stool)
-              }
-              break;
-            default: mode = ScannutMode.petIdentification; break;
-          }
-
-          List<String> excludedIngredients = [];
-          if (mode == ScannutMode.petIdentification && _petName != null) {
-             excludedIngredients = await ref.read(mealHistoryServiceProvider).getRecentIngredients(_petName!);
-          }
-
-          // 🛡️ Context Injection
-          Map<String, String>? contextData;
-          if (_petName != null) {
-              try {
-                  final pSrv = PetProfileService();
-                  await pSrv.init();
-                  final pMap = await pSrv.getProfile(_petName!);
-                  if (pMap != null && pMap['data'] != null) {
-                      final pd = pMap['data'];
-                      contextData = {
-                          'species': pd['especie']?.toString() ?? 'Unknown',
-                          'breed': pd['raca']?.toString() ?? 'Unknown',
-                          'weight': pd['peso']?.toString() ?? 'Unknown', // 💩 V231: Crucial for stool volume
-                      };
-                  }
-              } catch (e) {
-                  debugPrint('Error loading context: $e');
-              }
-          }
-
-          String localeCode = Localizations.localeOf(context).toString();
-        // 🛡️ [V231] Atomic Analysis Guard
+      String localeCode = Localizations.localeOf(context).toString();
+      // 🛡️ [V231] Atomic Analysis Guard
       if (_isProcessingAnalysis) {
-        debugPrint('⚠️ [HomeView] Analysis already in progress. Ignoring duplicate trigger.');
+        debugPrint(
+            '⚠️ [HomeView] Analysis already in progress. Ignoring duplicate trigger.');
         return;
       }
 
@@ -541,35 +588,40 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
       // 🛡️ DEBUG: Check pet name before analysis
       debugPrint('🔍 [DEBUG] _petName before analysis: "$_petName"');
-      debugPrint('🔍 [DEBUG] _currentIndex: $_currentIndex, _petMode: $_petMode');
-
+      debugPrint(
+          '🔍 [DEBUG] _currentIndex: $_currentIndex, _petMode: $_petMode');
 
       try {
-          // 2. Initialize analysis notifier
-          ref.read(analysisNotifierProvider.notifier).reset(); 
-          
-          // 3. Analyze based on mode
-          final resultState = await ref.read(analysisNotifierProvider.notifier).analyzeImage(
-            imageFile: optimizedImage,
-            mode: _currentIndex == 0 ? ScannutMode.food : 
-                  _currentIndex == 1 ? ScannutMode.plant :
-                  (_petMode == 1 ? ScannutMode.petDiagnosis : ScannutMode.petIdentification),
-            petName: _petName,
-            petId: _petId,
-            excludedBases: excludedIngredients,
-            locale: localeCode,
-            contextData: contextData,
-          );
+        // 2. Initialize analysis notifier
+        ref.read(analysisNotifierProvider.notifier).reset();
 
-          // 🛡️ V230: Master Analysis Flow Control
-          // Snapshot the state before reset to prevent race conditions in listeners
-          final stateSnapshot = resultState;
-          
-          // Reset internal loading state immediately
-          ref.read(analysisNotifierProvider.notifier).reset(); 
+        // 3. Analyze based on mode
+        final resultState =
+            await ref.read(analysisNotifierProvider.notifier).analyzeImage(
+                  imageFile: optimizedImage,
+                  mode: _currentIndex == 0
+                      ? ScannutMode.food
+                      : _currentIndex == 1
+                          ? ScannutMode.plant
+                          : (_petMode == 1
+                              ? ScannutMode.petDiagnosis
+                              : ScannutMode.petIdentification),
+                  petName: _petName,
+                  petId: _petId,
+                  excludedBases: excludedIngredients,
+                  locale: localeCode,
+                  contextData: contextData,
+                );
 
-          // 4. Handle Result (Navigation, Saving, etc.)
-          await _handleAnalysisResult(stateSnapshot, optimizedImage);
+        // 🛡️ V230: Master Analysis Flow Control
+        // Snapshot the state before reset to prevent race conditions in listeners
+        final stateSnapshot = resultState;
+
+        // Reset internal loading state immediately
+        ref.read(analysisNotifierProvider.notifier).reset();
+
+        // 4. Handle Result (Navigation, Saving, etc.)
+        await _handleAnalysisResult(stateSnapshot, optimizedImage);
       } finally {
         if (mounted) {
           setState(() {
@@ -577,19 +629,22 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           });
         }
       }
-          debugPrint('🎉 _process: END SUCCESS');
-
-      } catch (e) {
-           debugPrint('❌❌❌ ERROR in _processCapturedImage: $e');
-           if (!mounted) return;
-           if (mounted) AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorProcessingPrefix}$e');
+      debugPrint('🎉 _process: END SUCCESS');
+    } catch (e) {
+      debugPrint('❌❌❌ ERROR in _processCapturedImage: $e');
+      if (!mounted) return;
+      if (mounted) {
+        AppFeedback.showError(context,
+            '${AppLocalizations.of(context)!.errorProcessingPrefix}$e');
       }
+    }
   }
 
   Future<File> _optimizeImage(File originalFile) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      final targetPath = path.join(tempDir.path, 'opt_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final targetPath = path.join(
+          tempDir.path, 'opt_${DateTime.now().millisecondsSinceEpoch}.jpg');
 
       final result = await FlutterImageCompress.compressAndGetFile(
         originalFile.absolute.path,
@@ -597,7 +652,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         minWidth: 1080,
         minHeight: 1080,
         quality: 70,
-        format: CompressFormat.jpeg, 
+        format: CompressFormat.jpeg,
       );
 
       if (result == null) return originalFile;
@@ -608,7 +663,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
   }
 
-  Future<void> _handleAnalysisResult(AnalysisState snapshot, File? image) async {
+  Future<void> _handleAnalysisResult(
+      AnalysisState snapshot, File? image) async {
     // Use injected state if provided (from _onCapture), otherwise read from provider
     final state = snapshot;
 
@@ -617,11 +673,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         if (state.data is FoodAnalysisModel) {
           // 🛡️ V231: Auto-Save Food Analysis to History
           final foodData = state.data as FoodAnalysisModel;
-          final success = await _handleSave('Food', data: foodData, image: image);
-          
+          final success =
+              await _handleSave('Food', data: foodData, image: image);
+
           if (!success) {
-             debugPrint('🛑 Save failed, halting navigation to let user see error.');
-             return; 
+            debugPrint(
+                '🛑 Save failed, halting navigation to let user see error.');
+            return;
           }
 
           if (image != null) {
@@ -631,12 +689,13 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 builder: (context) => FoodResultScreen(
                   analysis: foodData,
                   imageFile: image,
-                  onSave: () => _handleSave('Food', data: foodData, image: image),
+                  onSave: () =>
+                      _handleSave('Food', data: foodData, image: image),
                 ),
               ),
             );
           } else {
-             _showResultSheet(
+            _showResultSheet(
               context,
               ResultCard(
                 analysis: foodData,
@@ -647,8 +706,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         } else if (state.data is PlantAnalysisModel) {
           // 🛡️ V231: Auto-Save Plant Analysis to History
           final plantData = state.data as PlantAnalysisModel;
-          final success = await _handleSave('Plant', data: plantData, image: image);
-          
+          final success =
+              await _handleSave('Plant', data: plantData, image: image);
+
           if (!success) {
             debugPrint('🛑 Save failed, stopping plant flow.');
             return;
@@ -669,7 +729,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           // 🛡️ V231: UNIFIED PET FLOW
           // Always rely on PetResultScreen for saving to avoid double entries.
           // We pass the existing analysis so it doesn't re-trigger Gemini/Groq.
-          
+
           if (image != null) {
             Navigator.push(
               context,
@@ -677,36 +737,55 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 builder: (context) => PetResultScreen(
                   imageFile: image,
                   existingResult: petAnalysis,
-                  mode: _petMode == 1 ? ScannutMode.petDiagnosis : ScannutMode.petIdentification,
+                  mode: _petMode == 1
+                      ? ScannutMode.petDiagnosis
+                      : ScannutMode.petIdentification,
                 ),
               ),
             );
           } else {
-             // Fallback for gallery without file (unlikely here but safe)
-             AppFeedback.showError(context, AppLocalizations.of(context)!.error_image_not_found);
+            // Fallback for gallery without file (unlikely here but safe)
+            AppFeedback.showError(
+                context, AppLocalizations.of(context)!.error_image_not_found);
           }
         }
       }
     } catch (e, stackTrace) {
-        debugPrint('❌ ERRO NA NAVEGAÇÃO: $e');
-        debugPrint('📚 STACKTRACE: $stackTrace');
-        if (mounted) {
-           AppFeedback.showError(context, "${AppLocalizations.of(context)!.errorNavigationPrefix}$e");
-        }
+      debugPrint('❌ ERRO NA NAVEGAÇÃO: $e');
+      debugPrint('📚 STACKTRACE: $stackTrace');
+      if (mounted) {
+        AppFeedback.showError(context,
+            "${AppLocalizations.of(context)!.errorNavigationPrefix}$e");
+      }
     }
     if (state is AnalysisError) {
       final l10n = AppLocalizations.of(context)!;
       String errorMessage;
 
       switch (state.message) {
-        case 'analysisErrorAiFailure': errorMessage = l10n.analysisErrorAiFailure; break;
-        case 'analysisErrorJsonFormat': errorMessage = l10n.analysisErrorJsonFormat; break;
-        case 'analysisErrorUnexpected': errorMessage = l10n.analysisErrorUnexpected; break;
-        case 'analysisErrorInvalidCategory': errorMessage = l10n.analysisErrorInvalidCategory; break;
-        case 'errorBadPhoto': errorMessage = l10n.errorBadPhoto; break;
-        case 'errorAiTimeout': errorMessage = l10n.errorAiTimeout; break;
-        case 'error_image_already_analyzed': errorMessage = l10n.error_image_already_analyzed; break;
-        default: errorMessage = state.message;
+        case 'analysisErrorAiFailure':
+          errorMessage = l10n.analysisErrorAiFailure;
+          break;
+        case 'analysisErrorJsonFormat':
+          errorMessage = l10n.analysisErrorJsonFormat;
+          break;
+        case 'analysisErrorUnexpected':
+          errorMessage = l10n.analysisErrorUnexpected;
+          break;
+        case 'analysisErrorInvalidCategory':
+          errorMessage = l10n.analysisErrorInvalidCategory;
+          break;
+        case 'errorBadPhoto':
+          errorMessage = l10n.errorBadPhoto;
+          break;
+        case 'errorAiTimeout':
+          errorMessage = l10n.errorAiTimeout;
+          break;
+        case 'error_image_already_analyzed':
+          errorMessage = l10n.error_image_already_analyzed;
+          break;
+        default:
+          errorMessage = state.message;
       }
 
       AppFeedback.showError(context, errorMessage);
@@ -715,8 +794,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   void _showResultSheet(BuildContext context, Widget child) {
     // 1. Reset do loading para remover o desfoque da Home
-    ref.read(analysisNotifierProvider.notifier).reset(); 
-    
+    ref.read(analysisNotifierProvider.notifier).reset();
+
     // 2. Pequeno delay para o Flutter limpar a UI
     Future.delayed(const Duration(milliseconds: 100), () {
       if (context.mounted) {
@@ -745,72 +824,87 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         final petName = petData.petName ?? _petName;
 
         if (petName == null || petName.trim().isEmpty) {
-          if (mounted) AppFeedback.showError(context, AppLocalizations.of(context)!.errorPetNameNotFound);
+          if (mounted) {
+            AppFeedback.showError(
+                context, AppLocalizations.of(context)!.errorPetNameNotFound);
+          }
           return false;
         }
 
         final dataMap = petData.toJson();
         if (activeImage != null) dataMap['image_path'] = activeImage.path;
 
-        await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap, petId: _petId, imagePath: activeImage?.path);
-        
+        await ref.read(historyServiceProvider).savePetAnalysis(petName, dataMap,
+            petId: _petId, imagePath: activeImage?.path);
+
         if (!mounted) return false;
-        
-        if (mounted) AppFeedback.showSuccess(context, AppLocalizations.of(context)!.petSavedSuccess(petName));
+
+        if (mounted) {
+          AppFeedback.showSuccess(
+              context, AppLocalizations.of(context)!.petSavedSuccess(petName));
+        }
 
         // Auto-Navigation Logic for Diagnosis Mode
-        if (_petMode == 1) { // 1 = Diagnosis
-            // Close the Result Sheet
-            if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+        if (_petMode == 1) {
+          // 1 = Diagnosis
+          // Close the Result Sheet
+          if (Navigator.of(context).canPop()) Navigator.of(context).pop();
 
-            // Load Profile and Navigate to Health Tab
-            try {
-                final profileService = PetProfileService();
-                await profileService.init();
-                final profileData = await profileService.getProfile(petName);
+          // Load Profile and Navigate to Health Tab
+          try {
+            final profileService = PetProfileService();
+            await profileService.init();
+            final profileData = await profileService.getProfile(petName);
 
-                if (profileData != null && profileData['data'] != null) {
-                    final profile = PetProfileExtended.fromHiveEntry(Map<String, dynamic>.from(profileData['data']));
+            if (profileData != null && profileData['data'] != null) {
+              final profile = PetProfileExtended.fromHiveEntry(
+                  Map<String, dynamic>.from(profileData['data']));
 
-                    if (mounted) {
-                        Navigator.of(context).push(
-                            MaterialPageRoute(builder: (ctx) => Scaffold(
-                                backgroundColor: AppDesign.surfaceDark,
-                                appBar: AppBar(
-                                    title: Text(petName),
-                                    backgroundColor: AppDesign.backgroundDark,
-                                    iconTheme: const IconThemeData(color: AppDesign.textPrimaryDark),
-                                    titleTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 20),
-                                ),
-                                body: EditPetForm(
-                                    existingProfile: profile,
-                                    onSave: (p) async { 
-                                        await profileService.saveOrUpdateProfile(p.petName, p.toJson());
-                                        if (!mounted) return;
-                                        if (mounted && Navigator.canPop(context)) Navigator.pop(context);
-                                    },
-                                    initialTabIndex: 1, // HEALTH TAB
-                                ),
-                            ))
-                        );
-                    }
-                }
-            } catch (e) {
-                debugPrint('Navigation error: $e');
+              if (mounted) {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (ctx) => Scaffold(
+                          backgroundColor: AppDesign.surfaceDark,
+                          appBar: AppBar(
+                            title: Text(petName),
+                            backgroundColor: AppDesign.backgroundDark,
+                            iconTheme: const IconThemeData(
+                                color: AppDesign.textPrimaryDark),
+                            titleTextStyle: GoogleFonts.poppins(
+                                color: AppDesign.textPrimaryDark, fontSize: 20),
+                          ),
+                          body: EditPetForm(
+                            existingProfile: profile,
+                            onSave: (p) async {
+                              await profileService.saveOrUpdateProfile(
+                                  p.petName, p.toJson());
+                              if (!mounted) return;
+                              if (mounted && Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              }
+                            },
+                            initialTabIndex: 1, // HEALTH TAB
+                          ),
+                        )));
+              }
             }
+          } catch (e) {
+            debugPrint('Navigation error: $e');
+          }
         }
         return true;
       } else {
         // Food or Plant specialized save
         if (type == 'Food' && activeData is FoodAnalysisModel) {
-            await NutritionService().saveFoodAnalysis(activeData, activeImage);
+          await NutritionService().saveFoodAnalysis(activeData, activeImage);
         } else if (type == 'Plant' && activeData is PlantAnalysisModel) {
-            await BotanyService().savePlantAnalysis(activeData, activeImage);
+          await BotanyService().savePlantAnalysis(activeData, activeImage);
         }
 
         if (mounted) {
           final l10n = AppLocalizations.of(context)!;
-          final String translatedType = type == 'Food' ? l10n.tabFood : (type == 'Plant' ? l10n.tabPlants : type);
+          final String translatedType = type == 'Food'
+              ? l10n.tabFood
+              : (type == 'Plant' ? l10n.tabPlants : type);
           if (!mounted) return false;
           AppFeedback.showSuccess(context, l10n.savedSuccess(translatedType));
         }
@@ -819,7 +913,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     } catch (e, stack) {
       debugPrint('❌ Error saving $type analysis: $e');
       debugPrint(stack.toString());
-      
+
       if (mounted) {
         await showDialog(
           context: context,
@@ -844,7 +938,6 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     }
   }
 
-
   void _handleShop() {
     // Implement shop navigation
     ScaffoldMessenger.of(context).showSnackBar(
@@ -854,6 +947,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -861,7 +955,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: AppDesign.backgroundDark,
-        body: Center(child: CircularProgressIndicator(color: AppDesign.progress)),
+        body:
+            Center(child: CircularProgressIndicator(color: AppDesign.progress)),
       );
     }
 
@@ -874,564 +969,699 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       },
       child: Scaffold(
         backgroundColor: AppDesign.backgroundDark,
-      drawer: const AppDrawer(),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (_currentIndex != -1) ...[
-            if (_isCameraInitialized && _controller != null && _controller!.value.isInitialized && !_isInitializingCamera)
-              CameraPreview(_controller!)
-            else
-              Container(color: AppDesign.backgroundDark),
-          ],
-          
-          // 🛡️ LOADING OVERLAY (Analysis State)
-          if (ref.watch(analysisNotifierProvider) is AnalysisLoading)
-            Container(
-              color: Colors.black.withValues(alpha: 0.7), // Dimmed background
-              width: double.infinity,
-              height: double.infinity,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-                  decoration: BoxDecoration(
-                    color: Colors.white, // White card for Black Text contrast
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 5))
-                    ]
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Loading Indicator (Orange for Food)
-                      const SizedBox(
-                        width: 40, 
-                        height: 40, 
-                        child: CircularProgressIndicator(
-                          color: AppDesign.foodOrange, // Food Domain Color
-                          strokeWidth: 3,
+        drawer: const AppDrawer(),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_currentIndex != -1) ...[
+              if (_isCameraInitialized &&
+                  _controller != null &&
+                  _controller!.value.isInitialized &&
+                  !_isInitializingCamera)
+                CameraPreview(_controller!)
+              else
+                Container(color: AppDesign.backgroundDark),
+            ],
+
+            // 🛡️ LOADING OVERLAY (Analysis State)
+            if (ref.watch(analysisNotifierProvider) is AnalysisLoading)
+              Container(
+                color: Colors.black.withValues(alpha: 0.7), // Dimmed background
+                width: double.infinity,
+                height: double.infinity,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 24),
+                    decoration: BoxDecoration(
+                        color:
+                            Colors.white, // White card for Black Text contrast
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5))
+                        ]),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Loading Indicator (Orange for Food)
+                        const SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            color: AppDesign.foodOrange, // Food Domain Color
+                            strokeWidth: 3,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        _currentIndex == 0 ? l10n.loadingMsgDiet :
-                        _currentIndex == 1 ? l10n.loadingMsgPlant :
-                        _petMode == 1 ? l10n.loadingMsgClinical :
-                        _petMode == 2 ? l10n.loadingMsgStool :
-                        l10n.loadingMsgPetId,
-                        style: GoogleFonts.poppins(
-                          color: Colors.black, // PRETO PURO (Requested)
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      // 🛡️ FIX: Show pet name when analyzing pet image
-                      if (_currentIndex == 2 && _displayPetName != null && _displayPetName!.isNotEmpty) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 20),
                         Text(
-                          _displayPetName!,
+                          _currentIndex == 0
+                              ? l10n.loadingMsgDiet
+                              : _currentIndex == 1
+                                  ? l10n.loadingMsgPlant
+                                  : _petMode == 1
+                                      ? l10n.loadingMsgClinical
+                                      : _petMode == 2
+                                          ? l10n.loadingMsgStool
+                                          : l10n.loadingMsgPetId,
                           style: GoogleFonts.poppins(
-                            color: AppDesign.petPink,
+                            color: Colors.black, // PRETO PURO (Requested)
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        // 🛡️ FIX: Show pet name when analyzing pet image
+                        if (_currentIndex == 2 &&
+                            _displayPetName != null &&
+                            _displayPetName!.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _displayPetName!,
+                            style: GoogleFonts.poppins(
+                              color: AppDesign.petPink,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.loadingMsgWait,
+                          style: GoogleFonts.poppins(
+                            color: Colors.black54,
+                            fontSize: 12,
                           ),
                           textAlign: TextAlign.center,
                         ),
                       ],
-                      const SizedBox(height: 4),
-                      Text(
-                        l10n.loadingMsgWait,
-                        style: GoogleFonts.poppins(
-                          color: Colors.black54, 
-                          fontSize: 12,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-          // 2. Scan Frame Overlay - Show when mode selected OR when we have a captured image
-          if (_currentIndex != -1 || _capturedImage != null)
-            Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   // Hint Banner ABOVE the frame
-                   if (_currentIndex != -1)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: IgnorePointer(
-                        ignoring: true,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: AppDesign.getModeColor(_currentIndex),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              )
-                            ]
-                          ),
-                          child: Text(
-                            _getHintText(context),
-                            style: GoogleFonts.poppins(
-                              color: Colors.black, // Pure Black as requested
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  Container(
-                    width: 280,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: _currentIndex == -1 ? AppDesign.textPrimaryDark.withValues(alpha: 0.5) : AppDesign.getModeColor(_currentIndex), width: 3),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Stack(
+            // 2. Scan Frame Overlay - Show when mode selected OR when we have a captured image
+            if (_currentIndex != -1 || _capturedImage != null)
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (_capturedImage != null)
-                      Positioned.fill(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(21),
-                          child: Image.file(
-                            _capturedImage!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                    color: Colors.white10,
-                                    child: const Center(
-                                        child: Icon(Icons.broken_image, color: Colors.white24, size: 40)
-                                    ),
-                                );
-                            },
-                          ),
-                        ),
-                      ),
-                    // Corner accents
-                    Positioned(
-                    top: -2,
-                    left: -2,
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                          left: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: -2,
-                    right: -2,
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                          right: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -2,
-                    left: -2,
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                          left: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -2,
-                    right: -2,
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                          right: BorderSide(color: _currentIndex == -1 ? AppDesign.accent : AppDesign.getModeColor(_currentIndex), width: 4),
-                        ),
-                      ),
-                    ),
-                  ),
-                 ],
-               ),
-             ),
-                ],
-              ),
-            ),
-
-          // 2.5 PET MODE TOGGLES (Top Center)
-          if (_currentIndex == 2)
-            Positioned(
-              top: 160, // Deep optical centering (~160px from top)
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppDesign.backgroundDark.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white24),
-                    boxShadow: const [
-                       BoxShadow(
-                         color: Colors.black26, 
-                         blurRadius: 8, 
-                         offset: Offset(0, 4)
-                       )
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Toggle 1: Identification
-                      GestureDetector(
-                        onTap: () { setState(() { _petMode = 0; }); _clearCapturedImage(); },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _petMode == 0 ? AppDesign.getModeColor(2) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.pets, size: 20, color: _petMode == 0 ? Colors.black : AppDesign.textPrimaryDark), // Black Text
-                              if (_petMode == 0) ...[
-                                const SizedBox(width: 8),
-                                Text(AppLocalizations.of(context)!.modePetIdentification, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)), // Black Text
-                              ]
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Toggle 2: Diagnosis
-                      GestureDetector(
-                        onTap: () { setState(() { _petMode = 1; }); _clearCapturedImage(); },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _petMode == 1 ? AppDesign.getModeColor(2) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.health_and_safety, size: 20, color: _petMode == 1 ? Colors.black : AppDesign.textPrimaryDark),
-                              if (_petMode == 1) ...[
-                                const SizedBox(width: 8),
-                                Text(AppLocalizations.of(context)!.modePetHealth, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                              ]
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ),
-            ),
-          ),
-
-
-          // 3. Menu Button (Top Left)
-          Positioned(
-            top: 50,
-            left: 20,
-            child: Builder(
-              builder: (context) => Container(
-                decoration: BoxDecoration(
-                  color: AppDesign.backgroundDark.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.2)),
-                ),
-                child: IconButton(
-                  icon: Icon(AppDesign.iconMenu, color: _currentIndex == -1 ? AppDesign.textPrimaryDark : AppDesign.getModeColor(_currentIndex), size: 28),
-                  onPressed: () {
-                    _clearCapturedImage();
-                    Scaffold.of(context).openDrawer();
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          // 3.5 Nutrition Button (Top Right) - Only for Food Mode
-          if (_currentIndex == 0)
-            Positioned(
-              top: 50,
-              right: 20,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // History Button (New)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.history, color: AppDesign.getModeColor(0), size: 28),
-                      tooltip: AppLocalizations.of(context)!.tooltipNutritionHistory,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const NutritionHistoryScreen()),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Nutrition Module Button (Existing)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.restaurant_menu, color: AppDesign.getModeColor(0), size: 28),
-                      tooltip: AppLocalizations.of(context)!.tooltipNutritionManagement,
-                      onPressed: () {
-                        try {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NutritionHomeScreen(),
+                    // Hint Banner ABOVE the frame
+                    if (_currentIndex != -1)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: IgnorePointer(
+                          ignoring: true,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                                color: AppDesign.getModeColor(_currentIndex),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  )
+                                ]),
+                            child: Text(
+                              _getHintText(context),
+                              style: GoogleFonts.poppins(
+                                color: Colors.black, // Pure Black as requested
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
-                          );
-                        } catch (e) {
-                          debugPrint('❌ Error opening Nutrition module: $e');
-                          AppFeedback.showError(context, '${AppLocalizations.of(context)!.errorNavigationPrefix}$e');
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                          ),
+                        ),
+                      ),
 
-          // 3.5 Action Buttons (Top Right) - Only for Plant Mode
-          if (_currentIndex == 1)
-            Positioned(
-              top: 50,
-              right: 20,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   // History Button
-                  Container(
+                    Container(
+                      width: 280,
+                      height: 280,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: _currentIndex == -1
+                                ? AppDesign.textPrimaryDark
+                                    .withValues(alpha: 0.5)
+                                : AppDesign.getModeColor(_currentIndex),
+                            width: 3),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Stack(
+                        children: [
+                          if (_capturedImage != null)
+                            Positioned.fill(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(21),
+                                child: Image.file(
+                                  _capturedImage!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.white10,
+                                      child: const Center(
+                                          child: Icon(Icons.broken_image,
+                                              color: Colors.white24, size: 40)),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          // Corner accents
+                          Positioned(
+                            top: -2,
+                            left: -2,
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                  left: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  top: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                  right: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: -2,
+                            left: -2,
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                  left: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: -2,
+                            right: -2,
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                  right: BorderSide(
+                                      color: _currentIndex == -1
+                                          ? AppDesign.accent
+                                          : AppDesign.getModeColor(
+                                              _currentIndex),
+                                      width: 4),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // 2.5 PET MODE TOGGLES (Top Center)
+            if (_currentIndex == 2)
+              Positioned(
+                top: 160, // Deep optical centering (~160px from top)
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      color: AppDesign.backgroundDark.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: Colors.white24),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 8,
+                            offset: Offset(0, 4))
+                      ],
                     ),
-                    child: IconButton(
-                      icon: Icon(Icons.history, color: AppDesign.getModeColor(1), size: 28),
-                      tooltip: AppLocalizations.of(context)!.tooltipBotanyHistory,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const BotanyHistoryScreen()),
-                        );
-                      },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Toggle 1: Identification
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _petMode = 0;
+                            });
+                            _clearCapturedImage();
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: _petMode == 0
+                                  ? AppDesign.getModeColor(2)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.pets,
+                                    size: 20,
+                                    color: _petMode == 0
+                                        ? Colors.black
+                                        : AppDesign
+                                            .textPrimaryDark), // Black Text
+                                if (_petMode == 0) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                      AppLocalizations.of(context)!
+                                          .modePetIdentification,
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight:
+                                              FontWeight.bold)), // Black Text
+                                ]
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Toggle 2: Diagnosis
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _petMode = 1;
+                            });
+                            _clearCapturedImage();
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: _petMode == 1
+                                  ? AppDesign.getModeColor(2)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.health_and_safety,
+                                    size: 20,
+                                    color: _petMode == 1
+                                        ? Colors.black
+                                        : AppDesign.textPrimaryDark),
+                                if (_petMode == 1) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                      AppLocalizations.of(context)!
+                                          .modePetHealth,
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold)),
+                                ]
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
+              ),
+
+            // 3. Menu Button (Top Left)
+            Positioned(
+              top: 50,
+              left: 20,
+              child: Builder(
+                builder: (context) => Container(
+                  decoration: BoxDecoration(
+                    color: AppDesign.backgroundDark.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color:
+                            AppDesign.textPrimaryDark.withValues(alpha: 0.2)),
+                  ),
+                  child: IconButton(
+                    icon: Icon(AppDesign.iconMenu,
+                        color: _currentIndex == -1
+                            ? AppDesign.textPrimaryDark
+                            : AppDesign.getModeColor(_currentIndex),
+                        size: 28),
+                    onPressed: () {
+                      _clearCapturedImage();
+                      Scaffold.of(context).openDrawer();
+                    },
+                  ),
+                ),
               ),
             ),
 
-          // 3.5 Action Buttons (Top Right) - Only for Pet Mode
-          if (_currentIndex == 2)
-            Positioned(
-              top: 50,
-              right: 20,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Agenda Global Button (only in PET mode)
-                  if (_currentIndex == 2) ...[
+            // 3.5 Nutrition Button (Top Right) - Only for Food Mode
+            if (_currentIndex == 0)
+              Positioned(
+                top: 50,
+                right: 20,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // History Button (New)
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2)),
                       ),
                       child: IconButton(
-                        icon: Icon(Icons.calendar_month, color: AppDesign.getModeColor(2), size: 28),
+                        icon: Icon(Icons.history,
+                            color: AppDesign.getModeColor(0), size: 28),
+                        tooltip: AppLocalizations.of(context)!
+                            .tooltipNutritionHistory,
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const GlobalAgendaScreen()),
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const NutritionHistoryScreen()),
                           );
                         },
                       ),
                     ),
                     const SizedBox(width: 12),
-                  ],
-                  // Partners Button
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.handshake, color: AppDesign.getModeColor(2), size: 28),
-                      onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PartnersHubScreen()),
-                  );
-                },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // History Button
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                    ),
-                    child: IconButton(
-                      icon: Icon(Icons.pets, color: AppDesign.getModeColor(2), size: 28),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const PetHistoryScreen()),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          
-          // 3. Shutter Button (Center) - Only show when mode is selected
-          if (_currentIndex != -1)
-            Positioned(
-              bottom: 155, // Lifted +5px (Total 155px)
-              left: 0,
-              right: 0,
-              child: Center(
-                child: _buildCaptureControls(),
-              ),
-            ),
-
-          // 4. Loading Overlay - Using Consumer to watch analysis state
-          Consumer(
-            builder: (context, ref, child) {
-              final analysisState = ref.watch(analysisNotifierProvider);
-              if (analysisState is AnalysisLoading) {
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Background Preview
-                    if (analysisState.imagePath != null)
-                      Image.file(
-                        File(analysisState.imagePath!),
-                        fit: BoxFit.cover,
-                      ),
-                    
-                    // Dark Overlay
+                    // Nutrition Module Button (Existing)
                     Container(
-                      color: Colors.black.withValues(alpha: 0.7),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.restaurant_menu,
+                            color: AppDesign.getModeColor(0), size: 28),
+                        tooltip: AppLocalizations.of(context)!
+                            .tooltipNutritionManagement,
+                        onPressed: () {
+                          try {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const NutritionHomeScreen(),
+                              ),
+                            );
+                          } catch (e) {
+                            debugPrint('❌ Error opening Nutrition module: $e');
+                            AppFeedback.showError(context,
+                                '${AppLocalizations.of(context)!.errorNavigationPrefix}$e');
+                          }
+                        },
+                      ),
                     ),
+                  ],
+                ),
+              ),
 
-                    // Loading Content
-                    Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.1),
+            // 3.5 Action Buttons (Top Right) - Only for Plant Mode
+            if (_currentIndex == 1)
+              Positioned(
+                top: 50,
+                right: 20,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // History Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.history,
+                            color: AppDesign.getModeColor(1), size: 28),
+                        tooltip:
+                            AppLocalizations.of(context)!.tooltipBotanyHistory,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const BotanyHistoryScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // 3.5 Action Buttons (Top Right) - Only for Pet Mode
+            if (_currentIndex == 2)
+              Positioned(
+                top: 50,
+                right: 20,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Agenda Global Button (only in PET mode)
+                    if (_currentIndex == 2) ...[
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2)),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.calendar_month,
+                              color: AppDesign.getModeColor(2), size: 28),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const GlobalAgendaScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    // Partners Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.handshake,
+                            color: AppDesign.getModeColor(2), size: 28),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const PartnersHubScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // History Button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.pets,
+                            color: AppDesign.getModeColor(2), size: 28),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const PetHistoryScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // 3. Shutter Button (Center) - Only show when mode is selected and NOT ScanWalk
+            if (_currentIndex != -1 && _currentIndex != 3)
+              Positioned(
+                bottom: 155, // Lifted +5px (Total 155px)
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _buildCaptureControls(),
+                ),
+              ),
+
+            // 4. Loading Overlay - Using Consumer to watch analysis state
+            Consumer(
+              builder: (context, ref, child) {
+                final analysisState = ref.watch(analysisNotifierProvider);
+                if (analysisState is AnalysisLoading) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Background Preview
+                      if (analysisState.imagePath != null)
+                        Image.file(
+                          File(analysisState.imagePath!),
+                          fit: BoxFit.cover,
+                        ),
+
+                      // Dark Overlay
+                      Container(
+                        color: Colors.black.withValues(alpha: 0.7),
+                      ),
+
+                      // Loading Content
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                              child: const CircularProgressIndicator(
+                                color: AppDesign.accent,
+                                strokeWidth: 3,
+                              ),
                             ),
-                            child: const CircularProgressIndicator(
-                              color: AppDesign.accent,
-                              strokeWidth: 3,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            _translateLoadingMessage(analysisState.message, AppLocalizations.of(context)!),
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              shadows: [
-                                const Shadow(blurRadius: 4, color: Colors.black, offset: Offset(0, 2)),
-                              ],
-                            ),
-                          ),
-                          // 🛡️ FIX: Display pet name below the loading message
-                          if (_displayPetName != null && _displayPetName!.isNotEmpty) ...[
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 24),
                             Text(
-                              _displayPetName!,
+                              _translateLoadingMessage(analysisState.message,
+                                  AppLocalizations.of(context)!),
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
-                                color: AppDesign.getModeColor(2), // Pink color for pet
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                                 shadows: [
-                                  const Shadow(blurRadius: 4, color: Colors.black, offset: Offset(0, 2)),
+                                  const Shadow(
+                                      blurRadius: 4,
+                                      color: Colors.black,
+                                      offset: Offset(0, 2)),
                                 ],
                               ),
                             ),
+                            // 🛡️ FIX: Display pet name below the loading message
+                            if (_displayPetName != null &&
+                                _displayPetName!.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                _displayPetName!,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.poppins(
+                                  color: AppDesign.getModeColor(
+                                      2), // Pink color for pet
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  shadows: [
+                                    const Shadow(
+                                        blurRadius: 4,
+                                        color: Colors.black,
+                                        offset: Offset(0, 2)),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
 
-          // 5. Bottom Bar
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: _buildBottomBar(),
-          ),
-        ],
+            // 5. Bottom Bar
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: _buildBottomBar(),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildCaptureControls() {
+    // If in ScanWalk (3), do not render these controls at all
+    if (_currentIndex == 3) return const SizedBox.shrink();
+
     final modeColor = AppDesign.getModeColor(_currentIndex);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1449,17 +1679,20 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 shape: BoxShape.circle,
                 border: Border.all(color: modeColor, width: 2),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4, offset: const Offset(0, 2))
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2))
                 ],
               ),
               child: Icon(Icons.photo_library, color: modeColor, size: 26),
             ),
           ),
-          
+
           const SizedBox(width: 30), // Spacing
 
           // Shutter Button (Center)
-           GestureDetector(
+          GestureDetector(
             onTap: _onCapture,
             child: Container(
               width: 80,
@@ -1468,8 +1701,11 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                 shape: BoxShape.circle,
                 border: Border.all(color: modeColor, width: 4),
                 color: modeColor.withValues(alpha: 0.2),
-                 boxShadow: [
-                  BoxShadow(color: modeColor.withValues(alpha: 0.3), blurRadius: 15, spreadRadius: 1)
+                boxShadow: [
+                  BoxShadow(
+                      color: modeColor.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      spreadRadius: 1)
                 ],
               ),
               padding: const EdgeInsets.all(4),
@@ -1478,7 +1714,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   shape: BoxShape.circle,
                   color: modeColor,
                 ),
-                child: const Icon(Icons.camera_alt, color: AppDesign.backgroundDark, size: 36),
+                child: const Icon(Icons.camera_alt,
+                    color: AppDesign.backgroundDark, size: 36),
               ),
             ),
           ),
@@ -1504,16 +1741,25 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             child: Container(
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.transparent, // Transparent background as requested
+                color:
+                    Colors.transparent, // Transparent background as requested
                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  if (ref.watch(settingsProvider).showFoodButton) _buildNavItem(0, Icons.restaurant, l10n.tabFood, AppDesign.getModeColor(0)),
-                  if (ref.watch(settingsProvider).showPlantButton) _buildNavItem(1, Icons.grass, l10n.tabPlants, AppDesign.getModeColor(1)),
-                  if (ref.watch(settingsProvider).showPetButton) _buildNavItem(2, Icons.pets, l10n.tabPets, AppDesign.getModeColor(2)),
+                  if (ref.watch(settingsProvider).showFoodButton)
+                    _buildNavItem(0, Icons.restaurant, l10n.tabFood,
+                        AppDesign.getModeColor(0)),
+                  if (ref.watch(settingsProvider).showPlantButton)
+                    _buildNavItem(1, Icons.grass, l10n.tabPlants,
+                        AppDesign.getModeColor(1)),
+                  if (ref.watch(settingsProvider).showPetButton)
+                    _buildNavItem(
+                        2, Icons.pets, l10n.tabPets, AppDesign.getModeColor(2)),
+                  _buildNavItem(3, Icons.map_outlined, l10n.tabScanWalk,
+                      AppDesign.getModeColor(3)),
                 ],
               ),
             ),
@@ -1525,10 +1771,32 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   // ... (Helper skipped) ...
 
-  Widget _buildNavItem(int index, IconData icon, String label, Color activeColor) {
+  Widget _buildNavItem(
+      int index, IconData icon, String label, Color activeColor) {
     final isSelected = _currentIndex == index;
     return GestureDetector(
       onTap: () async {
+        // 🚀 ScanWalk Fullscreen Navigation
+        if (index == 3) {
+          // 🛡️ [CHECK-IN INTELIGENTE] - Gatekeeper de Segurança
+          final guard = SessionGuard();
+          final pet = await guard.validatePetSession(context);
+
+          if (pet == null) {
+            return; // O Guard já exibiu o alerta SnackBar Vermelho
+          }
+
+          // Navigate to the dedicated fullscreen ScanWalk route with the active pet
+          if (mounted) {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ScanWalkFullscreen(activePet: pet),
+              ),
+            );
+          }
+          return;
+        }
+
         setState(() {
           _capturedImage = null;
           _currentIndex = index;
@@ -1536,7 +1804,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
             _petMode = 0;
           }
         });
-        
+
         // Initialize camera when mode is selected (if not already initialized)
         if (!_isCameraInitialized) {
           await _initCamera();
@@ -1546,7 +1814,9 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.2) : Colors.transparent,
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.2)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -1554,14 +1824,18 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           children: [
             Icon(
               icon,
-              color: isSelected ? activeColor : Colors.white60, // Restore white for dark bg
+              color: isSelected
+                  ? activeColor
+                  : Colors.white60, // Restore white for dark bg
               size: 28,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? activeColor : Colors.white60, // Restore white for dark bg
+                color: isSelected
+                    ? activeColor
+                    : Colors.white60, // Restore white for dark bg
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -1576,9 +1850,6 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     // No auto-selection - user must click a mode button
     // This method can be used for validation if needed in the future
   }
-
-
-
 
   // Helper dialog to ask for pet name
   Future<String?> _promptPetName() async {
@@ -1633,7 +1904,8 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
                   if (!mounted) return;
                   Navigator.of(dialogContext).pop();
                 },
-                child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('OK',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -1648,17 +1920,19 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     try {
       // 1. [V108] Pre-Render Validation (Protocolo de Interface Reativa)
       // Zera cache da memória e força leitura do disco
-      PetProfileService.to.clearMemoryCache(); 
+      PetProfileService.to.clearMemoryCache();
       await PetProfileService.to.syncWithDisk();
-      
+
       final registeredPets = await PetProfileService.to.getAllPetIdsWithNames();
-      
+
       // registeredPets is already sorted by the service if needed,
       // but let's ensure it's sorted by name for display convenience
-      registeredPets.sort((a, b) => (a['name'] ?? '').toLowerCase().compareTo((b['name'] ?? '').toLowerCase()));
-      
+      registeredPets.sort((a, b) => (a['name'] ?? '')
+          .toLowerCase()
+          .compareTo((b['name'] ?? '').toLowerCase()));
+
       debugPrint('🔍 [V108-UI] Pets Validados (${registeredPets.length})');
-      
+
       // Show dialog
       final selectedId = await showDialog<String>(
         context: context,
@@ -1667,16 +1941,17 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
           registeredPets: registeredPets,
         ),
       );
-      
+
       if (selectedId != null && selectedId != '<NOVO>') {
-          // Resolve name for the UI from the selected ID
-          final pet = registeredPets.firstWhere((p) => p['id'] == selectedId, orElse: () => {});
-          setState(() {
-              _petId = selectedId;
-              _petName = pet['name'];
-          });
+        // Resolve name for the UI from the selected ID
+        final pet = registeredPets.firstWhere((p) => p['id'] == selectedId,
+            orElse: () => {});
+        setState(() {
+          _petId = selectedId;
+          _petName = pet['name'];
+        });
       }
-      
+
       return selectedId;
     } catch (e) {
       debugPrint('❌ Error loading pets for selection: $e');
@@ -1689,7 +1964,7 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
     try {
       final petProfileService = PetProfileService();
       await petProfileService.init();
-      
+
       // Save image permanently
       String? savedImagePath = _capturedImage?.path;
       if (_capturedImage != null) {
@@ -1707,19 +1982,21 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
       // Extract wound/diagnosis information from analysis
       final analysisData = {
         'imagePath': savedImagePath ?? '',
-        'diagnosis': analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? AppLocalizations.of(context)!.defaultWoundAnalysis,
+        'diagnosis': analysis.descricaoVisualDiag ??
+            analysis.orientacaoImediataDiag ??
+            AppLocalizations.of(context)!.defaultWoundAnalysis,
         'severity': _extractSeverity(analysis),
         'recommendations': analysis.possiveisCausasDiag ?? [],
         'rawData': analysis.toJson(), // Store complete analysis
       };
-      
+
       await petProfileService.saveWoundAnalysis(
         petId: _petId ?? _petName!,
         analysisData: analysisData,
       );
-      
+
       debugPrint('✅ Wound analysis saved successfully for $_petName');
-      
+
       // Show confirmation to user
       if (mounted) {
         AppFeedback.showSuccess(
@@ -1751,13 +2028,18 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
         return 'Baixa';
       }
     }
-    
+
     // Fallback: analyze description text
-    final descricao = (analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? '').toLowerCase();
-    
-    if (descricao.contains('grave') || descricao.contains('urgente') || descricao.contains('crítico')) {
+    final descricao =
+        (analysis.descricaoVisualDiag ?? analysis.orientacaoImediataDiag ?? '')
+            .toLowerCase();
+
+    if (descricao.contains('grave') ||
+        descricao.contains('urgente') ||
+        descricao.contains('crítico')) {
       return 'Alta';
-    } else if (descricao.contains('moderado') || descricao.contains('atenção')) {
+    } else if (descricao.contains('moderado') ||
+        descricao.contains('atenção')) {
       return 'Média';
     } else {
       return 'Baixa';
@@ -1784,11 +2066,16 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
 
   String _translateLoadingMessage(String key, AppLocalizations l10n) {
     switch (key) {
-      case 'loadingFood': return l10n.loadingFood;
-      case 'loadingPlant': return l10n.loadingPlant;
-      case 'loadingPetBreed': return l10n.loadingPetBreed;
-      case 'loadingPetHealth': return l10n.loadingPetHealth;
-      default: return key;
+      case 'loadingFood':
+        return l10n.loadingFood;
+      case 'loadingPlant':
+        return l10n.loadingPlant;
+      case 'loadingPetBreed':
+        return l10n.loadingPetBreed;
+      case 'loadingPetHealth':
+        return l10n.loadingPetHealth;
+      default:
+        return key;
     }
   }
 
@@ -1831,13 +2118,15 @@ class _HomeViewState extends ConsumerState<HomeView> with WidgetsBindingObserver
   String _getHintText(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     switch (_currentIndex) {
-      case 0: return l10n.homeHintFood;
-      case 1: return l10n.homeHintPlant;
-      case 2: 
+      case 0:
+        return l10n.homeHintFood;
+      case 1:
+        return l10n.homeHintPlant;
+      case 2:
         // Pet mode: check sub-mode (Breed & ID vs Health)
         return _petMode == 0 ? l10n.homeHintPetBreed : l10n.homeHintPetHealth;
-      default: return '';
+      default:
+        return '';
     }
   }
 }
-

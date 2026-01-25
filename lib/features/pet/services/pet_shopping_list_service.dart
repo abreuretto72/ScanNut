@@ -3,12 +3,13 @@ import '../../../core/services/hive_atomic_manager.dart';
 import '../../../core/utils/json_cast.dart';
 
 class PetShoppingListService {
-  static final PetShoppingListService _instance = PetShoppingListService._internal();
+  static final PetShoppingListService _instance =
+      PetShoppingListService._internal();
   factory PetShoppingListService() => _instance;
   PetShoppingListService._internal();
 
   static const String boxName = 'pet_shopping_lists';
-  
+
   Future<void> init() async {
     await HiveAtomicManager().ensureBoxOpen(boxName);
     debugPrint('🛒 PetShoppingListService initialized');
@@ -22,9 +23,9 @@ class PetShoppingListService {
   Future<List<Map<String, dynamic>>> getList(String planId) async {
     final box = await HiveAtomicManager().ensureBoxOpen(boxName);
     final data = box.get(planId);
-    
+
     if (data == null) return [];
-    
+
     return deepCastMapList(data);
   }
 

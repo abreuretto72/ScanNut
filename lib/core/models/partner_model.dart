@@ -5,55 +5,58 @@ part 'partner_model.g.dart';
 class PartnerModel {
   @HiveField(0)
   final String id;
-  
+
   @HiveField(1)
   final String name;
-  
+
   @HiveField(2)
   final String? cnpj;
-  
+
   @HiveField(3)
-  final String category; // Veterinário, Farmácia, Pet Shop, Banho e Tosa, Creche, Outros
-  
+  final String
+      category; // Veterinário, Farmácia, Pet Shop, Banho e Tosa, Creche, Outros
+
   @HiveField(4)
   final double latitude;
-  
+
   @HiveField(5)
   final double longitude;
-  
+
   @HiveField(6)
   final String phone;
-  
+
   @HiveField(7)
   final String? whatsapp;
-  
+
   @HiveField(8)
   final String? instagram;
-  
+
   @HiveField(9)
   final String address;
-  
+
   @HiveField(10)
-  final Map<String, dynamic> openingHours; // e.g., {'seg': '08:00-18:00', 'plantao24h': true}
-  
+  final Map<String, dynamic>
+      openingHours; // e.g., {'seg': '08:00-18:00', 'plantao24h': true}
+
   @HiveField(11)
   final double rating;
-  
+
   @HiveField(12)
   final List<String> photos;
-  
+
   @HiveField(13)
-  final List<String> specialties; // ex: ['Dermatologia', 'Oncologia', 'Manipulados']
-  
+  final List<String>
+      specialties; // ex: ['Dermatologia', 'Oncologia', 'Manipulados']
+
   @HiveField(14)
   final Map<String, dynamic> metadata;
-  
+
   @HiveField(15)
   final bool isFavorite;
-  
+
   @HiveField(16)
   final String? email;
-  
+
   @HiveField(17)
   final List<String> teamMembers; // Lista de nomes de atendentes/veterinários
 
@@ -83,18 +86,20 @@ class PartnerModel {
   });
 
   factory PartnerModel.fromJson(Map<String, dynamic> json) {
-    final coords = json['coordinates'] != null ? Map<String, dynamic>.from(json['coordinates']) : null;
-    
+    final coords = json['coordinates'] != null
+        ? Map<String, dynamic>.from(json['coordinates'])
+        : null;
+
     return PartnerModel(
       id: (json['partner_id'] ?? json['id'] ?? '').toString(),
       name: json['name'] ?? 'Sem Nome',
       cnpj: json['cnpj'],
       category: json['category'] ?? 'Outros',
-      latitude: coords != null 
-          ? (coords['lat'] as num?)?.toDouble() ?? 0.0 
+      latitude: coords != null
+          ? (coords['lat'] as num?)?.toDouble() ?? 0.0
           : (json['latitude'] as num?)?.toDouble() ?? 0.0,
-      longitude: coords != null 
-          ? (coords['lng'] as num?)?.toDouble() ?? 0.0 
+      longitude: coords != null
+          ? (coords['lng'] as num?)?.toDouble() ?? 0.0
           : (json['longitude'] as num?)?.toDouble() ?? 0.0,
       phone: json['phone'] ?? json['whatsapp'] ?? '',
       whatsapp: json['whatsapp'],

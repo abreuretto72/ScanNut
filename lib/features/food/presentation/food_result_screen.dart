@@ -30,9 +30,9 @@ class FoodResultScreen extends ConsumerStatefulWidget {
   final bool isReadOnly;
 
   const FoodResultScreen({
-    super.key, 
-    required this.analysis, 
-    this.imageFile, 
+    super.key,
+    required this.analysis,
+    this.imageFile,
     required this.onSave,
     this.isReadOnly = false,
   });
@@ -41,7 +41,8 @@ class FoodResultScreen extends ConsumerStatefulWidget {
   ConsumerState<FoodResultScreen> createState() => _FoodResultScreenState();
 }
 
-class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with SingleTickerProviderStateMixin {
+class _FoodResultScreenState extends ConsumerState<FoodResultScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late ScrollController _scrollController;
   final Color _themeColor = AppDesign.foodOrange; // Orange Food Theme
@@ -61,7 +62,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     }
     _analysis = widget.analysis;
     if (!widget.isReadOnly) {
-       _autoSaveRecipes();
+      _autoSaveRecipes();
     }
   }
 
@@ -74,28 +75,32 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   Future<void> _generatePDF() async {
     try {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PdfPreviewScreen(
-              title: AppLocalizations.of(context)!.pdfFoodAnalysisTitle(widget.analysis.identidade.nome),
-              buildPdf: (format) async {
-                final pdf = await ExportService().generateFoodAnalysisReport(
-                  analysis: _analysis,
-                  imageFile: widget.imageFile,
-                  strings: AppLocalizations.of(context)!,
-                );
-                return pdf.save();
-              },
-            ),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfPreviewScreen(
+            title: AppLocalizations.of(context)!
+                .pdfFoodAnalysisTitle(widget.analysis.identidade.nome),
+            buildPdf: (format) async {
+              final pdf = await ExportService().generateFoodAnalysisReport(
+                analysis: _analysis,
+                imageFile: widget.imageFile,
+                strings: AppLocalizations.of(context)!,
+              );
+              return pdf.save();
+            },
           ),
-        );
+        ),
+      );
     } catch (e) {
       debugPrint("Erro ao gerar PDF: $e");
       if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(AppLocalizations.of(context)!.pdfErrorGeneration(e.toString())), backgroundColor: Colors.red),
-          );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!
+                  .pdfErrorGeneration(e.toString())),
+              backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -125,7 +130,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                   tooltip: AppLocalizations.of(context)!.tooltipSavedRecipes,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.check_circle, color: AppDesign.foodOrange), // Synced with Food Domain
+                  icon: const Icon(Icons.check_circle,
+                      color: AppDesign.foodOrange), // Synced with Food Domain
                   onPressed: null, // No action needed
                   tooltip: AppLocalizations.of(context)!.tooltipAutoSaved,
                 ),
@@ -141,15 +147,17 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                         child: Image.file(
                           widget.imageFile!,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
                             color: Colors.grey.shade900,
-                            child: const Center(child: Icon(Icons.broken_image, size: 50, color: Colors.white24)),
+                            child: const Center(
+                                child: Icon(Icons.broken_image,
+                                    size: 50, color: Colors.white24)),
                           ),
                         ),
                       )
                     else
                       Container(color: Colors.grey.shade900),
-                    
                     Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -165,7 +173,6 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                         ),
                       ),
                     ),
-
                     Positioned(
                       left: 20,
                       bottom: 80,
@@ -186,7 +193,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               shadows: const [
-                                Shadow(blurRadius: 10, color: Colors.black54, offset: Offset(0, 2)),
+                                Shadow(
+                                    blurRadius: 10,
+                                    color: Colors.black54,
+                                    offset: Offset(0, 2)),
                               ],
                             ),
                             maxLines: 2,
@@ -203,7 +213,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Colors.black,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(25)),
                   ),
                   child: TabBar(
                     controller: _tabController,
@@ -212,7 +223,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                     labelColor: _themeColor,
                     unselectedLabelColor: Colors.white54,
                     isScrollable: true,
-                    labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13),
+                    labelStyle: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold, fontSize: 13),
                     tabs: [
                       Tab(text: AppLocalizations.of(context)!.tabSummary),
                       Tab(text: AppLocalizations.of(context)!.tabHealth),
@@ -262,12 +274,14 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 backgroundColor: AppDesign.foodOrange,
                 foregroundColor: Colors.black,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
               child: Text(
                 AppLocalizations.of(context)!.btnGoToList,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 15),
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold, fontSize: 15),
               ),
             ),
           ),
@@ -287,11 +301,13 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.local_fire_department_rounded, color: _themeColor, size: 16),
+          Icon(Icons.local_fire_department_rounded,
+              color: _themeColor, size: 16),
           const SizedBox(width: 6),
           Text(
             "${_analysis.macros.calorias100g} kcal / 100g",
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
           ),
         ],
       ),
@@ -309,20 +325,40 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           // _buildVitalityHeader removed as per user request (exclusivo para plantas)
           Text(l10n.foodVerdict, style: _sectionTitleStyle),
           const SizedBox(height: 8),
-          Text(widget.analysis.analise.vereditoIa.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white70, fontSize: 15, fontStyle: FontStyle.italic)),
+          Text(
+              widget.analysis.analise.vereditoIa
+                  .replaceAll('aproximadamente', '±')
+                  .replaceAll('Aproximadamente', '±'),
+              style: GoogleFonts.poppins(
+                  color: Colors.white70,
+                  fontSize: 15,
+                  fontStyle: FontStyle.italic)),
           const SizedBox(height: 24),
           Text(l10n.foodPros, style: _sectionTitleStyle),
           const SizedBox(height: 12),
-          ..._analysis.analise.pontosPositivos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.check_circle, AppDesign.foodOrange)),
+          ..._analysis.analise.pontosPositivos.map((p) => _buildPointRow(
+              p
+                  .replaceAll('aproximadamente', '±')
+                  .replaceAll('Aproximadamente', '±'),
+              Icons.check_circle,
+              AppDesign.foodOrange)),
           const SizedBox(height: 16),
           Text(l10n.foodCons, style: _sectionTitleStyle),
           const SizedBox(height: 12),
-          ..._analysis.analise.pontosNegativos.map((p) => _buildPointRow(p.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), Icons.warning_rounded, Colors.orangeAccent)),
+          ..._analysis.analise.pontosNegativos.map((p) => _buildPointRow(
+              p
+                  .replaceAll('aproximadamente', '±')
+                  .replaceAll('Aproximadamente', '±'),
+              Icons.warning_rounded,
+              Colors.orangeAccent)),
           const SizedBox(height: 20),
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(l10n.foodDisclaimer, textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
+              child: Text(l10n.foodDisclaimer,
+                  textAlign: TextAlign.center,
+                  style:
+                      GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
             ),
           ),
           const SizedBox(height: 80),
@@ -347,18 +383,31 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildProgressRow(l10n.foodSatietyIndex, performance.indiceSaciedade / 5.0, Colors.tealAccent),
+                _buildProgressRow(l10n.foodSatietyIndex,
+                    performance.indiceSaciedade / 5.0, Colors.tealAccent),
                 const SizedBox(height: 20),
-                Text("${l10n.foodBodyBenefits}:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text("${l10n.foodBodyBenefits}:",
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                ...performance.pontosPositivosCorpo.map((p) => _buildPointRow(p, Icons.trending_up, Colors.tealAccent)),
+                ...performance.pontosPositivosCorpo.map((p) =>
+                    _buildPointRow(p, Icons.trending_up, Colors.tealAccent)),
                 const SizedBox(height: 12),
-                Text("${l10n.foodAttention}:", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text("${l10n.foodAttention}:",
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                ...performance.pontosAtencaoCorpo.map((p) => _buildPointRow(p, Icons.priority_high, Colors.orangeAccent)),
+                ...performance.pontosAtencaoCorpo.map((p) => _buildPointRow(
+                    p, Icons.priority_high, Colors.orangeAccent)),
                 const Divider(color: Colors.white10, height: 24),
-                _buildInfoRow("${l10n.foodFocusEnergy}:", performance.impactoFocoEnergia),
-                _buildInfoRow("${l10n.foodIdealMoment}:", performance.momentoIdealConsumo),
+                _buildInfoRow(
+                    "${l10n.foodFocusEnergy}:", performance.impactoFocoEnergia),
+                _buildInfoRow("${l10n.foodIdealMoment}:",
+                    performance.momentoIdealConsumo),
               ],
             ),
           ),
@@ -370,9 +419,11 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow("${l10n.foodCriticalAlerts}:", _analysis.identidade.alertaCritico),
+                _buildInfoRow("${l10n.foodCriticalAlerts}:",
+                    _analysis.identidade.alertaCritico),
                 const SizedBox(height: 10),
-                _buildInfoRow("${l10n.foodBioChem}:", _analysis.identidade.bioquimicaAlert),
+                _buildInfoRow("${l10n.foodBioChem}:",
+                    _analysis.identidade.bioquimicaAlert),
               ],
             ),
           ),
@@ -380,7 +431,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(l10n.foodDisclaimer, textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
+              child: Text(l10n.foodDisclaimer,
+                  textAlign: TextAlign.center,
+                  style:
+                      GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
             ),
           ),
           const SizedBox(height: 80),
@@ -400,11 +454,17 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         children: [
           Text(l10n.nutrientsAdvancedMacros, style: _sectionTitleStyle),
           const SizedBox(height: 16),
-          _buildMacroDetailRow(l10n.nutrientsProteins, macros.proteinas, l10n.labelAminoProfile, Colors.blue),
-          _buildMacroDetailRow(l10n.nutrientsCarbs, macros.carboidratosLiquidos, "${l10n.labelGlycemicImpact}: ${macros.indiceGlicemico}", Colors.amber),
-          _buildMacroDetailRow(l10n.nutrientsFats, macros.gordurasPerfil, l10n.labelFattyAcids, Colors.red),
+          _buildMacroDetailRow(l10n.nutrientsProteins, macros.proteinas,
+              l10n.labelAminoProfile, Colors.blue),
+          _buildMacroDetailRow(
+              l10n.nutrientsCarbs,
+              macros.carboidratosLiquidos,
+              "${l10n.labelGlycemicImpact}: ${macros.indiceGlicemico}",
+              Colors.amber),
+          _buildMacroDetailRow(l10n.nutrientsFats, macros.gordurasPerfil,
+              l10n.labelFattyAcids, Colors.red),
           const SizedBox(height: 24),
-          
+
           ProAccessWrapper(
             featureName: l10n.featureMicrosTitle,
             featureDescription: l10n.featureMicrosDesc,
@@ -414,19 +474,24 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               children: [
                 Text(l10n.nutrientsMinerals, style: _sectionTitleStyle),
                 const SizedBox(height: 16),
-                ..._analysis.micronutrientes.lista.map((n) => _buildNutrientLinear(n)),
+                ..._analysis.micronutrientes.lista
+                    .map((n) => _buildNutrientLinear(n)),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     children: [
-                      const Icon(Icons.auto_awesome, color: Colors.cyanAccent, size: 18),
+                      const Icon(Icons.auto_awesome,
+                          color: Colors.cyanAccent, size: 18),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           "${l10n.nutrientsSynergy}: ${_analysis.micronutrientes.sinergiaNutricional}",
-                          style: GoogleFonts.poppins(fontSize: 12, color: Colors.cyanAccent),
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: Colors.cyanAccent),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -464,30 +529,38 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-             children: [
-                Text(l10n.recipesQuick, style: _sectionTitleStyle),
-                if (_isGeneratingRecipes)
-                  const SizedBox(
-                     width: 20, height: 20, 
-                     child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.orangeAccent))
-                  )
-                else
-                  IconButton(
-                     icon: const Icon(Icons.refresh_rounded, color: Colors.orangeAccent),
-                     onPressed: _generateMoreRecipes,
-                     tooltip: AppLocalizations.of(context)!.tooltipGenerateRecipes,
-                     padding: EdgeInsets.zero,
-                     constraints: const BoxConstraints(),
-                  )
-             ],
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(l10n.recipesQuick, style: _sectionTitleStyle),
+              if (_isGeneratingRecipes)
+                const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            AlwaysStoppedAnimation(Colors.orangeAccent)))
+              else
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded,
+                      color: Colors.orangeAccent),
+                  onPressed: _generateMoreRecipes,
+                  tooltip: AppLocalizations.of(context)!.tooltipGenerateRecipes,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                )
+            ],
           ),
           const SizedBox(height: 16),
           if (_isGeneratingRecipes)
-             Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Text(AppLocalizations.of(context)!.foodConsultingChef, style: GoogleFonts.poppins(color: Colors.orangeAccent, fontSize: 12, fontStyle: FontStyle.italic)),
-             ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Text(AppLocalizations.of(context)!.foodConsultingChef,
+                  style: GoogleFonts.poppins(
+                      color: Colors.orangeAccent,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic)),
+            ),
 
           ..._analysis.receitas.map((r) => _buildRecipeCard(r)),
           const SizedBox(height: 24),
@@ -498,9 +571,11 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow("${l10n.foodPreservation}:", _analysis.gastronomia.preservacaoNutrientes),
+                _buildInfoRow("${l10n.foodPreservation}:",
+                    _analysis.gastronomia.preservacaoNutrientes),
                 const SizedBox(height: 16),
-                _buildInfoRow("${l10n.foodSmartSwap}:", _analysis.gastronomia.smartSwap),
+                _buildInfoRow(
+                    "${l10n.foodSmartSwap}:", _analysis.gastronomia.smartSwap),
               ],
             ),
           ),
@@ -509,7 +584,11 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             title: l10n.recipesExpertTip,
             icon: Icons.lightbulb,
             color: Colors.amberAccent,
-            child: Text(_analysis.gastronomia.dicaEspecialista.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
+            child: Text(
+                _analysis.gastronomia.dicaEspecialista
+                    .replaceAll('aproximadamente', '±')
+                    .replaceAll('Aproximadamente', '±'),
+                style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
           ),
           const SizedBox(height: 20),
           // Disclaimer
@@ -535,10 +614,14 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
 
   Color _getSemaforoColor(String status) {
     switch (status.toLowerCase()) {
-      case 'verde': return AppDesign.foodOrange;
-      case 'amarelo': return Colors.amberAccent;
-      case 'vermelho': return Colors.redAccent;
-      default: return AppDesign.foodOrange;
+      case 'verde':
+        return AppDesign.foodOrange;
+      case 'amarelo':
+        return Colors.amberAccent;
+      case 'vermelho':
+        return Colors.redAccent;
+      default:
+        return AppDesign.foodOrange;
     }
   }
 
@@ -555,7 +638,13 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           CircularPercentIndicator(
             radius: 35,
             lineWidth: 6,
-            percent: widget.analysis.identidade.semaforoSaude.toLowerCase() == 'verde' ? 0.95 : (widget.analysis.identidade.semaforoSaude.toLowerCase() == 'amarelo' ? 0.6 : 0.3),
+            percent: widget.analysis.identidade.semaforoSaude.toLowerCase() ==
+                    'verde'
+                ? 0.95
+                : (widget.analysis.identidade.semaforoSaude.toLowerCase() ==
+                        'amarelo'
+                    ? 0.6
+                    : 0.3),
             progressColor: statusColor,
             center: Icon(Icons.shield_rounded, color: statusColor, size: 30),
             animation: true,
@@ -566,10 +655,17 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _translateStatus(widget.analysis.identidade.statusProcessamento).toUpperCase(), 
-                  style: GoogleFonts.poppins(color: statusColor, fontSize: 13, fontWeight: FontWeight.bold)
-                ),
-                Text("${AppLocalizations.of(context)!.labelTrafficLight}: ${_translateStatus(widget.analysis.identidade.semaforoSaude)}", style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13)),
+                    _translateStatus(
+                            widget.analysis.identidade.statusProcessamento)
+                        .toUpperCase(),
+                    style: GoogleFonts.poppins(
+                        color: statusColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+                Text(
+                    "${AppLocalizations.of(context)!.labelTrafficLight}: ${_translateStatus(widget.analysis.identidade.semaforoSaude)}",
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
@@ -593,26 +689,49 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(recipe.nome, style: GoogleFonts.poppins(color: _themeColor, fontWeight: FontWeight.bold, fontSize: 15))),
+              Expanded(
+                  child: Text(recipe.nome,
+                      style: GoogleFonts.poppins(
+                          color: _themeColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: _themeColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
-                child: Text(recipe.tempoPreparo, style: GoogleFonts.poppins(color: _themeColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                decoration: BoxDecoration(
+                    color: _themeColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8)),
+                child: Text(recipe.tempoPreparo,
+                    style: GoogleFonts.poppins(
+                        color: _themeColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold)),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(recipe.instrucoes.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, height: 1.4)),
+          Text(
+              recipe.instrucoes
+                  .replaceAll('aproximadamente', '±')
+                  .replaceAll('Aproximadamente', '±'),
+              style: GoogleFonts.poppins(
+                  color: Colors.white70, fontSize: 13, height: 1.4)),
         ],
       ),
     );
   }
 
-  Widget _buildGlassCard({required String title, required IconData icon, required Color color, required Widget child}) {
+  Widget _buildGlassCard(
+      {required String title,
+      required IconData icon,
+      required Color color,
+      required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.white10)),
+      decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white10)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -620,7 +739,13 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
             children: [
               Icon(icon, color: color, size: 20),
               const SizedBox(width: 8),
-              Expanded(child: Text(title, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), overflow: TextOverflow.ellipsis)),
+              Expanded(
+                  child: Text(title,
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                      overflow: TextOverflow.ellipsis)),
             ],
           ),
           const SizedBox(height: 16),
@@ -636,8 +761,14 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
-          Text(value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, height: 1.4)),
+          Text(label,
+              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
+          Text(
+              value
+                  .replaceAll('aproximadamente', '±')
+                  .replaceAll('Aproximadamente', '±'),
+              style: GoogleFonts.poppins(
+                  color: Colors.white, fontSize: 13, height: 1.4)),
         ],
       ),
     );
@@ -651,7 +782,14 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         children: [
           Icon(icon, color: color, size: 18),
           const SizedBox(width: 12),
-          Expanded(child: Text(text.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'), style: GoogleFonts.poppins(color: Colors.white.withValues(alpha: 0.8), fontSize: 14))),
+          Expanded(
+              child: Text(
+                  text
+                      .replaceAll('aproximadamente', '±')
+                      .replaceAll('Aproximadamente', '±'),
+                  style: GoogleFonts.poppins(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 14))),
         ],
       ),
     );
@@ -661,7 +799,8 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
+        Text(label,
+            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
         const SizedBox(height: 8),
         LinearPercentIndicator(
           lineHeight: 6,
@@ -676,30 +815,45 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     );
   }
 
-  Widget _buildMacroDetailRow(String label, String value, String detail, Color color) {
+  Widget _buildMacroDetailRow(
+      String label, String value, String detail, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start, 
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(width: 4, height: 50, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
+          Container(
+              width: 4,
+              height: 50,
+              decoration: BoxDecoration(
+                  color: color, borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: GoogleFonts.poppins(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(label,
+                    style: GoogleFonts.poppins(
+                        color: color,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(
-                  value.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±'),
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  value
+                      .replaceAll('aproximadamente', '±')
+                      .replaceAll('Aproximadamente', '±'),
+                  style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   detail,
-                  style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                  style:
+                      GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -732,7 +886,10 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
                 flex: 1,
                 child: Text(
                   "${n.quantidade.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±')} (${n.percentualDv}%)",
-                  style: GoogleFonts.poppins(color: _themeColor, fontSize: 11, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(
+                      color: _themeColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.right,
                 ),
@@ -757,10 +914,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
   /// Salva no histórico de alimentos
   Future<void> _saveToHistory() async {
     try {
-      await NutritionService().saveFoodAnalysis(
-        _analysis, 
-        widget.imageFile
-      );
+      await NutritionService().saveFoodAnalysis(_analysis, widget.imageFile);
 
       if (mounted) {
         setState(() {
@@ -778,29 +932,30 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       debugPrint('❌ Error saving to history: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.errorSaving(e.toString())), backgroundColor: Colors.red),
+          SnackBar(
+              content:
+                  Text(AppLocalizations.of(context)!.errorSaving(e.toString())),
+              backgroundColor: Colors.red),
         );
       }
     }
   }
 
   Future<void> _onRecipeClick() async {
-      if (_isOpeningRecipe) return;
-      
-      setState(() => _isOpeningRecipe = true);
-      
-      try {
-        await Navigator.push(
-          context, 
-          MaterialPageRoute(builder: (_) => const RecipeHistoryScreen())
-        );
-      } finally {
-        if (mounted) {
-          // Add small delay to prevent rapid re-entry
-          await Future.delayed(const Duration(milliseconds: 500));
-          setState(() => _isOpeningRecipe = false);
-        }
+    if (_isOpeningRecipe) return;
+
+    setState(() => _isOpeningRecipe = true);
+
+    try {
+      await Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const RecipeHistoryScreen()));
+    } finally {
+      if (mounted) {
+        // Add small delay to prevent rapid re-entry
+        await Future.delayed(const Duration(milliseconds: 500));
+        setState(() => _isOpeningRecipe = false);
       }
+    }
   }
 
   /// Adiciona ao plano de hoje
@@ -810,7 +965,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       if (tipo == null) return;
 
       final currentPlan = ref.read(currentWeekPlanProvider);
-      
+
       if (currentPlan == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -858,28 +1013,36 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text('Tipo de Refeição', style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text('Tipo de Refeição',
+            style: GoogleFonts.poppins(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.free_breakfast, color: AppDesign.foodOrange),
-              title: Text('Café da Manhã', style: GoogleFonts.poppins(color: Colors.white)),
+              leading:
+                  const Icon(Icons.free_breakfast, color: AppDesign.foodOrange),
+              title: Text('Café da Manhã',
+                  style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'cafe'),
             ),
             ListTile(
-              leading: const Icon(Icons.lunch_dining, color: AppDesign.foodOrange),
-              title: Text('Almoço', style: GoogleFonts.poppins(color: Colors.white)),
+              leading:
+                  const Icon(Icons.lunch_dining, color: AppDesign.foodOrange),
+              title: Text('Almoço',
+                  style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'almoco'),
             ),
             ListTile(
               leading: const Icon(Icons.cookie, color: AppDesign.foodOrange),
-              title: Text('Lanche', style: GoogleFonts.poppins(color: Colors.white)),
+              title: Text('Lanche',
+                  style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'lanche'),
             ),
             ListTile(
-              leading: const Icon(Icons.dinner_dining, color: AppDesign.foodOrange),
-              title: Text('Jantar', style: GoogleFonts.poppins(color: Colors.white)),
+              leading:
+                  const Icon(Icons.dinner_dining, color: AppDesign.foodOrange),
+              title: Text('Jantar',
+                  style: GoogleFonts.poppins(color: Colors.white)),
               onTap: () => Navigator.pop(context, 'jantar'),
             ),
           ],
@@ -888,18 +1051,16 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
     );
   }
 
-
-
   Future<void> _generateMoreRecipes() async {
-      setState(() {
-        _isGeneratingRecipes = true;
-      });
+    setState(() {
+      _isGeneratingRecipes = true;
+    });
 
-      try {
-        final gemini = ref.read(geminiServiceProvider);
-        final fName = _analysis.identidade.nome;
-        
-        final prompt = """
+    try {
+      final gemini = ref.read(geminiServiceProvider);
+      final fName = _analysis.identidade.nome;
+
+      final prompt = """
         Atue como um chef de cozinha criativo e saudável.
         Gere 3 NOVAS e diferentes receitas rápidas (max 15 min) utilizando o ingrediente principal: $fName.
         Responda na língua do utilizador (Português, Inglês ou Espanhol).
@@ -916,81 +1077,88 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> with Single
         }
         """;
 
-        final responseMap = await gemini.generateTextContent(prompt);
-        
-        if (responseMap.containsKey('receitas') && responseMap['receitas'] is List) {
-           final List<dynamic> rawList = responseMap['receitas'];
-           final newRecipes = rawList.map((e) => ReceitaRapida.fromJson(e)).toList();
+      final responseMap = await gemini.generateTextContent(prompt);
 
-           if (newRecipes.isNotEmpty) {
-             setState(() {
-               _analysis = FoodAnalysisModel(
-                  identidade: _analysis.identidade,
-                  macros: _analysis.macros,
-                  micronutrientes: _analysis.micronutrientes,
-                  analise: _analysis.analise,
-                  performance: _analysis.performance,
-                  gastronomia: _analysis.gastronomia,
-                  receitas: newRecipes,
-                  dicaEspecialista: _analysis.dicaEspecialista,
-               );
-             });
-             
-             ScaffoldMessenger.of(context).showSnackBar(
-               const SnackBar(content: Text('Receitas atualizadas! 🍳'), backgroundColor: AppDesign.foodOrange),
-             );
+      if (responseMap.containsKey('receitas') &&
+          responseMap['receitas'] is List) {
+        final List<dynamic> rawList = responseMap['receitas'];
+        final newRecipes =
+            rawList.map((e) => ReceitaRapida.fromJson(e)).toList();
 
-             // ANTI-GRAVITY FORCE SAVE
-             try {
-               if (!Hive.isBoxOpen('recipe_history_box')) {
-                  await Hive.openBox<RecipeHistoryItem>('recipe_history_box');
-               }
-               final box = Hive.box<RecipeHistoryItem>('recipe_history_box');
-               for (var r in newRecipes) {
-                 final item = RecipeHistoryItem(
-                   id: "${DateTime.now().microsecondsSinceEpoch}_${r.nome.hashCode}",
-                   foodName: _analysis.identidade.nome,
-                   recipeName: r.nome,
-                   instructions: r.instrucoes,
-                   prepTime: r.tempoPreparo,
-                   timestamp: DateTime.now(),
-                 );
-                 await box.add(item);
-               }
-             } catch (e) {
-               debugPrint('❌ Force Save Failed: $e');
-             }
-
-             _autoSaveRecipes();
-           }
-        }
-
-      } catch (e) {
-        debugPrint('Erro ao gerar receitas: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-             const SnackBar(content: Text('Erro ao gerar receitas. Tente novamente.'), backgroundColor: Colors.red),
-        );
-      } finally {
-        if (mounted) {
+        if (newRecipes.isNotEmpty) {
           setState(() {
-            _isGeneratingRecipes = false;
+            _analysis = FoodAnalysisModel(
+              identidade: _analysis.identidade,
+              macros: _analysis.macros,
+              micronutrientes: _analysis.micronutrientes,
+              analise: _analysis.analise,
+              performance: _analysis.performance,
+              gastronomia: _analysis.gastronomia,
+              receitas: newRecipes,
+              dicaEspecialista: _analysis.dicaEspecialista,
+            );
           });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Receitas atualizadas! 🍳'),
+                backgroundColor: AppDesign.foodOrange),
+          );
+
+          // ANTI-GRAVITY FORCE SAVE
+          try {
+            if (!Hive.isBoxOpen('recipe_history_box')) {
+              await Hive.openBox<RecipeHistoryItem>('recipe_history_box');
+            }
+            final box = Hive.box<RecipeHistoryItem>('recipe_history_box');
+            for (var r in newRecipes) {
+              final item = RecipeHistoryItem(
+                id: "${DateTime.now().microsecondsSinceEpoch}_${r.nome.hashCode}",
+                foodName: _analysis.identidade.nome,
+                recipeName: r.nome,
+                instructions: r.instrucoes,
+                prepTime: r.tempoPreparo,
+                timestamp: DateTime.now(),
+              );
+              await box.add(item);
+            }
+          } catch (e) {
+            debugPrint('❌ Force Save Failed: $e');
+          }
+
+          _autoSaveRecipes();
         }
       }
+    } catch (e) {
+      debugPrint('Erro ao gerar receitas: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Erro ao gerar receitas. Tente novamente.'),
+            backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingRecipes = false;
+        });
+      }
+    }
   }
 
   Future<void> _autoSaveRecipes() async {
     // 🛡️ V138: Safe Auto-Save via Service (Fixed Syntax)
     try {
       if (_analysis.receitas.isNotEmpty) {
-        await RecipeService().saveAuto(_analysis.receitas, _analysis.identidade.nome);
+        await RecipeService()
+            .saveAuto(_analysis.receitas, _analysis.identidade.nome);
       }
     } catch (e) {
       debugPrint('⚠️ Error auto-saving recipes: $e');
     }
   }
 
-  TextStyle get _sectionTitleStyle => GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
+  TextStyle get _sectionTitleStyle => GoogleFonts.poppins(
+      fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
 
   String _translateStatus(String status) {
     final l10n = AppLocalizations.of(context)!;

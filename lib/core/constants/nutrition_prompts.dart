@@ -8,7 +8,8 @@
 class NutritionPrompts {
   /// Prompt de Análise de Comida (Human Food)
   /// Regra de Ouro: Instruções de idioma via $languageName (English, Portuguese-BR, etc)
-  static String getFoodAnalysisPrompt(String languageName, String languageInstruction) {
+  static String getFoodAnalysisPrompt(
+      String languageName, String languageInstruction) {
     return '''
 $languageInstruction
 

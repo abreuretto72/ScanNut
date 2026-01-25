@@ -43,9 +43,10 @@ class SubscriptionService {
       await refreshCustomerInfo();
     } on PlatformException catch (e) {
       if (e.code == 'UnknownBackendError') {
-        debugPrint('⚠️ CRITICAL: RevenueCat Secret Key detected or Backend Error. Disabling Pro features to prevent crash.');
+        debugPrint(
+            '⚠️ CRITICAL: RevenueCat Secret Key detected or Backend Error. Disabling Pro features to prevent crash.');
         // Do NOT rethrow. Just disable Pro.
-        _isInitialized = false; 
+        _isInitialized = false;
       } else {
         debugPrint('❌ PlatformException initializing RevenueCat: $e');
       }
@@ -63,8 +64,9 @@ class SubscriptionService {
     try {
       final customerInfo = await Purchases.getCustomerInfo();
       _currentCustomerInfo = customerInfo;
-      
-      final hasProAccess = customerInfo.entitlements.all[_proEntitlementId]?.isActive ?? false;
+
+      final hasProAccess =
+          customerInfo.entitlements.all[_proEntitlementId]?.isActive ?? false;
       debugPrint('🔐 Pro Access: $hasProAccess');
       return hasProAccess;
     } catch (e) {
@@ -116,8 +118,10 @@ class SubscriptionService {
     try {
       final purchaserInfo = await Purchases.purchasePackage(package);
       _currentCustomerInfo = purchaserInfo.customerInfo;
-      
-      final isPro = purchaserInfo.customerInfo.entitlements.all[_proEntitlementId]?.isActive ?? false;
+
+      final isPro = purchaserInfo
+              .customerInfo.entitlements.all[_proEntitlementId]?.isActive ??
+          false;
       debugPrint('✅ Purchase completed. Pro status: $isPro');
       return isPro;
     } on PlatformException catch (e) {
@@ -143,8 +147,9 @@ class SubscriptionService {
     try {
       final customerInfo = await Purchases.restorePurchases();
       _currentCustomerInfo = customerInfo;
-      
-      final isPro = customerInfo.entitlements.all[_proEntitlementId]?.isActive ?? false;
+
+      final isPro =
+          customerInfo.entitlements.all[_proEntitlementId]?.isActive ?? false;
       debugPrint('✅ Purchases restored. Pro status: $isPro');
       return isPro;
     } catch (e) {
@@ -155,9 +160,11 @@ class SubscriptionService {
 
   /// Get subscription expiration date (if any)
   DateTime? getProExpirationDate() {
-    final entitlement = _currentCustomerInfo?.entitlements.all[_proEntitlementId];
-    final expiration = entitlement?.expirationDate; // Might be String or DateTime depending on version
-    
+    final entitlement =
+        _currentCustomerInfo?.entitlements.all[_proEntitlementId];
+    final expiration = entitlement
+        ?.expirationDate; // Might be String or DateTime depending on version
+
     if (expiration is String) {
       return DateTime.tryParse(expiration);
     } else if (expiration is DateTime) {
@@ -168,7 +175,8 @@ class SubscriptionService {
 
   /// Check if subscription will renew
   bool willRenew() {
-    final entitlement = _currentCustomerInfo?.entitlements.all[_proEntitlementId];
+    final entitlement =
+        _currentCustomerInfo?.entitlements.all[_proEntitlementId];
     return entitlement?.willRenew ?? false;
   }
 

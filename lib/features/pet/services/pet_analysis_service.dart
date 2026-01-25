@@ -29,12 +29,13 @@ class PetAnalysisService {
 
     try {
       debugPrint('🚀 [PetAnalysis] Sending request to IA...');
-      debugPrint('📝 [PetAnalysis] Prompt Preview: ${prompt.substring(0, prompt.length > 200 ? 200 : prompt.length)}...');
-      
+      debugPrint(
+          '📝 [PetAnalysis] Prompt Preview: ${prompt.substring(0, prompt.length > 200 ? 200 : prompt.length)}...');
+
       final jsonString = await _groqService.analyzeImage(image, prompt);
-      
+
       debugPrint('📥 [PetAnalysis] Raw Response: $jsonString');
-      
+
       if (jsonString == null) {
         throw Exception("Não foi possível analisar a imagem (Resposta vazia).");
       }
@@ -50,11 +51,11 @@ class PetAnalysisService {
       }
 
       final Map<String, dynamic> data = jsonDecode(cleanJson);
-      
+
       if (data.containsKey('error')) {
-         throw Exception("Erro retornado pela IA: ${data['error']}");
+        throw Exception("Erro retornado pela IA: ${data['error']}");
       }
-      
+
       return PetAnalysisResult.fromJson(data);
     } catch (e) {
       // Fallback for parsing errors or API errors
@@ -73,7 +74,8 @@ class PetAnalysisService {
         descricaoVisualDiag: "Erro ao processar a resposta da IA.",
         possiveisCausasDiag: ["Imagem difere da categoria ou sem conexão"],
         urgenciaNivelDiag: "Amarelo",
-        orientacaoImediataDiag: "Tente novamente ou procure um veterinário se houver dúvidas.",
+        orientacaoImediataDiag:
+            "Tente novamente ou procure um veterinário se houver dúvidas.",
       );
     }
   }

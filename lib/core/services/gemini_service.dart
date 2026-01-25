@@ -17,13 +17,12 @@ class GeminiService {
   final String _apiKey;
   final String _baseUrl = 'https://generativelanguage.googleapis.com';
 
-  GeminiService()
-      : _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '' {
-    
+  GeminiService() : _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '' {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
       connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 90), // Increased for meal plan generation
+      receiveTimeout:
+          const Duration(seconds: 90), // Increased for meal plan generation
       sendTimeout: const Duration(seconds: 30),
     ));
   }
@@ -71,17 +70,19 @@ class GeminiService {
   }
 
   /// 🛡️ Compress image ALWAYS to prevent 400 errors
-  Future<Uint8List> _compressImage(File imageFile, Uint8List originalBytes) async {
+  Future<Uint8List> _compressImage(
+      File imageFile, Uint8List originalBytes) async {
     try {
       final sizeKB = originalBytes.length / 1024;
-      
-      debugPrint('🗜️ Comprimindo imagem de ${sizeKB.toStringAsFixed(2)} KB...');
-      
+
+      debugPrint(
+          '🗜️ Comprimindo imagem de ${sizeKB.toStringAsFixed(2)} KB...');
+
       // 🛡️ SEMPRE comprimir para 1024px para evitar erro 400
       final compressedBytes = await FlutterImageCompress.compressWithFile(
         imageFile.absolute.path,
         quality: 85,
-        minWidth: 1024,  // ← Reduzido de 1920 para 1024
+        minWidth: 1024, // ← Reduzido de 1920 para 1024
         minHeight: 1024, // ← Reduzido de 1920 para 1024
         format: CompressFormat.jpeg,
       );
@@ -92,9 +93,11 @@ class GeminiService {
       }
 
       final newSizeKB = compressedBytes.length / 1024;
-      final reduction = ((sizeKB - newSizeKB) / sizeKB * 100).toStringAsFixed(1);
-      debugPrint('✅ Comprimido para ${newSizeKB.toStringAsFixed(2)} KB ($reduction% redução)');
-      
+      final reduction =
+          ((sizeKB - newSizeKB) / sizeKB * 100).toStringAsFixed(1);
+      debugPrint(
+          '✅ Comprimido para ${newSizeKB.toStringAsFixed(2)} KB ($reduction% redução)');
+
       return compressedBytes;
     } catch (e) {
       debugPrint('⚠️ Erro na compressão: $e. Usando imagem original.');
@@ -118,7 +121,7 @@ class GeminiService {
         );
       }
       debugPrint('🚀 Iniciando análise...');
-      
+
       // Validate image file
       if (!await imageFile.exists()) {
         throw GeminiException(
@@ -162,19 +165,24 @@ class GeminiService {
 
       // Encode image
       final base64Image = base64Encode(imageBytes);
-      String prompt = PromptFactory.getPrompt(mode, locale: locale, contextData: contextData);
-      
+      String prompt = PromptFactory.getPrompt(mode,
+          locale: locale, contextData: contextData);
+
       // Inject meal rotation restriction if applicable
       if (mode == ScannutMode.petIdentification && excludedBases.isNotEmpty) {
-        final restriction = '\n\nRESTRIÇÃO DE ROTAÇÃO NUTRICIONAL: O pet já consumiu recentemente as seguintes bases alimentares: ${excludedBases.join(", ")}. Para o plano_semanal, priorize ingredientes DIFERENTES para garantir variedade nutricional.';
+        final restriction =
+            '\n\nRESTRIÇÃO DE ROTAÇÃO NUTRICIONAL: O pet já consumiu recentemente as seguintes bases alimentares: ${excludedBases.join(", ")}. Para o plano_semanal, priorize ingredientes DIFERENTES para garantir variedade nutricional.';
         prompt += restriction;
-        debugPrint('🔄 Rotação ativada: ${excludedBases.length} ingredientes excluídos');
+        debugPrint(
+            '🔄 Rotação ativada: ${excludedBases.length} ingredientes excluídos');
       }
 
       // LOG 1: REQUEST PROMPT
-      debugPrint('\n================ [ LOG 1: REQUEST PROMPT ] ================\n');
+      debugPrint(
+          '\n================ [ LOG 1: REQUEST PROMPT ] ================\n');
       debugPrint(prompt);
-      debugPrint('\n===========================================================\n');
+      debugPrint(
+          '\n===========================================================\n');
 
       // Prepare request
       final requestData = {
@@ -201,7 +209,8 @@ class GeminiService {
       final startTime = DateTime.now();
 
       // Make request with timeout
-      final response = await _dio.post(
+      final response = await _dio
+          .post(
         '/v1/models/$workingModel:generateContent',
         queryParameters: {'key': _apiKey},
         data: requestData,
@@ -211,7 +220,8 @@ class GeminiService {
             'Accept-Language': locale,
           },
         ),
-      ).timeout(
+      )
+          .timeout(
         const Duration(seconds: 30),
         onTimeout: () {
           throw TimeoutException('Tempo limite excedido');
@@ -224,50 +234,59 @@ class GeminiService {
       // 🛡️ BLINDAGEM TOTAL - Nunca expor códigos técnicos
       if (response.statusCode != 200) {
         debugPrint('❌ HTTP Error: ${response.statusCode}');
-        
+
         // Mapear TODOS os códigos para mensagens amigáveis
         String userMessage;
         GeminiErrorType errorType;
-        
+
         switch (response.statusCode) {
           case 400:
-            userMessage = 'A foto não ficou clara o suficiente. Tente tirar outra com mais luz e foco!';
+            userMessage =
+                'A foto não ficou clara o suficiente. Tente tirar outra com mais luz e foco!';
             errorType = GeminiErrorType.badRequest;
             break;
           case 401:
           case 403:
-            userMessage = 'Erro de autenticação. Verifique sua conexão e tente novamente.';
+            userMessage =
+                'Erro de autenticação. Verifique sua conexão e tente novamente.';
             errorType = GeminiErrorType.authError;
             break;
           case 404:
-            userMessage = 'Serviço temporariamente indisponível. Tente novamente em alguns instantes.';
+            userMessage =
+                'Serviço temporariamente indisponível. Tente novamente em alguns instantes.';
             errorType = GeminiErrorType.serverError;
             break;
           case 429:
-            userMessage = 'Muitas requisições. Aguarde alguns segundos e tente novamente.';
+            userMessage =
+                'Muitas requisições. Aguarde alguns segundos e tente novamente.';
             errorType = GeminiErrorType.rateLimitError;
             break;
           case 500:
           case 502:
           case 503:
-            userMessage = 'Servidor temporariamente indisponível. Tente novamente em alguns instantes.';
+            userMessage =
+                'Servidor temporariamente indisponível. Tente novamente em alguns instantes.';
             errorType = GeminiErrorType.serverError;
             break;
           default:
-            userMessage = 'Não foi possível completar a análise. Verifique sua conexão e tente novamente.';
+            userMessage =
+                'Não foi possível completar a análise. Verifique sua conexão e tente novamente.';
             errorType = GeminiErrorType.serverError;
         }
-        
+
         throw GeminiException(userMessage, type: errorType);
       }
 
-      final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-      
+      final text =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+
       // LOG 2: RAW RESPONSE
-      debugPrint('\n================ [ LOG 2: RESPONSE RAW ] ================\n');
+      debugPrint(
+          '\n================ [ LOG 2: RESPONSE RAW ] ================\n');
       debugPrint(text?.toString() ?? 'NULL RESPONSE');
-      debugPrint('\n===========================================================\n');
-      
+      debugPrint(
+          '\n===========================================================\n');
+
       if (text == null || text.isEmpty) {
         throw GeminiException(
           'Resposta vazia da IA',
@@ -287,7 +306,6 @@ class GeminiService {
 
         debugPrint('✅ JSON parseado com sucesso');
         return jsonResponse;
-
       } on FormatException catch (e, stackTrace) {
         debugPrint('❌ Erro ao parsear JSON: $e');
         debugPrint('Stack: $stackTrace');
@@ -296,7 +314,6 @@ class GeminiService {
           type: GeminiErrorType.parseError,
         );
       }
-      
     } on TimeoutException catch (e, stackTrace) {
       debugPrint('❌ Timeout: $e');
       debugPrint('Stack: $stackTrace');
@@ -304,7 +321,6 @@ class GeminiService {
         'A conexão demorou muito. Verifique sua internet.',
         type: GeminiErrorType.timeout,
       );
-      
     } on SocketException catch (e, stackTrace) {
       debugPrint('❌ Erro de rede: $e');
       debugPrint('Stack: $stackTrace');
@@ -312,12 +328,11 @@ class GeminiService {
         'Sem conexão com a internet',
         type: GeminiErrorType.network,
       );
-      
     } on DioException catch (e, stackTrace) {
       debugPrint('❌ Erro Dio: ${e.type}');
       debugPrint('Status: ${e.response?.statusCode}');
       debugPrint('Stack: $stackTrace');
-      
+
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
@@ -326,36 +341,34 @@ class GeminiService {
           type: GeminiErrorType.timeout,
         );
       }
-      
+
       if (e.response?.statusCode == 404) {
         throw GeminiException(
           'Serviço temporariamente indisponível. Tente novamente em alguns instantes.',
           type: GeminiErrorType.serverError,
         );
       }
-      
+
       if (e.response?.statusCode == 429) {
         throw GeminiException(
           'Muitas requisições. Aguarde um momento.',
           type: GeminiErrorType.rateLimitExceeded,
         );
       }
-      
+
       if (e.response?.statusCode == 500 || e.response?.statusCode == 503) {
         throw GeminiException(
           'Serviço temporariamente indisponível',
           type: GeminiErrorType.serverError,
         );
       }
-      
+
       throw GeminiException(
         'Erro de comunicação: ${e.message}',
         type: GeminiErrorType.network,
       );
-      
     } on GeminiException {
       rethrow;
-      
     } catch (e, stackTrace) {
       debugPrint('❌ Erro inesperado: $e');
       debugPrint('Stack: $stackTrace');
@@ -408,24 +421,26 @@ class GeminiService {
             ]
           }
         ],
-         'generationConfig': {
-           'temperature': 0.4,
-           'maxOutputTokens': 4096, // Increased for longer menus
-         },
+        'generationConfig': {
+          'temperature': 0.4,
+          'maxOutputTokens': 4096, // Increased for longer menus
+        },
       };
 
       debugPrint('⏳ Enviando para Gemini...');
       final startTime = DateTime.now();
 
       // Make request with timeout
-      final response = await _dio.post(
+      final response = await _dio
+          .post(
         '/v1beta/models/$workingModel:generateContent',
         queryParameters: {'key': _apiKey},
         data: requestData,
         options: Options(
           headers: {'Content-Type': 'application/json'},
         ),
-      ).timeout(
+      )
+          .timeout(
         const Duration(seconds: 30),
         onTimeout: () {
           throw TimeoutException('Tempo limite excedido');
@@ -443,8 +458,9 @@ class GeminiService {
         );
       }
 
-      final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-      
+      final text =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+
       if (text == null || text.isEmpty) {
         throw GeminiException(
           'Resposta vazia da IA',
@@ -464,7 +480,6 @@ class GeminiService {
 
         debugPrint('✅ JSON parseado com sucesso');
         return jsonResponse;
-
       } on FormatException catch (e, stackTrace) {
         debugPrint('❌ Erro ao parsear JSON: $e');
         debugPrint('Stack: $stackTrace');
@@ -473,7 +488,6 @@ class GeminiService {
           type: GeminiErrorType.parseError,
         );
       }
-      
     } on TimeoutException catch (e, stackTrace) {
       debugPrint('❌ Timeout: $e');
       debugPrint('Stack: $stackTrace');
@@ -481,7 +495,6 @@ class GeminiService {
         'A conexão demorou muito. Verifique sua internet.',
         type: GeminiErrorType.timeout,
       );
-      
     } on SocketException catch (e, stackTrace) {
       debugPrint('❌ Erro de rede: $e');
       debugPrint('Stack: $stackTrace');
@@ -489,12 +502,11 @@ class GeminiService {
         'Sem conexão com a internet',
         type: GeminiErrorType.network,
       );
-      
     } on DioException catch (e, stackTrace) {
       debugPrint('❌ Erro Dio: ${e.type}');
       debugPrint('Status: ${e.response?.statusCode}');
       debugPrint('Stack: $stackTrace');
-      
+
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.sendTimeout) {
@@ -503,36 +515,34 @@ class GeminiService {
           type: GeminiErrorType.timeout,
         );
       }
-      
+
       if (e.response?.statusCode == 404) {
         throw GeminiException(
           'Serviço temporariamente indisponível. Tente novamente em alguns instantes.',
           type: GeminiErrorType.serverError,
         );
       }
-      
+
       if (e.response?.statusCode == 429) {
         throw GeminiException(
           'Muitas requisições. Aguarde um momento.',
           type: GeminiErrorType.rateLimitExceeded,
         );
       }
-      
+
       if (e.response?.statusCode == 500 || e.response?.statusCode == 503) {
         throw GeminiException(
           'Serviço temporariamente indisponível',
           type: GeminiErrorType.serverError,
         );
       }
-      
+
       throw GeminiException(
         'Erro de comunicação: ${e.message}',
         type: GeminiErrorType.network,
       );
-      
     } on GeminiException {
       rethrow;
-      
     } catch (e, stackTrace) {
       debugPrint('❌ Erro inesperado: $e');
       debugPrint('Stack: $stackTrace');
@@ -542,6 +552,7 @@ class GeminiService {
       );
     }
   }
+
   /// Generate a new weekly diet plan
   Future<Map<String, dynamic>> generateDietPlan({
     required String petName,
@@ -581,13 +592,20 @@ class GeminiService {
         '/v1/models/$model:generateContent',
         queryParameters: {'key': _apiKey},
         data: {
-          "contents": [{"parts": [{"text": prompt}]}]
+          "contents": [
+            {
+              "parts": [
+                {"text": prompt}
+              ]
+            }
+          ]
         },
       );
 
-      final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      final text =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
       if (text == null) throw Exception('Empty response');
-      
+
       var jsonStr = text.toString();
       if (jsonStr.contains('```json')) {
         jsonStr = jsonStr.split('```json').last.split('```').first.trim();
@@ -596,51 +614,57 @@ class GeminiService {
       } else {
         jsonStr = jsonStr.trim();
       }
-      
+
       return jsonDecode(jsonStr);
     } catch (e) {
       debugPrint('Error generating diet: $e');
-      throw GeminiException('Erro ao gerar dieta: $e', type: GeminiErrorType.serverError);
+      throw GeminiException('Erro ao gerar dieta: $e',
+          type: GeminiErrorType.serverError);
     }
   }
 
   /// Specialized generation for Pet Meal Plan (Phase 2 & 3)
   Future<Map<String, dynamic>> generatePetMealPlan(String prompt) async {
     if (_apiKey.isEmpty) {
-      throw GeminiException('API Key missing', type: GeminiErrorType.configuration);
+      throw GeminiException('API Key missing',
+          type: GeminiErrorType.configuration);
     }
 
     // Use dynamic model selection for improved reliability
     final workingModel = await _findWorkingModel() ?? 'gemini-1.5-flash';
-    
+
     final requestData = {
       "contents": [
         {
           "role": "user",
-          "parts": [{"text": prompt}]
+          "parts": [
+            {"text": prompt}
+          ]
         }
       ],
-      "generationConfig": {
-        "temperature": 0.1,
-        "maxOutputTokens": 8192
-      }
+      "generationConfig": {"temperature": 0.1, "maxOutputTokens": 8192}
     };
 
     String rawText = '';
     try {
       debugPrint('🚀 [Gemini] PetMenu Generation - Model: $workingModel');
-      
-      final response = await _dio.post(
-        '/v1/models/$workingModel:generateContent',
-        queryParameters: {'key': _apiKey},
-        data: requestData,
-        options: Options(
-          headers: {'Content-Type': 'application/json'},
-        ),
-      ).timeout(const Duration(seconds: 90));
 
-      final fetchedText = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-      if (fetchedText == null) throw Exception('Empty response parts from Gemini');
+      final response = await _dio
+          .post(
+            '/v1/models/$workingModel:generateContent',
+            queryParameters: {'key': _apiKey},
+            data: requestData,
+            options: Options(
+              headers: {'Content-Type': 'application/json'},
+            ),
+          )
+          .timeout(const Duration(seconds: 90));
+
+      final fetchedText =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      if (fetchedText == null) {
+        throw Exception('Empty response parts from Gemini');
+      }
       rawText = fetchedText.toString();
 
       return _extractJson(rawText);
@@ -650,17 +674,21 @@ class GeminiService {
     } catch (e) {
       // Diagnostic Logging (Phase 1 of user request)
       if (rawText.isNotEmpty) {
-          debugPrint('🚨 [Gemini] Diagnostics: raw length=${rawText.length}');
-          final tail = rawText.length > 200 ? rawText.substring(rawText.length - 200) : rawText;
-          debugPrint('🚨 [Gemini] Diagnostics: raw tail=${tail.replaceAll('\n', '\\n')}');
+        debugPrint('🚨 [Gemini] Diagnostics: raw length=${rawText.length}');
+        final tail = rawText.length > 200
+            ? rawText.substring(rawText.length - 200)
+            : rawText;
+        debugPrint(
+            '🚨 [Gemini] Diagnostics: raw tail=${tail.replaceAll('\n', '\\n')}');
       }
 
       debugPrint('🚨 [Gemini] Parse Error, attempting repair: $e');
-      
+
       // Phase 2: JSON Repair Retry
       try {
-        const repairPrompt = "Você me enviou um JSON inválido ou incompleto. Por favor, corrija-o para que seja um JSON válido de acordo com o formato solicitado anteriormente. Retorne APENAS o JSON corrigido.";
-        
+        const repairPrompt =
+            "Você me enviou um JSON inválido ou incompleto. Por favor, corrija-o para que seja um JSON válido de acordo com o formato solicitado anteriormente. Retorne APENAS o JSON corrigido.";
+
         final repairResponse = await _dio.post(
           '/v1/models/$workingModel:generateContent',
           queryParameters: {'key': _apiKey},
@@ -668,15 +696,21 @@ class GeminiService {
             "contents": [
               {
                 "role": "user",
-                "parts": [{"text": prompt}]
+                "parts": [
+                  {"text": prompt}
+                ]
               },
               {
                 "role": "model",
-                "parts": [{"text": "Aqui está o JSON inválido que gerei..."}]
+                "parts": [
+                  {"text": "Aqui está o JSON inválido que gerei..."}
+                ]
               },
               {
                 "role": "user",
-                "parts": [{"text": repairPrompt}]
+                "parts": [
+                  {"text": repairPrompt}
+                ]
               }
             ],
             "generationConfig": {
@@ -686,18 +720,19 @@ class GeminiService {
           },
         ).timeout(const Duration(seconds: 60));
 
-        final repairText = repairResponse.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+        final repairText = repairResponse.data['candidates']?[0]?['content']
+            ?['parts']?[0]?['text'];
         if (repairText != null) {
           return _extractJson(repairText.toString());
         }
       } catch (repairError) {
         debugPrint('🚨 [Gemini] Repair failed: $repairError');
       }
-      
+
       rethrow;
     }
   }
-  
+
   /// Generate plain text response (not JSON)
   Future<String> generatePlainText(String prompt) async {
     if (_apiKey.isEmpty) {
@@ -722,7 +757,8 @@ class GeminiService {
       debugPrint('🤖 Modelo: $workingModel');
 
       // Make request
-      final response = await _dio.post(
+      final response = await _dio
+          .post(
         '/v1beta/models/$workingModel:generateContent',
         queryParameters: {'key': _apiKey},
         data: {
@@ -737,7 +773,8 @@ class GeminiService {
         options: Options(
           headers: {'Content-Type': 'application/json'},
         ),
-      ).timeout(
+      )
+          .timeout(
         const Duration(seconds: 30),
         onTimeout: () {
           throw TimeoutException('Tempo limite excedido');
@@ -751,8 +788,9 @@ class GeminiService {
         );
       }
 
-      final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-      
+      final text =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+
       if (text == null || text.isEmpty) {
         throw GeminiException(
           'Resposta vazia da IA',
@@ -762,7 +800,6 @@ class GeminiService {
 
       debugPrint('✅ Texto gerado com sucesso');
       return text.toString();
-
     } on TimeoutException catch (e) {
       debugPrint('❌ Timeout: $e');
       throw GeminiException(
@@ -771,14 +808,14 @@ class GeminiService {
       );
     } on DioException catch (e) {
       debugPrint('❌ Erro Dio: ${e.type}');
-      
+
       if (e.response?.statusCode == 429) {
         throw GeminiException(
           'Muitas requisições. Aguarde um momento.',
           type: GeminiErrorType.rateLimitExceeded,
         );
       }
-      
+
       throw GeminiException(
         'Erro de comunicação: ${e.message}',
         type: GeminiErrorType.network,
@@ -796,7 +833,7 @@ class GeminiService {
   Map<String, dynamic> _extractJson(String text) {
     try {
       String jsonString = text;
-      
+
       // 1. Try to find content between first { and last }
       if (jsonString.contains('{')) {
         final firstBrace = jsonString.indexOf('{');
@@ -805,15 +842,13 @@ class GeminiService {
           jsonString = jsonString.substring(firstBrace, lastBrace + 1);
         }
       }
-      
+
       // 2. Remove sentinel if present
       jsonString = jsonString.split('__END_JSON__').first;
 
       // 3. Remove markdown code blocks if still present
-      jsonString = jsonString
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
+      jsonString =
+          jsonString.replaceAll('```json', '').replaceAll('```', '').trim();
 
       // 4. 🛡️ Sanitization: Remove comments and trailing commas (Common AI Errors)
       // Remove single-line comments //...
@@ -825,108 +860,119 @@ class GeminiService {
 
       return jsonDecode(jsonString) as Map<String, dynamic>;
     } catch (e) {
-      debugPrint('❌ Failed to extract/decode JSON. String sample: ${text.length > 200 ? text.substring(0, 200) : text}');
+      debugPrint(
+          '❌ Failed to extract/decode JSON. String sample: ${text.length > 200 ? text.substring(0, 200) : text}');
       throw const FormatException('Invalid JSON format');
     }
   }
 
   // --- SOUND ANALYSIS (Agente de Áudio) ---
   Future<Map<String, dynamic>> analyzeAudio(String path) async {
-      if (_apiKey.isEmpty) {
+    if (_apiKey.isEmpty) {
+      throw GeminiException(
+        'API Key não configurada. Verifique o arquivo .env',
+        type: GeminiErrorType.configuration,
+      );
+    }
+    debugPrint('🎙️ [Gemini] Iniciando análise de áudio: $path');
+    try {
+      final file = File(path);
+      if (!await file.exists()) {
+        debugPrint('❌ [Gemini] Arquivo de áudio não encontrado: $path');
+        throw Exception('Audio file not found');
+      }
+
+      final bytes = await file.readAsBytes();
+      final base64Audio = base64Encode(bytes);
+      debugPrint(
+          '📊 [Gemini] Tamanho áudio: ${bytes.length} bytes (Base64: ${base64Audio.length})');
+
+      // Use dynamic model selection
+      final model = await _findWorkingModel() ?? 'gemini-1.5-flash';
+
+      const prompt =
+          "Analise este áudio de pet. Identifique o que o animal está tentando comunicar. "
+          "NÃO use termos técnicos médicos ou biológicos. Explique de forma simples para o dono: "
+          "1. O que ele está sentindo ('emotion_simple'); "
+          "2. O motivo provável ('reason_simple'); "
+          "3. O que fazer ('action_tip'). "
+          "Retorne estritamente um JSON com estas chaves exatas.";
+
+      String mimeType = 'audio/mp4'; // Default
+      final ext = path.toLowerCase();
+      if (ext.endsWith('.mp3')) {
+        mimeType = 'audio/mpeg';
+      } else if (ext.endsWith('.wav'))
+        mimeType = 'audio/wav';
+      else if (ext.endsWith('.aac'))
+        mimeType = 'audio/aac';
+      else if (ext.endsWith('.ogg'))
+        mimeType = 'audio/ogg';
+      else if (ext.endsWith('.m4a')) mimeType = 'audio/mp4';
+
+      final requestData = {
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt},
+              {
+                'inline_data': {'mime_type': mimeType, 'data': base64Audio}
+              }
+            ]
+          }
+        ]
+      };
+
+      debugPrint(
+          '⏳ [Gemini] Enviando áudio para API (modelo: $model, mime: $mimeType, path: $path)...');
+
+      final response = await _dio
+          .post(
+            '/v1/models/$model:generateContent',
+            queryParameters: {'key': _apiKey},
+            data: requestData,
+          )
+          .timeout(const Duration(seconds: 45));
+
+      debugPrint(
+          '✅ [Gemini] Resposta recebida. Status: ${response.statusCode}');
+
+      final text =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      debugPrint('📄 [Gemini] Resposta bruta ÁUDIO: $text');
+
+      if (text == null) {
+        debugPrint('🚨 [Gemini] Resposta sem texto. Body: ${response.data}');
+        throw Exception('Empty response from AI');
+      }
+
+      return _extractJson(text);
+    } catch (e) {
+      if (e is DioException) {
+        debugPrint('🚨 [Gemini] DioError na análise de áudio:');
+        debugPrint('   Status: ${e.response?.statusCode}');
+        debugPrint('   Body: ${e.response?.data}');
         throw GeminiException(
-          'API Key não configurada. Verifique o arquivo .env',
-          type: GeminiErrorType.configuration,
-        );
+            'Erro na API (${e.response?.statusCode}): ${e.response?.data?['error']?['message'] ?? e.message}',
+            type: GeminiErrorType.serverError);
       }
-      debugPrint('🎙️ [Gemini] Iniciando análise de áudio: $path');
-      try {
-        final file = File(path);
-        if (!await file.exists()) {
-             debugPrint('❌ [Gemini] Arquivo de áudio não encontrado: $path');
-             throw Exception('Audio file not found');
-        }
-        
-        final bytes = await file.readAsBytes();
-        final base64Audio = base64Encode(bytes);
-        debugPrint('📊 [Gemini] Tamanho áudio: ${bytes.length} bytes (Base64: ${base64Audio.length})');
-
-        // Use dynamic model selection
-        final model = await _findWorkingModel() ?? 'gemini-1.5-flash'; 
-
-        const prompt = "Analise este áudio de pet. Identifique o que o animal está tentando comunicar. "
-                     "NÃO use termos técnicos médicos ou biológicos. Explique de forma simples para o dono: "
-                     "1. O que ele está sentindo ('emotion_simple'); "
-                     "2. O motivo provável ('reason_simple'); "
-                     "3. O que fazer ('action_tip'). "
-                     "Retorne estritamente um JSON com estas chaves exatas.";
-
-        String mimeType = 'audio/mp4'; // Default
-        final ext = path.toLowerCase();
-        if (ext.endsWith('.mp3')) {
-          mimeType = 'audio/mpeg';
-        } else if (ext.endsWith('.wav')) mimeType = 'audio/wav';
-        else if (ext.endsWith('.aac')) mimeType = 'audio/aac';
-        else if (ext.endsWith('.ogg')) mimeType = 'audio/ogg';
-        else if (ext.endsWith('.m4a')) mimeType = 'audio/mp4';
-
-        final requestData = {
-          'contents': [
-            {
-              'parts': [
-                {'text': prompt},
-                {
-                  'inline_data': {
-                    'mime_type': mimeType, 
-                    'data': base64Audio
-                  }
-                }
-              ]
-            }
-          ]
-        };
-
-        debugPrint('⏳ [Gemini] Enviando áudio para API (modelo: $model, mime: $mimeType, path: $path)...');
-        
-        final response = await _dio.post(
-          '/v1/models/$model:generateContent', 
-          queryParameters: {'key': _apiKey},
-          data: requestData,
-        ).timeout(const Duration(seconds: 45));
-
-        debugPrint('✅ [Gemini] Resposta recebida. Status: ${response.statusCode}');
-        
-        final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-        debugPrint('📄 [Gemini] Resposta bruta ÁUDIO: $text');
-        
-        if (text == null) {
-           debugPrint('🚨 [Gemini] Resposta sem texto. Body: ${response.data}');
-           throw Exception('Empty response from AI');
-        }
-        
-        return _extractJson(text);
-      } catch (e) {
-         if (e is DioException) {
-            debugPrint('🚨 [Gemini] DioError na análise de áudio:');
-            debugPrint('   Status: ${e.response?.statusCode}');
-            debugPrint('   Body: ${e.response?.data}');
-            throw GeminiException('Erro na API (${e.response?.statusCode}): ${e.response?.data?['error']?['message'] ?? e.message}', type: GeminiErrorType.serverError);
-         }
-         debugPrint('🚨 [Gemini] Audio Analysis Error: $e');
-         throw GeminiException('Falha na análise de áudio: $e', type: GeminiErrorType.serverError);
-      }
+      debugPrint('🚨 [Gemini] Audio Analysis Error: $e');
+      throw GeminiException('Falha na análise de áudio: $e',
+          type: GeminiErrorType.serverError);
+    }
   }
 
   // --- PET BODY ANALYSIS (Saúde & Postura) ---
   Future<Map<String, dynamic>> analyzePetBody(String path) async {
-      try {
-        final file = File(path);
-        if (!await file.exists()) throw Exception('Image file not found');
-        
-        final bytes = await file.readAsBytes();
-        final base64Image = base64Encode(bytes);
-        final model = await _findWorkingModel() ?? 'gemini-1.5-flash'; 
+    try {
+      final file = File(path);
+      if (!await file.exists()) throw Exception('Image file not found');
 
-        const prompt = """
+      final bytes = await file.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      final model = await _findWorkingModel() ?? 'gemini-1.5-flash';
+
+      const prompt = """
 Você é um especialista em comportamento e saúde animal. Analise esta imagem do pet usando marcadores biométricos e contextuais ESPECÍFICOS.
 
 **1. MARCADORES DE LINGUAGEM CORPORAL (Sinais Primários):**
@@ -959,35 +1005,34 @@ Retorne ESTRITAMENTE um JSON válido com:
 **IMPORTANTE:** Se a foto for parcial ou de baixa qualidade, use o padrão comportamental da raça para sugerir o estado provável, mas SEMPRE mencione a limitação da análise.
 """;
 
-        final requestData = {
-          'contents': [
-            {
-              'parts': [
-                {'text': prompt},
-                {
-                  'inline_data': {
-                    'mime_type': 'image/jpeg', 
-                    'data': base64Image
-                  }
-                }
-              ]
-            }
-          ]
-        };
+      final requestData = {
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt},
+              {
+                'inline_data': {'mime_type': 'image/jpeg', 'data': base64Image}
+              }
+            ]
+          }
+        ]
+      };
 
-        final response = await _dio.post(
-          'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_apiKey',
-          data: requestData,
-        );
+      final response = await _dio.post(
+        'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$_apiKey',
+        data: requestData,
+      );
 
-        final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-        if (text == null) throw Exception('Empty response from AI');
-        
-        return _extractJson(text);
-      } catch (e) {
-         debugPrint('🚨 [Gemini] Body Analysis Error: $e');
-         throw GeminiException('Falha na análise corporal: $e', type: GeminiErrorType.serverError);
-      }
+      final text =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      if (text == null) throw Exception('Empty response from AI');
+
+      return _extractJson(text);
+    } catch (e) {
+      debugPrint('🚨 [Gemini] Body Analysis Error: $e');
+      throw GeminiException('Falha na análise corporal: $e',
+          type: GeminiErrorType.serverError);
+    }
   }
 
   /// --- PET FOOD ANALYSIS (Agente Nutricional) ---
@@ -997,17 +1042,18 @@ Retorne ESTRITAMENTE um JSON válido com:
     String? breedSpecies,
     String? weight,
   }) async {
-      try {
-        final file = File(path);
-        if (!await file.exists()) throw Exception('Image file not found');
-        
-        final bytes = await file.readAsBytes();
-        final base64Image = base64Encode(bytes);
-        final model = await _findWorkingModel() ?? 'gemini-1.5-flash'; 
+    try {
+      final file = File(path);
+      if (!await file.exists()) throw Exception('Image file not found');
 
-        final petContext = "Idade: ${age ?? 'Não informada'}, Espécie/Raça: ${breedSpecies ?? 'Não informada'}, Peso: ${weight ?? 'Não informado'}";
+      final bytes = await file.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      final model = await _findWorkingModel() ?? 'gemini-1.5-flash';
 
-        final prompt = """
+      final petContext =
+          "Idade: ${age ?? 'Não informada'}, Espécie/Raça: ${breedSpecies ?? 'Não informada'}, Peso: ${weight ?? 'Não informado'}";
+
+      final prompt = """
 Contexto: Você é o especialista em nutrição animal do ScanNut. Analise a imagem do rótulo da ração enviada e forneça uma resposta estritamente em formato JSON.
 Parâmetros do Pet (Contexto do Usuário): $petContext.
 
@@ -1034,36 +1080,35 @@ JSON Schema Invariável:
 }
 """;
 
-        final requestData = {
-          'contents': [
-            {
-              'parts': [
-                {'text': prompt},
-                {
-                  'inline_data': {
-                    'mime_type': 'image/jpeg', 
-                    'data': base64Image
-                   }
-                }
-              ]
-            }
-          ]
-        };
+      final requestData = {
+        'contents': [
+          {
+            'parts': [
+              {'text': prompt},
+              {
+                'inline_data': {'mime_type': 'image/jpeg', 'data': base64Image}
+              }
+            ]
+          }
+        ]
+      };
 
-        final response = await _dio.post(
-          '/v1/models/$model:generateContent',
-          queryParameters: {'key': _apiKey},
-          data: requestData,
-        );
-        
-        final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-        if (text == null) throw Exception('Empty response from AI');
-        
-        return _extractJson(text);
-      } catch (e) {
-         debugPrint('🚨 [Gemini] Food Analysis Error: $e');
-         throw GeminiException('Falha na análise de ração: $e', type: GeminiErrorType.serverError);
-      }
+      final response = await _dio.post(
+        '/v1/models/$model:generateContent',
+        queryParameters: {'key': _apiKey},
+        data: requestData,
+      );
+
+      final text =
+          response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      if (text == null) throw Exception('Empty response from AI');
+
+      return _extractJson(text);
+    } catch (e) {
+      debugPrint('🚨 [Gemini] Food Analysis Error: $e');
+      throw GeminiException('Falha na análise de ração: $e',
+          type: GeminiErrorType.serverError);
+    }
   }
 }
 
@@ -1118,4 +1163,3 @@ class GeminiException implements Exception {
   @override
   String toString() => userMessage;
 }
-

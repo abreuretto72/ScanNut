@@ -16,7 +16,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  
+
   bool _isLoading = false;
   bool _obscureCurrent = true;
   bool _obscureNew = true;
@@ -38,7 +38,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     try {
       final email = simpleAuthService.loggedUserEmail;
       if (email == null) {
-        SnackBarHelper.showError(context, 'Usuário não identificado. Faça login novamente.');
+        SnackBarHelper.showError(
+            context, 'Usuário não identificado. Faça login novamente.');
         setState(() => _isLoading = false);
         return;
       }
@@ -56,14 +57,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         _currentPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
-        
+
         SnackBarHelper.showSuccess(context, 'Senha alterada com sucesso.');
         Navigator.pop(context); // Optional: close screen on success
       } else {
         SnackBarHelper.showError(context, error);
       }
     } catch (e) {
-      if (mounted) SnackBarHelper.showError(context, 'Erro ao alterar senha: $e');
+      if (mounted) {
+        SnackBarHelper.showError(context, 'Erro ao alterar senha: $e');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -72,8 +75,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   String? _validateNewPassword(String? value) {
     if (value == null || value.isEmpty) return 'Digite a nova senha';
     if (value.length < 8) return 'Mínimo 8 caracteres';
-    if (!value.contains(RegExp(r'[A-Z]'))) return 'Precisa de pelo menos 1 letra maiúscula';
-    if (!value.contains(RegExp(r'[0-9]'))) return 'Precisa de pelo menos 1 número';
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return 'Precisa de pelo menos 1 letra maiúscula';
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'Precisa de pelo menos 1 número';
+    }
     return null;
   }
 
@@ -82,7 +89,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return Scaffold(
       backgroundColor: AppDesign.backgroundDark,
       appBar: AppBar(
-        title: Text('Trocar Senha', style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
+        title: Text('Trocar Senha',
+            style: GoogleFonts.poppins(
+                color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold)),
         backgroundColor: AppDesign.surfaceDark,
         elevation: 0,
         leading: IconButton(
@@ -120,8 +129,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _currentPasswordController,
                 label: 'Senha atual',
                 obscure: _obscureCurrent,
-                onToggleVisiblity: () => setState(() => _obscureCurrent = !_obscureCurrent),
-                validator: (val) => (val?.isEmpty ?? true) ? 'Digite sua senha atual' : null,
+                onToggleVisiblity: () =>
+                    setState(() => _obscureCurrent = !_obscureCurrent),
+                validator: (val) =>
+                    (val?.isEmpty ?? true) ? 'Digite sua senha atual' : null,
               ),
               const SizedBox(height: 24),
 
@@ -130,7 +141,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _newPasswordController,
                 label: 'Nova senha',
                 obscure: _obscureNew,
-                onToggleVisiblity: () => setState(() => _obscureNew = !_obscureNew),
+                onToggleVisiblity: () =>
+                    setState(() => _obscureNew = !_obscureNew),
                 validator: _validateNewPassword,
               ),
               const SizedBox(height: 24),
@@ -140,13 +152,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 controller: _confirmPasswordController,
                 label: 'Confirmar nova senha',
                 obscure: _obscureConfirm,
-                onToggleVisiblity: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                onToggleVisiblity: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
                 validator: (val) {
-                  if (val != _newPasswordController.text) return 'As senhas não coincidem';
+                  if (val != _newPasswordController.text) {
+                    return 'As senhas não coincidem';
+                  }
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 48),
 
               SizedBox(
@@ -155,18 +170,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   onPressed: _isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppDesign.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: _isLoading 
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(
-                        'Salvar Alterações',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2))
+                      : Text(
+                          'Salvar Alterações',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
                 ),
               ),
             ],
@@ -187,7 +207,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       decoration: BoxDecoration(
         color: AppDesign.surfaceDark,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
+        border:
+            Border.all(color: AppDesign.textPrimaryDark.withValues(alpha: 0.1)),
       ),
       child: TextFormField(
         controller: controller,
@@ -201,7 +222,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           contentPadding: const EdgeInsets.all(20),
           suffixIcon: IconButton(
             icon: Icon(
-              obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+              obscure
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
               color: AppDesign.textSecondaryDark,
             ),
             onPressed: onToggleVisiblity,

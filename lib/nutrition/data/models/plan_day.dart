@@ -33,7 +33,8 @@ class PlanDay extends HiveObject {
   factory PlanDay.fromJson(Map<String, dynamic> json) {
     return PlanDay(
       date: DateTime.parse(json['date']),
-      meals: (json['meals'] as List?)?.map((m) => Meal.fromJson(m)).toList() ?? [],
+      meals:
+          (json['meals'] as List?)?.map((m) => Meal.fromJson(m)).toList() ?? [],
       status: json['status'] ?? 'planejado',
     );
   }

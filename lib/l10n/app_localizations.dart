@@ -101,6 +101,72 @@ abstract class AppLocalizations {
     Locale('pt', 'PT')
   ];
 
+  /// No description provided for @petChatTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conversar com ScanNut AI'**
+  String get petChatTitle;
+
+  /// No description provided for @petChatPrompt.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pergunte algo sobre seu pet...'**
+  String get petChatPrompt;
+
+  /// No description provided for @petChatDangerousAlert.
+  ///
+  /// In pt, this message translates to:
+  /// **'⚠️ Alerta de Perigo'**
+  String get petChatDangerousAlert;
+
+  /// No description provided for @petChatSafeAlert.
+  ///
+  /// In pt, this message translates to:
+  /// **'✅ Informação Confirmada'**
+  String get petChatSafeAlert;
+
+  /// No description provided for @petChatNoData.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ainda não tenho registros de {domain} para este pet.'**
+  String petChatNoData(Object domain);
+
+  /// No description provided for @petChatIdentity.
+  ///
+  /// In pt, this message translates to:
+  /// **'identidade'**
+  String get petChatIdentity;
+
+  /// No description provided for @petChatHealth.
+  ///
+  /// In pt, this message translates to:
+  /// **'saúde'**
+  String get petChatHealth;
+
+  /// No description provided for @petChatNutrition.
+  ///
+  /// In pt, this message translates to:
+  /// **'nutrição'**
+  String get petChatNutrition;
+
+  /// No description provided for @petChatTravel.
+  ///
+  /// In pt, this message translates to:
+  /// **'viagens'**
+  String get petChatTravel;
+
+  /// No description provided for @petChatAgenda.
+  ///
+  /// In pt, this message translates to:
+  /// **'agenda'**
+  String get petChatAgenda;
+
+  /// No description provided for @petChatPlans.
+  ///
+  /// In pt, this message translates to:
+  /// **'planos'**
+  String get petChatPlans;
+
   /// No description provided for @appTitle.
   ///
   /// In pt, this message translates to:
@@ -13282,6 +13348,210 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Importante para estadias em hotéis pet e segurança do felino.'**
   String get travelDocFelvDesc;
+
+  /// No description provided for @tabScanWalk.
+  ///
+  /// In pt, this message translates to:
+  /// **'ScanWalk'**
+  String get tabScanWalk;
+
+  /// No description provided for @scanWalkNoPetError.
+  ///
+  /// In pt, this message translates to:
+  /// **'É necessário ter pelo menos um pet cadastrado para iniciar um passeio.'**
+  String get scanWalkNoPetError;
+
+  /// No description provided for @scanWalkTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Passeios Inteligentes'**
+  String get scanWalkTitle;
+
+  /// No description provided for @scanWalkMap.
+  ///
+  /// In pt, this message translates to:
+  /// **'Mapa Interativo'**
+  String get scanWalkMap;
+
+  /// No description provided for @scanWalkFriends.
+  ///
+  /// In pt, this message translates to:
+  /// **'Amigos Encontrados'**
+  String get scanWalkFriends;
+
+  /// No description provided for @scanWalkAlerts.
+  ///
+  /// In pt, this message translates to:
+  /// **'Zonas de Risco'**
+  String get scanWalkAlerts;
+
+  /// No description provided for @scanWalkStart.
+  ///
+  /// In pt, this message translates to:
+  /// **'Iniciar Passeio'**
+  String get scanWalkStart;
+
+  /// No description provided for @scanWalkDistance.
+  ///
+  /// In pt, this message translates to:
+  /// **'Distância'**
+  String get scanWalkDistance;
+
+  /// No description provided for @scanWalkDuration.
+  ///
+  /// In pt, this message translates to:
+  /// **'Duração'**
+  String get scanWalkDuration;
+
+  /// No description provided for @walkXixi.
+  ///
+  /// In pt, this message translates to:
+  /// **'Xixi'**
+  String get walkXixi;
+
+  /// No description provided for @walkFezes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Fezes'**
+  String get walkFezes;
+
+  /// No description provided for @walkAgua.
+  ///
+  /// In pt, this message translates to:
+  /// **'Água'**
+  String get walkAgua;
+
+  /// No description provided for @walkOutros.
+  ///
+  /// In pt, this message translates to:
+  /// **'Outros'**
+  String get walkOutros;
+
+  /// No description provided for @walkAmigo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Amigo'**
+  String get walkAmigo;
+
+  /// No description provided for @walkLatido.
+  ///
+  /// In pt, this message translates to:
+  /// **'Latido'**
+  String get walkLatido;
+
+  /// No description provided for @walkPerigo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Perigo'**
+  String get walkPerigo;
+
+  /// No description provided for @walkBrigas.
+  ///
+  /// In pt, this message translates to:
+  /// **'Brigas'**
+  String get walkBrigas;
+
+  /// No description provided for @walkBristolScore.
+  ///
+  /// In pt, this message translates to:
+  /// **'Escala Bristol'**
+  String get walkBristolScore;
+
+  /// No description provided for @walkFriendDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome do Amigo'**
+  String get walkFriendDesc;
+
+  /// No description provided for @walkHazardDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tipo de Perigo'**
+  String get walkHazardDesc;
+
+  /// No description provided for @walkFightDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Detalhes da Briga'**
+  String get walkFightDesc;
+
+  /// No description provided for @walkDemoBtn.
+  ///
+  /// In pt, this message translates to:
+  /// **'Demonstração'**
+  String get walkDemoBtn;
+
+  /// No description provided for @walkMicRec.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ouvindo...'**
+  String get walkMicRec;
+
+  /// No description provided for @walkCamRec.
+  ///
+  /// In pt, this message translates to:
+  /// **'Foto capturada'**
+  String get walkCamRec;
+
+  /// No description provided for @walkBristolIdeal.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ideal'**
+  String get walkBristolIdeal;
+
+  /// No description provided for @walkBristolConstipated.
+  ///
+  /// In pt, this message translates to:
+  /// **'Duro'**
+  String get walkBristolConstipated;
+
+  /// No description provided for @walkBristolLiquid.
+  ///
+  /// In pt, this message translates to:
+  /// **'Líquido'**
+  String get walkBristolLiquid;
+
+  /// No description provided for @walkExitConfirm.
+  ///
+  /// In pt, this message translates to:
+  /// **'Deseja encerrar o passeio?'**
+  String get walkExitConfirm;
+
+  /// No description provided for @walkSaveSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registro salvo no 9º Relatório!'**
+  String get walkSaveSuccess;
+
+  /// No description provided for @walkVoicePromptFriend.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diga o nome, sexo e idade do amigo.'**
+  String get walkVoicePromptFriend;
+
+  /// No description provided for @walkVoicePromptDanger.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diga o que é o perigo (ex: vidro, veneno).'**
+  String get walkVoicePromptDanger;
+
+  /// No description provided for @walkVoicePromptFight.
+  ///
+  /// In pt, this message translates to:
+  /// **'Diga raça e sexo do agressor.'**
+  String get walkVoicePromptFight;
+
+  /// No description provided for @walkAnalysisStool.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando Fezes (IA)...'**
+  String get walkAnalysisStool;
+
+  /// No description provided for @walkAnalysisBark.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando Vocalização (IA)...'**
+  String get walkAnalysisBark;
 }
 
 class _AppLocalizationsDelegate

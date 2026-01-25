@@ -70,7 +70,8 @@ class HiveDebugPanel extends StatelessWidget {
 
   List<Widget> _getOpenBoxes() {
     return [
-      _buildInfoRow('Hive inicializado', Hive.isBoxOpen('nutrition_weekly_plans') ? '✅ SIM' : '❌ NÃO'),
+      _buildInfoRow('Hive inicializado',
+          Hive.isBoxOpen('nutrition_weekly_plans') ? '✅ SIM' : '❌ NÃO'),
     ];
   }
 
@@ -78,7 +79,7 @@ class HiveDebugPanel extends StatelessWidget {
     try {
       final box = Hive.box<WeeklyPlan>('nutrition_weekly_plans');
       final keys = box.keys.toList();
-      
+
       return [
         _buildInfoRow('Nome do box', 'nutrition_weekly_plans'),
         _buildInfoRow('Box aberto?', box.isOpen ? '✅ SIM' : '❌ NÃO'),
@@ -96,12 +97,12 @@ class HiveDebugPanel extends StatelessWidget {
           )
         else
           ...keys.map((key) => Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 4),
-            child: Text(
-              '• $key',
-              style: GoogleFonts.poppins(color: Colors.green, fontSize: 12),
-            ),
-          )),
+                padding: const EdgeInsets.only(left: 16, bottom: 4),
+                child: Text(
+                  '• $key',
+                  style: GoogleFonts.poppins(color: Colors.green, fontSize: 12),
+                ),
+              )),
       ];
     } catch (e) {
       return [
@@ -114,19 +115,20 @@ class HiveDebugPanel extends StatelessWidget {
     final now = DateTime.now();
     final monday = _getMonday(now);
     final key = _getWeekKey(monday);
-    
+
     try {
       final box = Hive.box<WeeklyPlan>('nutrition_weekly_plans');
       final hasKey = box.containsKey(key);
       final plan = box.get(key);
-      
+
       return [
         _buildInfoRow('Data atual', now.toString().split('.')[0]),
         _buildInfoRow('Segunda-feira', monday.toString().split(' ')[0]),
         _buildInfoRow('Key esperada', key),
         const Divider(color: Colors.white24),
         _buildInfoRow('Box contém key?', hasKey ? '✅ SIM' : '❌ NÃO'),
-        _buildInfoRow('get(key) retorna', plan != null ? '✅ WeeklyPlan' : '❌ NULL'),
+        _buildInfoRow(
+            'get(key) retorna', plan != null ? '✅ WeeklyPlan' : '❌ NULL'),
         if (plan != null) ...[
           const Divider(color: Colors.white24),
           _buildInfoRow('Dias no plano', '${plan.days.length}'),
@@ -135,7 +137,8 @@ class HiveDebugPanel extends StatelessWidget {
             '${plan.days.fold<int>(0, (sum, day) => sum + day.meals.length)}',
           ),
           _buildInfoRow('Criado em', plan.criadoEm.toString().split('.')[0]),
-          _buildInfoRow('Atualizado em', plan.atualizadoEm.toString().split('.')[0]),
+          _buildInfoRow(
+              'Atualizado em', plan.atualizadoEm.toString().split('.')[0]),
         ],
       ];
     } catch (e) {
@@ -149,7 +152,7 @@ class HiveDebugPanel extends StatelessWidget {
     try {
       final box = Hive.box<WeeklyPlan>('nutrition_weekly_plans');
       final allPlans = box.values.toList();
-      
+
       if (allPlans.isEmpty) {
         return [
           Text(
@@ -158,9 +161,10 @@ class HiveDebugPanel extends StatelessWidget {
           ),
         ];
       }
-      
+
       return allPlans.map((plan) {
-        final totalMeals = plan.days.fold<int>(0, (sum, day) => sum + day.meals.length);
+        final totalMeals =
+            plan.days.fold<int>(0, (sum, day) => sum + day.meals.length);
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(12),

@@ -7,7 +7,7 @@ import '../../../../core/theme/app_design.dart';
 /// Shows dynamic messages to keep user engaged during long processing
 class MealPlanLoadingWidget extends StatefulWidget {
   final String petName;
-  
+
   const MealPlanLoadingWidget({
     super.key,
     required this.petName,
@@ -20,13 +20,13 @@ class MealPlanLoadingWidget extends StatefulWidget {
 class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
   int _currentStepIndex = 0;
   Timer? _timer;
-  
+
   late final List<LoadingStep> _steps;
 
   @override
   void initState() {
     super.initState();
-    
+
     _steps = [
       LoadingStep(
         icon: Icons.pets_rounded,
@@ -49,15 +49,16 @@ class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
         duration: 999, // Will stay until completion
       ),
     ];
-    
+
     _startProgressiveLoading();
   }
 
   void _startProgressiveLoading() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final currentStep = _steps[_currentStepIndex];
-      
-      if (timer.tick >= currentStep.duration && _currentStepIndex < _steps.length - 1) {
+
+      if (timer.tick >= currentStep.duration &&
+          _currentStepIndex < _steps.length - 1) {
         if (mounted) {
           setState(() {
             _currentStepIndex++;
@@ -76,7 +77,7 @@ class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
   @override
   Widget build(BuildContext context) {
     final currentStep = _steps[_currentStepIndex];
-    
+
     return Container(
       color: AppDesign.backgroundDark,
       child: Center(
@@ -108,21 +109,22 @@ class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
                   );
                 },
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Progress Indicator
               SizedBox(
                 width: 200,
                 child: LinearProgressIndicator(
                   backgroundColor: Colors.white.withValues(alpha: 0.1),
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppDesign.petPink),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(AppDesign.petPink),
                   minHeight: 4,
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Dynamic Message
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 500),
@@ -149,9 +151,9 @@ class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Step Indicator
               Text(
                 'Etapa ${_currentStepIndex + 1} de ${_steps.length}',
@@ -160,9 +162,9 @@ class _MealPlanLoadingWidgetState extends State<MealPlanLoadingWidget> {
                   color: Colors.white54,
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Subtle hint
               Text(
                 'Isso pode levar até 90 segundos...',
@@ -184,7 +186,7 @@ class LoadingStep {
   final IconData icon;
   final String message;
   final int duration; // in seconds
-  
+
   LoadingStep({
     required this.icon,
     required this.message,

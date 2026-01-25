@@ -12,14 +12,14 @@ class ColorHelper {
     // Calculate health score
     final riskScore = risks.length;
     final benefitScore = benefits.length;
-    
+
     // High calories or more risks than benefits = warning
     if (calories > 600 || riskScore > benefitScore) {
       return AppDesign.warning; // Warning
     } else if (benefitScore > riskScore) {
       return AppDesign.success; // Healthy green
     }
-    
+
     return AppDesign.warning; // Neutral
   }
 
@@ -39,9 +39,13 @@ class ColorHelper {
   /// Determine theme color based on pet urgency level
   static Color getPetThemeColor(String urgencyLevel) {
     final level = urgencyLevel.toLowerCase();
-    if (level.contains('vermelho') || level.contains('red') || level.contains('rojo')) {
+    if (level.contains('vermelho') ||
+        level.contains('red') ||
+        level.contains('rojo')) {
       return AppDesign.error;
-    } else if (level.contains('amarelo') || level.contains('yellow') || level.contains('amarillo')) {
+    } else if (level.contains('amarelo') ||
+        level.contains('yellow') ||
+        level.contains('amarillo')) {
       return AppDesign.warning;
     } else if (level.contains('verde') || level.contains('green')) {
       return AppDesign.success;
@@ -52,9 +56,15 @@ class ColorHelper {
   /// Get urgency icon based on level
   static IconData getUrgencyIcon(String urgencyLevel) {
     final level = urgencyLevel.toLowerCase();
-    if (level.contains('vermelho') || level.contains('red') || level.contains('rojo') || level.contains('high')) {
+    if (level.contains('vermelho') ||
+        level.contains('red') ||
+        level.contains('rojo') ||
+        level.contains('high')) {
       return Icons.warning_amber_rounded;
-    } else if (level.contains('amarelo') || level.contains('yellow') || level.contains('amarillo') || level.contains('medium')) {
+    } else if (level.contains('amarelo') ||
+        level.contains('yellow') ||
+        level.contains('amarillo') ||
+        level.contains('medium')) {
       return Icons.info_outline;
     } else {
       return Icons.check_circle_outline;

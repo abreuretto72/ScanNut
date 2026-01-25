@@ -15,10 +15,10 @@ class RecipeService {
   Future<void> _initService() async {
     // ⚠️ Deprecated method call, keeping signature to match view_file but logic is inside init() below
   }
- 
+
   Future<void> init() async {
     debugPrint('🔧 [RecipeService] Init called.');
-    
+
     try {
       if (!Hive.isAdapterRegistered(31)) {
         debugPrint('🔧 [RecipeService] Registering Adapter(31)...');
@@ -26,30 +26,33 @@ class RecipeService {
       }
 
       debugPrint('🔧 [RecipeService] Ensuring box "$boxName" is open...');
-      _box = await HiveAtomicManager().ensureBoxOpen<RecipeHistoryItem>(boxName);
-      
+      _box =
+          await HiveAtomicManager().ensureBoxOpen<RecipeHistoryItem>(boxName);
+
       debugPrint('✅ [RecipeService] Box "$boxName" opened.');
     } catch (e) {
-      debugPrint('❌ [RecipeService] Init failed. Attempting SELF-HEALING (Recreate Box)... Error: $e');
+      debugPrint(
+          '❌ [RecipeService] Init failed. Attempting SELF-HEALING (Recreate Box)... Error: $e');
       try {
         await HiveAtomicManager().recreateBox<RecipeHistoryItem>(boxName);
-        _box = await HiveAtomicManager().ensureBoxOpen<RecipeHistoryItem>(boxName);
+        _box =
+            await HiveAtomicManager().ensureBoxOpen<RecipeHistoryItem>(boxName);
         debugPrint('✅ [RecipeService] SELF-HEALING SUCCESS.');
       } catch (e2) {
-         debugPrint('💀 [RecipeService] SELF-HEALING FAILED: $e2');
-         rethrow;
+        debugPrint('💀 [RecipeService] SELF-HEALING FAILED: $e2');
+        rethrow;
       }
     }
   }
 
   Future<void> saveAuto(List<ReceitaRapida> recipes, String foodName) async {
     if (_box == null || !_box!.isOpen) await init();
-    
+
     for (var recipe in recipes) {
       // Check for duplication (simple check by name + foodName)
-      final exists = _box!.values.any((item) => 
+      final exists = _box!.values.any((item) =>
           item.foodName == foodName && item.recipeName == recipe.nome);
-      
+
       if (!exists) {
         final item = RecipeHistoryItem(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
@@ -62,16 +65,18 @@ class RecipeService {
         );
         final key = await _box!.add(item);
         debugPrint('🍳 [RecipeService] Auto-saved recipe: ${recipe.nome}');
-        
+
         // 🚀 Background Image Generation
         _generateImageForRecipe(key, item);
       }
     }
   }
 
-  Future<void> _generateImageForRecipe(dynamic key, RecipeHistoryItem item) async {
+  Future<void> _generateImageForRecipe(
+      dynamic key, RecipeHistoryItem item) async {
     // ⚠️ DISABLED FOR PERFORMANCE OPTIMIZATION (User Request Step 1942)
-    debugPrint('⚡ [RecipeService] Skipping Image Generation (Optimization Enabled)');
+    debugPrint(
+        '⚡ [RecipeService] Skipping Image Generation (Optimization Enabled)');
     return;
     /*
     // 1. Pro Entitlement Check - DIAGNÓSTICO DE CONEXÃO
@@ -84,7 +89,8 @@ class RecipeService {
     */
   }
 
-  Future<void> _updateItemWithImage(dynamic key, RecipeHistoryItem oldItem, String path) async {
+  Future<void> _updateItemWithImage(
+      dynamic key, RecipeHistoryItem oldItem, String path) async {
     if (_box == null || !_box!.isOpen) return;
 
     final newItem = RecipeHistoryItem(
@@ -96,7 +102,7 @@ class RecipeService {
       timestamp: oldItem.timestamp,
       imagePath: path,
     );
-    
+
     await _box!.put(key, newItem);
   }
 
@@ -111,7 +117,7 @@ class RecipeService {
     if (_box == null || !_box!.isOpen) await init();
     await _box!.clear();
   }
-  
+
   Future<void> deleteRecipe(RecipeHistoryItem item) async {
     await item.delete();
   }

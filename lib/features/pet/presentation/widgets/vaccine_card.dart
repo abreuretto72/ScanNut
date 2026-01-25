@@ -9,14 +9,23 @@ class VaccineCard extends StatelessWidget {
   final String petName;
   final VoidCallback? onScheduleVaccine;
 
-  const VaccineCard({super.key, required this.vaccinationProtocol, required this.petName, this.onScheduleVaccine});
+  const VaccineCard(
+      {super.key,
+      required this.vaccinationProtocol,
+      required this.petName,
+      this.onScheduleVaccine});
 
   @override
   Widget build(BuildContext context) {
     final vaccines = vaccinationProtocol['vacinas_essenciais'] as List? ?? [];
-    final preventiveCalendar = vaccinationProtocol['calendario_preventivo'] as Map<String, dynamic>? ?? {};
-    final parasitePrevention = vaccinationProtocol['prevencao_parasitaria'] as Map<String, dynamic>? ?? {};
-    final dentalHealth = vaccinationProtocol['saude_bucal_ossea'] as Map<String, dynamic>? ?? {};
+    final preventiveCalendar =
+        vaccinationProtocol['calendario_preventivo'] as Map<String, dynamic>? ??
+            {};
+    final parasitePrevention =
+        vaccinationProtocol['prevencao_parasitaria'] as Map<String, dynamic>? ??
+            {};
+    final dentalHealth =
+        vaccinationProtocol['saude_bucal_ossea'] as Map<String, dynamic>? ?? {};
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -56,7 +65,8 @@ class VaccineCard extends StatelessWidget {
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.vaccines, color: Colors.white, size: 28),
+                  child:
+                      const Icon(Icons.vaccines, color: Colors.white, size: 28),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -102,10 +112,10 @@ class VaccineCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   ...vaccines.map((vaccine) => _VaccineItem(
-                    vaccine: vaccine as Map<String, dynamic>,
-                    petName: petName,
-                    onSchedule: onScheduleVaccine,
-                  )),
+                        vaccine: vaccine as Map<String, dynamic>,
+                        petName: petName,
+                        onSchedule: onScheduleVaccine,
+                      )),
                 ],
               ),
             ),
@@ -119,14 +129,16 @@ class VaccineCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppDesign.petPink.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.calendar_month, color: AppDesign.petPink, size: 20),
+                      const Icon(Icons.calendar_month,
+                          color: AppDesign.petPink, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Calendário Preventivo',
@@ -142,14 +154,16 @@ class VaccineCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       '🐶 Filhotes: ${preventiveCalendar['cronograma_filhote']}',
-                      style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white70, fontSize: 12),
                     ),
                   ],
                   if (preventiveCalendar['reforco_anual'] != null) ...[
                     const SizedBox(height: 4),
                     Text(
                       '🔄 Adultos: ${preventiveCalendar['reforco_anual']}',
-                      style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ],
@@ -173,7 +187,8 @@ class VaccineCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.bug_report, color: Colors.orangeAccent, size: 20),
+                      const Icon(Icons.bug_report,
+                          color: Colors.orangeAccent, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Prevenção Parasitária',
@@ -189,10 +204,12 @@ class VaccineCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Builder(
                       builder: (context) {
-                        final vermifugacao = parasitePrevention['vermifugacao'] as Map<String, dynamic>;
+                        final vermifugacao = parasitePrevention['vermifugacao']
+                            as Map<String, dynamic>;
                         return Text(
                           '💊 Vermífugo: ${vermifugacao['frequencia'] ?? 'Consulte veterinário'}',
-                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                          style: GoogleFonts.poppins(
+                              color: Colors.white70, fontSize: 12),
                         );
                       },
                     ),
@@ -201,10 +218,13 @@ class VaccineCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Builder(
                       builder: (context) {
-                        final ectoparasitas = parasitePrevention['controle_ectoparasitas'] as Map<String, dynamic>;
+                        final ectoparasitas =
+                            parasitePrevention['controle_ectoparasitas']
+                                as Map<String, dynamic>;
                         return Text(
                           '🦟 Pulgas/Carrapatos: ${ectoparasitas['pulgas_carrapatos'] ?? 'Consulte veterinário'}',
-                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                          style: GoogleFonts.poppins(
+                              color: Colors.white70, fontSize: 12),
                         );
                       },
                     ),
@@ -219,7 +239,8 @@ class VaccineCard extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.warning, color: Colors.redAccent, size: 16),
+                          const Icon(Icons.warning,
+                              color: Colors.redAccent, size: 16),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -249,14 +270,16 @@ class VaccineCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppDesign.petPink.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.pets, color: AppDesign.petPink, size: 20),
+                      const Icon(Icons.pets,
+                          color: AppDesign.petPink, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Saúde Bucal e Óssea',
@@ -272,10 +295,12 @@ class VaccineCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Builder(
                       builder: (context) {
-                        final bones = dentalHealth['ossos_naturais_permitidos'] as List;
+                        final bones =
+                            dentalHealth['ossos_naturais_permitidos'] as List;
                         return Text(
                           '🦴 Ossos Permitidos: ${bones.join(", ")}',
-                          style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                          style: GoogleFonts.poppins(
+                              color: Colors.white70, fontSize: 12),
                         );
                       },
                     ),
@@ -284,7 +309,8 @@ class VaccineCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       '📅 Frequência: ${dentalHealth['frequencia_semanal']}',
-                      style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white70, fontSize: 12),
                     ),
                   ],
                   if (dentalHealth['alerta_seguranca'] != null) ...[
@@ -297,7 +323,8 @@ class VaccineCard extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.warning, color: Colors.redAccent, size: 16),
+                          const Icon(Icons.warning,
+                              color: Colors.redAccent, size: 16),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -355,7 +382,8 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
     try {
       if (!mounted) return;
       final name = widget.vaccine['nome'] ?? 'Vacina';
-      debugPrint('💉 Loading vaccine status for: $name (Pet: ${widget.petName})');
+      debugPrint(
+          '💉 Loading vaccine status for: $name (Pet: ${widget.petName})');
       final service = ref.read(vaccineStatusServiceProvider);
       debugPrint('✅ Service obtained: $service');
       final isCompleted = service.isCompleted(widget.petName, name);
@@ -377,13 +405,13 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
       final name = widget.vaccine['nome'] ?? 'Vacina';
       debugPrint('🔄 TOGGLE VACCINE CLICKED: $name (Pet: ${widget.petName})');
       debugPrint('Current state before toggle: $_isChecked');
-      
+
       final service = ref.read(vaccineStatusServiceProvider);
       debugPrint('✅ Service obtained for toggle');
-      
+
       await service.toggleStatus(widget.petName, name);
       debugPrint('✅ Toggle status completed');
-      
+
       if (mounted) {
         setState(() {
           _isChecked = !_isChecked;
@@ -407,12 +435,12 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: _isChecked 
+        color: _isChecked
             ? AppDesign.petPink.withValues(alpha: 0.1)
             : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: _isChecked 
+          color: _isChecked
               ? AppDesign.petPink.withValues(alpha: 0.5)
               : Colors.white.withValues(alpha: 0.1),
         ),
@@ -449,7 +477,8 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
                         color: Colors.white,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        decoration: _isChecked ? TextDecoration.lineThrough : null,
+                        decoration:
+                            _isChecked ? TextDecoration.lineThrough : null,
                       ),
                     ),
                     if (objective.isNotEmpty) ...[
@@ -469,7 +498,8 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
                       children: [
                         if (firstDoseAge.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.blue.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
@@ -487,7 +517,8 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
                           const SizedBox(height: 4),
                         if (adultBooster.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.purple.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6),
@@ -519,7 +550,8 @@ class _VaccineItemState extends ConsumerState<_VaccineItem> {
               // Schedule button
               if (widget.onSchedule != null)
                 IconButton(
-                  icon: const Icon(Icons.calendar_today, color: Colors.blueAccent, size: 20),
+                  icon: const Icon(Icons.calendar_today,
+                      color: Colors.blueAccent, size: 20),
                   onPressed: widget.onSchedule,
                   tooltip: 'Agendar na Agenda',
                 ),

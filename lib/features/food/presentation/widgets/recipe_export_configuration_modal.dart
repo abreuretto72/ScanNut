@@ -15,20 +15,25 @@ class RecipeExportConfigurationModal extends StatefulWidget {
   });
 
   @override
-  State<RecipeExportConfigurationModal> createState() => _RecipeExportConfigurationModalState();
+  State<RecipeExportConfigurationModal> createState() =>
+      _RecipeExportConfigurationModalState();
 }
 
-class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurationModal> {
+class _RecipeExportConfigurationModalState
+    extends State<RecipeExportConfigurationModal> {
   DateTimeRange? _selectedDateRange;
   bool _manualSelectionMode = false;
-  final Set<String> _selectedIds = {}; // Only used if manualSelectionMode is true
+  final Set<String> _selectedIds =
+      {}; // Only used if manualSelectionMode is true
 
   // Computed property to get items filtered by DATE
   List<RecipeHistoryItem> get _dateFilteredItems {
     if (_selectedDateRange == null) return widget.allItems;
     return widget.allItems.where((item) {
-      return item.timestamp.isAfter(_selectedDateRange!.start.subtract(const Duration(seconds: 1))) &&
-             item.timestamp.isBefore(_selectedDateRange!.end.add(const Duration(days: 1))); // Inclusive end day
+      return item.timestamp.isAfter(
+              _selectedDateRange!.start.subtract(const Duration(seconds: 1))) &&
+          item.timestamp.isBefore(_selectedDateRange!.end
+              .add(const Duration(days: 1))); // Inclusive end day
     }).toList();
   }
 
@@ -40,8 +45,8 @@ class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurati
   @override
   Widget build(BuildContext context) {
     final filteredList = _dateFilteredItems;
-    final int count = _manualSelectionMode 
-        ? filteredList.where((i) => _selectedIds.contains(i.id)).length 
+    final int count = _manualSelectionMode
+        ? filteredList.where((i) => _selectedIds.contains(i.id)).length
         : filteredList.length;
 
     return Container(
@@ -59,25 +64,35 @@ class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurati
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                   Expanded(child: Text('Exportar Livro de Receitas', style: GoogleFonts.poppins(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
-                   IconButton(icon: const Icon(Icons.close, color: Colors.grey), onPressed: () => Navigator.pop(context)),
+                  Expanded(
+                      child: Text('Exportar Livro de Receitas',
+                          style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold))),
+                  IconButton(
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      onPressed: () => Navigator.pop(context)),
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // 1. DATE FILTER
               InkWell(
                 onTap: _pickDateRange,
                 child: Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(border: Border.all(color: Colors.white24), borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white24),
+                      borderRadius: BorderRadius.circular(8)),
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today, color: AppDesign.foodOrange, size: 20),
+                      const Icon(Icons.calendar_today,
+                          color: AppDesign.foodOrange, size: 20),
                       const SizedBox(width: 10),
                       Text(
-                        _selectedDateRange == null 
-                            ? 'Todo o período' 
+                        _selectedDateRange == null
+                            ? 'Todo o período'
                             : '${DateFormat('dd/MM').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM').format(_selectedDateRange!.end)}',
                         style: GoogleFonts.poppins(color: Colors.white),
                       ),
@@ -88,62 +103,75 @@ class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurati
                 ),
               ),
               const SizedBox(height: 20),
-    
+
               // 2. MANUAL SELECTION TOGGLE
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text('Seleção Manual', style: GoogleFonts.poppins(color: Colors.white)),
+                title: Text('Seleção Manual',
+                    style: GoogleFonts.poppins(color: Colors.white)),
                 activeThumbColor: AppDesign.foodOrange,
                 value: _manualSelectionMode,
                 onChanged: (val) {
                   setState(() {
                     _manualSelectionMode = val;
                     if (val && _selectedIds.isEmpty) {
-                       _selectedIds.addAll(filteredList.map((i) => i.id));
+                      _selectedIds.addAll(filteredList.map((i) => i.id));
                     }
                   });
                 },
               ),
-              
+
               // 3. LIST PREVIEW (If space allows, or if manual mode)
               if (_manualSelectionMode) ...[
-                 const SizedBox(height: 10),
-                 Text('Selecione os itens:', style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
-                 const SizedBox(height: 8),
-                 Container(
-                   height: 200, 
-                   decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
-                   child: filteredList.isEmpty 
-                       ? const Center(child: Text('Nenhuma receita neste período.', style: TextStyle(color: Colors.white30)))
-                       : ListView.builder(
-                           shrinkWrap: true,
-                           physics: const ClampingScrollPhysics(),
-                           itemCount: filteredList.length,
-                           itemBuilder: (context, index) {
-                             final item = filteredList[index];
-                             final isSelected = _selectedIds.contains(item.id);
-                             return CheckboxListTile(
-                               title: Text(item.recipeName, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                               subtitle: Text(DateFormat('dd/MM HH:mm').format(item.timestamp), style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                               value: isSelected,
-                               activeColor: AppDesign.foodOrange,
-                               checkColor: Colors.black,
-                               dense: true,
-                               onChanged: (v) {
-                                 setState(() {
-                                   if (v == true) {
-                                     _selectedIds.add(item.id);
-                                   } else {
-                                     _selectedIds.remove(item.id);
-                                   }
-                                 });
-                               },
-                             );
-                           },
-                       ),
-                 ),
+                const SizedBox(height: 10),
+                Text('Selecione os itens:',
+                    style:
+                        GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
+                const SizedBox(height: 8),
+                Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(8)),
+                  child: filteredList.isEmpty
+                      ? const Center(
+                          child: Text('Nenhuma receita neste período.',
+                              style: TextStyle(color: Colors.white30)))
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const ClampingScrollPhysics(),
+                          itemCount: filteredList.length,
+                          itemBuilder: (context, index) {
+                            final item = filteredList[index];
+                            final isSelected = _selectedIds.contains(item.id);
+                            return CheckboxListTile(
+                              title: Text(item.recipeName,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 13)),
+                              subtitle: Text(
+                                  DateFormat('dd/MM HH:mm')
+                                      .format(item.timestamp),
+                                  style: const TextStyle(
+                                      color: Colors.white54, fontSize: 11)),
+                              value: isSelected,
+                              activeColor: AppDesign.foodOrange,
+                              checkColor: Colors.black,
+                              dense: true,
+                              onChanged: (v) {
+                                setState(() {
+                                  if (v == true) {
+                                    _selectedIds.add(item.id);
+                                  } else {
+                                    _selectedIds.remove(item.id);
+                                  }
+                                });
+                              },
+                            );
+                          },
+                        ),
+                ),
               ],
-              
+
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: count > 0 ? _onGeneratePressed : null,
@@ -154,7 +182,10 @@ class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurati
                 ),
                 child: Text(
                   'Gerar PDF ($count receitas)',
-                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: count > 0 ? Colors.white : Colors.white30),
+                  style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: count > 0 ? Colors.white : Colors.white30),
                 ),
               ),
               const SizedBox(height: 20), // Extra bottom padding
@@ -189,9 +220,9 @@ class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurati
       setState(() {
         _selectedDateRange = result;
         if (_manualSelectionMode) {
-           _selectedIds.clear();
-           final newFiltered = _dateFilteredItems;
-           _selectedIds.addAll(newFiltered.map((e) => e.id));
+          _selectedIds.clear();
+          final newFiltered = _dateFilteredItems;
+          _selectedIds.addAll(newFiltered.map((e) => e.id));
         }
       });
     }
@@ -199,11 +230,12 @@ class _RecipeExportConfigurationModalState extends State<RecipeExportConfigurati
 
   void _onGeneratePressed() {
     List<RecipeHistoryItem> finalItems = _dateFilteredItems;
-    
+
     if (_manualSelectionMode) {
-      finalItems = finalItems.where((i) => _selectedIds.contains(i.id)).toList();
+      finalItems =
+          finalItems.where((i) => _selectedIds.contains(i.id)).toList();
     }
-    
+
     Navigator.pop(context);
     widget.onGenerate(finalItems);
   }

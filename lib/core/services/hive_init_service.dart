@@ -26,29 +26,31 @@ class HiveInitService {
       return;
     }
 
-    debugPrint('🔧 [V70-HIVE] Step 1: Starting centralized box initialization...');
-    
+    debugPrint(
+        '🔧 [V70-HIVE] Step 1: Starting centralized box initialization...');
+
     // 🛡️ REGISTER ADAPTERS (Critical for Typed Boxes)
     // Checking and registering adapters to prevent "Unknown Type" errors
     // Note: MealPlan adapters commented out until ID verification (compile fix)
     // if (!Hive.isAdapterRegistered(8)) Hive.registerAdapter(WeeklyMealPlanAdapter());
     // if (!Hive.isAdapterRegistered(9)) Hive.registerAdapter(DailyMealItemAdapter());
-    
+
     // Botany Adapter (Type 21)
     if (!Hive.isAdapterRegistered(21)) {
-        Hive.registerAdapter(BotanyHistoryItemAdapter());
-        debugPrint('✅ [V70-HIVE] BotanyHistoryItemAdapter (Type 21) registered.');
+      Hive.registerAdapter(BotanyHistoryItemAdapter());
+      debugPrint('✅ [V70-HIVE] BotanyHistoryItemAdapter (Type 21) registered.');
     }
 
     try {
       // 1. AUTHENTICATION BOX (no encryption)
       await _openBox('box_auth_local', cipher: null);
 
-      // 🛡️ [V70-FIX] If cipher is null, we ONLY open the Auth box. 
+      // 🛡️ [V70-FIX] If cipher is null, we ONLY open the Auth box.
       // Secure boxes MUST wait for the user to log in or a persistent session to be restored.
       if (cipher == null) {
-        debugPrint('⚠️ [V70-HIVE] Cipher is NULL. Skipping secure boxes to avoid corruption or accidental wipe.');
-        _isInitialized = false; 
+        debugPrint(
+            '⚠️ [V70-HIVE] Cipher is NULL. Skipping secure boxes to avoid corruption or accidental wipe.');
+        _isInitialized = false;
         return;
       }
 
@@ -58,14 +60,15 @@ class HiveInitService {
       await _openBox('vaccine_status', cipher: cipher);
       await _openBox('pet_health_records', cipher: cipher);
       await _openBox('lab_exams', cipher: cipher);
-      
+
       // 3. MEAL PLAN BOX (typed, encrypted)
       await _openTypedBox<WeeklyMealPlan>('weekly_meal_plans', cipher: cipher);
 
       // 4. HISTORY BOXES (encrypted)
       await _openBox('scannut_history', cipher: cipher);
       await _openBox('scannut_meal_history', cipher: cipher);
-      await _openTypedBox<BotanyHistoryItem>('box_plants_history', cipher: cipher);
+      await _openTypedBox<BotanyHistoryItem>('box_plants_history',
+          cipher: cipher);
 
       // 5. SETTINGS & USER BOXES (encrypted)
       await _openBox('settings', cipher: cipher);
@@ -77,7 +80,8 @@ class HiveInitService {
       await _openBox('nutrition_user_profile', cipher: cipher);
       await _openTypedBox<WeeklyPlan>('nutrition_weekly_plans', cipher: cipher);
       await _openTypedBox<MealLog>('nutrition_meal_logs', cipher: cipher);
-      await _openTypedBox<ShoppingListItem>('nutrition_shopping_list', cipher: cipher);
+      await _openTypedBox<ShoppingListItem>('nutrition_shopping_list',
+          cipher: cipher);
       await _openBox('menu_filter_settings', cipher: cipher);
 
       // 7. DEDUPLICATION BOX (encrypted)
@@ -89,7 +93,6 @@ class HiveInitService {
       _isInitialized = true;
       debugPrint('✅ [V70-HIVE] Step 2: All boxes initialized successfully');
       debugPrint('📊 [V70-HIVE] Total boxes opened: ${_boxStatus.length}');
-      
     } catch (e) {
       debugPrint('❌ [V70-HIVE] Critical error during initialization: $e');
       rethrow;
@@ -103,21 +106,24 @@ class HiveInitService {
       _boxStatus[boxName] = true;
     } catch (e) {
       debugPrint('❌ [V70-HIVE] Failed to open box "$boxName": $e');
-      
+
       // 🛡️ SELF-HEALING: If box has unknown typeId (legacy/corrupt), NUKE IT.
-      if (e.toString().contains('unknown typeId') || e.toString().contains('HiveError')) {
-         debugPrint('☢️ [V70-HIVE] DETECTED CORRUPT/LEGACY DATA IN "$boxName". INITIATING ATOMIC RECONSTRUCTION...');
-         try {
-           await HiveAtomicManager().recreateBox(boxName, cipher: cipher);
-           await HiveAtomicManager().ensureBoxOpen(boxName, cipher: cipher);
-           _boxStatus[boxName] = true;
-           debugPrint('✅ [V70-HIVE] Box "$boxName" successfully reconstructed and opened.');
-           return;
-         } catch (e2) {
-           debugPrint('💀 [V70-HIVE] RECONSTRUCTION FAILED for "$boxName": $e2');
-         }
+      if (e.toString().contains('unknown typeId') ||
+          e.toString().contains('HiveError')) {
+        debugPrint(
+            '☢️ [V70-HIVE] DETECTED CORRUPT/LEGACY DATA IN "$boxName". INITIATING ATOMIC RECONSTRUCTION...');
+        try {
+          await HiveAtomicManager().recreateBox(boxName, cipher: cipher);
+          await HiveAtomicManager().ensureBoxOpen(boxName, cipher: cipher);
+          _boxStatus[boxName] = true;
+          debugPrint(
+              '✅ [V70-HIVE] Box "$boxName" successfully reconstructed and opened.');
+          return;
+        } catch (e2) {
+          debugPrint('💀 [V70-HIVE] RECONSTRUCTION FAILED for "$boxName": $e2');
+        }
       }
-      
+
       _boxStatus[boxName] = false;
       rethrow;
     }
@@ -132,17 +138,20 @@ class HiveInitService {
       debugPrint('❌ [V70-HIVE] Failed to open typed box "$boxName": $e');
 
       // 🛡️ SELF-HEALING: If box has unknown typeId (legacy/corrupt), NUKE IT.
-      if (e.toString().contains('unknown typeId') || e.toString().contains('HiveError')) {
-         debugPrint('☢️ [V70-HIVE] DETECTED CORRUPT/LEGACY DATA IN "$boxName". INITIATING ATOMIC RECONSTRUCTION...');
-         try {
-           await HiveAtomicManager().recreateBox<T>(boxName, cipher: cipher);
-           await HiveAtomicManager().ensureBoxOpen<T>(boxName, cipher: cipher);
-           _boxStatus[boxName] = true;
-           debugPrint('✅ [V70-HIVE] Box "$boxName" successfully reconstructed and opened.');
-           return;
-         } catch (e2) {
-           debugPrint('💀 [V70-HIVE] RECONSTRUCTION FAILED for "$boxName": $e2');
-         }
+      if (e.toString().contains('unknown typeId') ||
+          e.toString().contains('HiveError')) {
+        debugPrint(
+            '☢️ [V70-HIVE] DETECTED CORRUPT/LEGACY DATA IN "$boxName". INITIATING ATOMIC RECONSTRUCTION...');
+        try {
+          await HiveAtomicManager().recreateBox<T>(boxName, cipher: cipher);
+          await HiveAtomicManager().ensureBoxOpen<T>(boxName, cipher: cipher);
+          _boxStatus[boxName] = true;
+          debugPrint(
+              '✅ [V70-HIVE] Box "$boxName" successfully reconstructed and opened.');
+          return;
+        } catch (e2) {
+          debugPrint('💀 [V70-HIVE] RECONSTRUCTION FAILED for "$boxName": $e2');
+        }
       }
 
       _boxStatus[boxName] = false;

@@ -6,13 +6,18 @@ class RaceNutritionTables extends StatefulWidget {
   final List<Map<String, String>> maligna;
   final String raceName;
 
-    const RaceNutritionTables({super.key, required this.benigna, required this.maligna, required this.raceName});
+  const RaceNutritionTables(
+      {super.key,
+      required this.benigna,
+      required this.maligna,
+      required this.raceName});
 
   @override
   State<RaceNutritionTables> createState() => _RaceNutritionTablesState();
 }
 
-class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTickerProviderStateMixin {
+class _RaceNutritionTablesState extends State<RaceNutritionTables>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -46,7 +51,8 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
                   indicator: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     color: Colors.white.withValues(alpha: 0.1),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold),
@@ -56,11 +62,13 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.check_circle, color: Colors.greenAccent, size: 18),
+                          const Icon(Icons.check_circle,
+                              color: Colors.greenAccent, size: 18),
                           const SizedBox(width: 8),
                           Text(
                             'Aliados',
-                            style: GoogleFonts.poppins(color: Colors.greenAccent),
+                            style:
+                                GoogleFonts.poppins(color: Colors.greenAccent),
                           ),
                         ],
                       ),
@@ -69,7 +77,8 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.cancel, color: Colors.redAccent, size: 18),
+                          const Icon(Icons.cancel,
+                              color: Colors.redAccent, size: 18),
                           const SizedBox(width: 8),
                           Text(
                             'Inimigos',
@@ -114,23 +123,23 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
       itemBuilder: (context, index) {
         final item = items[index];
         final name = item['alimento'] ?? 'Alimento';
-        final detail = isBenign 
-            ? item['beneficio_especifico_raca'] 
+        final detail = isBenign
+            ? item['beneficio_especifico_raca']
             : item['risco_especifico_raca'];
-        final extra = isBenign 
-            ? "Preparo: ${item['modo_preparo']}" 
+        final extra = isBenign
+            ? "Preparo: ${item['modo_preparo']}"
             : "Efeito: ${item['efeito_fisiologico']}";
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: isBenign 
-                ? Colors.green.withValues(alpha: 0.05) 
+            color: isBenign
+                ? Colors.green.withValues(alpha: 0.05)
                 : Colors.red.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isBenign 
-                  ? Colors.green.withValues(alpha: 0.2) 
+              color: isBenign
+                  ? Colors.green.withValues(alpha: 0.2)
                   : Colors.red.withValues(alpha: 0.2),
             ),
           ),
@@ -140,8 +149,8 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isBenign 
-                      ? Colors.green.withValues(alpha: 0.1) 
+                  color: isBenign
+                      ? Colors.green.withValues(alpha: 0.1)
                       : Colors.red.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
@@ -169,7 +178,9 @@ class _RaceNutritionTablesState extends State<RaceNutritionTables> with SingleTi
                   child: Row(
                     children: [
                       Icon(
-                        isBenign ? Icons.restaurant_menu : Icons.medical_services,
+                        isBenign
+                            ? Icons.restaurant_menu
+                            : Icons.medical_services,
                         size: 14,
                         color: Colors.white54,
                       ),

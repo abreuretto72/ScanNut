@@ -12,7 +12,8 @@ class PetEventModel extends HiveObject {
   final String petId;
 
   @HiveField(2)
-  final String group; // food, health, elimination, grooming, activity, behavior, schedule, media, metrics
+  final String
+      group; // food, health, elimination, grooming, activity, behavior, schedule, media, metrics
 
   @HiveField(3)
   final String type; // Subtype (e.g., 'medication', 'vaccine')
@@ -30,7 +31,8 @@ class PetEventModel extends HiveObject {
   final bool includeInPdf;
 
   @HiveField(8)
-  final Map<dynamic, dynamic> data; // Changed to Map<dynamic, dynamic> for Hive compatibility with generic maps
+  final Map<dynamic, dynamic>
+      data; // Changed to Map<dynamic, dynamic> for Hive compatibility with generic maps
 
   @HiveField(9)
   final List<AttachmentModel> attachments;

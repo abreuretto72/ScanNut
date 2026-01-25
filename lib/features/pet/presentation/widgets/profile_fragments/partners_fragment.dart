@@ -14,7 +14,7 @@ class PartnersFragment extends StatelessWidget {
   final String observacoesPrac;
   final String petId;
   final String petName;
-  
+
   final Function(String) onFilterChanged;
   final Function(PartnerModel) onLinkStatusChanged;
   final Function(PartnerModel) onPartnerUpdated;
@@ -47,107 +47,120 @@ class PartnersFragment extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final filterAll = l10n.partnersFilterAll;
-    
+
     final filtered = selectedPartnerFilter == filterAll
-        ? allPartners 
-        : allPartners.where((p) => localizeValue(p.category) == selectedPartnerFilter).toList();
+        ? allPartners
+        : allPartners
+            .where((p) => localizeValue(p.category) == selectedPartnerFilter)
+            .toList();
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
-      children: [
-        // 1. Category Filter Dropdown
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: _buildCategoryDropdown(context),
-        ),
-        
-        const SizedBox(height: 10),
+        children: [
+          // 1. Category Filter Dropdown
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: _buildCategoryDropdown(context),
+          ),
 
-        // 2. Partners List
-        if (allPartners.isEmpty)
-          _buildEmptyState(context, l10n.petPartnersNoPartners, showAddButton: true)
-        else if (filtered.isEmpty)
-          _buildEmptyState(context, l10n.petPartnersNotFound, color: Colors.white30)
-        else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final partner = filtered[index];
-              final isLinked = linkedPartnerIds.contains(partner.id);
-              
-              if (isLinked) {
-                return LinkedPartnerCard(
-                  partner: partner,
-                  petId: petId,
-                  petName: petName,
-                  onUnlink: () => onLinkStatusChanged(partner),
-                  onUpdate: onPartnerUpdated,
-                  onOpenAgenda: () => onOpenAgenda(partner),
-                );
-              }
+          const SizedBox(height: 10),
 
-              return Card(
-                color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.grey.withValues(alpha: 0.1),
-                        child: const Icon(Icons.link_off, color: Colors.grey, size: 20),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(partner.name, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600)),
-                            Text(localizeValue(partner.category), style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                          ],
+          // 2. Partners List
+          if (allPartners.isEmpty)
+            _buildEmptyState(context, l10n.petPartnersNoPartners,
+                showAddButton: true)
+          else if (filtered.isEmpty)
+            _buildEmptyState(context, l10n.petPartnersNotFound,
+                color: Colors.white30)
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: filtered.length,
+              itemBuilder: (context, index) {
+                final partner = filtered[index];
+                final isLinked = linkedPartnerIds.contains(partner.id);
+
+                if (isLinked) {
+                  return LinkedPartnerCard(
+                    partner: partner,
+                    petId: petId,
+                    petName: petName,
+                    onUnlink: () => onLinkStatusChanged(partner),
+                    onUpdate: onPartnerUpdated,
+                    onOpenAgenda: () => onOpenAgenda(partner),
+                  );
+                }
+
+                return Card(
+                  color: AppDesign.textPrimaryDark.withValues(alpha: 0.05),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey.withValues(alpha: 0.1),
+                          child: const Icon(Icons.link_off,
+                              color: Colors.grey, size: 20),
                         ),
-                      ),
-                      Switch(
-                        value: false,
-                        activeThumbColor: AppDesign.petPink,
-                        onChanged: (val) {
-                          if (val) onLinkStatusChanged(partner);
-                        },
-                      )
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(partner.name,
+                                  style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600)),
+                              Text(localizeValue(partner.category),
+                                  style: const TextStyle(
+                                      color: Colors.white54, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: false,
+                          activeThumbColor: AppDesign.petPink,
+                          onChanged: (val) {
+                            if (val) onLinkStatusChanged(partner);
+                          },
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
+
+          // 3. Observations Field
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: CumulativeObservationsField(
+              sectionName: l10n.petPartnersObs,
+              initialValue: observacoesPrac,
+              onChanged: onObservacoesChanged,
+              icon: Icons.handshake,
+              accentColor: AppDesign.petPink,
+            ),
           ),
 
-        // 3. Observations Field
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: CumulativeObservationsField(
-            sectionName: l10n.petPartnersObs,
-            initialValue: observacoesPrac,
-            onChanged: onObservacoesChanged,
-            icon: Icons.handshake,
-            accentColor: AppDesign.petPink,
-          ),
-        ),
+          // 4. Action Buttons
+          actionButtons,
 
-        // 4. Action Buttons
-        actionButtons,
-
-        const SizedBox(height: 100),
-      ],
+          const SizedBox(height: 100),
+        ],
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, String message, {Color color = Colors.white54, bool showAddButton = false}) {
+  Widget _buildEmptyState(BuildContext context, String message,
+      {Color color = Colors.white54, bool showAddButton = false}) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
@@ -167,12 +180,15 @@ class PartnersFragment extends StatelessWidget {
                 icon: const Icon(Icons.radar, color: Colors.black, size: 20),
                 label: Text(
                   l10n.partnersRegister, // Using "Cadastrar" as requested
-                  style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(
+                      color: Colors.black, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppDesign.petPink,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                   elevation: 4,
                 ),
               ),
@@ -190,7 +206,7 @@ class PartnersFragment extends StatelessWidget {
 
   Widget _buildCategoryDropdown(BuildContext context) {
     final strings = AppLocalizations.of(context)!;
-    
+
     final groups = [
       {
         'title': strings.catHeaderHealth,
@@ -258,7 +274,7 @@ class PartnersFragment extends StatelessWidget {
     ];
 
     final List<DropdownMenuItem<String>> menuItems = [];
-    
+
     // Add "All" option first
     menuItems.add(DropdownMenuItem<String>(
       value: strings.partnersFilterAll,
@@ -314,7 +330,8 @@ class PartnersFragment extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       items: menuItems,
       onChanged: (v) {

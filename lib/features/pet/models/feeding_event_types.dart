@@ -1,6 +1,6 @@
 /// Feeding Event Types for Pet Module
 /// Defines all possible feeding occurrences, behavioral events, and clinical intercurrences
-/// 
+///
 /// This file is part of the ScanNut Pet Module feeding event system.
 /// It provides a comprehensive classification system for all feeding-related events.
 
@@ -32,37 +32,56 @@ enum FeedingEventType {
   anxietyWhileEating('behavioral', FeedingEventGroup.behavioralOccurrence),
 
   // GRUPO 3 — Intercorrências digestivas imediatas
-  vomitingImmediate('digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
-  vomitingDelayed('digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
+  vomitingImmediate(
+      'digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
+  vomitingDelayed(
+      'digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
   nausea('digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
   choking('digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
-  regurgitation('digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
-  excessiveFlatulence('digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
-  apparentAbdominalPain('digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
+  regurgitation(
+      'digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
+  excessiveFlatulence(
+      'digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
+  apparentAbdominalPain(
+      'digestive_intercurrence', FeedingEventGroup.digestiveIntercurrence),
 
   // GRUPO 4 — Intercorrências intestinais associadas
-  diarrhea('intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
-  softStool('intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
-  constipation('intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
-  stoolWithMucus('intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
-  stoolWithBlood('intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
-  stoolColorChange('intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
-  abnormalStoolOdor('intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
+  diarrhea(
+      'intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
+  softStool(
+      'intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
+  constipation(
+      'intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
+  stoolWithMucus(
+      'intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
+  stoolWithBlood(
+      'intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
+  stoolColorChange(
+      'intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
+  abnormalStoolOdor(
+      'intestinal_intercurrence', FeedingEventGroup.intestinalIntercurrence),
 
   // GRUPO 5 — Ocorrências nutricionais / metabólicas
   weightGain('nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
   weightLoss('nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
-  excessiveThirst('nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
-  lowWaterIntake('nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
-  suspectedFoodIntolerance('nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
-  suspectedFoodAllergy('nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
-  adverseFoodReaction('nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
+  excessiveThirst(
+      'nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
+  lowWaterIntake(
+      'nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
+  suspectedFoodIntolerance(
+      'nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
+  suspectedFoodAllergy(
+      'nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
+  adverseFoodReaction(
+      'nutritional_metabolic', FeedingEventGroup.nutritionalMetabolic),
 
   // GRUPO 6 — Eventos clínicos ligados à dieta terapêutica
   dietNotTolerated('therapeutic_diet', FeedingEventGroup.therapeuticDiet),
   therapeuticDietRefusal('therapeutic_diet', FeedingEventGroup.therapeuticDiet),
-  clinicalImprovementWithDiet('therapeutic_diet', FeedingEventGroup.therapeuticDiet),
-  clinicalWorseningAfterMeal('therapeutic_diet', FeedingEventGroup.therapeuticDiet),
+  clinicalImprovementWithDiet(
+      'therapeutic_diet', FeedingEventGroup.therapeuticDiet),
+  clinicalWorseningAfterMeal(
+      'therapeutic_diet', FeedingEventGroup.therapeuticDiet),
   needForDietAdjustment('therapeutic_diet', FeedingEventGroup.therapeuticDiet),
   feedingWithMedication('therapeutic_diet', FeedingEventGroup.therapeuticDiet),
   assistedFeeding('therapeutic_diet', FeedingEventGroup.therapeuticDiet);
@@ -82,7 +101,7 @@ enum FeedingEventType {
   /// Returns severity level for clinical events
   String get defaultSeverity {
     if (!isClinicalIntercurrence) return 'none';
-    
+
     // High severity events
     if (this == FeedingEventType.vomitingImmediate ||
         this == FeedingEventType.choking ||
@@ -90,7 +109,7 @@ enum FeedingEventType {
         this == FeedingEventType.apparentAbdominalPain) {
       return 'severe';
     }
-    
+
     // Moderate severity events
     if (this == FeedingEventType.diarrhea ||
         this == FeedingEventType.vomitingDelayed ||
@@ -98,7 +117,7 @@ enum FeedingEventType {
         this == FeedingEventType.suspectedFoodAllergy) {
       return 'moderate';
     }
-    
+
     return 'mild';
   }
 

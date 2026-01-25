@@ -8,10 +8,14 @@
 class PetPrompts {
   /// Prompt de Diagnóstico de Feridas (Triagem Veterinária)
   /// Prompt de Triagem Clínica Automática (V460)
-  static String getPetDiagnosisPrompt(String languageName, String languageInstruction, bool isPortuguese, {Map<String, String>? contextData}) {
+  static String getPetDiagnosisPrompt(
+      String languageName, String languageInstruction, bool isPortuguese,
+      {Map<String, String>? contextData}) {
     String contextBlock = "";
-    if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
-        contextBlock = '''
+    if (contextData != null &&
+        (contextData.containsKey('species') ||
+            contextData.containsKey('breed'))) {
+      contextBlock = '''
         CONTEXT (SOURCE OF TRUTH): 
         Target Pet Species: ${contextData['species'] ?? 'Unknown'}
         Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
@@ -90,7 +94,8 @@ IMPORTANT:
   }
 
   /// Prompt de Identificação de Raça e Perfil Biológico
-  static String getPetIdentificationPrompt(String languageName, String languageInstruction) {
+  static String getPetIdentificationPrompt(
+      String languageName, String languageInstruction) {
     return '''
 $languageInstruction
 
@@ -170,10 +175,14 @@ If the image has no detectable features or information (e.g., a blank wall), ret
   }
 
   /// Prompt especializado para Deep Analysis Coprológica (Análise de Fezes)
-  static String getPetStoolAnalysisPrompt(String languageName, String languageInstruction, bool isPortuguese, {Map<String, String>? contextData}) {
+  static String getPetStoolAnalysisPrompt(
+      String languageName, String languageInstruction, bool isPortuguese,
+      {Map<String, String>? contextData}) {
     String contextBlock = "";
-    if (contextData != null && (contextData.containsKey('species') || contextData.containsKey('breed'))) {
-        contextBlock = '''
+    if (contextData != null &&
+        (contextData.containsKey('species') ||
+            contextData.containsKey('breed'))) {
+      contextBlock = '''
         CONTEXT (SOURCE OF TRUTH): 
         Target Pet Species: ${contextData['species'] ?? 'Unknown'}
         Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}

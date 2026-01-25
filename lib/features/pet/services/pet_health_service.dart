@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+
 /// ============================================================================
 /// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
 /// Este módulo de Saúde Geral do Pet foi concluído e validado.
@@ -16,15 +17,18 @@ class PetHealthService {
 
   Future<void> init({HiveCipher? cipher}) async {
     try {
-      _healthBox = await HiveAtomicManager().ensureBoxOpen(_healthBoxName, cipher: cipher);
+      _healthBox = await HiveAtomicManager()
+          .ensureBoxOpen(_healthBoxName, cipher: cipher);
       debugPrint('✅ [V61-TRACE] PetHealthService initialized (Secure)');
     } catch (e, stack) {
-      debugPrint('❌ [V61-TRACE] FATAL: Failed to open Secure Pet Health Box: $e\n$stack');
+      debugPrint(
+          '❌ [V61-TRACE] FATAL: Failed to open Secure Pet Health Box: $e\n$stack');
     }
   }
 
   /// Add a health record for a pet
-  Future<void> addHealthRecord(String petName, Map<String, dynamic> healthData) async {
+  Future<void> addHealthRecord(
+      String petName, Map<String, dynamic> healthData) async {
     try {
       final key = '${petName}_${DateTime.now().millisecondsSinceEpoch}';
       await _healthBox?.put(key, {
@@ -46,7 +50,8 @@ class PetHealthService {
           .where((record) => (record as Map)['pet_name'] == petName)
           .map((record) => Map<String, dynamic>.from(record as Map))
           .toList()
-        ..sort((a, b) => (b['timestamp'] as String).compareTo(a['timestamp'] as String));
+        ..sort((a, b) =>
+            (b['timestamp'] as String).compareTo(a['timestamp'] as String));
     } catch (e) {
       debugPrint('❌ Error getting health records: $e');
       return [];

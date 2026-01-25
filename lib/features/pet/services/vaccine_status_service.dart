@@ -7,12 +7,14 @@ class VaccineStatusService {
   Box<VaccineStatus>? _box;
 
   Future<void> init({HiveCipher? cipher}) async {
-    _box = await HiveAtomicManager().ensureBoxOpen<VaccineStatus>(_boxName, cipher: cipher);
+    _box = await HiveAtomicManager()
+        .ensureBoxOpen<VaccineStatus>(_boxName, cipher: cipher);
   }
 
   Box<VaccineStatus> get box {
     if (_box == null || !_box!.isOpen) {
-      throw Exception('VaccineStatusService not initialized. Call init() first.');
+      throw Exception(
+          'VaccineStatusService not initialized. Call init() first.');
     }
     return _box!;
   }
@@ -33,7 +35,7 @@ class VaccineStatusService {
   Future<void> toggleStatus(String petName, String vaccineName) async {
     final key = '${petName}_$vaccineName';
     final existing = box.get(key);
-    
+
     if (existing != null) {
       existing.isCompleted = !existing.isCompleted;
       existing.completedDate = existing.isCompleted ? DateTime.now() : null;

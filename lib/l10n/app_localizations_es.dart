@@ -9,6 +9,41 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
+  String get petChatTitle => 'Hablar con ScanNut AI';
+
+  @override
+  String get petChatPrompt => 'Pregunta algo sobre tu mascota...';
+
+  @override
+  String get petChatDangerousAlert => '⚠️ Alerta de Peligro';
+
+  @override
+  String get petChatSafeAlert => '✅ Información Confirmada';
+
+  @override
+  String petChatNoData(Object domain) {
+    return 'Aún no tengo registros de $domain para esta mascota.';
+  }
+
+  @override
+  String get petChatIdentity => 'identidad';
+
+  @override
+  String get petChatHealth => 'salud';
+
+  @override
+  String get petChatNutrition => 'nutrición';
+
+  @override
+  String get petChatTravel => 'viajes';
+
+  @override
+  String get petChatAgenda => 'agenda';
+
+  @override
+  String get petChatPlans => 'planes';
+
+  @override
   String get appTitle => 'ScanNut';
 
   @override
@@ -6985,4 +7020,108 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get travelDocFelvDesc =>
       'Importante para estadias em hotéis pet e segurança do felino.';
+
+  @override
+  String get tabScanWalk => 'ScanWalk';
+
+  @override
+  String get scanWalkNoPetError =>
+      'Es necesario tener al menos una mascota registrada para iniciar un paseo.';
+
+  @override
+  String get scanWalkTitle => 'Paseos Inteligentes';
+
+  @override
+  String get scanWalkMap => 'Mapa Interactivo';
+
+  @override
+  String get scanWalkFriends => 'Amigos Encontrados';
+
+  @override
+  String get scanWalkAlerts => 'Zonas de Riesgo';
+
+  @override
+  String get scanWalkStart => 'Iniciar Paseo';
+
+  @override
+  String get scanWalkDistance => 'Distancia';
+
+  @override
+  String get scanWalkDuration => 'Duración';
+
+  @override
+  String get walkXixi => 'Pipi';
+
+  @override
+  String get walkFezes => 'Heces';
+
+  @override
+  String get walkAgua => 'Agua';
+
+  @override
+  String get walkOutros => 'Otros';
+
+  @override
+  String get walkAmigo => 'Amigo';
+
+  @override
+  String get walkLatido => 'Ladrido';
+
+  @override
+  String get walkPerigo => 'Peligro';
+
+  @override
+  String get walkBrigas => 'Peleas';
+
+  @override
+  String get walkBristolScore => 'Escala Bristol';
+
+  @override
+  String get walkFriendDesc => 'Nombre del Amigo';
+
+  @override
+  String get walkHazardDesc => 'Tipo de Peligro';
+
+  @override
+  String get walkFightDesc => 'Detalles de la Pelea';
+
+  @override
+  String get walkDemoBtn => 'Demostración';
+
+  @override
+  String get walkMicRec => 'Escuchando...';
+
+  @override
+  String get walkCamRec => 'Foto capturada';
+
+  @override
+  String get walkBristolIdeal => 'Ideal';
+
+  @override
+  String get walkBristolConstipated => 'Duro';
+
+  @override
+  String get walkBristolLiquid => 'Líquido';
+
+  @override
+  String get walkExitConfirm => '¿Deseas finalizar el paseo?';
+
+  @override
+  String get walkSaveSuccess => '¡Registro guardado en el 9º Informe!';
+
+  @override
+  String get walkVoicePromptFriend => 'Di el nombre, sexo y edad del amigo.';
+
+  @override
+  String get walkVoicePromptDanger =>
+      'Di qué es el peligro (ej: vidrio, veneno).';
+
+  @override
+  String get walkVoicePromptFight => 'Di la raza y sexo del agresor.';
+
+  @override
+  String get walkAnalysisStool => 'Analizando Heces (IA)...';
+
+  @override
+  String get walkAnalysisBark => 'Analizando Ladridos (IA)...';
 }

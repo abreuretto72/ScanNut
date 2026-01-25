@@ -27,24 +27,27 @@ class CumulativeObservationsField extends StatefulWidget {
   });
 
   @override
-  State<CumulativeObservationsField> createState() => _CumulativeObservationsFieldState();
+  State<CumulativeObservationsField> createState() =>
+      _CumulativeObservationsFieldState();
 }
 
-class _CumulativeObservationsFieldState extends State<CumulativeObservationsField> {
+class _CumulativeObservationsFieldState
+    extends State<CumulativeObservationsField> {
   late TextEditingController _controller;
   late stt.SpeechToText _speech;
   bool _isListening = false;
   bool _speechAvailable = false;
   String _currentTranscript = '';
-  
+
   // Para inserção de voz na posição do cursor
   TextSelection _lastSelection = const TextSelection.collapsed(offset: 0);
 
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller ?? TextEditingController(text: widget.initialValue);
-    
+    _controller =
+        widget.controller ?? TextEditingController(text: widget.initialValue);
+
     _speech = stt.SpeechToText();
     _initSpeech();
   }
@@ -52,7 +55,8 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
   @override
   void didUpdateWidget(CumulativeObservationsField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialValue != widget.initialValue && widget.initialValue != _controller.text) {
+    if (oldWidget.initialValue != widget.initialValue &&
+        widget.initialValue != _controller.text) {
       _controller.text = widget.initialValue;
     }
   }
@@ -67,17 +71,17 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
 
   Future<void> _initSpeech() async {
     try {
-       final status = await Permission.microphone.status;
-       if (status.isGranted) {
-         _speechAvailable = await _speech.initialize(
-           onError: (error) => debugPrint('Speech error: $error'),
-           onStatus: (status) {
-             if (status == 'done' || status == 'notListening') {
-               setState(() => _isListening = false);
-             }
-           },
-         );
-       }
+      final status = await Permission.microphone.status;
+      if (status.isGranted) {
+        _speechAvailable = await _speech.initialize(
+          onError: (error) => debugPrint('Speech error: $error'),
+          onStatus: (status) {
+            if (status == 'done' || status == 'notListening') {
+              setState(() => _isListening = false);
+            }
+          },
+        );
+      }
     } catch (e) {
       debugPrint('Error initializing speech engine silent: $e');
     }
@@ -88,20 +92,22 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
     if (!granted) return;
 
     if (!_speechAvailable || !_speech.isAvailable) {
-       _speechAvailable = await _speech.initialize(
-          onError: (error) => debugPrint('Speech error: $error'),
-          onStatus: (status) {
-            if (status == 'done' || status == 'notListening') {
-              setState(() => _isListening = false);
-            }
-          },
-        );
+      _speechAvailable = await _speech.initialize(
+        onError: (error) => debugPrint('Speech error: $error'),
+        onStatus: (status) {
+          if (status == 'done' || status == 'notListening') {
+            setState(() => _isListening = false);
+          }
+        },
+      );
     }
-    
+
     if (!_speechAvailable) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.voiceNotAvailable), backgroundColor: Colors.orange),
+          SnackBar(
+              content: Text(AppLocalizations.of(context)!.voiceNotAvailable),
+              backgroundColor: Colors.orange),
         );
       }
       return;
@@ -118,7 +124,8 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
       // Salva a última posição do cursor antes de começar
       _lastSelection = _controller.selection;
       if (_lastSelection.start < 0) {
-        _lastSelection = TextSelection.collapsed(offset: _controller.text.length);
+        _lastSelection =
+            TextSelection.collapsed(offset: _controller.text.length);
       }
 
       setState(() {
@@ -130,12 +137,12 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
       try {
         final loc = Localizations.localeOf(context);
         if (loc.languageCode == 'pt') {
-           localeId = (loc.countryCode == 'PT') ? 'pt_PT' : 'pt_BR';
+          localeId = (loc.countryCode == 'PT') ? 'pt_PT' : 'pt_BR';
         } else if (loc.languageCode == 'es') {
-           localeId = 'es_ES';
+          localeId = 'es_ES';
         }
       } catch (e) {
-         localeId = 'pt_BR';
+        localeId = 'pt_BR';
       }
 
       await _speech.listen(
@@ -144,8 +151,8 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
             _currentTranscript = result.recognizedWords;
           });
           if (result.finalResult) {
-             _insertTextAtCursor(_currentTranscript);
-             _currentTranscript = '';
+            _insertTextAtCursor(_currentTranscript);
+            _currentTranscript = '';
           }
         },
         localeId: localeId,
@@ -157,17 +164,17 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
   void _insertTextAtCursor(String text) {
     final currentText = _controller.text;
     final selection = _lastSelection;
-    
+
     // Garantir que a seleção é válida para a string atual
     final start = selection.start.clamp(0, currentText.length);
     final end = selection.end.clamp(0, currentText.length);
-    
+
     final newText = currentText.replaceRange(start, end, text);
     _controller.value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(offset: start + text.length),
     );
-    
+
     widget.onChanged(newText);
     _lastSelection = _controller.selection;
   }
@@ -179,53 +186,57 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
       children: [
         Row(
           children: [
-            Icon(widget.icon ?? Icons.history_edu, color: widget.accentColor ?? const Color(0xFF00E676), size: 20),
+            Icon(widget.icon ?? Icons.history_edu,
+                color: widget.accentColor ?? const Color(0xFF00E676), size: 20),
             const SizedBox(width: 8),
             Text(
-              widget.label ?? AppLocalizations.of(context)!.petObservationsHistory, 
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)
-            ),
+                widget.label ??
+                    AppLocalizations.of(context)!.petObservationsHistory,
+                style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)),
           ],
         ),
         const SizedBox(height: 8),
-
         Text(
-          '${AppLocalizations.of(context)!.petRegisterObservations} (${widget.sectionName})', 
-          style: GoogleFonts.poppins(color: Colors.white60, fontSize: 11)
-        ),
+            '${AppLocalizations.of(context)!.petRegisterObservations} (${widget.sectionName})',
+            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 11)),
         const SizedBox(height: 12),
-        
         Container(
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: _isListening ? Colors.red : Colors.white.withValues(alpha: 0.1),
+              color: _isListening
+                  ? Colors.red
+                  : Colors.white.withValues(alpha: 0.1),
               width: _isListening ? 2 : 1,
             ),
           ),
           child: TextField(
-              controller: _controller,
-              maxLines: 10,
-              minLines: 4,
-              readOnly: false,
-              onChanged: widget.onChanged,
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, height: 1.6),
-              decoration: InputDecoration(
-                hintText: AppLocalizations.of(context)!.petNoObservations,
-                hintStyle: GoogleFonts.poppins(color: Colors.white38, fontSize: 11),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.all(16),
-                suffixIcon: IconButton(
-                  icon: Icon(_isListening ? Icons.mic : Icons.mic_none, 
-                      color: _isListening ? Colors.red : Colors.white),
-                  onPressed: _speechAvailable ? _toggleListening : null,
-                  tooltip: AppLocalizations.of(context)!.commonVoice,
-                ),
+            controller: _controller,
+            maxLines: 10,
+            minLines: 4,
+            readOnly: false,
+            onChanged: widget.onChanged,
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontSize: 13, height: 1.6),
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context)!.petNoObservations,
+              hintStyle:
+                  GoogleFonts.poppins(color: Colors.white38, fontSize: 11),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(16),
+              suffixIcon: IconButton(
+                icon: Icon(_isListening ? Icons.mic : Icons.mic_none,
+                    color: _isListening ? Colors.red : Colors.white),
+                onPressed: _speechAvailable ? _toggleListening : null,
+                tooltip: AppLocalizations.of(context)!.commonVoice,
               ),
+            ),
           ),
         ),
-        
         if (_isListening && _currentTranscript.isNotEmpty) ...[
           const SizedBox(height: 12),
           Container(
@@ -239,7 +250,10 @@ class _CumulativeObservationsFieldState extends State<CumulativeObservationsFiel
               children: [
                 const Icon(Icons.mic, color: Colors.red, size: 16),
                 const SizedBox(width: 8),
-                Expanded(child: Text(_currentTranscript, style: GoogleFonts.poppins(color: Colors.white, fontSize: 11))),
+                Expanded(
+                    child: Text(_currentTranscript,
+                        style: GoogleFonts.poppins(
+                            color: Colors.white, fontSize: 11))),
               ],
             ),
           ),

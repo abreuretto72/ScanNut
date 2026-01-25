@@ -44,13 +44,13 @@ class WeeklyPlanGenerator {
 
       final now = startDate ?? DateTime.now();
       final monday = _getMonday(now);
-      
+
       final days = <PlanDay>[];
       final Set<String> usedRecipeIds = {};
-      
+
       // Determine period
       final periodType = params?.periodType ?? 'weekly';
-      
+
       int numDays;
       if (periodType == 'custom' && params?.customDays != null) {
         numDays = params!.customDays!;
@@ -61,37 +61,38 @@ class WeeklyPlanGenerator {
       }
 
       // If custom, use exact start date. Otherwise snap to Monday.
-      final DateTime anchorDate = (periodType == 'custom') ? now : _getMonday(now);
+      final DateTime anchorDate =
+          (periodType == 'custom') ? now : _getMonday(now);
 
       final objective = params?.objective ?? profile.objetivo ?? 'maintenance';
 
       // Determine meal types based on params or profile
       List<String> mealTypes;
       if (params != null) {
-          // Logic for meals count
-          final allTypes = ['cafe', 'almoco', 'lanche', 'jantar'];
-          if (params.mealsPerDay >= 4) {
-             mealTypes = allTypes;
-          } else {
-             mealTypes = allTypes.take(params.mealsPerDay).toList();
-          }
+        // Logic for meals count
+        final allTypes = ['cafe', 'almoco', 'lanche', 'jantar'];
+        if (params.mealsPerDay >= 4) {
+          mealTypes = allTypes;
+        } else {
+          mealTypes = allTypes.take(params.mealsPerDay).toList();
+        }
       } else {
-         mealTypes = profile.horariosRefeicoes.keys.toList();
+        mealTypes = profile.horariosRefeicoes.keys.toList();
       }
 
       // Gerar dias conforme período
       for (int i = 0; i < numDays; i++) {
         final date = anchorDate.add(Duration(days: i));
-        
+
         final dayMeals = _generateDayMeals(
-            profile, 
-            mealTypes, 
-            params, 
-            usedRecipeIds,
-            languageCode,
-            objective: objective,
+          profile,
+          mealTypes,
+          params,
+          usedRecipeIds,
+          languageCode,
+          objective: objective,
         );
-        
+
         days.add(PlanDay(
           date: date,
           meals: dayMeals,
@@ -113,7 +114,8 @@ class WeeklyPlanGenerator {
         status: 'active',
       );
 
-      debugPrint('✅ Generated plan: days=${days.length}, period=$periodType, objective=$objective');
+      debugPrint(
+          '✅ Generated plan: days=${days.length}, period=$periodType, objective=$objective');
       return plan;
     } catch (e) {
       debugPrint('❌ Error generating plan: $e');
@@ -125,8 +127,12 @@ class WeeklyPlanGenerator {
   /// Gera dicas de Batch Cooking e preparo baseadas nos ingredientes da semana
   String _generatePreparationTips(List<PlanDay> days) {
     final tips = <String>[];
-    final allItems = days.expand((d) => d.meals).expand((m) => m.itens).map((i) => i.nome.toLowerCase()).toList();
-    
+    final allItems = days
+        .expand((d) => d.meals)
+        .expand((m) => m.itens)
+        .map((i) => i.nome.toLowerCase())
+        .toList();
+
     if (allItems.any((i) => i.contains('feijão'))) {
       tips.add('tipBeans');
     }
@@ -139,21 +145,26 @@ class WeeklyPlanGenerator {
     if (allItems.any((i) => i.contains('ovo'))) {
       tips.add('tipEggs');
     }
-    if (allItems.any((i) => i.contains('legumes') || i.contains('vegetais') || i.contains('salada'))) {
+    if (allItems.any((i) =>
+        i.contains('legumes') ||
+        i.contains('vegetais') ||
+        i.contains('salada'))) {
       tips.add('tipVeggies');
     }
-    if (allItems.any((i) => i.contains('mandioca') || i.contains('batata doce'))) {
+    if (allItems
+        .any((i) => i.contains('mandioca') || i.contains('batata doce'))) {
       tips.add('tipRoots');
     }
     if (allItems.any((i) => i.contains('carne moída'))) {
       tips.add('tipGroundMeat');
     }
-    if (allItems.any((i) => i.contains('fruta') || i.contains('manga') || i.contains('banana'))) {
+    if (allItems.any((i) =>
+        i.contains('fruta') || i.contains('manga') || i.contains('banana'))) {
       tips.add('tipFruits');
     }
-    
+
     if (tips.isEmpty) return 'tipDefault';
-    
+
     // Shuffle and pick 3 interesting tips
     tips.shuffle();
     return tips.take(3).join('|');
@@ -161,104 +172,125 @@ class WeeklyPlanGenerator {
 
   /// Gera refeições para um dia
   List<Meal> _generateDayMeals(
-      UserNutritionProfile profile, 
-      List<String> mealTypes,
-      MenuCreationParams? params,
-      Set<String> usedRecipeIds,
-      String? languageCode, {
-      String objective = 'maintenance',
+    UserNutritionProfile profile,
+    List<String> mealTypes,
+    MenuCreationParams? params,
+    Set<String> usedRecipeIds,
+    String? languageCode, {
+    String objective = 'maintenance',
   }) {
     final isEn = languageCode?.startsWith('en') == true;
     final meals = <Meal>[];
-    
+
     // Merge restrictions
     final List<String> effectiveRestrictions = <String>{
-        ...profile.restricoes,
-        ...(params?.restrictions ?? [])
+      ...profile.restricoes,
+      ...(params?.restrictions ?? [])
     }.toList();
-    
+
     final bool avoidRepetition = params?.allowRepetition == false;
 
     for (final tipo in mealTypes) {
       try {
         // Buscar receitas que atendem às restrições
-        var receitasDisponiveis = _dataService.getRecipesByRestrictions(effectiveRestrictions);
-        
+        var receitasDisponiveis =
+            _dataService.getRecipesByRestrictions(effectiveRestrictions);
+
         // --- FILTRO INTELIGENTE DE TIPO DE REFEIÇÃO ---
         receitasDisponiveis = receitasDisponiveis.where((r) {
-           final textToCheck = '${r.nome} ${r.ingredientes.join(' ')}'.toLowerCase();
-           final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
-           
-           // Filter by objective: Weight Loss
-           if (objective == 'emagrecimento') {
-              if (isBreakfastOrSnack && r.calorias > 250) return false;
-              if (!isBreakfastOrSnack && r.calorias > 500) return false;
-           }
+          final textToCheck =
+              '${r.nome} ${r.ingredientes.join(' ')}'.toLowerCase();
+          final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
 
-           if (isBreakfastOrSnack) {
-               // Café/Lanche: Bloquear pratos pesados
-               if (textToCheck.contains('feijão') || 
-                   textToCheck.contains('arroz') || 
-                   textToCheck.contains('macarrão') || 
-                   textToCheck.contains('espaguete') ||
-                   textToCheck.contains('sopa') ||
-                   textToCheck.contains('risoto')) {
-                 return false;
-               }
-               
-               // Bloquear carnes principais (exceto em sanduíches/wraps)
-               final isSandwich = textToCheck.contains('sanduíche') || textToCheck.contains('wrap') || textToCheck.contains('torta') || textToCheck.contains('salgado') || textToCheck.contains('pão');
-               if (!isSandwich) {
-                   if (textToCheck.contains('frango') || textToCheck.contains('carne') || textToCheck.contains('peixe') || textToCheck.contains('bife')) return false;
-               }
-               return true;
-           } else {
-               // Almoço/Jantar: Bloquear itens de café
-               if (r.nome.toLowerCase().contains('vitamina') || 
-                   r.nome.toLowerCase().contains('iogurte') || 
-                   r.nome.toLowerCase().contains('mingau') ||
-                   r.nome.toLowerCase().contains('tapioca') ||
-                   r.nome.toLowerCase().contains('bolo')) {
-                 return false;
-               }
-               
-               // Bloquear lanches muito leves se for almoço principal (opcional, mas bom pra evitar "Pão com manteiga" no almoço)
-               if (r.nome.toLowerCase().contains('pão') && !textToCheck.contains('hambúrguer')) return false; // Hambúrguer pode ser janta
+          // Filter by objective: Weight Loss
+          if (objective == 'emagrecimento') {
+            if (isBreakfastOrSnack && r.calorias > 250) return false;
+            if (!isBreakfastOrSnack && r.calorias > 500) return false;
+          }
 
-               return true;
-           }
+          if (isBreakfastOrSnack) {
+            // Café/Lanche: Bloquear pratos pesados
+            if (textToCheck.contains('feijão') ||
+                textToCheck.contains('arroz') ||
+                textToCheck.contains('macarrão') ||
+                textToCheck.contains('espaguete') ||
+                textToCheck.contains('sopa') ||
+                textToCheck.contains('risoto')) {
+              return false;
+            }
+
+            // Bloquear carnes principais (exceto em sanduíches/wraps)
+            final isSandwich = textToCheck.contains('sanduíche') ||
+                textToCheck.contains('wrap') ||
+                textToCheck.contains('torta') ||
+                textToCheck.contains('salgado') ||
+                textToCheck.contains('pão');
+            if (!isSandwich) {
+              if (textToCheck.contains('frango') ||
+                  textToCheck.contains('carne') ||
+                  textToCheck.contains('peixe') ||
+                  textToCheck.contains('bife')) {
+                return false;
+              }
+            }
+            return true;
+          } else {
+            // Almoço/Jantar: Bloquear itens de café
+            if (r.nome.toLowerCase().contains('vitamina') ||
+                r.nome.toLowerCase().contains('iogurte') ||
+                r.nome.toLowerCase().contains('mingau') ||
+                r.nome.toLowerCase().contains('tapioca') ||
+                r.nome.toLowerCase().contains('bolo')) {
+              return false;
+            }
+
+            // Bloquear lanches muito leves se for almoço principal (opcional, mas bom pra evitar "Pão com manteiga" no almoço)
+            if (r.nome.toLowerCase().contains('pão') &&
+                !textToCheck.contains('hambúrguer')) {
+              return false; // Hambúrguer pode ser janta
+            }
+
+            return true;
+          }
         }).toList();
         // -----------------------------------------------
 
         // Filter out used recipes if no repetition allowed
         if (avoidRepetition) {
-             final freshRecipes = receitasDisponiveis.where((r) => !usedRecipeIds.contains(r.id)).toList();
-             // Only filter if we still have options, otherwise fallback to repeating
-             if (freshRecipes.isNotEmpty) {
-                 receitasDisponiveis = freshRecipes;
-             }
+          final freshRecipes = receitasDisponiveis
+              .where((r) => !usedRecipeIds.contains(r.id))
+              .toList();
+          // Only filter if we still have options, otherwise fallback to repeating
+          if (freshRecipes.isNotEmpty) {
+            receitasDisponiveis = freshRecipes;
+          }
         }
 
         if (receitasDisponiveis.isEmpty) {
           // Fallback: criar refeição simples com alimentos
-          meals.add(_createSimpleMeal(tipo, effectiveRestrictions, languageCode));
+          meals.add(
+              _createSimpleMeal(tipo, effectiveRestrictions, languageCode));
         } else {
           // Escolher receita aleatória
-          final receita = receitasDisponiveis[_random.nextInt(receitasDisponiveis.length)];
-          
+          final receita =
+              receitasDisponiveis[_random.nextInt(receitasDisponiveis.length)];
+
           if (avoidRepetition) {
-              usedRecipeIds.add(receita.id);
+            usedRecipeIds.add(receita.id);
           }
 
           meals.add(Meal(
             tipo: tipo,
             recipeId: receita.id,
             nomePrato: receita.nome,
-            itens: receita.ingredientes.map((ing) => MealItem(
-              nome: ing,
-              quantidadeTexto: isEn ? '1 serving' : '1 porção',
-            )).toList(),
-            observacoes: '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
+            itens: receita.ingredientes
+                .map((ing) => MealItem(
+                      nome: ing,
+                      quantidadeTexto: isEn ? '1 serving' : '1 porção',
+                    ))
+                .toList(),
+            observacoes:
+                '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
             criadoEm: DateTime.now(),
           ));
         }
@@ -272,7 +304,8 @@ class WeeklyPlanGenerator {
   }
 
   /// Cria uma refeição simples com alimentos equilibrados (Fallback inteligente)
-  Meal _createSimpleMeal(String tipo, List<String> restricoes, String? languageCode) {
+  Meal _createSimpleMeal(
+      String tipo, List<String> restricoes, String? languageCode) {
     final foods = _dataService.foods;
     final isEn = languageCode?.startsWith('en') == true;
     final servingText = isEn ? '1 serving' : '1 porção';
@@ -280,7 +313,11 @@ class WeeklyPlanGenerator {
       return Meal(
         tipo: tipo,
         nomePrato: isEn ? 'Free Meal' : 'Refeição Livre',
-        itens: [MealItem(nome: isEn ? 'Free meal choice' : 'Refeição livre', quantidadeTexto: servingText)],
+        itens: [
+          MealItem(
+              nome: isEn ? 'Free meal choice' : 'Refeição livre',
+              quantidadeTexto: servingText)
+        ],
         observacoes: isEn ? 'Plan your meal' : 'Planeje sua refeição',
         criadoEm: DateTime.now(),
       );
@@ -288,7 +325,10 @@ class WeeklyPlanGenerator {
 
     // Helper to get random food by category
     MealItem? getFoodByCat(List<String> categories) {
-      final candidates = foods.where((f) => categories.any((c) => f.categoria.toLowerCase().contains(c.toLowerCase()))).toList();
+      final candidates = foods
+          .where((f) => categories
+              .any((c) => f.categoria.toLowerCase().contains(c.toLowerCase())))
+          .toList();
       if (candidates.isEmpty) return null;
       final food = candidates[_random.nextInt(candidates.length)];
       return MealItem(
@@ -300,51 +340,66 @@ class WeeklyPlanGenerator {
 
     final selectedFoods = <MealItem>[];
     final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
-    String dishName = isEn 
-        ? (isBreakfastOrSnack ? 'Simple Breakfast' : 'Balanced Meal') 
+    String dishName = isEn
+        ? (isBreakfastOrSnack ? 'Simple Breakfast' : 'Balanced Meal')
         : (isBreakfastOrSnack ? 'Café Simples' : 'Prato Feito');
 
     if (isBreakfastOrSnack) {
       // Café/Lanche: 1 Fonte de Energia + 1 Acompanhamento
       var item1 = getFoodByCat(['panificação', 'pães', 'cereais', 'frutas']);
-      var item2 = getFoodByCat(['laticínios', 'leite', 'queijos', 'bebidas', 'frutas']);
-      
+      var item2 =
+          getFoodByCat(['laticínios', 'leite', 'queijos', 'bebidas', 'frutas']);
+
       // Avoid same item
       if (item1 != null) selectedFoods.add(item1);
       if (item2 != null && item2.nome != item1?.nome) selectedFoods.add(item2);
-      
+
       // Infer Dish Name
       if (selectedFoods.any((f) => f.nome.toLowerCase().contains('iogurte'))) {
         dishName = isEn ? 'Yogurt with Side' : 'Iogurte com Acompanhamento';
-      } else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('pão'))) dishName = isEn ? 'Sandwich' : 'Sanduíche';
-      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('fruta'))) dishName = isEn ? 'Fruit Salad' : 'Salada de Frutas';
-      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('café'))) dishName = isEn ? 'Coffee' : 'Cafézinho';
+      } else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('pão')))
+        dishName = isEn ? 'Sandwich' : 'Sanduíche';
+      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('fruta')))
+        dishName = isEn ? 'Fruit Salad' : 'Salada de Frutas';
+      else if (selectedFoods.any((f) => f.nome.toLowerCase().contains('café')))
+        dishName = isEn ? 'Coffee' : 'Cafézinho';
 
       // Fallback if structured picking failed
       if (selectedFoods.isEmpty) {
-          final food = foods[_random.nextInt(foods.length)];
-           selectedFoods.add(MealItem(nome: food.nome, quantidadeTexto: food.porcao, observacoes: '${food.calorias} kcal'));
-           dishName = food.nome;
+        final food = foods[_random.nextInt(foods.length)];
+        selectedFoods.add(MealItem(
+            nome: food.nome,
+            quantidadeTexto: food.porcao,
+            observacoes: '${food.calorias} kcal'));
+        dishName = food.nome;
       }
-
     } else {
       // Almoço/Jantar: Proteína + Carbo + Vegetal
-      var protein = getFoodByCat(['carnes', 'aves', 'peixes', 'ovos', 'leguminosas']);
-      var carb = getFoodByCat(['cereais', 'arroz', 'massas', 'tubérculos', 'batata']);
+      var protein =
+          getFoodByCat(['carnes', 'aves', 'peixes', 'ovos', 'leguminosas']);
+      var carb =
+          getFoodByCat(['cereais', 'arroz', 'massas', 'tubérculos', 'batata']);
       var veg = getFoodByCat(['hortaliças', 'legumes', 'verduras', 'saladas']);
 
       if (protein != null) selectedFoods.add(protein);
       if (carb != null) selectedFoods.add(carb);
       if (veg != null) selectedFoods.add(veg);
-      
-      if (protein != null) dishName = isEn ? '${protein.nome} with Sides' : '${protein.nome} com Acompanhamentos';
+
+      if (protein != null) {
+        dishName = isEn
+            ? '${protein.nome} with Sides'
+            : '${protein.nome} com Acompanhamentos';
+      }
 
       // If we couldn't build a full plate, fill with random to avoid empty meal
       if (selectedFoods.length < 2) {
-          final food = foods[_random.nextInt(foods.length)];
-           if (!selectedFoods.any((f) => f.nome == food.nome)) {
-              selectedFoods.add(MealItem(nome: food.nome, quantidadeTexto: food.porcao, observacoes: '${food.calorias} kcal'));
-           }
+        final food = foods[_random.nextInt(foods.length)];
+        if (!selectedFoods.any((f) => f.nome == food.nome)) {
+          selectedFoods.add(MealItem(
+              nome: food.nome,
+              quantidadeTexto: food.porcao,
+              observacoes: '${food.calorias} kcal'));
+        }
       }
     }
 
@@ -371,68 +426,88 @@ class WeeklyPlanGenerator {
         await _dataService.loadData();
       }
 
-      var receitasDisponiveis = _dataService.getRecipesByRestrictions(profile.restricoes);
-      
+      var receitasDisponiveis =
+          _dataService.getRecipesByRestrictions(profile.restricoes);
+
       // Aplicar o mesmo Filtro Inteligente do gerador principal
       receitasDisponiveis = receitasDisponiveis.where((r) {
-           final textToCheck = '${r.nome} ${r.ingredientes.join(' ')}'.toLowerCase();
-           final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
-           
-           // Filter by objective: Weight Loss
-           if (objective == 'emagrecimento') {
-              if (isBreakfastOrSnack && r.calorias > 250) return false;
-              if (!isBreakfastOrSnack && r.calorias > 500) return false;
-           }
+        final textToCheck =
+            '${r.nome} ${r.ingredientes.join(' ')}'.toLowerCase();
+        final isBreakfastOrSnack = tipo == 'cafe' || tipo == 'lanche';
 
-           if (isBreakfastOrSnack) {
-               if (textToCheck.contains('feijão') || 
-                   textToCheck.contains('arroz') || 
-                   textToCheck.contains('macarrão') || 
-                   textToCheck.contains('espaguete') ||
-                   textToCheck.contains('sopa') ||
-                   textToCheck.contains('risoto')) {
-                 return false;
-               }
-               
-               final isSandwich = textToCheck.contains('sanduíche') || textToCheck.contains('wrap') || textToCheck.contains('torta') || textToCheck.contains('salgado') || textToCheck.contains('pão');
-               if (!isSandwich) {
-                   if (textToCheck.contains('frango') || textToCheck.contains('carne') || textToCheck.contains('peixe') || textToCheck.contains('bife')) return false;
-               }
-               return true;
-           } else {
-               if (r.nome.toLowerCase().contains('vitamina') || 
-                   r.nome.toLowerCase().contains('iogurte') || 
-                   r.nome.toLowerCase().contains('mingau') ||
-                   r.nome.toLowerCase().contains('tapioca') ||
-                   r.nome.toLowerCase().contains('bolo')) {
-                 return false;
-               }
-               
-               if (r.nome.toLowerCase().contains('pão') && !textToCheck.contains('hambúrguer')) return false;
-               return true;
-           }
+        // Filter by objective: Weight Loss
+        if (objective == 'emagrecimento') {
+          if (isBreakfastOrSnack && r.calorias > 250) return false;
+          if (!isBreakfastOrSnack && r.calorias > 500) return false;
+        }
+
+        if (isBreakfastOrSnack) {
+          if (textToCheck.contains('feijão') ||
+              textToCheck.contains('arroz') ||
+              textToCheck.contains('macarrão') ||
+              textToCheck.contains('espaguete') ||
+              textToCheck.contains('sopa') ||
+              textToCheck.contains('risoto')) {
+            return false;
+          }
+
+          final isSandwich = textToCheck.contains('sanduíche') ||
+              textToCheck.contains('wrap') ||
+              textToCheck.contains('torta') ||
+              textToCheck.contains('salgado') ||
+              textToCheck.contains('pão');
+          if (!isSandwich) {
+            if (textToCheck.contains('frango') ||
+                textToCheck.contains('carne') ||
+                textToCheck.contains('peixe') ||
+                textToCheck.contains('bife')) {
+              return false;
+            }
+          }
+          return true;
+        } else {
+          if (r.nome.toLowerCase().contains('vitamina') ||
+              r.nome.toLowerCase().contains('iogurte') ||
+              r.nome.toLowerCase().contains('mingau') ||
+              r.nome.toLowerCase().contains('tapioca') ||
+              r.nome.toLowerCase().contains('bolo')) {
+            return false;
+          }
+
+          if (r.nome.toLowerCase().contains('pão') &&
+              !textToCheck.contains('hambúrguer')) {
+            return false;
+          }
+          return true;
+        }
       }).toList();
 
       // Excluir receitas atuais para forçar mudança
       if (excludedRecipeIds != null && excludedRecipeIds.isNotEmpty) {
-          receitasDisponiveis = receitasDisponiveis.where((r) => !excludedRecipeIds.contains(r.id)).toList();
+        receitasDisponiveis = receitasDisponiveis
+            .where((r) => !excludedRecipeIds.contains(r.id))
+            .toList();
       }
 
       if (receitasDisponiveis.isEmpty) {
         return _createSimpleMeal(tipo, profile.restricoes, languageCode);
       }
 
-      final receita = receitasDisponiveis[_random.nextInt(receitasDisponiveis.length)];
-      
+      final receita =
+          receitasDisponiveis[_random.nextInt(receitasDisponiveis.length)];
+
       return Meal(
         tipo: tipo,
         recipeId: receita.id,
         nomePrato: receita.nome,
-        itens: receita.ingredientes.map((ing) => MealItem(
-          nome: ing,
-          quantidadeTexto: isEn ? '1 serving' : '1 porção',
-        )).toList(),
-        observacoes: '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
+        itens: receita.ingredientes
+            .map((ing) => MealItem(
+                  nome: ing,
+                  quantidadeTexto: isEn ? '1 serving' : '1 porção',
+                ))
+            .toList(),
+        observacoes:
+            '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
         criadoEm: DateTime.now(),
       );
     } catch (e) {
@@ -444,7 +519,8 @@ class WeeklyPlanGenerator {
   /// Retorna a segunda-feira da semana
   DateTime _getMonday(DateTime date) {
     final weekday = date.weekday; // 1 = Monday, 7 = Sunday
-    return DateTime(date.year, date.month, date.day).subtract(Duration(days: weekday - 1));
+    return DateTime(date.year, date.month, date.day)
+        .subtract(Duration(days: weekday - 1));
   }
 }
 

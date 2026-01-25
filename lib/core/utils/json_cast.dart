@@ -1,4 +1,3 @@
-
 /// Safely casts or converts a [Map] of unknown types into a [Map<String, dynamic>].
 /// Handles nested [Map]s and [List]s recursively.
 Map<String, dynamic> deepCastMap(dynamic input) {
@@ -28,7 +27,7 @@ dynamic _deepCastValue(dynamic value) {
 List<Map<String, dynamic>> deepCastMapList(dynamic input) {
   if (input == null) return [];
   if (input is! List) {
-     throw Exception('Object is not a List (actual type: ${input.runtimeType})');
+    throw Exception('Object is not a List (actual type: ${input.runtimeType})');
   }
   return input.map((item) => deepCastMap(item)).toList();
 }

@@ -37,14 +37,19 @@ class _LabExamsSectionState extends State<LabExamsSection> {
   }
 
   String _getCategoryName(String id, BuildContext context) {
-      final strings = AppLocalizations.of(context)!;
-      switch (id) {
-          case 'blood': return strings.examBlood;
-          case 'urine': return strings.examUrine;
-          case 'feces': return strings.examFeces;
-          case 'other': return strings.examOther;
-          default: return strings.examOther;
-      }
+    final strings = AppLocalizations.of(context)!;
+    switch (id) {
+      case 'blood':
+        return strings.examBlood;
+      case 'urine':
+        return strings.examUrine;
+      case 'feces':
+        return strings.examFeces;
+      case 'other':
+        return strings.examOther;
+      default:
+        return strings.examOther;
+    }
   }
 
   @override
@@ -77,32 +82,35 @@ class _LabExamsSectionState extends State<LabExamsSection> {
               style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
             ),
             const SizedBox(height: 16),
-            
+
             // Categories
             ...ExamCategory.all.map((category) {
               final categoryExams = _getExamsForCategory(category.id);
               final isExpanded = _expandedCategory == category.id;
-              
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: categoryExams.isNotEmpty 
+                    color: categoryExams.isNotEmpty
                         ? category.color.withValues(alpha: 0.3)
                         : Colors.white.withValues(alpha: 0.05),
                   ),
                 ),
                 child: Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  data: Theme.of(context)
+                      .copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
                     key: Key(category.id),
                     initiallyExpanded: isExpanded,
                     onExpansionChanged: (expanded) {
-                      setState(() => _expandedCategory = expanded ? category.id : null);
+                      setState(() =>
+                          _expandedCategory = expanded ? category.id : null);
                     },
-                    leading: Icon(category.icon, color: category.color, size: 22),
+                    leading:
+                        Icon(category.icon, color: category.color, size: 22),
                     title: Row(
                       children: [
                         Flexible(
@@ -119,7 +127,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                         if (categoryExams.isNotEmpty) ...[
                           const SizedBox(width: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: category.color.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
@@ -137,9 +146,11 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                       ],
                     ),
                     trailing: IconButton(
-                      icon: const Icon(Icons.add_circle_outline, color: AppDesign.petPink),
+                      icon: const Icon(Icons.add_circle_outline,
+                          color: AppDesign.petPink),
                       onPressed: () => _showAddExamDialog(category),
-                      tooltip: '${AppLocalizations.of(context)!.agendaAdd} ${_getCategoryName(category.id, context)}',
+                      tooltip:
+                          '${AppLocalizations.of(context)!.agendaAdd} ${_getCategoryName(category.id, context)}',
                     ),
                     iconColor: category.color,
                     collapsedIconColor: Colors.white30,
@@ -148,7 +159,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                         Padding(
                           padding: const EdgeInsets.all(16),
                           child: Text(
-                            AppLocalizations.of(context)!.petNoDocumentsAttached,
+                            AppLocalizations.of(context)!
+                                .petNoDocumentsAttached,
                             style: GoogleFonts.poppins(
                               color: Colors.white30,
                               fontSize: 12,
@@ -157,7 +169,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                           ),
                         )
                       else
-                        ...categoryExams.map((exam) => _buildExamCard(exam, category)),
+                        ...categoryExams
+                            .map((exam) => _buildExamCard(exam, category)),
                     ],
                   ),
                 ),
@@ -172,7 +185,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
   Widget _buildExamCard(LabExam exam, ExamCategory category) {
     final file = File(exam.filePath);
     final isPdf = exam.filePath.toLowerCase().endsWith('.pdf');
-    final hasExplanation = exam.aiExplanation != null && exam.aiExplanation!.isNotEmpty;
+    final hasExplanation =
+        exam.aiExplanation != null && exam.aiExplanation!.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -202,7 +216,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                 ),
               ),
               const SizedBox(width: 12),
-              
+
               // Info
               Expanded(
                 child: Column(
@@ -221,15 +235,17 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     const SizedBox(height: 4),
                     Text(
                       DateFormat('dd/MM/yyyy HH:mm').format(exam.uploadDate),
-                      style: const TextStyle(color: Colors.white30, fontSize: 11),
+                      style:
+                          const TextStyle(color: Colors.white30, fontSize: 11),
                     ),
                   ],
                 ),
               ),
-              
+
               // Actions
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
+                icon: const Icon(Icons.more_vert,
+                    color: Colors.white54, size: 20),
                 color: Colors.grey[900],
                 onSelected: (value) {
                   if (value == 'delete') {
@@ -243,9 +259,11 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     value: 'view',
                     child: Row(
                       children: [
-                        const Icon(Icons.visibility, color: Colors.white70, size: 18),
+                        const Icon(Icons.visibility,
+                            color: Colors.white70, size: 18),
                         const SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.commonView, style: const TextStyle(color: Colors.white70)),
+                        Text(AppLocalizations.of(context)!.commonView,
+                            style: const TextStyle(color: Colors.white70)),
                       ],
                     ),
                   ),
@@ -255,7 +273,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                       children: [
                         const Icon(Icons.delete, color: Colors.red, size: 18),
                         const SizedBox(width: 8),
-                        Text(AppLocalizations.of(context)!.btnDelete, style: const TextStyle(color: Colors.red)),
+                        Text(AppLocalizations.of(context)!.btnDelete,
+                            style: const TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
@@ -263,7 +282,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
               ),
             ],
           ),
-          
+
           // Processing Indicator
           if (exam.isProcessing) ...[
             const SizedBox(height: 12),
@@ -277,7 +296,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
               style: GoogleFonts.poppins(color: Colors.white54, fontSize: 11),
             ),
           ],
-          
+
           // Explain Button
           if (!exam.isProcessing && exam.extractedText != null) ...[
             const SizedBox(height: 12),
@@ -289,12 +308,13 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: category.color.withValues(alpha: 0.2),
                   foregroundColor: category.color,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   textStyle: const TextStyle(fontSize: 12),
                 ),
               ),
           ],
-          
+
           // AI Explanation
           if (hasExplanation) ...[
             const SizedBox(height: 12),
@@ -303,17 +323,19 @@ class _LabExamsSectionState extends State<LabExamsSection> {
               decoration: BoxDecoration(
                 color: AppDesign.petPink.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: AppDesign.petPink.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.lightbulb, color: AppDesign.petPink, size: 16),
+                      const Icon(Icons.lightbulb,
+                          color: AppDesign.petPink, size: 16),
                       const SizedBox(width: 6),
-                        Text(
-                          AppLocalizations.of(context)!.aiAnalysis,
+                      Text(
+                        AppLocalizations.of(context)!.aiAnalysis,
                         style: GoogleFonts.poppins(
                           color: AppDesign.petPink,
                           fontSize: 12,
@@ -325,7 +347,8 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                   const SizedBox(height: 8),
                   Text(
                     exam.aiExplanation!,
-                    style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12),
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
                   Container(
@@ -333,11 +356,13 @@ class _LabExamsSectionState extends State<LabExamsSection> {
                     decoration: BoxDecoration(
                       color: Colors.orange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                      border: Border.all(
+                          color: Colors.orange.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.warning_amber, color: Colors.orange, size: 14),
+                        const Icon(Icons.warning_amber,
+                            color: Colors.orange, size: 14),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -368,7 +393,7 @@ class _LabExamsSectionState extends State<LabExamsSection> {
       filePath: '', // Will be set by parent
       uploadDate: DateTime.now(),
     );
-    
+
     // Call parent to handle file picking and processing
     widget.onAddExam(templateExam);
   }
@@ -376,7 +401,9 @@ class _LabExamsSectionState extends State<LabExamsSection> {
   void _viewExam(LabExam exam) {
     // TODO: Implement file viewer
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${AppLocalizations.of(context)!.commonView}: ${path.basename(exam.filePath)}')),
+      SnackBar(
+          content: Text(
+              '${AppLocalizations.of(context)!.commonView}: ${path.basename(exam.filePath)}')),
     );
   }
 }

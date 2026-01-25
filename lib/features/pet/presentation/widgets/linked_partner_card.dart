@@ -6,7 +6,7 @@ import '../../../../core/theme/app_design.dart';
 import '../../../../core/models/partner_model.dart';
 import '../../services/pet_indexing_service.dart';
 
-// Private widget extracted to be public/reusable if needed, 
+// Private widget extracted to be public/reusable if needed,
 // but currently just moved to reduce file size.
 class LinkedPartnerCard extends StatefulWidget {
   final PartnerModel partner;
@@ -44,48 +44,47 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
     _phoneController.dispose();
     super.dispose();
   }
-  
+
   void _updatePhone(String val) {
-      if (val != widget.partner.phone) {
-          final updated = PartnerModel(
-              id: widget.partner.id,
-              name: widget.partner.name,
-              category: widget.partner.category,
-              latitude: widget.partner.latitude,
-              longitude: widget.partner.longitude,
-              phone: val, // Updated
-              whatsapp: widget.partner.whatsapp,
-              address: widget.partner.address,
-              openingHours: widget.partner.openingHours,
-              photos: widget.partner.photos,
-              rating: widget.partner.rating,
-              isFavorite: widget.partner.isFavorite,
-              metadata: widget.partner.metadata,
-              specialties: widget.partner.specialties,
-              instagram: widget.partner.instagram,
-              cnpj: widget.partner.cnpj,
-          );
-          widget.onUpdate(updated);
-      }
+    if (val != widget.partner.phone) {
+      final updated = PartnerModel(
+        id: widget.partner.id,
+        name: widget.partner.name,
+        category: widget.partner.category,
+        latitude: widget.partner.latitude,
+        longitude: widget.partner.longitude,
+        phone: val, // Updated
+        whatsapp: widget.partner.whatsapp,
+        address: widget.partner.address,
+        openingHours: widget.partner.openingHours,
+        photos: widget.partner.photos,
+        rating: widget.partner.rating,
+        isFavorite: widget.partner.isFavorite,
+        metadata: widget.partner.metadata,
+        specialties: widget.partner.specialties,
+        instagram: widget.partner.instagram,
+        cnpj: widget.partner.cnpj,
+      );
+      widget.onUpdate(updated);
+    }
   }
 
   Future<void> _launch(String scheme, String path) async {
-      String processedPath = path;
-      if (scheme == 'tel') {
-        processedPath = path.replaceAll(RegExp(r'[^\d]'), '');
+    String processedPath = path;
+    if (scheme == 'tel') {
+      processedPath = path.replaceAll(RegExp(r'[^\d]'), '');
+    }
+
+    final uri = Uri(scheme: scheme, path: processedPath);
+    try {
+      await launchUrl(uri);
+    } catch (e) {
+      debugPrint('Could not launch $uri: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(AppLocalizations.of(context)!.errorOpeningApp)));
       }
-      
-      final uri = Uri(scheme: scheme, path: processedPath);
-      try {
-        await launchUrl(uri);
-      } catch (e) {
-        debugPrint('Could not launch $uri: $e');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.errorOpeningApp))
-          );
-        }
-      }
+    }
   }
 
   @override
@@ -93,170 +92,197 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
     return Card(
       color: Colors.white.withValues(alpha: 0.08),
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppDesign.petPink.withValues(alpha: 0.3))),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppDesign.petPink.withValues(alpha: 0.3))),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-             // Header: Name + Unlink Switch
-             Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                 children: [
-                     Expanded(
-                         child: Column(
-                             crossAxisAlignment: CrossAxisAlignment.start,
-                             children: [
-                                 Text(widget.partner.name, style: GoogleFonts.poppins(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                                 Text(widget.partner.category, style: const TextStyle(color: AppDesign.petPink, fontSize: 12)),
-                             ],
-                         ),
-                     ),
-                     IconButton(
-                        icon: Icon(
-                          widget.partner.isFavorite ? Icons.star : Icons.star_border,
-                          color: widget.partner.isFavorite ? Colors.amber : Colors.white24,
-                        ),
-                        onPressed: () {
-                          final updated = widget.partner.copyWith(isFavorite: !widget.partner.isFavorite);
-                          widget.onUpdate(updated);
-                          
-                          if (updated.isFavorite && widget.petId != null) {
-                            PetIndexingService().indexPartnerInteraction(
-                              petId: widget.petId!,
-                              petName: widget.petName ?? 'Pet',
-                              partnerName: widget.partner.name,
-                              partnerId: widget.partner.id,
-                              interactionType: 'favorited',
-                              localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerFavorited(widget.partner.name),
-                              localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
-                            );
-                          }
-                        },
-                     ),
-                     Column(
-                       children: [
-                         Switch(
-                             value: true, 
-                             activeThumbColor: AppDesign.petPink,
-                             onChanged: (v) {
-                                 if (!v) widget.onUnlink();
-                             }
-                         ),
-                         Text(AppLocalizations.of(context)!.petPartnersLinked, style: const TextStyle(color: Colors.white54, fontSize: 10))
-                       ],
-                     )
-                 ],
-             ),
-             const Divider(color: Colors.white10, height: 24),
-             
-             // Address
-             InkWell(
-                 onTap: () {
-                     // Launch Maps
-                     // Geouri
-                     _launch('geo', '${widget.partner.latitude},${widget.partner.longitude}?q=${Uri.encodeComponent(widget.partner.address)}');
-                     
-                     if (widget.petId != null) {
+            // Header: Name + Unlink Switch
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(widget.partner.name,
+                          style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold)),
+                      Text(widget.partner.category,
+                          style: const TextStyle(
+                              color: AppDesign.petPink, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    widget.partner.isFavorite ? Icons.star : Icons.star_border,
+                    color: widget.partner.isFavorite
+                        ? Colors.amber
+                        : Colors.white24,
+                  ),
+                  onPressed: () {
+                    final updated = widget.partner
+                        .copyWith(isFavorite: !widget.partner.isFavorite);
+                    widget.onUpdate(updated);
+
+                    if (updated.isFavorite && widget.petId != null) {
+                      PetIndexingService().indexPartnerInteraction(
+                        petId: widget.petId!,
+                        petName: widget.petName ?? 'Pet',
+                        partnerName: widget.partner.name,
+                        partnerId: widget.partner.id,
+                        interactionType: 'favorited',
+                        localizedTitle: AppLocalizations.of(context)!
+                            .petIndexing_partnerFavorited(widget.partner.name),
+                        localizedNotes: AppLocalizations.of(context)!
+                            .petIndexing_partnerInteractionNotes,
+                      );
+                    }
+                  },
+                ),
+                Column(
+                  children: [
+                    Switch(
+                        value: true,
+                        activeThumbColor: AppDesign.petPink,
+                        onChanged: (v) {
+                          if (!v) widget.onUnlink();
+                        }),
+                    Text(AppLocalizations.of(context)!.petPartnersLinked,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 10))
+                  ],
+                )
+              ],
+            ),
+            const Divider(color: Colors.white10, height: 24),
+
+            // Address
+            InkWell(
+              onTap: () {
+                // Launch Maps
+                // Geouri
+                _launch('geo',
+                    '${widget.partner.latitude},${widget.partner.longitude}?q=${Uri.encodeComponent(widget.partner.address)}');
+
+                if (widget.petId != null) {
+                  PetIndexingService().indexPartnerInteraction(
+                    petId: widget.petId!,
+                    petName: widget.petName ?? 'Pet',
+                    partnerName: widget.partner.name,
+                    partnerId: widget.partner.id,
+                    interactionType: 'contacted',
+                    localizedTitle: AppLocalizations.of(context)!
+                        .petIndexing_partnerContacted(widget.partner.name),
+                    localizedNotes: AppLocalizations.of(context)!
+                        .petIndexing_partnerInteractionNotes,
+                  );
+                }
+              },
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on,
+                      color: Colors.redAccent, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.partner.address.isNotEmpty
+                          ? widget.partner.address
+                          : AppLocalizations.of(context)!.petPartnersNoAddress,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                  ),
+                  const Icon(Icons.open_in_new, color: Colors.white30, size: 14)
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Editable Phone
+            Row(
+              children: [
+                const Icon(Icons.phone, color: Colors.white54, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    controller: _phoneController,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      hintText:
+                          AppLocalizations.of(context)!.petPartnersPhoneHint,
+                      hintStyle: const TextStyle(color: Colors.white30),
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: AppDesign.petPink)),
+                    ),
+                    keyboardType: TextInputType.phone,
+                    onChanged: _updatePhone,
+                  ),
+                ),
+                const Icon(Icons.edit, color: Colors.white24, size: 14)
+              ],
+            ),
+
+            const SizedBox(height: 20),
+            // ACTION BUTTONS
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ActionIcon(
+                    icon: Icons.phone,
+                    color: AppDesign.petPink,
+                    label: AppLocalizations.of(context)!.petPartnersCall,
+                    onTap: () {
+                      _launch('tel', widget.partner.phone);
+                      if (widget.petId != null) {
                         PetIndexingService().indexPartnerInteraction(
                           petId: widget.petId!,
                           petName: widget.petName ?? 'Pet',
                           partnerName: widget.partner.name,
                           partnerId: widget.partner.id,
                           interactionType: 'contacted',
-                          localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerContacted(widget.partner.name),
-                          localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
+                          localizedTitle: AppLocalizations.of(context)!
+                              .petIndexing_partnerContacted(
+                                  widget.partner.name),
+                          localizedNotes: AppLocalizations.of(context)!
+                              .petIndexing_partnerInteractionNotes,
                         );
-                     }
-                 },
-                 child: Row(
-                     crossAxisAlignment: CrossAxisAlignment.start,
-                     children: [
-                         const Icon(Icons.location_on, color: Colors.redAccent, size: 18),
-                         const SizedBox(width: 8),
-                         Expanded(
-                             child: Text(
-                                 widget.partner.address.isNotEmpty ? widget.partner.address : AppLocalizations.of(context)!.petPartnersNoAddress,
-                                 style: const TextStyle(color: Colors.white70, fontSize: 13),
-                             ),
-                         ),
-                         const Icon(Icons.open_in_new, color: Colors.white30, size: 14)
-                     ],
-                 ),
-             ),
-             const SizedBox(height: 16),
-             
-             // Editable Phone
-             Row(
-                 children: [
-                     const Icon(Icons.phone, color: Colors.white54, size: 18),
-                     const SizedBox(width: 8),
-                     Expanded(
-                         child: TextFormField(
-                             controller: _phoneController,
-                             style: const TextStyle(color: Colors.white, fontSize: 14),
-                             decoration: InputDecoration(
-                                 isDense: true,
-                                 border: InputBorder.none,
-                                 hintText: AppLocalizations.of(context)!.petPartnersPhoneHint,
-                                 hintStyle: const TextStyle(color: Colors.white30),
-                                 enabledBorder: InputBorder.none,
-                                 focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppDesign.petPink)),
-                             ),
-                             keyboardType: TextInputType.phone,
-                             onChanged: _updatePhone,
-                         ),
-                     ),
-                     const Icon(Icons.edit, color: Colors.white24, size: 14)
-                 ],
-             ),
-             
-             const SizedBox(height: 20),
-             // ACTION BUTTONS
-             Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                 children: [
-                     _ActionIcon(
-                         icon: Icons.phone, 
-                         color: AppDesign.petPink, 
-                         label: AppLocalizations.of(context)!.petPartnersCall, 
-                         onTap: () {
-                            _launch('tel', widget.partner.phone);
-                            if (widget.petId != null) {
-                              PetIndexingService().indexPartnerInteraction(
-                                petId: widget.petId!,
-                                petName: widget.petName ?? 'Pet',
-                                partnerName: widget.partner.name,
-                                partnerId: widget.partner.id,
-                                interactionType: 'contacted',
-                                localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerContacted(widget.partner.name),
-                                localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
-                              );
-                            }
-                         }
-                     ),
-                     _ActionIcon(
-                         icon: Icons.event_note, 
-                         color: Colors.amberAccent, 
-                         label: AppLocalizations.of(context)!.petPartnersSchedule, 
-                         onTap: () {
-                            widget.onOpenAgenda();
-                            if (widget.petId != null) {
-                              PetIndexingService().indexPartnerInteraction(
-                                petId: widget.petId!,
-                                petName: widget.petName ?? 'Pet',
-                                partnerName: widget.partner.name,
-                                partnerId: widget.partner.id,
-                                interactionType: 'scheduled',
-                                localizedTitle: AppLocalizations.of(context)!.petIndexing_partnerScheduled(widget.partner.name),
-                                localizedNotes: AppLocalizations.of(context)!.petIndexing_partnerInteractionNotes,
-                              );
-                            }
-                         },
-                         isHighlighted: true,
-                     ),
-                 ],
-             )
+                      }
+                    }),
+                _ActionIcon(
+                  icon: Icons.event_note,
+                  color: Colors.amberAccent,
+                  label: AppLocalizations.of(context)!.petPartnersSchedule,
+                  onTap: () {
+                    widget.onOpenAgenda();
+                    if (widget.petId != null) {
+                      PetIndexingService().indexPartnerInteraction(
+                        petId: widget.petId!,
+                        petName: widget.petName ?? 'Pet',
+                        partnerName: widget.partner.name,
+                        partnerId: widget.partner.id,
+                        interactionType: 'scheduled',
+                        localizedTitle: AppLocalizations.of(context)!
+                            .petIndexing_partnerScheduled(widget.partner.name),
+                        localizedNotes: AppLocalizations.of(context)!
+                            .petIndexing_partnerInteractionNotes,
+                      );
+                    }
+                  },
+                  isHighlighted: true,
+                ),
+              ],
+            )
           ],
         ),
       ),
@@ -265,32 +291,40 @@ class _LinkedPartnerCardState extends State<LinkedPartnerCard> {
 }
 
 class _ActionIcon extends StatelessWidget {
-    final IconData icon;
-    final Color color;
-    final String label;
-    final VoidCallback onTap;
-    final bool isHighlighted;
-    
-    const _ActionIcon({required this.icon, required this.color, required this.label, required this.onTap, this.isHighlighted = false});
-    
-    @override
-    Widget build(BuildContext context) {
-        return InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: isHighlighted 
-                   ? BoxDecoration(color: color.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: 0.5)))
-                   : null,
-                child: Column(
-                    children: [
-                        Icon(icon, color: color, size: 24),
-                        const SizedBox(height: 4),
-                        Text(label, style: TextStyle(color: color, fontSize: 10))
-                    ],
-                ),
-            ),
-        );
-    }
+  final IconData icon;
+  final Color color;
+  final String label;
+  final VoidCallback onTap;
+  final bool isHighlighted;
+
+  const _ActionIcon(
+      {required this.icon,
+      required this.color,
+      required this.label,
+      required this.onTap,
+      this.isHighlighted = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: isHighlighted
+            ? BoxDecoration(
+                color: color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: color.withValues(alpha: 0.5)))
+            : null,
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(color: color, fontSize: 10))
+          ],
+        ),
+      ),
+    );
+  }
 }

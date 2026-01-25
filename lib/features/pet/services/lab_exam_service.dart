@@ -12,50 +12,54 @@ class LabExamService {
   Future<LabExam> processExam(LabExam exam) async {
     try {
       debugPrint('🔍 Iniciando OCR do exame...');
-      
+
       // Extract text using Google ML Kit
       final extractedText = await _extractTextFromImage(exam.filePath);
-      
-      debugPrint('✅ OCR concluído. Texto extraído: ${extractedText.length} caracteres');
-      
+
+      debugPrint(
+          '✅ OCR concluído. Texto extraído: ${extractedText.length} caracteres');
+
       // Update exam with extracted text
       final examWithText = exam.copyWith(
         extractedText: extractedText,
         isProcessing: false,
       );
-      
+
       return examWithText;
     } catch (e) {
       debugPrint('❌ Erro no OCR: $e');
       return exam.copyWith(
         isProcessing: false,
-        extractedText: 'Erro ao extrair texto. Tente novamente com uma imagem mais nítida.',
+        extractedText:
+            'Erro ao extrair texto. Tente novamente com uma imagem mais nítida.',
       );
     }
   }
 
   /// Generate AI explanation for exam results using Gemini
-  Future<String> generateExplanation(LabExam exam, {String languageName = 'Portuguese-BR', String languageInstruction = 'Responda em Português do Brasil.'}) async {
+  Future<String> generateExplanation(LabExam exam,
+      {String languageName = 'Portuguese-BR',
+      String languageInstruction = 'Responda em Português do Brasil.'}) async {
     if (exam.extractedText == null || exam.extractedText!.isEmpty) {
       return 'Não foi possível extrair texto do exame.';
     }
-    
+
     if (exam.extractedText!.contains('Erro ao extrair')) {
       return exam.extractedText!;
     }
 
     try {
       debugPrint('🤖 Gerando explicação com IA (Lang: $languageName)...');
-      
-      final prompt = _buildExplanationPrompt(exam, languageName, languageInstruction);
-      
+
+      final prompt =
+          _buildExplanationPrompt(exam, languageName, languageInstruction);
+
       // Use Gemini API for real explanation
       final explanation = await _geminiService.generatePlainText(prompt);
-      
+
       debugPrint('✅ Explicação gerada com sucesso');
-      
+
       return explanation;
-      
     } catch (e) {
       debugPrint('❌ Erro ao gerar explicação: $e');
       return 'Erro ao gerar explicação. Verifique sua conexão com a internet e tente novamente.';
@@ -67,28 +71,29 @@ class LabExamService {
     try {
       final inputImage = InputImage.fromFilePath(filePath);
       final recognizedText = await _textRecognizer.processImage(inputImage);
-      
+
       if (recognizedText.text.isEmpty) {
         return 'Nenhum texto foi detectado na imagem. Certifique-se de que a imagem está nítida e bem iluminada.';
       }
-      
+
       return recognizedText.text;
     } catch (e) {
       debugPrint('❌ Erro no Google ML Kit: $e');
       throw Exception('Falha no reconhecimento de texto: $e');
     }
   }
-  
+
   /// Dispose resources
   void dispose() {
     _textRecognizer.close();
   }
 
-  String _buildExplanationPrompt(LabExam exam, String languageName, String languageInstruction) {
+  String _buildExplanationPrompt(
+      LabExam exam, String languageName, String languageInstruction) {
     final isPortuguese = languageName.contains('Portuguese');
     final isSpanish = languageName.contains('Spanish');
     final categoryContext = _getCategoryContext(exam.category, languageName);
-    
+
     return '''
 $languageInstruction
 
@@ -116,77 +121,83 @@ IMPORTANT: This is informative only. Always recommend seeing a vet for full diag
 ''';
   }
 
-  Map<String, String> _getCategoryContext(String category, String languageName) {
+  Map<String, String> _getCategoryContext(
+      String category, String languageName) {
     if (languageName.contains('Portuguese')) {
-        switch (category) {
-          case 'blood':
-            return {
-              'name': 'exame de sangue (hemograma ou bioquímico)',
-              'focus': 'hemoglobina, leucócitos, plaquetas, enzimas hepáticas, função renal',
-            };
-          case 'urine':
-            return {
-              'name': 'exame de urina (EAS - Elementos Anormais e Sedimentoscopia)',
-              'focus': 'densidade, pH, proteínas, glicose, cristais, células',
-            };
-          case 'feces':
-            return {
-              'name': 'exame de fezes (parasitológico)',
-              'focus': 'parasitas, ovos, larvas, protozoários',
-            };
-          default:
-            return {
-              'name': 'exame laboratorial',
-              'focus': 'parâmetros gerais de saúde',
-            };
-        }
+      switch (category) {
+        case 'blood':
+          return {
+            'name': 'exame de sangue (hemograma ou bioquímico)',
+            'focus':
+                'hemoglobina, leucócitos, plaquetas, enzimas hepáticas, função renal',
+          };
+        case 'urine':
+          return {
+            'name':
+                'exame de urina (EAS - Elementos Anormais e Sedimentoscopia)',
+            'focus': 'densidade, pH, proteínas, glicose, cristais, células',
+          };
+        case 'feces':
+          return {
+            'name': 'exame de fezes (parasitológico)',
+            'focus': 'parasitas, ovos, larvas, protozoários',
+          };
+        default:
+          return {
+            'name': 'exame laboratorial',
+            'focus': 'parâmetros gerais de saúde',
+          };
+      }
     } else if (languageName.contains('Spanish')) {
-        switch (category) {
-          case 'blood':
-            return {
-              'name': 'análisis de sangre (hemograma o bioquímico)',
-              'focus': 'hemoglobina, leucocitos, plaquetas, enzimas hepáticas, función renal',
-            };
-          case 'urine':
-            return {
-              'name': 'análisis de orina (EAS - Elementos Anormales y Sedimentoscopia)',
-              'focus': 'densidad, pH, proteínas, glucosa, cristales, células',
-            };
-          case 'feces':
-            return {
-              'name': 'análisis de heces (parasitológico)',
-              'focus': 'parásitos, huevos, larvas, protozoarios',
-            };
-          default:
-            return {
-              'name': 'examen de laboratorio',
-              'focus': 'parámetros generales de salud',
-            };
-        }
+      switch (category) {
+        case 'blood':
+          return {
+            'name': 'análisis de sangre (hemograma o bioquímico)',
+            'focus':
+                'hemoglobina, leucocitos, plaquetas, enzimas hepáticas, función renal',
+          };
+        case 'urine':
+          return {
+            'name':
+                'análisis de orina (EAS - Elementos Anormales y Sedimentoscopia)',
+            'focus': 'densidad, pH, proteínas, glucosa, cristales, células',
+          };
+        case 'feces':
+          return {
+            'name': 'análisis de heces (parasitológico)',
+            'focus': 'parásitos, huevos, larvas, protozoarios',
+          };
+        default:
+          return {
+            'name': 'examen de laboratorio',
+            'focus': 'parámetros generales de salud',
+          };
+      }
     } else {
-        // Default to English
-        switch (category) {
-          case 'blood':
-            return {
-              'name': 'blood test (CBC or biochemistry)',
-              'focus': 'hemoglobin, WBC, platelets, liver enzymes, kidney function',
-            };
-          case 'urine':
-            return {
-              'name': 'urinalysis',
-              'focus': 'density, pH, proteins, glucose, crystals, cells',
-            };
-          case 'feces':
-            return {
-              'name': 'fecal exam (parasitology)',
-              'focus': 'parasites, eggs, larvae, protozoa',
-            };
-          default:
-            return {
-              'name': 'laboratory exam',
-              'focus': 'general health parameters',
-            };
-        }
+      // Default to English
+      switch (category) {
+        case 'blood':
+          return {
+            'name': 'blood test (CBC or biochemistry)',
+            'focus':
+                'hemoglobin, WBC, platelets, liver enzymes, kidney function',
+          };
+        case 'urine':
+          return {
+            'name': 'urinalysis',
+            'focus': 'density, pH, proteins, glucose, crystals, cells',
+          };
+        case 'feces':
+          return {
+            'name': 'fecal exam (parasitology)',
+            'focus': 'parasites, eggs, larvae, protozoa',
+          };
+        default:
+          return {
+            'name': 'laboratory exam',
+            'focus': 'general health parameters',
+          };
+      }
     }
   }
 
@@ -204,14 +215,14 @@ IMPORTANT: This is informative only. Always recommend seeing a vet for full diag
     'ureia': 'Produto do metabolismo de proteínas, indica função renal',
     'alt': 'Enzima hepática, indica saúde do fígado',
     'ast': 'Enzima que indica lesão hepática ou muscular',
-    
+
     // Urine tests
     'densidade': 'Concentração da urina, indica hidratação e função renal',
     'ph': 'Acidez ou alcalinidade da urina',
     'proteínas': 'Presença pode indicar problema renal',
     'glicose': 'Açúcar na urina, pode indicar diabetes',
     'cristais': 'Podem formar cálculos renais se em excesso',
-    
+
     // Feces tests
     'parasitas': 'Organismos que vivem às custas do hospedeiro',
     'ovos': 'Ovos de parasitas intestinais',

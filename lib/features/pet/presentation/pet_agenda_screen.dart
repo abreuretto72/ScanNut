@@ -13,13 +13,15 @@ class PetAgendaScreen extends ConsumerStatefulWidget {
   final String petId;
   final String petName;
 
-  const PetAgendaScreen({super.key, required this.petId, required this.petName});
+  const PetAgendaScreen(
+      {super.key, required this.petId, required this.petName});
 
   @override
   ConsumerState<PetAgendaScreen> createState() => _PetAgendaScreenState();
 }
 
-class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTickerProviderStateMixin {
+class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   EventType? _filterType;
 
@@ -38,7 +40,8 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
   void _showAddEventDialog() {
     showDialog(
       context: context,
-      builder: (context) => _AddEventDialog(petId: widget.petId, petName: widget.petName),
+      builder: (context) =>
+          _AddEventDialog(petId: widget.petId, petName: widget.petName),
     );
   }
 
@@ -58,7 +61,8 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
           ),
           title: Text(
             'Agenda',
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ),
         body: const Center(
@@ -75,7 +79,8 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
           ),
           title: Text(
             'Agenda',
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ),
         body: Center(
@@ -134,7 +139,8 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: null,
-                child: Text(AppLocalizations.of(context)!.agendaTabAll, style: GoogleFonts.poppins()),
+                child: Text(AppLocalizations.of(context)!.agendaTabAll,
+                    style: GoogleFonts.poppins()),
               ),
               ...EventType.values.map((type) {
                 final event = PetEvent(
@@ -166,18 +172,30 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
           unselectedLabelColor: Colors.white54,
           labelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           tabs: [
-            Tab(text: '${AppLocalizations.of(context)!.agendaTabUpcoming} (${upcomingEvents.length})'),
-            Tab(text: '${AppLocalizations.of(context)!.agendaTabPast} (${pastEvents.length})'),
-            Tab(text: '${AppLocalizations.of(context)!.agendaTabAll} (${allEvents.length})'),
+            Tab(
+                text:
+                    '${AppLocalizations.of(context)!.agendaTabUpcoming} (${upcomingEvents.length})'),
+            Tab(
+                text:
+                    '${AppLocalizations.of(context)!.agendaTabPast} (${pastEvents.length})'),
+            Tab(
+                text:
+                    '${AppLocalizations.of(context)!.agendaTabAll} (${allEvents.length})'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildEventList(upcomingEvents, isEmpty: upcomingEvents.isEmpty, emptyMessage: AppLocalizations.of(context)!.agendaNoUpcoming),
-          _buildEventList(pastEvents, isEmpty: pastEvents.isEmpty, emptyMessage: AppLocalizations.of(context)!.agendaNoPast),
-          _buildEventList(allEvents, isEmpty: allEvents.isEmpty, emptyMessage: AppLocalizations.of(context)!.agendaNoEvents),
+          _buildEventList(upcomingEvents,
+              isEmpty: upcomingEvents.isEmpty,
+              emptyMessage: AppLocalizations.of(context)!.agendaNoUpcoming),
+          _buildEventList(pastEvents,
+              isEmpty: pastEvents.isEmpty,
+              emptyMessage: AppLocalizations.of(context)!.agendaNoPast),
+          _buildEventList(allEvents,
+              isEmpty: allEvents.isEmpty,
+              emptyMessage: AppLocalizations.of(context)!.agendaNoEvents),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -195,13 +213,15 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
     );
   }
 
-  Widget _buildEventList(List<PetEvent> events, {required bool isEmpty, required String emptyMessage}) {
+  Widget _buildEventList(List<PetEvent> events,
+      {required bool isEmpty, required String emptyMessage}) {
     if (isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 64, color: Colors.white.withValues(alpha: 0.2)),
+            Icon(Icons.event_busy,
+                size: 64, color: Colors.white.withValues(alpha: 0.2)),
             const SizedBox(height: 16),
             Text(
               emptyMessage,
@@ -253,7 +273,8 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: Text(AppLocalizations.of(context)!.agendaDeleteTitle, style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.agendaDeleteTitle,
+            style: GoogleFonts.poppins(color: Colors.white)),
         content: Text(
           AppLocalizations.of(context)!.agendaDeleteContent(event.title),
           style: GoogleFonts.poppins(color: Colors.white70),
@@ -261,11 +282,13 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.btnCancel, style: GoogleFonts.poppins(color: Colors.white54)),
+            child: Text(AppLocalizations.of(context)!.btnCancel,
+                style: GoogleFonts.poppins(color: Colors.white54)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(AppLocalizations.of(context)!.btnDelete, style: GoogleFonts.poppins(color: Colors.red)),
+            child: Text(AppLocalizations.of(context)!.btnDelete,
+                style: GoogleFonts.poppins(color: Colors.red)),
           ),
         ],
       ),
@@ -278,7 +301,8 @@ class _PetAgendaScreenState extends ConsumerState<PetAgendaScreen> with SingleTi
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.agendaDeleted, style: GoogleFonts.poppins()),
+            content: Text(AppLocalizations.of(context)!.agendaDeleted,
+                style: GoogleFonts.poppins()),
             backgroundColor: Colors.red,
           ),
         );
@@ -335,7 +359,9 @@ class _EventCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isOverdue ? Colors.red.withValues(alpha: 0.5) : _eventColor.withValues(alpha: 0.3),
+          color: isOverdue
+              ? Colors.red.withValues(alpha: 0.5)
+              : _eventColor.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -356,7 +382,8 @@ class _EventCard extends StatelessWidget {
                       color: _eventColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(event.typeEmoji, style: const TextStyle(fontSize: 20)),
+                    child: Text(event.typeEmoji,
+                        style: const TextStyle(fontSize: 20)),
                   ),
                   const SizedBox(width: 12),
                   // Title and type
@@ -370,7 +397,9 @@ class _EventCard extends StatelessWidget {
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            decoration: event.completed ? TextDecoration.lineThrough : null,
+                            decoration: event.completed
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                         Text(
@@ -387,8 +416,12 @@ class _EventCard extends StatelessWidget {
                   if (!event.isPast)
                     IconButton(
                       icon: Icon(
-                        event.completed ? Icons.check_circle : Icons.circle_outlined,
-                        color: event.completed ? AppDesign.petPink : Colors.white54,
+                        event.completed
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: event.completed
+                            ? AppDesign.petPink
+                            : Colors.white54,
                       ),
                       onPressed: onToggleComplete,
                     ),
@@ -403,7 +436,8 @@ class _EventCard extends StatelessWidget {
               // Date and time
               Row(
                 children: [
-                  Icon(Icons.access_time, size: 16, color: isOverdue ? Colors.red : Colors.white54),
+                  Icon(Icons.access_time,
+                      size: 16, color: isOverdue ? Colors.red : Colors.white54),
                   const SizedBox(width: 4),
                   Text(
                     dateFormat.format(event.dateTime),
@@ -415,7 +449,8 @@ class _EventCard extends StatelessWidget {
                   if (isOverdue) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.red.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
@@ -433,7 +468,8 @@ class _EventCard extends StatelessWidget {
                   if (event.isToday && !event.completed) ...[
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.orange.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(4),
@@ -459,7 +495,8 @@ class _EventCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       event.recurrenceLabel,
-                      style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                      style: GoogleFonts.poppins(
+                          color: Colors.white54, fontSize: 12),
                     ),
                   ],
                 ),
@@ -492,7 +529,8 @@ class _AddEventDialog extends ConsumerStatefulWidget {
   final String petName;
   final PetEvent? existingEvent;
 
-  const _AddEventDialog({required this.petId, required this.petName, this.existingEvent});
+  const _AddEventDialog(
+      {required this.petId, required this.petName, this.existingEvent});
 
   @override
   ConsumerState<_AddEventDialog> createState() => _AddEventDialogState();
@@ -502,13 +540,13 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   EventType _selectedType = EventType.other;
   RecurrenceType _selectedRecurrence = RecurrenceType.once;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   int _notificationMinutes = 1440; // 1 day
-  
+
   // Available vaccines
   final List<String> _availableVaccines = [
     'V10 ou V8 (Polivalente)',
@@ -532,7 +570,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
       _selectedDate = widget.existingEvent!.dateTime;
       _selectedTime = TimeOfDay.fromDateTime(widget.existingEvent!.dateTime);
       _notificationMinutes = widget.existingEvent!.notificationMinutes;
-      
+
       // If it's a vaccine event, try to match with available vaccines
       if (_selectedType == EventType.vaccine) {
         final title = widget.existingEvent!.title;
@@ -587,7 +625,7 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
     );
 
     final service = await ref.read(petEventServiceProvider.future);
-    
+
     // Get the correct title based on event type
     String eventTitle;
     if (_selectedType == EventType.vaccine) {
@@ -611,7 +649,9 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
         dateTime: dateTime,
         recurrence: _selectedRecurrence,
         notificationMinutes: _notificationMinutes,
-        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
         completed: widget.existingEvent!.completed,
         createdAt: widget.existingEvent!.createdAt,
       );
@@ -627,18 +667,22 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
         dateTime: dateTime,
         recurrence: _selectedRecurrence,
         notificationMinutes: _notificationMinutes,
-        notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        notes: _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
       );
       await service.addEvent(event);
     }
-    
+
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.existingEvent != null ? AppLocalizations.of(context)!.agendaUpdated : AppLocalizations.of(context)!.agendaCreated,
-            style: GoogleFonts.poppins(),
+            widget.existingEvent != null
+                ? AppLocalizations.of(context)!.agendaUpdated
+                : AppLocalizations.of(context)!.agendaCreated,
+            style: GoogleFonts.poppins(color: Colors.black),
           ),
           backgroundColor: AppDesign.petPink,
         ),
@@ -664,8 +708,11 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              isEdit ? AppLocalizations.of(context)!.agendaEditEvent : AppLocalizations.of(context)!.agendaNewEvent,
-              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+              isEdit
+                  ? AppLocalizations.of(context)!.agendaEditEvent
+                  : AppLocalizations.of(context)!.agendaNewEvent,
+              style: GoogleFonts.poppins(
+                  color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
           body: SafeArea(
@@ -673,7 +720,8 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -686,13 +734,18 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                               dropdownColor: Colors.grey[800],
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context)!.agendaFieldVaccineSelect,
-                                labelStyle: const TextStyle(color: Colors.white54),
+                                labelText: AppLocalizations.of(context)!
+                                    .agendaFieldVaccineSelect,
+                                labelStyle:
+                                    const TextStyle(color: Colors.white54),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                                  borderSide: BorderSide(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.3)),
                                 ),
                                 focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(color: AppDesign.petPink),
+                                  borderSide:
+                                      BorderSide(color: AppDesign.petPink),
                                 ),
                               ),
                               items: _availableVaccines.map((vaccine) {
@@ -711,7 +764,10 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                   }
                                 });
                               },
-                              validator: (value) => value == null ? AppLocalizations.of(context)!.agendaFieldVaccineSelect : null,
+                              validator: (value) => value == null
+                                  ? AppLocalizations.of(context)!
+                                      .agendaFieldVaccineSelect
+                                  : null,
                             ),
                             const SizedBox(height: 16),
                             if (_selectedVaccine == 'Outra vacina')
@@ -719,32 +775,49 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 controller: _titleController,
                                 style: const TextStyle(color: Colors.white),
                                 decoration: InputDecoration(
-                                  labelText: AppLocalizations.of(context)!.agendaFieldVaccineName,
-                                  labelStyle: const TextStyle(color: Colors.white54),
+                                  labelText: AppLocalizations.of(context)!
+                                      .agendaFieldVaccineName,
+                                  labelStyle:
+                                      const TextStyle(color: Colors.white54),
                                   enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                                    borderSide: BorderSide(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.3)),
                                   ),
                                   focusedBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(color: AppDesign.petPink),
+                                    borderSide:
+                                        BorderSide(color: AppDesign.petPink),
                                   ),
                                 ),
-                                validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
+                                validator: (value) =>
+                                    value == null || value.trim().isEmpty
+                                        ? AppLocalizations.of(context)!
+                                            .agendaRequired
+                                        : null,
                               ),
                           ] else
                             TextFormField(
                               controller: _titleController,
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context)!.agendaFieldTitle,
-                                labelStyle: const TextStyle(color: Colors.white54),
+                                labelText: AppLocalizations.of(context)!
+                                    .agendaFieldTitle,
+                                labelStyle:
+                                    const TextStyle(color: Colors.white54),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                                  borderSide: BorderSide(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.3)),
                                 ),
                                 focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(color: AppDesign.petPink),
+                                  borderSide:
+                                      BorderSide(color: AppDesign.petPink),
                                 ),
                               ),
-                              validator: (value) => value == null || value.trim().isEmpty ? AppLocalizations.of(context)!.agendaRequired : null,
+                              validator: (value) => value == null ||
+                                      value.trim().isEmpty
+                                  ? AppLocalizations.of(context)!.agendaRequired
+                                  : null,
                             ),
                           const SizedBox(height: 16),
                           // Type
@@ -753,13 +826,17 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                             dropdownColor: Colors.grey[800],
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: AppLocalizations.of(context)!.agendaFieldType,
-                              labelStyle: const TextStyle(color: Colors.white54),
+                              labelText:
+                                  AppLocalizations.of(context)!.agendaFieldType,
+                              labelStyle:
+                                  const TextStyle(color: Colors.white54),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                                borderSide: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(color: AppDesign.petPink),
+                                borderSide:
+                                    BorderSide(color: AppDesign.petPink),
                               ),
                             ),
                             items: EventType.values.map((type) {
@@ -805,14 +882,19 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 child: OutlinedButton.icon(
                                   onPressed: _selectDate,
                                   style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 16)
-                                  ),
-                                  icon: const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                                      side: BorderSide(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.3)),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16)),
+                                  icon: const Icon(Icons.calendar_today,
+                                      color: Colors.white, size: 20),
                                   label: Text(
-                                    DateFormat('dd/MM/yyyy').format(_selectedDate),
-                                    style: GoogleFonts.poppins(color: Colors.white),
+                                    DateFormat('dd/MM/yyyy')
+                                        .format(_selectedDate),
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.white),
                                   ),
                                 ),
                               ),
@@ -821,14 +903,18 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 child: OutlinedButton.icon(
                                   onPressed: _selectTime,
                                   style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 16)
-                                  ),
-                                  icon: const Icon(Icons.access_time, color: Colors.white, size: 20),
+                                      side: BorderSide(
+                                          color: Colors.white
+                                              .withValues(alpha: 0.3)),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16)),
+                                  icon: const Icon(Icons.access_time,
+                                      color: Colors.white, size: 20),
                                   label: Text(
                                     _selectedTime.format(context),
-                                    style: GoogleFonts.poppins(color: Colors.white),
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.white),
                                   ),
                                 ),
                               ),
@@ -842,12 +928,15 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               labelText: 'Recorrência',
-                              labelStyle: const TextStyle(color: Colors.white54),
+                              labelStyle:
+                                  const TextStyle(color: Colors.white54),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                                borderSide: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(color: AppDesign.petPink),
+                                borderSide:
+                                    BorderSide(color: AppDesign.petPink),
                               ),
                             ),
                             items: RecurrenceType.values.map((type) {
@@ -865,7 +954,8 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                                 child: Text(dummyEvent.recurrenceLabel),
                               );
                             }).toList(),
-                            onChanged: (value) => setState(() => _selectedRecurrence = value!),
+                            onChanged: (value) =>
+                                setState(() => _selectedRecurrence = value!),
                           ),
                           const SizedBox(height: 16),
                           // Notes
@@ -875,12 +965,15 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                             maxLines: 3,
                             decoration: InputDecoration(
                               labelText: 'Observações (opcional)',
-                              labelStyle: const TextStyle(color: Colors.white54),
+                              labelStyle:
+                                  const TextStyle(color: Colors.white54),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                                borderSide: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.3)),
                               ),
                               focusedBorder: const OutlineInputBorder(
-                                borderSide: BorderSide(color: AppDesign.petPink),
+                                borderSide:
+                                    BorderSide(color: AppDesign.petPink),
                               ),
                             ),
                           ),
@@ -901,21 +994,22 @@ class _AddEventDialogState extends ConsumerState<_AddEventDialog> {
                           onPressed: _saveEvent,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppDesign.petPink,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                             elevation: 2,
                           ),
                           child: Text(
                             'SALVAR',
                             style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              letterSpacing: 1.2
-                            ),
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                letterSpacing: 1.2),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20), // Padding below button as requested
+                      const SizedBox(
+                          height: 20), // Padding below button as requested
                     ],
                   ),
                 ),
@@ -955,10 +1049,19 @@ class _EventDetailsDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _DetailRow(label: 'Tipo', value: event.typeLabel),
-          _DetailRow(label: 'Data', value: DateFormat('dd/MM/yyyy HH:mm').format(event.dateTime)),
+          _DetailRow(
+              label: 'Data',
+              value: DateFormat('dd/MM/yyyy HH:mm').format(event.dateTime)),
           _DetailRow(label: 'Recorrência', value: event.recurrenceLabel),
-          if (event.notes != null) _DetailRow(label: 'Observações', value: event.notes!),
-          _DetailRow(label: 'Status', value: event.completed ? 'Concluído' : event.isPast ? 'Atrasado' : 'Pendente'),
+          if (event.notes != null)
+            _DetailRow(label: 'Observações', value: event.notes!),
+          _DetailRow(
+              label: 'Status',
+              value: event.completed
+                  ? 'Concluído'
+                  : event.isPast
+                      ? 'Atrasado'
+                      : 'Pendente'),
         ],
       ),
       actions: [
@@ -980,13 +1083,15 @@ class _EventDetailsDialog extends StatelessWidget {
             children: [
               const Icon(Icons.edit, size: 18, color: Colors.blueAccent),
               const SizedBox(width: 4),
-              Text('Editar', style: GoogleFonts.poppins(color: Colors.blueAccent)),
+              Text('Editar',
+                  style: GoogleFonts.poppins(color: Colors.blueAccent)),
             ],
           ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Fechar', style: GoogleFonts.poppins(color: Colors.white)),
+          child:
+              Text('Fechar', style: GoogleFonts.poppins(color: Colors.white)),
         ),
       ],
     );

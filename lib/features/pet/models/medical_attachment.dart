@@ -1,8 +1,8 @@
 /// Medical attachment types
 enum MedicalAttachmentType {
-  receita,    // Prescription
-  exame,      // Exam/Test
-  laudo,      // Medical report/diagnosis
+  receita, // Prescription
+  exame, // Exam/Test
+  laudo, // Medical report/diagnosis
 }
 
 /// Medical attachment model
@@ -41,7 +41,8 @@ class MedicalAttachment {
       summary: json['summary'] as String,
       extractedDetails: json['extracted_details'] as Map<String, dynamic>,
       veterinarian: json['veterinarian'] != null
-          ? VeterinarianInfo.fromJson(json['veterinarian'] as Map<String, dynamic>)
+          ? VeterinarianInfo.fromJson(
+              json['veterinarian'] as Map<String, dynamic>)
           : null,
       addedAt: DateTime.parse(json['added_at'] as String),
       ocrConfidence: (json['ocr_confidence'] as num?)?.toDouble(),
@@ -221,12 +222,14 @@ class MedicalAttachmentResponse {
   factory MedicalAttachmentResponse.fromJson(Map<String, dynamic> json) {
     return MedicalAttachmentResponse(
       targetPet: json['target_pet'] as String,
-      attachment: MedicalAttachment.fromJson(json['attachment_data'] as Map<String, dynamic>),
+      attachment: MedicalAttachment.fromJson(
+          json['attachment_data'] as Map<String, dynamic>),
       agendaSync: json['sync_agenda'] != null
           ? AgendaSyncData.fromJson(json['sync_agenda'] as Map<String, dynamic>)
           : null,
       timelineEvent: json['timeline_event'] != null
-          ? TimelineEvent.fromJson(json['timeline_event'] as Map<String, dynamic>)
+          ? TimelineEvent.fromJson(
+              json['timeline_event'] as Map<String, dynamic>)
           : null,
       metadata: json['metadata'] as Map<String, dynamic>,
     );
@@ -247,7 +250,8 @@ class AgendaSyncData {
     return AgendaSyncData(
       createReminder: json['create_reminder'] as bool? ?? false,
       reminders: (json['reminders'] as List?)
-              ?.map((r) => MedicationReminder.fromJson(r as Map<String, dynamic>))
+              ?.map(
+                  (r) => MedicationReminder.fromJson(r as Map<String, dynamic>))
               .toList() ??
           [],
     );

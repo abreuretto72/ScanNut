@@ -14,9 +14,9 @@ class SoundAnalysisCard extends StatefulWidget {
   final String? petId; // 🛡️ UUID Link
   final String petName;
   final List<Map<String, dynamic>> analysisHistory;
-  
+
   const SoundAnalysisCard({
-    super.key, 
+    super.key,
     this.petId,
     required this.petName,
     this.analysisHistory = const [],
@@ -45,7 +45,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   void initState() {
     super.initState();
     _audioRecorder = AudioRecorder();
-    _recordSub = _audioRecorder.onStateChanged().listen((recordState) { });
+    _recordSub = _audioRecorder.onStateChanged().listen((recordState) {});
   }
 
   @override
@@ -60,12 +60,11 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
     try {
       if (await _audioRecorder.hasPermission()) {
         final tempDir = await getTemporaryDirectory();
-        final path = '${tempDir.path}/sound_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        final path =
+            '${tempDir.path}/sound_rec_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-        await _audioRecorder.start(
-          const RecordConfig(encoder: AudioEncoder.aacLc), 
-          path: path
-        );
+        await _audioRecorder
+            .start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
 
         setState(() {
           _isRecording = true;
@@ -77,8 +76,9 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
         _timer?.cancel();
         _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
           setState(() => _recordDuration++);
-          if (_recordDuration >= 15) { // Limit to 15s
-             _stopRecording();
+          if (_recordDuration >= 15) {
+            // Limit to 15s
+            _stopRecording();
           }
         });
       }
@@ -93,7 +93,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   Future<void> _stopRecording() async {
     _timer?.cancel();
     if (!_isRecording) return;
-    
+
     final path = await _audioRecorder.stop();
     setState(() {
       _isRecording = false;
@@ -106,44 +106,43 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   }
 
   Future<void> _pickFile() async {
-      try {
-          FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg'],
-          );
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg'],
+      );
 
-          if (result != null && result.files.single.path != null) {
-              setState(() {
-                  _isProcessing = true;
-                  _lastResult = null;
-                  _errorMessage = null;
-              });
-              await _analyze(result.files.single.path!);
-          }
-      } catch (e) {
-          setState(() => _errorMessage = 'Erro ao ler arquivo: $e');
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _isProcessing = true;
+          _lastResult = null;
+          _errorMessage = null;
+        });
+        await _analyze(result.files.single.path!);
       }
+    } catch (e) {
+      setState(() => _errorMessage = 'Erro ao ler arquivo: $e');
+    }
   }
 
   Future<void> _analyze(String path) async {
     final strings = AppLocalizations.of(context);
     try {
       final result = await GeminiService().analyzeAudio(path);
-      
+
       setState(() {
         _lastResult = result;
         _isProcessing = false;
       });
-      
-      await _autoSave(result, path);
 
+      await _autoSave(result, path);
     } catch (e) {
       if (mounted) {
         setState(() {
-            _errorMessage = e.toString().contains('GeminiException') 
-                ? e.toString() 
-                : '${strings?.soundError ?? 'Erro na análise'}: ${e.toString().split(':').last}';
-            _isProcessing = false;
+          _errorMessage = e.toString().contains('GeminiException')
+              ? e.toString()
+              : '${strings?.soundError ?? 'Erro na análise'}: ${e.toString().split(':').last}';
+          _isProcessing = false;
         });
       }
     }
@@ -151,65 +150,66 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
 
   Future<void> _autoSave(Map<String, dynamic> data, String tempPath) async {
     try {
-       // 🛡️ Resolve ID once at the beginning
-       final String petId;
-       if (widget.petId != null) {
-           petId = widget.petId!;
-       } else {
-           final petProfile = await PetProfileService().getProfile(widget.petName);
-           petId = petProfile?['id']?.toString() ?? widget.petName;
-       }
-       debugPrint('🔑 [SoundAnalysis] UUID pet: $petId');
+      // 🛡️ Resolve ID once at the beginning
+      final String petId;
+      if (widget.petId != null) {
+        petId = widget.petId!;
+      } else {
+        final petProfile = await PetProfileService().getProfile(widget.petName);
+        petId = petProfile?['id']?.toString() ?? widget.petName;
+      }
+      debugPrint('🔑 [SoundAnalysis] UUID pet: $petId');
 
-       final filename = p.basename(tempPath);
-       
-       // 1. Prepare for History
-       final analysisForHistory = {
-          'analysis_type': 'vocal_analysis',
-          'original_filename': filename, // 🔊 NOME DO ARQUIVO
-          'emotion_simple': data['emotion_simple'] ?? data['emotional_state'] ?? '?',
-          'reason_simple': data['reason_simple'] ?? '',
-          'action_tip': data['action_tip'] ?? data['recommended_action'] ?? '',
-          'last_updated': DateTime.now().toIso8601String(),
-       };
-       
-       await PetProfileService().addAnalysisToHistory(petId, analysisForHistory);
+      final filename = p.basename(tempPath);
 
-       
-       final emotion = data['emotion_simple'] ?? data['emotional_state'] ?? '?';
-       final reason = data['reason_simple'] ?? '';
-       final action = data['action_tip'] ?? data['recommended_action'] ?? '';
+      // 1. Prepare for History
+      final analysisForHistory = {
+        'analysis_type': 'vocal_analysis',
+        'original_filename': filename, // 🔊 NOME DO ARQUIVO
+        'emotion_simple':
+            data['emotion_simple'] ?? data['emotional_state'] ?? '?',
+        'reason_simple': data['reason_simple'] ?? '',
+        'action_tip': data['action_tip'] ?? data['recommended_action'] ?? '',
+        'last_updated': DateTime.now().toIso8601String(),
+      };
 
-       // 2. Save to Events (Unified Indexing)
-       try {
-         await PetIndexingService().indexOccurrence(
+      await PetProfileService().addAnalysisToHistory(petId, analysisForHistory);
+
+      final emotion = data['emotion_simple'] ?? data['emotional_state'] ?? '?';
+      final reason = data['reason_simple'] ?? '';
+      final action = data['action_tip'] ?? data['recommended_action'] ?? '';
+
+      // 2. Save to Events (Unified Indexing)
+      try {
+        await PetIndexingService().indexOccurrence(
             petId: petId, // 🛡️ USE resolved UUID
             petName: widget.petName,
             group: 'behavior',
             title: 'Análise Vocal: $emotion', // Título claro
             type: 'Análise vocal', // 🛡️ Explicit Type
             localizedTitle: 'Análise Vocal ($emotion)',
-            localizedNotes: 'Arquivo: ${filename.startsWith('sound_rec_') ? 'Gravação do App' : filename}',
+            localizedNotes:
+                'Arquivo: ${filename.startsWith('sound_rec_') ? 'Gravação do App' : filename}',
             extraData: {
-               'emotion': emotion,
-               'reason': reason,
-               'action': action,
-               'source': 'vocal_analysis',
-               'is_automatic': true,
-               'file_name': filename,
-               // 'deep_link': 'scannut://sound/analysis/$emotion' // Removido temporariamente por solicitação
-            }
-         );
-         debugPrint('✅ [SoundAnalysis] Auto-saved to Unified Timeline via Indexer.');
-       } catch (e) {
-          debugPrint('⚠️ [SoundAnalysis] Indexing failed: $e');
-       }
-       
-       if (widget.onAnalysisSaved != null) {
-         widget.onAnalysisSaved!();
-       }
+              'emotion': emotion,
+              'reason': reason,
+              'action': action,
+              'source': 'vocal_analysis',
+              'is_automatic': true,
+              'file_name': filename,
+              // 'deep_link': 'scannut://sound/analysis/$emotion' // Removido temporariamente por solicitação
+            });
+        debugPrint(
+            '✅ [SoundAnalysis] Auto-saved to Unified Timeline via Indexer.');
+      } catch (e) {
+        debugPrint('⚠️ [SoundAnalysis] Indexing failed: $e');
+      }
+
+      if (widget.onAnalysisSaved != null) {
+        widget.onAnalysisSaved!();
+      }
     } catch (e) {
-       debugPrint('❌ [SoundAnalysis] Save failed: $e');
+      debugPrint('❌ [SoundAnalysis] Save failed: $e');
     }
   }
 
@@ -217,8 +217,16 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     // Cores indicativas (Using withOpacity for compatibility)
-    final borderColor = _errorMessage != null ? Colors.red : (_lastResult != null ? Colors.green : Colors.grey.withValues(alpha: 0.3));
-    final bgColor = _errorMessage != null ? Colors.red.withValues(alpha: 0.1) : (_lastResult != null ? Colors.green.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.2));
+    final borderColor = _errorMessage != null
+        ? Colors.red
+        : (_lastResult != null
+            ? Colors.green
+            : Colors.grey.withValues(alpha: 0.3));
+    final bgColor = _errorMessage != null
+        ? Colors.red.withValues(alpha: 0.1)
+        : (_lastResult != null
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.black.withValues(alpha: 0.2));
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
@@ -228,151 +236,191 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: SingleChildScrollView( 
-        physics: const NeverScrollableScrollPhysics(), 
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               // Header
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.graphic_eq,
+                          color: _isRecording ? Colors.red : AppDesign.petPink),
+                      const SizedBox(width: 8),
+                      Text(
+                        strings?.soundAnalysisTitle ?? 'Análise Vocal',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  if (_lastResult != null)
+                    IconButton(
+                      icon: const Icon(Icons.close,
+                          color: Colors.white54, size: 20),
+                      onPressed: () => setState(() => _lastResult = null),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  if (_isRecording)
+                    Text('00:${_recordDuration.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                            color: Colors.red, fontWeight: FontWeight.bold)),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+              Text(
+                strings?.soundAnalysisDesc ?? 'Entenda o que seu pet diz.',
+                style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Botões de Entrada (Dual Input)
+              if (!_isProcessing && _lastResult == null)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
+                    // Gravar
+                    Column(
                       children: [
-                         Icon(Icons.graphic_eq, color: _isRecording ? Colors.red : AppDesign.petPink),
-                         const SizedBox(width: 8),
-                         Text(
-                           strings?.soundAnalysisTitle ?? 'Análise Vocal',
-                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                         ),
+                        GestureDetector(
+                          onTap:
+                              _isRecording ? _stopRecording : _startRecording,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            padding: EdgeInsets.all(_isRecording ? 24 : 16),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _isRecording
+                                  ? Colors.red.withValues(alpha: 0.2)
+                                  : AppDesign.petPink.withValues(alpha: 0.1),
+                              border: Border.all(
+                                  color: _isRecording
+                                      ? Colors.red
+                                      : AppDesign.petPink,
+                                  width: 2),
+                            ),
+                            child: Icon(
+                              _isRecording ? Icons.stop : Icons.mic,
+                              size: 32,
+                              color:
+                                  _isRecording ? Colors.red : AppDesign.petPink,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(_isRecording ? 'Parar' : 'Gravar',
+                            style: const TextStyle(
+                                color: Colors.white54, fontSize: 10)),
                       ],
                     ),
-                    if (_lastResult != null)
-                       IconButton(
-                         icon: const Icon(Icons.close, color: Colors.white54, size: 20),
-                         onPressed: () => setState(() => _lastResult = null),
-                         padding: EdgeInsets.zero,
-                         constraints: const BoxConstraints(),
-                       ),
-                    if (_isRecording)
-                       Text('00:${_recordDuration.toString().padLeft(2, '0')}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+
+                    if (!_isRecording) ...[
+                      const SizedBox(width: 40),
+                      // Upload
+                      Column(
+                        children: [
+                          IconButton(
+                            onPressed: _pickFile,
+                            icon: const Icon(Icons.upload_file,
+                                color: Colors.white, size: 32),
+                            style: IconButton.styleFrom(
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.1),
+                              padding: const EdgeInsets.all(16),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(strings?.soundUploadBtn ?? 'Arquivo',
+                              style: const TextStyle(
+                                  color: Colors.white54, fontSize: 10)),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
-               
-               const SizedBox(height: 8),
-               Text(
-                 strings?.soundAnalysisDesc ?? 'Entenda o que seu pet diz.',
-                 style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
-               ),
-               
-               const SizedBox(height: 16),
-               
-               // Botões de Entrada (Dual Input)
-               if (!_isProcessing && _lastResult == null)
-                 Row(
-                   mainAxisAlignment: MainAxisAlignment.center,
-                   children: [
-                     // Gravar
-                     Column(
-                       children: [
-                         GestureDetector(
-                           onTap: _isRecording ? _stopRecording : _startRecording,
-                           child: AnimatedContainer(
-                             duration: const Duration(milliseconds: 300),
-                             padding: EdgeInsets.all(_isRecording ? 24 : 16),
-                             decoration: BoxDecoration(
-                               shape: BoxShape.circle,
-                               color: _isRecording ? Colors.red.withValues(alpha: 0.2) : AppDesign.petPink.withValues(alpha: 0.1),
-                               border: Border.all(color: _isRecording ? Colors.red : AppDesign.petPink, width: 2),
-                             ),
-                             child: Icon(
-                               _isRecording ? Icons.stop : Icons.mic,
-                               size: 32,
-                               color: _isRecording ? Colors.red : AppDesign.petPink,
-                             ),
-                           ),
-                         ),
-                         const SizedBox(height: 8),
-                         Text(_isRecording ? 'Parar' : 'Gravar', style: const TextStyle(color: Colors.white54, fontSize: 10)),
-                       ],
-                     ),
 
-                     if (!_isRecording) ...[
-                        const SizedBox(width: 40),
-                        // Upload
-                        Column(
-                          children: [
-                            IconButton(
-                              onPressed: _pickFile,
-                              icon: const Icon(Icons.upload_file, color: Colors.white, size: 32),
-                              style: IconButton.styleFrom(
-                                backgroundColor: Colors.white.withValues(alpha: 0.1),
-                                padding: const EdgeInsets.all(16),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(strings?.soundUploadBtn ?? 'Arquivo', style: const TextStyle(color: Colors.white54, fontSize: 10)),
-                          ],
-                        ),
-                     ],
-                   ],
-                 ),
+              if (_isProcessing)
+                Center(
+                  child: Column(
+                    children: [
+                      const CircularProgressIndicator(color: AppDesign.petPink),
+                      const SizedBox(height: 8),
+                      Text(strings?.soundProcessing ?? 'Analisando...',
+                          style: const TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
 
-               if (_isProcessing)
-                  Center(
-                    child: Column(
-                      children: [
-                        const CircularProgressIndicator(color: AppDesign.petPink),
-                        const SizedBox(height: 8),
-                        Text(strings?.soundProcessing ?? 'Analisando...', style: const TextStyle(color: Colors.white)),
-                      ],
+              // Resultados Simplificados
+              if (_lastResult != null) ...[
+                if (_lastResult?['original_filename'] != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      'Arquivo: ${_lastResult!['original_filename']}',
+                      style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic),
                     ),
                   ),
+                _buildResultRow(
+                    Icons.sentiment_satisfied_alt,
+                    strings?.soundEmotionSimple ?? 'O que ele sente',
+                    _lastResult?['emotion_simple']?.toString()),
+                _buildResultRow(
+                    Icons.help_outline,
+                    strings?.soundReasonSimple ?? 'Motivo',
+                    _lastResult?['reason_simple']?.toString()),
+                _buildResultRow(
+                    Icons.lightbulb_outline,
+                    strings?.soundActionTip ?? 'Dica',
+                    _lastResult?['action_tip']?.toString()),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Nova Análise'),
+                    onPressed: () => setState(() => _lastResult = null),
+                  ),
+                )
+              ],
 
-                // Resultados Simplificados
-                if (_lastResult != null) ...[
-                   if (_lastResult?['original_filename'] != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          'Arquivo: ${_lastResult!['original_filename']}',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10, fontStyle: FontStyle.italic),
-                        ),
-                      ),
-                   _buildResultRow(Icons.sentiment_satisfied_alt, strings?.soundEmotionSimple ?? 'O que ele sente', _lastResult?['emotion_simple']?.toString()),
-                   _buildResultRow(Icons.help_outline, strings?.soundReasonSimple ?? 'Motivo', _lastResult?['reason_simple']?.toString()),
-                   _buildResultRow(Icons.lightbulb_outline, strings?.soundActionTip ?? 'Dica', _lastResult?['action_tip']?.toString()),
-                   
-                   const SizedBox(height: 12),
-                   Align(
-                     alignment: Alignment.centerRight,
-                     child: TextButton.icon(
-                        icon: const Icon(Icons.refresh, size: 16),
-                        label: const Text('Nova Análise'),
-                        onPressed: () => setState(() => _lastResult = null), 
-                     ),
-                   )
-                ],
-                
-                if (_errorMessage != null)
-                   Padding(
-                     padding: const EdgeInsets.only(top: 16),
-                     child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                   ),
+              if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(_errorMessage!,
+                      style: const TextStyle(color: Colors.red)),
+                ),
 
-                // --- HISTÓRICO DE ARQUIVOS ---
-                if (widget.analysisHistory.any((a) => a['analysis_type'] == 'vocal_analysis')) ...[
-                   const SizedBox(height: 24),
-                   const Divider(color: Colors.white10),
-                   const SizedBox(height: 8),
-                   const Text('Arquivos Analisados', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold)),
-                   const SizedBox(height: 12),
-                   ...widget.analysisHistory
-                       .where((a) => a['analysis_type'] == 'vocal_analysis')
-                       .map((a) => _buildHistoryItem(a)),
-                ]
+              // --- HISTÓRICO DE ARQUIVOS ---
+              if (widget.analysisHistory
+                  .any((a) => a['analysis_type'] == 'vocal_analysis')) ...[
+                const SizedBox(height: 24),
+                const Divider(color: Colors.white10),
+                const SizedBox(height: 8),
+                const Text('Arquivos Analisados',
+                    style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                ...widget.analysisHistory
+                    .where((a) => a['analysis_type'] == 'vocal_analysis')
+                    .map((a) => _buildHistoryItem(a)),
+              ]
             ],
           ),
         ),
@@ -381,72 +429,93 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   }
 
   Widget _buildResultRow(IconData icon, String label, String? value) {
-     return Padding(
-       padding: const EdgeInsets.only(bottom: 12),
-       child: Row(
-         crossAxisAlignment: CrossAxisAlignment.start,
-         children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-              child: Icon(icon, size: 16, color: AppDesign.petPink),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4)),
+            child: Icon(icon, size: 16, color: AppDesign.petPink),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        fontSize: 11)),
+                const SizedBox(height: 2),
+                Text(value ?? '...',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14)),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11)),
-                  const SizedBox(height: 2),
-                  Text(
-                    value ?? '...', 
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)
-                  ),
-                ],
-              ),
-            ),
-         ],
-       ),
-     );
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildHistoryItem(Map<String, dynamic> item) {
-     final emotion = item['emotion_simple']?.toString() ?? '?';
-     final filename = item['original_filename']?.toString() ?? 'Gravado via Mic';
-     
-     return InkWell(
-       onTap: () => setState(() {
-         _lastResult = item;
-         _errorMessage = null;
-       }),
-       borderRadius: BorderRadius.circular(8),
-       child: Container(
-         margin: const EdgeInsets.only(bottom: 8),
-         padding: const EdgeInsets.all(10),
-         decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
-         child: Row(
-           children: [
-              const Icon(Icons.audio_file, color: AppDesign.petPink, size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                   Text(filename, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500), maxLines: 1, overflow: TextOverflow.ellipsis),
-                   Text('Veredito: $emotion', style: const TextStyle(color: Colors.white60, fontSize: 11)),
-                ]),
+    final emotion = item['emotion_simple']?.toString() ?? '?';
+    final filename = item['original_filename']?.toString() ?? 'Gravado via Mic';
+
+    return InkWell(
+      onTap: () => setState(() {
+        _lastResult = item;
+        _errorMessage = null;
+      }),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: Colors.black12,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+        child: Row(
+          children: [
+            const Icon(Icons.audio_file, color: AppDesign.petPink, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(filename,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    Text('Veredito: $emotion',
+                        style: const TextStyle(
+                            color: Colors.white60, fontSize: 11)),
+                  ]),
+            ),
+            const Icon(Icons.arrow_forward_ios,
+                color: Colors.white24, size: 12),
+            if (widget.onDeleteAnalysis != null) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.delete_outline,
+                    color: Colors.redAccent, size: 20),
+                onPressed: () => widget.onDeleteAnalysis!(item),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
-              const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 12),
-              if (widget.onDeleteAnalysis != null) ...[
-                 const SizedBox(width: 8),
-                 IconButton(
-                   icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                   onPressed: () => widget.onDeleteAnalysis!(item),
-                   padding: EdgeInsets.zero,
-                   constraints: const BoxConstraints(),
-                 ),
-              ],
-           ],
-         ),
-       ),
-     );
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

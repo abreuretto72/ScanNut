@@ -45,9 +45,10 @@ class GroqService {
       // Convert image to base64
       final bytes = await imageFile.readAsBytes();
       final base64Image = base64Encode(bytes);
-      
+
       debugPrint('🚀 Sending request to Groq API...');
-      debugPrint('📦 Image size: ${(bytes.length / 1024).toStringAsFixed(2)} KB');
+      debugPrint(
+          '📦 Image size: ${(bytes.length / 1024).toStringAsFixed(2)} KB');
 
       // Get appropriate prompt for the mode
       final prompt = PromptFactory.getPrompt(mode);
@@ -58,7 +59,7 @@ class GroqService {
       } catch (e) {
         debugPrint('⚠️ Vision model failed: $e');
         debugPrint('🔄 Falling back to mock analysis...');
-        
+
         // Fallback to mock data for demonstration
         return _getMockAnalysis(mode);
       }
@@ -68,7 +69,8 @@ class GroqService {
     }
   }
 
-  Future<Map<String, dynamic>> _analyzeWithVision(String base64Image, String prompt) async {
+  Future<Map<String, dynamic>> _analyzeWithVision(
+      String base64Image, String prompt) async {
     final payload = {
       'model': 'llava-v1.5-7b-4096-preview',
       'messages': [
@@ -134,15 +136,18 @@ class GroqService {
           'risks': [
             'Consumir com moderação',
           ],
-          'advice': 'Análise visual em desenvolvimento. Por favor, consulte um nutricionista para informações precisas.',
+          'advice':
+              'Análise visual em desenvolvimento. Por favor, consulte um nutricionista para informações precisas.',
         };
 
       case ScannutMode.plant:
         return {
           'plant_name': 'Planta Detectada',
           'condition': 'Análise visual',
-          'diagnosis': 'Sistema de visão em desenvolvimento. Consulte um especialista em botânica.',
-          'organic_treatment': 'Mantenha a planta bem hidratada e com boa exposição solar.',
+          'diagnosis':
+              'Sistema de visão em desenvolvimento. Consulte um especialista em botânica.',
+          'organic_treatment':
+              'Mantenha a planta bem hidratada e com boa exposição solar.',
           'urgency': 'low',
         };
 
@@ -158,7 +163,8 @@ class GroqService {
             'Análise visual em desenvolvimento',
           ],
           'urgencia_nivel': 'Verde',
-          'orientacao_imediata': 'Consulte um veterinário para avaliação profissional. Este sistema está em desenvolvimento.',
+          'orientacao_imediata':
+              'Consulte um veterinário para avaliação profissional. Este sistema está em desenvolvimento.',
         };
       default:
         return {'error': 'Modo desconhecido'};

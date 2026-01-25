@@ -68,7 +68,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       showFoodButton: prefs.getBool('showFoodButton') ?? true,
       showPlantButton: prefs.getBool('showPlantButton') ?? true,
       showPetButton: prefs.getBool('showPetButton') ?? true,
-      partnerSearchRadius: (prefs.getDouble('partnerSearchRadius') ?? 20.0).clamp(1.0, 100.0),
+      partnerSearchRadius:
+          (prefs.getDouble('partnerSearchRadius') ?? 20.0).clamp(1.0, 100.0),
       languageCode: prefs.getString('languageCode'),
       weightUnit: prefs.getString('weightUnit') ?? 'kg',
       developerMode: prefs.getBool('developerMode') ?? false,
@@ -80,7 +81,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await prefs.setBool('developerMode', active);
     state = state.copyWith(developerMode: active);
   }
-  
+
   Future<void> setWeightUnit(String unit) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('weightUnit', unit);
@@ -162,6 +163,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 }
 
 /// Settings provider
-final settingsProvider = StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
+final settingsProvider =
+    StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
   return SettingsNotifier();
 });

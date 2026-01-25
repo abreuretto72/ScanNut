@@ -23,8 +23,9 @@ class AuthTraceLogger {
     final start = _steps[stepName]!;
     final duration = DateTime.now().difference(start);
     final status = success ? 'SUCCESS' : 'FAILED';
-    final message = '[TRACE] END: $stepName | Status: $status | Duration: ${duration.inMilliseconds}ms${details != null ? " | Details: $details" : ""}';
-    
+    final message =
+        '[TRACE] END: $stepName | Status: $status | Duration: ${duration.inMilliseconds}ms${details != null ? " | Details: $details" : ""}';
+
     _trace.add('${DateTime.now().toIso8601String()} $message');
     if (success) {
       logger.info(message);
@@ -45,7 +46,7 @@ class AuthTraceLogger {
       if (!await logsDir.exists()) {
         await logsDir.create(recursive: true);
       }
-      
+
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final file = File('${logsDir.path}/auth_trace_$timestamp.txt');
       await file.writeAsString(_trace.join('\n'));
@@ -56,7 +57,7 @@ class AuthTraceLogger {
   }
 
   String getTraceAsString() => _trace.join('\n');
-  
+
   void clearTrace() {
     _steps.clear();
     _trace.clear();

@@ -8,13 +8,14 @@ import 'package:hive_flutter/hive_flutter.dart';
 class NutritionProfileService {
   static const String _boxName = 'nutrition_user_profile';
   static const String _profileKey = 'current_profile';
-  
+
   Box<UserNutritionProfile>? _box;
 
   /// Inicializa o box
   Future<void> init({HiveCipher? cipher}) async {
-    _box = await HiveAtomicManager().ensureBoxOpen<UserNutritionProfile>(_boxName, cipher: cipher);
-    
+    _box = await HiveAtomicManager()
+        .ensureBoxOpen<UserNutritionProfile>(_boxName, cipher: cipher);
+
     // Criar perfil padrão se não existir
     if (_box != null && _box!.isEmpty) {
       await saveProfile(UserNutritionProfile.padrao());

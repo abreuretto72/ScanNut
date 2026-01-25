@@ -1,6 +1,6 @@
 /// Feeding Event Alert System
 /// Implements intelligent alert rules for clinical feeding events
-/// 
+///
 /// This system analyzes feeding event patterns and triggers alerts
 /// when concerning combinations or frequencies are detected
 
@@ -9,9 +9,9 @@ import '../models/pet_event_model.dart';
 
 /// Alert severity levels
 enum AlertSeverity {
-  info,      // Informational - no action needed
-  warning,   // Warning - monitor closely
-  urgent,    // Urgent - schedule vet visit
+  info, // Informational - no action needed
+  warning, // Warning - monitor closely
+  urgent, // Urgent - schedule vet visit
   emergency, // Emergency - immediate vet attention
 }
 
@@ -66,18 +66,17 @@ class FeedingAlert {
 
 /// Feeding Event Alert Analyzer
 class FeedingEventAlertSystem {
-  
   /// Analyze events and generate alerts
   static List<FeedingAlert> analyzeEvents(List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     // Filter only feeding events from last 7 days
     final now = DateTime.now();
     final sevenDaysAgo = now.subtract(const Duration(days: 7));
     final recentFeedingEvents = events.where((e) {
-      return e.group == 'food' && 
-             e.timestamp.isAfter(sevenDaysAgo) &&
-             !e.isDeleted;
+      return e.group == 'food' &&
+          e.timestamp.isAfter(sevenDaysAgo) &&
+          !e.isDeleted;
     }).toList();
 
     if (recentFeedingEvents.isEmpty) return alerts;
@@ -116,13 +115,15 @@ class FeedingEventAlertSystem {
   }
 
   /// Rule 1: Vomiting + Diarrhea in same day = Emergency
-  static List<FeedingAlert> _checkVomitingDiarrheaCombination(List<PetEventModel> events) {
+  static List<FeedingAlert> _checkVomitingDiarrheaCombination(
+      List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     // Group events by date
     final eventsByDate = <DateTime, List<PetEventModel>>{};
     for (final event in events) {
-      final date = DateTime(event.timestamp.year, event.timestamp.month, event.timestamp.day);
+      final date = DateTime(
+          event.timestamp.year, event.timestamp.month, event.timestamp.day);
       eventsByDate.putIfAbsent(date, () => []).add(event);
     }
 
@@ -142,8 +143,10 @@ class FeedingEventAlertSystem {
         alerts.add(FeedingAlert(
           severity: AlertSeverity.emergency,
           title: '🚨 EMERGÊNCIA: Vômito + Diarreia',
-          message: 'Detectado vômito E diarreia no mesmo dia. Risco de desidratação grave.',
-          recommendation: 'AÇÃO IMEDIATA: Levar ao veterinário AGORA. Risco de desidratação severa.',
+          message:
+              'Detectado vômito E diarreia no mesmo dia. Risco de desidratação grave.',
+          recommendation:
+              'AÇÃO IMEDIATA: Levar ao veterinário AGORA. Risco de desidratação severa.',
           relatedEventIds: dayEvents.map((e) => e.id).toList(),
         ));
       }
@@ -161,15 +164,17 @@ class FeedingEventAlertSystem {
     final vomitingEvents = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
       return (type == 'vomitingImmediate' || type == 'vomitingDelayed') &&
-             e.timestamp.isAfter(last24h);
+          e.timestamp.isAfter(last24h);
     }).toList();
 
     if (vomitingEvents.length >= 3) {
       alerts.add(FeedingAlert(
         severity: AlertSeverity.urgent,
         title: '⚠️ URGENTE: Vômitos Repetidos',
-        message: '${vomitingEvents.length} episódios de vômito nas últimas 24h.',
-        recommendation: 'Consultar veterinário HOJE. Suspender alimentação e oferecer apenas água.',
+        message:
+            '${vomitingEvents.length} episódios de vômito nas últimas 24h.',
+        recommendation:
+            'Consultar veterinário HOJE. Suspender alimentação e oferecer apenas água.',
         relatedEventIds: vomitingEvents.map((e) => e.id).toList(),
       ));
     }
@@ -180,7 +185,7 @@ class FeedingEventAlertSystem {
   /// Rule 3: Blood in stool = Emergency
   static List<FeedingAlert> _checkBloodInStool(List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     final bloodStoolEvents = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
       return type == 'stoolWithBlood';
@@ -191,7 +196,8 @@ class FeedingEventAlertSystem {
         severity: AlertSeverity.emergency,
         title: '🚨 EMERGÊNCIA: Sangue nas Fezes',
         message: 'Detectado sangue nas fezes. Pode indicar problema grave.',
-        recommendation: 'AÇÃO IMEDIATA: Levar ao veterinário AGORA. Pode ser hemorragia interna.',
+        recommendation:
+            'AÇÃO IMEDIATA: Levar ao veterinário AGORA. Pode ser hemorragia interna.',
         relatedEventIds: bloodStoolEvents.map((e) => e.id).toList(),
       ));
     }
@@ -200,22 +206,24 @@ class FeedingEventAlertSystem {
   }
 
   /// Rule 4: Persistent food refusal (3+ days)
-  static List<FeedingAlert> _checkPersistentRefusal(List<PetEventModel> events) {
+  static List<FeedingAlert> _checkPersistentRefusal(
+      List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     // Check last 3 days for refusal pattern
     final refusalEvents = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
       final acceptance = e.data['acceptance'] as String?;
-      return type == 'mealSkipped' || 
-             type == 'reluctantToEat' ||
-             acceptance?.toLowerCase().contains('recus') == true;
+      return type == 'mealSkipped' ||
+          type == 'reluctantToEat' ||
+          acceptance?.toLowerCase().contains('recus') == true;
     }).toList();
 
     // Group by day
     final refusalDays = <DateTime>{};
     for (final event in refusalEvents) {
-      final date = DateTime(event.timestamp.year, event.timestamp.month, event.timestamp.day);
+      final date = DateTime(
+          event.timestamp.year, event.timestamp.month, event.timestamp.day);
       refusalDays.add(date);
     }
 
@@ -224,7 +232,8 @@ class FeedingEventAlertSystem {
         severity: AlertSeverity.urgent,
         title: '⚠️ URGENTE: Recusa Alimentar Persistente',
         message: 'Pet recusando alimento por ${refusalDays.length} dias.',
-        recommendation: 'Consultar veterinário em 24h. Risco de desnutrição e doenças subjacentes.',
+        recommendation:
+            'Consultar veterinário em 24h. Risco de desnutrição e doenças subjacentes.',
         relatedEventIds: refusalEvents.map((e) => e.id).toList(),
       ));
     }
@@ -233,9 +242,10 @@ class FeedingEventAlertSystem {
   }
 
   /// Rule 5: Weight loss pattern
-  static List<FeedingAlert> _checkWeightLossPattern(List<PetEventModel> events) {
+  static List<FeedingAlert> _checkWeightLossPattern(
+      List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     final weightLossEvents = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
       return type == 'weightLoss';
@@ -246,7 +256,8 @@ class FeedingEventAlertSystem {
         severity: AlertSeverity.warning,
         title: '⚠️ ATENÇÃO: Padrão de Perda de Peso',
         message: 'Múltiplos registros de perda de peso detectados.',
-        recommendation: 'Agendar consulta veterinária. Avaliar dieta e descartar doenças.',
+        recommendation:
+            'Agendar consulta veterinária. Avaliar dieta e descartar doenças.',
         relatedEventIds: weightLossEvents.map((e) => e.id).toList(),
       ));
     }
@@ -257,7 +268,7 @@ class FeedingEventAlertSystem {
   /// Rule 6: Choking incidents
   static List<FeedingAlert> _checkChokingIncidents(List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     final chokingEvents = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
       return type == 'choking';
@@ -268,7 +279,8 @@ class FeedingEventAlertSystem {
         severity: AlertSeverity.emergency,
         title: '🚨 EMERGÊNCIA: Engasgo Detectado',
         message: 'Episódio de engasgo registrado. Risco de asfixia.',
-        recommendation: 'Se ainda engasgado: MANOBRA DE HEIMLICH. Consultar vet IMEDIATAMENTE após.',
+        recommendation:
+            'Se ainda engasgado: MANOBRA DE HEIMLICH. Consultar vet IMEDIATAMENTE após.',
         relatedEventIds: chokingEvents.map((e) => e.id).toList(),
       ));
     }
@@ -277,14 +289,15 @@ class FeedingEventAlertSystem {
   }
 
   /// Rule 7: Therapeutic diet issues
-  static List<FeedingAlert> _checkTherapeuticDietIssues(List<PetEventModel> events) {
+  static List<FeedingAlert> _checkTherapeuticDietIssues(
+      List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     final dietIssues = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
-      return type == 'dietNotTolerated' || 
-             type == 'therapeuticDietRefusal' ||
-             type == 'clinicalWorseningAfterMeal';
+      return type == 'dietNotTolerated' ||
+          type == 'therapeuticDietRefusal' ||
+          type == 'clinicalWorseningAfterMeal';
     }).toList();
 
     if (dietIssues.isNotEmpty) {
@@ -292,7 +305,8 @@ class FeedingEventAlertSystem {
         severity: AlertSeverity.urgent,
         title: '⚠️ URGENTE: Problema com Dieta Terapêutica',
         message: 'Pet não está tolerando a dieta prescrita.',
-        recommendation: 'Contatar veterinário que prescreveu a dieta para ajuste URGENTE.',
+        recommendation:
+            'Contatar veterinário que prescreveu a dieta para ajuste URGENTE.',
         relatedEventIds: dietIssues.map((e) => e.id).toList(),
       ));
     }
@@ -303,12 +317,12 @@ class FeedingEventAlertSystem {
   /// Rule 8: Suspected allergy pattern
   static List<FeedingAlert> _checkAllergyPattern(List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     final allergyEvents = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
-      return type == 'suspectedFoodAllergy' || 
-             type == 'suspectedFoodIntolerance' ||
-             type == 'adverseFoodReaction';
+      return type == 'suspectedFoodAllergy' ||
+          type == 'suspectedFoodIntolerance' ||
+          type == 'adverseFoodReaction';
     }).toList();
 
     if (allergyEvents.length >= 2) {
@@ -316,7 +330,8 @@ class FeedingEventAlertSystem {
         severity: AlertSeverity.warning,
         title: '⚠️ ATENÇÃO: Padrão de Alergia/Intolerância',
         message: 'Múltiplas reações adversas a alimentos detectadas.',
-        recommendation: 'Agendar consulta para teste de alergia. Considerar dieta hipoalergênica.',
+        recommendation:
+            'Agendar consulta para teste de alergia. Considerar dieta hipoalergênica.',
         relatedEventIds: allergyEvents.map((e) => e.id).toList(),
       ));
     }
@@ -327,7 +342,7 @@ class FeedingEventAlertSystem {
   /// Rule 9: Dehydration risk
   static List<FeedingAlert> _checkDehydrationRisk(List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     final lowWaterEvents = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
       return type == 'lowWaterIntake';
@@ -335,9 +350,9 @@ class FeedingEventAlertSystem {
 
     final vomitingDiarrhea = events.where((e) {
       final type = e.data['feeding_event_type'] as String?;
-      return type == 'vomitingImmediate' || 
-             type == 'vomitingDelayed' ||
-             type == 'diarrhea';
+      return type == 'vomitingImmediate' ||
+          type == 'vomitingDelayed' ||
+          type == 'diarrhea';
     }).toList();
 
     if (lowWaterEvents.isNotEmpty && vomitingDiarrhea.isNotEmpty) {
@@ -345,8 +360,10 @@ class FeedingEventAlertSystem {
         severity: AlertSeverity.urgent,
         title: '⚠️ URGENTE: Risco de Desidratação',
         message: 'Baixa ingestão de água + perda de fluidos (vômito/diarreia).',
-        recommendation: 'Consultar veterinário HOJE. Pode precisar de fluidoterapia.',
-        relatedEventIds: [...lowWaterEvents, ...vomitingDiarrhea].map((e) => e.id).toList(),
+        recommendation:
+            'Consultar veterinário HOJE. Pode precisar de fluidoterapia.',
+        relatedEventIds:
+            [...lowWaterEvents, ...vomitingDiarrhea].map((e) => e.id).toList(),
       ));
     }
 
@@ -354,14 +371,16 @@ class FeedingEventAlertSystem {
   }
 
   /// Rule 10: Severe clinical events
-  static List<FeedingAlert> _checkSevereClinicalEvents(List<PetEventModel> events) {
+  static List<FeedingAlert> _checkSevereClinicalEvents(
+      List<PetEventModel> events) {
     final alerts = <FeedingAlert>[];
-    
+
     final severeEvents = events.where((e) {
       final severity = e.data['severity'] as String?;
       final isClinical = e.data['is_clinical_intercurrence'] as bool? ?? false;
-      return isClinical && 
-             (severity?.toLowerCase() == 'severe' || severity?.toLowerCase() == 'grave');
+      return isClinical &&
+          (severity?.toLowerCase() == 'severe' ||
+              severity?.toLowerCase() == 'grave');
     }).toList();
 
     if (severeEvents.isNotEmpty) {
@@ -380,10 +399,14 @@ class FeedingEventAlertSystem {
   /// Get alert summary for dashboard
   static Map<AlertSeverity, int> getAlertSummary(List<FeedingAlert> alerts) {
     return {
-      AlertSeverity.emergency: alerts.where((a) => a.severity == AlertSeverity.emergency).length,
-      AlertSeverity.urgent: alerts.where((a) => a.severity == AlertSeverity.urgent).length,
-      AlertSeverity.warning: alerts.where((a) => a.severity == AlertSeverity.warning).length,
-      AlertSeverity.info: alerts.where((a) => a.severity == AlertSeverity.info).length,
+      AlertSeverity.emergency:
+          alerts.where((a) => a.severity == AlertSeverity.emergency).length,
+      AlertSeverity.urgent:
+          alerts.where((a) => a.severity == AlertSeverity.urgent).length,
+      AlertSeverity.warning:
+          alerts.where((a) => a.severity == AlertSeverity.warning).length,
+      AlertSeverity.info:
+          alerts.where((a) => a.severity == AlertSeverity.info).length,
     };
   }
 }

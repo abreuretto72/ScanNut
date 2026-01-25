@@ -108,7 +108,7 @@ class _Filter3DModalState extends State<Filter3DModal> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 8),
             Text(
               "Selecione o pet e as seções desejadas para o dossiê completo.",
@@ -147,7 +147,7 @@ class _Filter3DModalState extends State<Filter3DModal> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     _buildSectionTile(
                       key: 'identity',
                       icon: Icons.pets,
@@ -178,7 +178,7 @@ class _Filter3DModalState extends State<Filter3DModal> {
                       label: l10n.sectionPartners,
                       description: l10n.sectionDescPartners,
                     ),
-                    
+
                     const SizedBox(height: 16),
                   ],
                 ),
@@ -233,7 +233,8 @@ class _Filter3DModalState extends State<Filter3DModal> {
           child: SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+            child:
+                CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
           ),
         ),
       );
@@ -250,7 +251,8 @@ class _Filter3DModalState extends State<Filter3DModal> {
           children: [
             const Icon(Icons.error_outline, color: Colors.black54, size: 20),
             const SizedBox(width: 12),
-            Text("Nenhum pet cadastrado", style: GoogleFonts.poppins(color: Colors.black54)),
+            Text("Nenhum pet cadastrado",
+                style: GoogleFonts.poppins(color: Colors.black54)),
           ],
         ),
       );
@@ -306,10 +308,14 @@ class _Filter3DModalState extends State<Filter3DModal> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.03),
+          color: isSelected
+              ? Colors.white.withValues(alpha: 0.4)
+              : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? colorIntensePink.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.05),
+            color: isSelected
+                ? colorIntensePink.withValues(alpha: 0.5)
+                : Colors.black.withValues(alpha: 0.05),
             width: 1.5,
           ),
         ),
@@ -317,10 +323,14 @@ class _Filter3DModalState extends State<Filter3DModal> {
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isSelected ? colorIntensePink.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.05),
+              color: isSelected
+                  ? colorIntensePink.withValues(alpha: 0.2)
+                  : Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: isSelected ? colorIntensePink : Colors.black54, size: 20),
+            child: Icon(icon,
+                color: isSelected ? colorIntensePink : Colors.black54,
+                size: 20),
           ),
           title: Text(
             label,
@@ -343,7 +353,8 @@ class _Filter3DModalState extends State<Filter3DModal> {
             },
             activeColor: colorIntensePink,
             checkColor: Colors.black,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           ),
         ),
       ),
@@ -352,12 +363,12 @@ class _Filter3DModalState extends State<Filter3DModal> {
 
   void _onGenerate() {
     if (_selectedPet == null) return;
-    
+
     final result = {
       'petName': _selectedPet,
       'sections': _selectedSections,
     };
-    
+
     Navigator.pop(context, result);
   }
 }

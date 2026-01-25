@@ -25,7 +25,8 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
     final List<PartnerModel> source = widget.currentResults;
     if (_filterMode == 'active') {
       return source.where((PartnerModel p) {
-        final isOpen = p.openingHours['raw'] == 'Aberto Agora' || p.openingHours['plantao24h'] == true;
+        final isOpen = p.openingHours['raw'] == 'Aberto Agora' ||
+            p.openingHours['plantao24h'] == true;
         return isOpen;
       }).toList();
     }
@@ -37,7 +38,9 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
     final List<PartnerModel> filteredList = _filteredPartners;
     int count = 0;
     if (_filterMode == 'manual') {
-      count = filteredList.where((PartnerModel p) => _selectedIds.contains(p.id)).length;
+      count = filteredList
+          .where((PartnerModel p) => _selectedIds.contains(p.id))
+          .length;
     } else {
       count = filteredList.length;
     }
@@ -59,7 +62,10 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
                 Expanded(
                   child: Text(
                     'Exportar Resultados Radar',
-                    style: GoogleFonts.poppins(color: AppDesign.petPink, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.poppins(
+                        color: AppDesign.petPink,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
                 IconButton(
@@ -69,26 +75,37 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
               ],
             ),
             const SizedBox(height: 20),
-            _buildFilterOption('Estabelecimentos Próximos', 'nearby', Icons.location_on_outlined),
+            _buildFilterOption('Estabelecimentos Próximos', 'nearby',
+                Icons.location_on_outlined),
             const SizedBox(height: 12),
-            _buildFilterOption('Apenas Parceiros Ativos', 'active', Icons.check_circle_outline),
+            _buildFilterOption('Apenas Parceiros Ativos', 'active',
+                Icons.check_circle_outline),
             const SizedBox(height: 12),
-            _buildFilterOption('Seleção Manual', 'manual', Icons.checklist_rtl_outlined),
+            _buildFilterOption(
+                'Seleção Manual', 'manual', Icons.checklist_rtl_outlined),
             if (_filterMode == 'manual') ...[
               const SizedBox(height: 20),
               Container(
                 height: 180,
-                decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                    color: Colors.white10,
+                    borderRadius: BorderRadius.circular(12)),
                 child: widget.currentResults.isEmpty
-                    ? const Center(child: Text('Nenhum resultado.', style: TextStyle(color: Colors.white30)))
+                    ? const Center(
+                        child: Text('Nenhum resultado.',
+                            style: TextStyle(color: Colors.white30)))
                     : ListView.builder(
                         itemCount: widget.currentResults.length,
                         itemBuilder: (context, index) {
                           final p = widget.currentResults[index];
                           final isSelected = _selectedIds.contains(p.id);
                           return CheckboxListTile(
-                            title: Text(p.name, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                            subtitle: Text(p.category, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                            title: Text(p.name,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 13)),
+                            subtitle: Text(p.category,
+                                style: const TextStyle(
+                                    color: Colors.white54, fontSize: 11)),
                             value: isSelected,
                             activeColor: AppDesign.petPink,
                             checkColor: Colors.black,
@@ -126,14 +143,17 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
         setState(() {
           _filterMode = value;
           if (value == 'manual' && _selectedIds.isEmpty) {
-            _selectedIds.addAll(widget.currentResults.map((PartnerModel p) => p.id));
+            _selectedIds
+                .addAll(widget.currentResults.map((PartnerModel p) => p.id));
           }
         });
       },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppDesign.petPink.withValues(alpha: 0.15) : Colors.white10,
+          color: isSelected
+              ? AppDesign.petPink.withValues(alpha: 0.15)
+              : Colors.white10,
           border: Border.all(
             color: isSelected ? AppDesign.petPink : Colors.white24,
             width: isSelected ? 2 : 1,
@@ -142,11 +162,15 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppDesign.petPink : Colors.white54, size: 24),
+            Icon(icon,
+                color: isSelected ? AppDesign.petPink : Colors.white54,
+                size: 24),
             const SizedBox(width: 16),
             Text(
               label,
-              style: GoogleFonts.poppins(color: isSelected ? AppDesign.petPink : Colors.white, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+              style: GoogleFonts.poppins(
+                  color: isSelected ? AppDesign.petPink : Colors.white,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
             ),
           ],
         ),
@@ -157,7 +181,9 @@ class _RadarExportFilterModalState extends State<RadarExportFilterModal> {
   void _onGeneratePressed() {
     List<PartnerModel> finalPartners = _filteredPartners;
     if (_filterMode == 'manual') {
-      finalPartners = finalPartners.where((PartnerModel p) => _selectedIds.contains(p.id)).toList();
+      finalPartners = finalPartners
+          .where((PartnerModel p) => _selectedIds.contains(p.id))
+          .toList();
     }
     Navigator.pop(context);
     widget.onGenerate(finalPartners);
@@ -180,7 +206,9 @@ class BtnPrimaryPink extends StatelessWidget {
         disabledBackgroundColor: Colors.white10,
         elevation: 0,
       ),
-      child: Text(text, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14)),
+      child: Text(text,
+          style:
+              GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14)),
     );
   }
 }

@@ -17,31 +17,37 @@ class PetEventService {
   static const String _boxName = 'pet_events';
   Box<PetEvent>? _box;
 
-  static bool get isInitialized => _instance._box != null && _instance._box!.isOpen;
+  static bool get isInitialized =>
+      _instance._box != null && _instance._box!.isOpen;
 
   // 🛡️ [V104] ATOMIC READY CHECK
   // static method to ensure service is ready before UI attempts access
   static Future<void> ensureReady() async {
-     await _instance.init();
+    await _instance.init();
   }
 
   Future<void> init({HiveCipher? cipher}) async {
     if (_box != null && _box!.isOpen) return;
-    
+
     // 🛡️ [V104] ATOMIC MANAGER DELEGATION
     try {
-        _box = await HiveAtomicManager().ensureBoxOpen<PetEvent>(_boxName, cipher: cipher);
-        debugPrint('✅ [V104] PetEventService initialized via Atomic Manager.');
+      _box = await HiveAtomicManager()
+          .ensureBoxOpen<PetEvent>(_boxName, cipher: cipher);
+      debugPrint('✅ [V104] PetEventService initialized via Atomic Manager.');
     } catch (e) {
-        debugPrint('❌ [V104] Critical: Failed to open Pet Event Box: $e. Attempting Atomic Reset...');
-        try {
-           await HiveAtomicManager().recreateBox<PetEvent>(_boxName, cipher: cipher);
-           _box = await HiveAtomicManager().ensureBoxOpen<PetEvent>(_boxName, cipher: cipher);
-           debugPrint('✅ [V104] PetEventService recovered via Atomic Reset.');
-        } catch (resetErr) {
-           debugPrint('☠️ [V104] FATAL: Could not recover PetEvent Box: $resetErr');
-           rethrow;
-        }
+      debugPrint(
+          '❌ [V104] Critical: Failed to open Pet Event Box: $e. Attempting Atomic Reset...');
+      try {
+        await HiveAtomicManager()
+            .recreateBox<PetEvent>(_boxName, cipher: cipher);
+        _box = await HiveAtomicManager()
+            .ensureBoxOpen<PetEvent>(_boxName, cipher: cipher);
+        debugPrint('✅ [V104] PetEventService recovered via Atomic Reset.');
+      } catch (resetErr) {
+        debugPrint(
+            '☠️ [V104] FATAL: Could not recover PetEvent Box: $resetErr');
+        rethrow;
+      }
     }
   }
 
@@ -49,7 +55,8 @@ class PetEventService {
     if (_box == null || !_box!.isOpen) {
       // 🛡️ [V104] FAIL-SAFE ACCESS
       // If accessed before init, try one last sync attempt
-      throw Exception('PetEventService not initialized. Use ensureReady() first.'); 
+      throw Exception(
+          'PetEventService not initialized. Use ensureReady() first.');
     }
     return _box!;
   }
@@ -61,10 +68,10 @@ class PetEventService {
       debugPrint('TRACE [B]: Alerta! Box fechada. Reabrindo de emergência...');
       await init(); // Chamada do init() que gerencia a abertura segura
     }
-    
+
     final boxToUse = box;
     debugPrint('TRACE [C]: Box pronta. Gravando dados...');
-    
+
     await boxToUse.put(event.id, event);
     await boxToUse.flush(); // FORCE DISK WRITE
     debugPrint('TRACE [D]: Dados gravados com sucesso.');
@@ -94,9 +101,7 @@ class PetEventService {
   List<PetEvent> getPastEvents(String petId) {
     final now = DateTime.now();
     return box.values
-        .where((event) =>
-            event.petId == petId &&
-            event.dateTime.isBefore(now))
+        .where((event) => event.petId == petId && event.dateTime.isBefore(now))
         .toList()
       ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
   }
@@ -176,11 +181,11 @@ class PetEventService {
   Map<EventType, int> getEventCountByType(String petId) {
     final events = getEventsByPet(petId);
     final counts = <EventType, int>{};
-    
+
     for (var type in EventType.values) {
       counts[type] = events.where((e) => e.type == type).length;
     }
-    
+
     return counts;
   }
 

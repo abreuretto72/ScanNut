@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_design.dart';
+
 class SnackBarHelper {
   /// Show error snackbar
   static void showError(BuildContext context, String message) {

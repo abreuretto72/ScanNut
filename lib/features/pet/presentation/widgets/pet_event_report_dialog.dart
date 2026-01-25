@@ -30,7 +30,8 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
     return AlertDialog(
       backgroundColor: AppDesign.surfaceDark,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(l10n.petEvent_generateReport, style: const TextStyle(color: Colors.white, fontSize: 18)),
+      title: Text(l10n.petEvent_generateReport,
+          style: const TextStyle(color: Colors.white, fontSize: 18)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -52,21 +53,21 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
             if (_mode == 'custom') ...[
               Row(
                 children: [
-                   Expanded(
-                     child: _buildDatePicker(
-                       label: l10n.petEvent_reportStartDate,
-                       date: _startDate,
-                       onTap: () => _pickDate(true),
-                     ),
-                   ),
-                   const SizedBox(width: 12),
-                   Expanded(
-                     child: _buildDatePicker(
-                       label: l10n.petEvent_reportEndDate,
-                       date: _endDate,
-                       onTap: () => _pickDate(false),
-                     ),
-                   ),
+                  Expanded(
+                    child: _buildDatePicker(
+                      label: l10n.petEvent_reportStartDate,
+                      date: _startDate,
+                      onTap: () => _pickDate(true),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDatePicker(
+                      label: l10n.petEvent_reportEndDate,
+                      date: _endDate,
+                      onTap: () => _pickDate(false),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -78,16 +79,46 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
               dropdownColor: AppDesign.surfaceDark,
               initialValue: _selectedGroup,
               items: [
-                DropdownMenuItem(value: 'all', child: Text(l10n.commonCategory ?? 'Todas', style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'food', child: Text(l10n.petEvent_group_food, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'health', child: Text(l10n.petEvent_group_health, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'elimination', child: Text(l10n.petEvent_group_elimination, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'grooming', child: Text(l10n.petEvent_group_grooming, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'activity', child: Text(l10n.petEvent_group_activity, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'behavior', child: Text(l10n.petEvent_group_behavior, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'schedule', child: Text(l10n.petEvent_group_schedule, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'media', child: Text(l10n.petEvent_group_media, style: const TextStyle(color: Colors.white70))),
-                DropdownMenuItem(value: 'metrics', child: Text(l10n.petEvent_group_metrics, style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'all',
+                    child: Text(l10n.commonCategory ?? 'Todas',
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'food',
+                    child: Text(l10n.petEvent_group_food,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'health',
+                    child: Text(l10n.petEvent_group_health,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'elimination',
+                    child: Text(l10n.petEvent_group_elimination,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'grooming',
+                    child: Text(l10n.petEvent_group_grooming,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'activity',
+                    child: Text(l10n.petEvent_group_activity,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'behavior',
+                    child: Text(l10n.petEvent_group_behavior,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'schedule',
+                    child: Text(l10n.petEvent_group_schedule,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'media',
+                    child: Text(l10n.petEvent_group_media,
+                        style: const TextStyle(color: Colors.white70))),
+                DropdownMenuItem(
+                    value: 'metrics',
+                    child: Text(l10n.petEvent_group_metrics,
+                        style: const TextStyle(color: Colors.white70))),
               ],
               onChanged: (val) => setState(() => _selectedGroup = val!),
               decoration: _inputDecoration(),
@@ -96,7 +127,8 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
 
             // Toggle
             SwitchListTile(
-              title: Text(l10n.petEvent_reportIncludesOnlyPdf, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              title: Text(l10n.petEvent_reportIncludesOnlyPdf,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13)),
               value: _onlyPdf,
               activeThumbColor: AppDesign.petPink,
               onChanged: (val) => setState(() => _onlyPdf = val),
@@ -108,17 +140,25 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
       actions: [
         TextButton(
           onPressed: _isGenerating ? null : () => Navigator.pop(context),
-          child: Text(l10n.petEvent_cancel, style: const TextStyle(color: Colors.white38)),
+          child: Text(l10n.petEvent_cancel,
+              style: const TextStyle(color: Colors.white38)),
         ),
         ElevatedButton(
           onPressed: _isGenerating ? null : _handleGenerate,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppDesign.petPink,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          child: _isGenerating 
-            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : Text(l10n.petEvent_generateReport, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          child: _isGenerating
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
+              : Text(l10n.petEvent_generateReport,
+                  style: const TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -127,7 +167,11 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(title, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold)),
+      child: Text(title,
+          style: const TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
+              fontWeight: FontWeight.bold)),
     );
   }
 
@@ -144,8 +188,8 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
               _startDate = DateTime.now().subtract(const Duration(days: 7));
               _endDate = DateTime.now();
             } else if (mode == 'monthly') {
-               _startDate = DateTime.now().subtract(const Duration(days: 30));
-               _endDate = DateTime.now();
+              _startDate = DateTime.now().subtract(const Duration(days: 30));
+              _endDate = DateTime.now();
             }
           });
         }
@@ -156,13 +200,17 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
     );
   }
 
-  Widget _buildDatePicker({required String label, required DateTime date, required VoidCallback onTap}) {
+  Widget _buildDatePicker(
+      {required String label,
+      required DateTime date,
+      required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+          Text(label,
+              style: const TextStyle(color: Colors.white38, fontSize: 11)),
           const SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -185,7 +233,8 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
     return InputDecoration(
       filled: true,
       fillColor: Colors.white.withValues(alpha: 0.05),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
   }
@@ -199,7 +248,10 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
       builder: (context, child) {
         return Theme(
           data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(primary: AppDesign.petPink, onPrimary: Colors.black, surface: AppDesign.surfaceDark),
+            colorScheme: const ColorScheme.dark(
+                primary: AppDesign.petPink,
+                onPrimary: Colors.black,
+                surface: AppDesign.surfaceDark),
           ),
           child: child!,
         );
@@ -218,11 +270,13 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
 
   Future<void> _handleGenerate() async {
     final l10n = AppLocalizations.of(context)!;
-    
+
     // Custom limit check
     if (_mode == 'custom' && _endDate.difference(_startDate).inDays > 60) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Período máximo de 60 dias permitido.'), backgroundColor: Colors.redAccent),
+        const SnackBar(
+            content: Text('Período máximo de 60 dias permitido.'),
+            backgroundColor: Colors.redAccent),
       );
       return;
     }
@@ -256,7 +310,9 @@ class _PetEventReportDialogState extends State<PetEventReportDialog> {
       debugPrint('❌ PDF_GEN: Error $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text(l10n.petEvent_reportError), backgroundColor: AppDesign.error),
+          SnackBar(
+              content: Text(l10n.petEvent_reportError),
+              backgroundColor: AppDesign.error),
         );
       }
     } finally {

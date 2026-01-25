@@ -55,12 +55,14 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
       // Verificar se existe plano para esta semana
       final currentPlan = ref.read(currentWeekPlanProvider);
-      
+
       if (currentPlan == null) {
         // Gerar novo plano
         final profile = ref.read(nutritionProfileProvider);
         if (profile != null) {
-          await ref.read(currentWeekPlanProvider.notifier).generateNewPlan(profile);
+          await ref
+              .read(currentWeekPlanProvider.notifier)
+              .generateNewPlan(profile);
         }
       }
 
@@ -83,33 +85,41 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppDesign.surfaceDark,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: const Icon(Icons.refresh, color: AppDesign.accent),
-              title: Text(l10n.redoPlanAction, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
+              title: Text(l10n.redoPlanAction,
+                  style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () {
                 Navigator.pop(context);
-                _showCreateMenuDialog(preferredPeriodId: 'this_week'); // Always show filter
+                _showCreateMenuDialog(
+                    preferredPeriodId: 'this_week'); // Always show filter
               },
             ),
             ListTile(
               leading: const Icon(Icons.skip_next, color: AppDesign.primary),
-              title: Text(l10n.generateNextWeekAction, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
+              title: Text(l10n.generateNextWeekAction,
+                  style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () {
                 Navigator.pop(context);
-                _showCreateMenuDialog(preferredPeriodId: 'next_week'); // Always show filter
+                _showCreateMenuDialog(
+                    preferredPeriodId: 'next_week'); // Always show filter
               },
             ),
             ListTile(
-              leading: const Icon(Icons.calendar_month, color: AppDesign.warning),
-              title: Text(l10n.generate28DaysAction, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
+              leading:
+                  const Icon(Icons.calendar_month, color: AppDesign.warning),
+              title: Text(l10n.generate28DaysAction,
+                  style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () {
                 Navigator.pop(context);
-                _showCreateMenuDialog(preferredPeriodId: 'month'); // Always show filter
+                _showCreateMenuDialog(
+                    preferredPeriodId: 'month'); // Always show filter
               },
             ),
             const SizedBox(height: 20),
@@ -119,13 +129,11 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     );
   }
 
-
-
-
-
   Future<void> _generatePDF(WeeklyPlan plan) async {
     final l10n = AppLocalizations.of(context)!;
-    final String goal = plan.objective == 'emagrecimento' ? l10n.objWeightLoss : l10n.objMaintenance;
+    final String goal = plan.objective == 'emagrecimento'
+        ? l10n.objWeightLoss
+        : l10n.objMaintenance;
 
     Navigator.push(
       context,
@@ -151,7 +159,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     final l10n = AppLocalizations.of(context)!;
     try {
       debugPrint('[CriarCardapio] Botão tocado');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -163,7 +171,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       }
 
       final profile = ref.read(nutritionProfileProvider);
-      
+
       // Load last configuration
       MenuCreationParams? lastParams;
       String? lastPeriodId;
@@ -178,7 +186,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
       }
 
       debugPrint('[CriarCardapio] Perfil lido');
-      
+
       debugPrint('[CriarCardapio] Abrindo showDialog...');
       final result = await showDialog<MenuCreationResult>(
         context: context,
@@ -192,18 +200,21 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
       if (result != null && mounted) {
         final params = result.params;
-        
+
         // Persist last config
-        await MenuFilterService().saveLastConfig(params, selectedPeriodId: result.selectedPeriodId);
+        await MenuFilterService()
+            .saveLastConfig(params, selectedPeriodId: result.selectedPeriodId);
 
         setState(() => _isLoading = true);
-        
+
         try {
           // 1. Check for conflicts (if a plan exists on startDate)
           bool replace = false;
-          final existingPlans = WeeklyPlanService().getAllActivePlans().where((p) => 
-            WeeklyPlanService().isSameDay(p.weekStartDate, params.startDate!)
-          ).toList();
+          final existingPlans = WeeklyPlanService()
+              .getAllActivePlans()
+              .where((p) => WeeklyPlanService()
+                  .isSameDay(p.weekStartDate, params.startDate!))
+              .toList();
 
           if (existingPlans.isNotEmpty) {
             setState(() => _isLoading = false); // Stop loading to show dialog
@@ -211,16 +222,22 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
               context: context,
               builder: (context) => AlertDialog(
                 backgroundColor: AppDesign.surfaceDark,
-                title: Text(l10n.redoPlanAction, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
-                content: Text(l10n.redoPlanPrompt, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+                title: Text(l10n.redoPlanAction,
+                    style:
+                        GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
+                content: Text(l10n.redoPlanPrompt,
+                    style: GoogleFonts.poppins(
+                        color: AppDesign.textSecondaryDark)),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, 'archive'),
-                    child: Text(l10n.createNewVersion, style: GoogleFonts.poppins(color: AppDesign.accent)),
+                    child: Text(l10n.createNewVersion,
+                        style: GoogleFonts.poppins(color: AppDesign.accent)),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(context, 'replace'),
-                    child: Text(l10n.replaceExisting, style: GoogleFonts.poppins(color: AppDesign.error)),
+                    child: Text(l10n.replaceExisting,
+                        style: GoogleFonts.poppins(color: AppDesign.error)),
                   ),
                 ],
               ),
@@ -237,37 +254,39 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
           var activeProfile = ref.read(nutritionProfileProvider);
           if (activeProfile == null) {
-              activeProfile = UserNutritionProfile.padrao();
-              await ref.read(nutritionProfileProvider.notifier).updateProfile(activeProfile);
-              
-              if (mounted) {
-                 ScaffoldMessenger.of(context).showSnackBar(
-                   SnackBar(
-                     content: Text(l10n.creatingProfile),
-                     backgroundColor: AppDesign.warning,
-                     duration: const Duration(seconds: 2),
-                   ),
-                 );
-              }
+            activeProfile = UserNutritionProfile.padrao();
+            await ref
+                .read(nutritionProfileProvider.notifier)
+                .updateProfile(activeProfile);
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.creatingProfile),
+                  backgroundColor: AppDesign.warning,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
           }
 
           // Gerar plano para a semana usando o perfil garantido
           final localeCode = Localizations.localeOf(context).languageCode;
           await ref.read(currentWeekPlanProvider.notifier).generateNewPlan(
-            activeProfile, 
-            params: params, 
-            languageCode: localeCode,
-            replace: replace,
-          );
-            
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('✅ ${l10n.planCreatedSuccess}'),
-                  backgroundColor: AppDesign.success,
-                ),
+                activeProfile,
+                params: params,
+                languageCode: localeCode,
+                replace: replace,
               );
-            }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('✅ ${l10n.planCreatedSuccess}'),
+                backgroundColor: AppDesign.success,
+              ),
+            );
+          }
         } catch (e) {
           debugPrint('[CriarCardapio] Erro: $e');
           if (mounted) {
@@ -327,13 +346,15 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                   valueListenable: WeeklyPlanService().listenable!,
                   builder: (context, box, _) {
                     final plans = WeeklyPlanService().getAllPlans();
-                    plans.sort((a, b) => b.weekStartDate.compareTo(a.weekStartDate));
+                    plans.sort(
+                        (a, b) => b.weekStartDate.compareTo(a.weekStartDate));
 
                     if (plans.isEmpty) {
                       return Center(
                         child: Text(
                           l10n.noHistory,
-                          style: const TextStyle(color: AppDesign.textPrimaryDark),
+                          style:
+                              const TextStyle(color: AppDesign.textPrimaryDark),
                         ),
                       );
                     }
@@ -341,18 +362,22 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                     return ListView.separated(
                       itemCount: plans.length,
                       separatorBuilder: (_, __) => Divider(
-                        color: AppDesign.textPrimaryDark.withValues(alpha: 0.12),
+                        color:
+                            AppDesign.textPrimaryDark.withValues(alpha: 0.12),
                       ),
                       itemBuilder: (context, index) {
                         final plan = plans[index];
                         // if (!mounted) return const SizedBox.shrink(); // This is inside a builder, causing the return type mismatch void vs Widget
-                        final locale = Localizations.localeOf(context).toString();
-                        final isCurrent = ref.read(currentWeekPlanProvider)?.id == plan.id;
+                        final locale =
+                            Localizations.localeOf(context).toString();
+                        final isCurrent =
+                            ref.read(currentWeekPlanProvider)?.id == plan.id;
                         final statusColor = plan.status == 'active'
                             ? AppDesign.success
                             : AppDesign.textSecondaryDark;
-                        final statusLabel =
-                            plan.status == 'active' ? l10n.statusActive : l10n.statusArchived;
+                        final statusLabel = plan.status == 'active'
+                            ? l10n.statusActive
+                            : l10n.statusArchived;
 
                         return ListTile(
                           title: Row(
@@ -360,23 +385,30 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                               Expanded(
                                 child: Text(
                                   l10n.weeklyPlanTitle(
-                                    DateFormat('dd/MM', locale).format(plan.weekStartDate),
+                                    DateFormat('dd/MM', locale)
+                                        .format(plan.weekStartDate),
                                   ),
                                   style: GoogleFonts.poppins(
-                                    color: isCurrent ? AppDesign.foodOrange : AppDesign.textPrimaryDark,
-                                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                                    color: isCurrent
+                                        ? AppDesign.foodOrange
+                                        : AppDesign.textPrimaryDark,
+                                    fontWeight: isCurrent
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: statusColor.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   statusLabel,
-                                  style: GoogleFonts.poppins(color: statusColor, fontSize: 10),
+                                  style: GoogleFonts.poppins(
+                                      color: statusColor, fontSize: 10),
                                 ),
                               ),
                             ],
@@ -392,36 +424,47 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                icon: const Icon(Icons.delete_outline,
+                                    color: Colors.red),
                                 onPressed: () async {
                                   final confirm = await showDialog<bool>(
                                     context: context,
                                     builder: (context) => AlertDialog(
                                       backgroundColor: AppDesign.surfaceDark,
                                       title: Text(l10n.deletePlanTitle,
-                                          style: const TextStyle(color: AppDesign.textPrimaryDark)),
+                                          style: const TextStyle(
+                                              color:
+                                                  AppDesign.textPrimaryDark)),
                                       content: Text(l10n.deletePlanBody,
-                                          style:
-                                              const TextStyle(color: AppDesign.textSecondaryDark)),
+                                          style: const TextStyle(
+                                              color:
+                                                  AppDesign.textSecondaryDark)),
                                       actions: [
                                         TextButton(
-                                            onPressed: () => Navigator.pop(context, false),
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
                                             child: Text(l10n.cancel)),
                                         TextButton(
-                                            onPressed: () => Navigator.pop(context, true),
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
                                             child: Text(l10n.commonDelete,
-                                                style: const TextStyle(color: AppDesign.error))),
+                                                style: const TextStyle(
+                                                    color: AppDesign.error))),
                                       ],
                                     ),
                                   );
 
                                   if (confirm == true) {
-                                    await ref.read(currentWeekPlanProvider.notifier).deletePlan(plan);
+                                    await ref
+                                        .read(currentWeekPlanProvider.notifier)
+                                        .deletePlan(plan);
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         SnackBar(
-                                          content: Text(l10n.deletePlanSuccess ??
-                                              'Plano excluído com sucesso'),
+                                          content: Text(
+                                              l10n.deletePlanSuccess ??
+                                                  'Plano excluído com sucesso'),
                                           backgroundColor: AppDesign.success,
                                         ),
                                       );
@@ -429,11 +472,14 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                                   }
                                 },
                               ),
-                              const Icon(Icons.chevron_right, color: AppDesign.textSecondaryDark),
+                              const Icon(Icons.chevron_right,
+                                  color: AppDesign.textSecondaryDark),
                             ],
                           ),
                           onTap: () {
-                            ref.read(currentWeekPlanProvider.notifier).setPlan(plan);
+                            ref
+                                .read(currentWeekPlanProvider.notifier)
+                                .setPlan(plan);
                             if (!mounted) return;
                             Navigator.pop(context);
                           },
@@ -463,7 +509,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             const SizedBox(height: 24),
             Text(
               l10n.generatingMenu,
-              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 16),
+              style: GoogleFonts.poppins(
+                  color: AppDesign.textSecondaryDark, fontSize: 16),
             ),
           ],
         ),
@@ -479,19 +526,23 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             const SizedBox(height: 16),
             Text(
               l10n.planError,
-              style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 18),
+              style: GoogleFonts.poppins(
+                  color: AppDesign.textPrimaryDark, fontSize: 18),
             ),
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
+              style: GoogleFonts.poppins(
+                  color: AppDesign.textSecondaryDark, fontSize: 12),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _loadPlan,
-              style: ElevatedButton.styleFrom(backgroundColor: AppDesign.accent),
-              child: Text(l10n.tryAgain, style: GoogleFonts.poppins(color: AppDesign.backgroundDark)),
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: AppDesign.accent),
+              child: Text(l10n.tryAgain,
+                  style: GoogleFonts.poppins(color: AppDesign.backgroundDark)),
             ),
           ],
         ),
@@ -509,7 +560,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-               const Icon(Icons.calendar_today, size: 64, color: AppDesign.textSecondaryDark),
+              const Icon(Icons.calendar_today,
+                  size: 64, color: AppDesign.textSecondaryDark),
               const SizedBox(height: 16),
               Text(
                 l10n.noPlanTitle,
@@ -518,8 +570,12 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _showCreateMenuDialog,
-                style: ElevatedButton.styleFrom(backgroundColor: AppDesign.foodOrange), // Synced with Footer Icon
-                child: Text(l10n.createPlanButton, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        AppDesign.foodOrange), // Synced with Footer Icon
+                child: Text(l10n.createPlanButton,
+                    style: GoogleFonts.poppins(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -544,7 +600,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.weeklyPlanTitle(DateFormat('dd/MM', Localizations.localeOf(context).toString()).format(plan.weekStartDate)),
+                        l10n.weeklyPlanTitle(DateFormat('dd/MM',
+                                Localizations.localeOf(context).toString())
+                            .format(plan.weekStartDate)),
                         style: GoogleFonts.poppins(
                           color: AppDesign.textPrimaryDark,
                           fontSize: 18,
@@ -553,7 +611,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                       ),
                       Text(
                         l10n.weeklyPlanSubtitle(plan.days.length),
-                        style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
+                        style: GoogleFonts.poppins(
+                            color: AppDesign.textSecondaryDark, fontSize: 12),
                       ),
                     ],
                   ),
@@ -574,7 +633,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           ),
           // Seção de Dicas (Batch Cooking)
           _buildTipsSection(plan),
-          
+
           // Lista de dias
           Expanded(
             child: ListView.builder(
@@ -611,7 +670,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline, color: AppDesign.foodOrange, size: 20),
+              const Icon(Icons.lightbulb_outline,
+                  color: AppDesign.foodOrange, size: 20),
               const SizedBox(width: 8),
               Text(
                 l10n.tipsTitle,
@@ -639,15 +699,15 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
   String _getLocalizedTips(String? rawTips, AppLocalizations l10n) {
     if (rawTips == null || rawTips.isEmpty) return '';
-    
+
     // Check if it's a pipe-separated list of keys
     if (rawTips.contains('|')) {
-       return rawTips.split('|').map((k) {
-          final t = _translateTipKey(k, l10n);
-          return t.isNotEmpty ? t : k; 
-       }).join('\n\n');
-    } 
-    
+      return rawTips.split('|').map((k) {
+        final t = _translateTipKey(k, l10n);
+        return t.isNotEmpty ? t : k;
+      }).join('\n\n');
+    }
+
     // Check if it's a single key
     final t = _translateTipKey(rawTips, l10n);
     return t.isNotEmpty ? t : rawTips;
@@ -655,16 +715,26 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
   String _translateTipKey(String key, AppLocalizations l10n) {
     switch (key.trim()) {
-      case 'tipBeans': return l10n.tipBeans;
-      case 'tipRice': return l10n.tipRice;
-      case 'tipChicken': return l10n.tipChicken;
-      case 'tipEggs': return l10n.tipEggs;
-      case 'tipVeggies': return l10n.tipVeggies;
-      case 'tipRoots': return l10n.tipRoots;
-      case 'tipGroundMeat': return l10n.tipGroundMeat;
-      case 'tipFruits': return l10n.tipFruits;
-      case 'tipDefault': return l10n.tipDefault;
-      default: return ''; 
+      case 'tipBeans':
+        return l10n.tipBeans;
+      case 'tipRice':
+        return l10n.tipRice;
+      case 'tipChicken':
+        return l10n.tipChicken;
+      case 'tipEggs':
+        return l10n.tipEggs;
+      case 'tipVeggies':
+        return l10n.tipVeggies;
+      case 'tipRoots':
+        return l10n.tipRoots;
+      case 'tipGroundMeat':
+        return l10n.tipGroundMeat;
+      case 'tipFruits':
+        return l10n.tipFruits;
+      case 'tipDefault':
+        return l10n.tipDefault;
+      default:
+        return '';
     }
   }
 
@@ -675,7 +745,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
     return Row(
       children: [
-        Icon(Icons.local_fire_department, size: 14, color: AppDesign.warning.withValues(alpha: 0.7)),
+        Icon(Icons.local_fire_department,
+            size: 14, color: AppDesign.warning.withValues(alpha: 0.7)),
         const SizedBox(width: 4),
         Text(
           '$cals ${l10n.caloriesEstimated}',
@@ -690,7 +761,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           child: LinearProgressIndicator(
             value: (cals / 2000).clamp(0.0, 1.0),
             backgroundColor: AppDesign.textPrimaryDark.withValues(alpha: 0.1),
-            valueColor: AlwaysStoppedAnimation<Color>(AppDesign.warning.withValues(alpha: 0.5)),
+            valueColor: AlwaysStoppedAnimation<Color>(
+                AppDesign.warning.withValues(alpha: 0.5)),
             minHeight: 2,
           ),
         ),
@@ -706,7 +778,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
         total += int.tryParse(mealMatch.group(1) ?? '0') ?? 0;
       } else {
         for (var item in meal.itens) {
-          final itemMatch = RegExp(r'(\d+)\s*kcal').firstMatch(item.observacoes ?? '');
+          final itemMatch =
+              RegExp(r'(\d+)\s*kcal').firstMatch(item.observacoes ?? '');
           if (itemMatch != null) {
             total += int.tryParse(itemMatch.group(1) ?? '0') ?? 0;
           }
@@ -725,11 +798,16 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isToday ? AppDesign.accent.withValues(alpha: 0.1) : AppDesign.surfaceDark,
+      color: isToday
+          ? AppDesign.accent.withValues(alpha: 0.1)
+          : AppDesign.surfaceDark,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isToday ? AppDesign.foodOrange : AppDesign.foodOrange.withValues(alpha: 0.3), // Food Domain Border
+          color: isToday
+              ? AppDesign.foodOrange
+              : AppDesign.foodOrange
+                  .withValues(alpha: 0.3), // Food Domain Border
           width: isToday ? 2 : 1,
         ),
       ),
@@ -745,7 +823,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                 children: [
                   if (isToday)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppDesign.accent,
                         borderRadius: BorderRadius.circular(4),
@@ -772,7 +851,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                   ),
                   Text(
                     dayNumber,
-                    style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14),
+                    style: GoogleFonts.poppins(
+                        color: AppDesign.textSecondaryDark, fontSize: 14),
                   ),
                 ],
               ),
@@ -782,7 +862,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: day.meals.map((meal) => _buildMealChip(meal)).toList(),
+                children:
+                    day.meals.map((meal) => _buildMealChip(meal)).toList(),
               ),
             ],
           ),
@@ -832,7 +913,9 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
   bool _isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   IconData _getMealIcon(String tipo) {
@@ -892,17 +975,19 @@ class DayPlanDetailsScreen extends ConsumerWidget {
     final locale = Localizations.localeOf(context).toString();
     // Watch for changes to the plan to ensure we have the latest version of the day
     final plan = ref.watch(currentWeekPlanProvider);
-    
+
     // Find the current version of this day in the plan
     final currentDay = plan?.days.firstWhere(
-      (d) => 
-        d.date.year == day.date.year && 
-        d.date.month == day.date.month && 
-        d.date.day == day.date.day,
-      orElse: () => day,
-    ) ?? day;
+          (d) =>
+              d.date.year == day.date.year &&
+              d.date.month == day.date.month &&
+              d.date.day == day.date.day,
+          orElse: () => day,
+        ) ??
+        day;
 
-    final dayName = DateFormat('EEEE, dd/MM/yyyy', locale).format(currentDay.date);
+    final dayName =
+        DateFormat('EEEE, dd/MM/yyyy', locale).format(currentDay.date);
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
@@ -925,7 +1010,8 @@ class DayPlanDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMealCard(BuildContext context, WidgetRef ref, Meal meal, AppLocalizations l10n, PlanDay currentDay) {
+  Widget _buildMealCard(BuildContext context, WidgetRef ref, Meal meal,
+      AppLocalizations l10n, PlanDay currentDay) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       color: AppDesign.surfaceDark,
@@ -955,7 +1041,12 @@ class DayPlanDetailsScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        TranslationMapper.localizeFoodName(meal.nomePrato ?? (meal.itens.isNotEmpty ? meal.itens.first.nome : l10n.mealDefault), l10n),
+                        TranslationMapper.localizeFoodName(
+                            meal.nomePrato ??
+                                (meal.itens.isNotEmpty
+                                    ? meal.itens.first.nome
+                                    : l10n.mealDefault),
+                            l10n),
                         style: GoogleFonts.poppins(
                           color: AppDesign.textPrimaryDark,
                           fontSize: 16,
@@ -966,8 +1057,10 @@ class DayPlanDetailsScreen extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: AppDesign.textSecondaryDark, size: 20),
-                  onPressed: () => _showEditDialog(context, ref, meal, currentDay),
+                  icon: const Icon(Icons.edit_outlined,
+                      color: AppDesign.textSecondaryDark, size: 20),
+                  onPressed: () =>
+                      _showEditDialog(context, ref, meal, currentDay),
                 ),
               ],
             ),
@@ -975,7 +1068,10 @@ class DayPlanDetailsScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 meal.observacoes,
-                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontStyle: FontStyle.italic),
+                style: GoogleFonts.poppins(
+                    color: Colors.white70,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic),
               ),
             ],
             const SizedBox(height: 12),
@@ -992,31 +1088,37 @@ class DayPlanDetailsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             ...meal.itens.map((item) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  Icon(Icons.circle, size: 6, color: _getMealColor(meal.tipo).withValues(alpha: 0.5)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      TranslationMapper.localizeFoodName(item.nome, l10n),
-                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 14),
-                    ),
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      Icon(Icons.circle,
+                          size: 6,
+                          color:
+                              _getMealColor(meal.tipo).withValues(alpha: 0.5)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          TranslationMapper.localizeFoodName(item.nome, l10n),
+                          style: GoogleFonts.poppins(
+                              color: Colors.white, fontSize: 14),
+                        ),
+                      ),
+                      Text(
+                        item.quantidadeTexto,
+                        style: GoogleFonts.poppins(
+                            color: Colors.white54, fontSize: 12),
+                      ),
+                    ],
                   ),
-                  Text(
-                    item.quantidadeTexto,
-                    style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
-                  ),
-                ],
-              ),
-            )),
+                )),
           ],
         ),
       ),
     );
   }
 
-  void _showEditDialog(BuildContext context, WidgetRef ref, Meal meal, PlanDay currentDay) {
+  void _showEditDialog(
+      BuildContext context, WidgetRef ref, Meal meal, PlanDay currentDay) {
     showDialog(
       context: context,
       builder: (context) => EditMealDialog(
@@ -1024,15 +1126,18 @@ class DayPlanDetailsScreen extends ConsumerWidget {
         onSave: (updatedMeal) async {
           debugPrint('📝 [EditMeal] Saving started...');
           debugPrint('   Old: ${meal.nomePrato} (${meal.itens.length} items)');
-          debugPrint('   New: ${updatedMeal.nomePrato} (${updatedMeal.itens.length} items)');
+          debugPrint(
+              '   New: ${updatedMeal.nomePrato} (${updatedMeal.itens.length} items)');
           try {
-            await ref.read(currentWeekPlanProvider.notifier).updateMeal(currentDay, meal, updatedMeal);
+            await ref
+                .read(currentWeekPlanProvider.notifier)
+                .updateMeal(currentDay, meal, updatedMeal);
             debugPrint('✅ [EditMeal] Save completed successfully');
-            
+
             // Force refresh if needed, but watch() in build should handle it
-            // ref.read(currentWeekPlanProvider.notifier).refresh(); 
+            // ref.read(currentWeekPlanProvider.notifier).refresh();
           } catch (e) {
-             debugPrint('❌ [EditMeal] Error saving: $e');
+            debugPrint('❌ [EditMeal] Error saving: $e');
           }
         },
       ),
@@ -1084,4 +1189,3 @@ class DayPlanDetailsScreen extends ConsumerWidget {
     }
   }
 }
-

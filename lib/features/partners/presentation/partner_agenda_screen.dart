@@ -19,7 +19,7 @@ class PartnerAgendaScreen extends StatefulWidget {
   final List<Map<String, dynamic>> initialEvents;
   final Function(List<Map<String, dynamic>>) onSave;
   final String? petId; // Context for linking
-  // In EditPetForm, we don't always have a saved pet ID if it's new, but usually we do. 
+  // In EditPetForm, we don't always have a saved pet ID if it's new, but usually we do.
   // Requirement says: "automatically load id_pet and id_partner".
 
   const PartnerAgendaScreen({
@@ -39,7 +39,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  
+
   // Voice
   late stt.SpeechToText _speech;
   final bool _isListening = false;
@@ -55,63 +55,69 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
 
   Future<void> _loadEventsFromService() async {
     if (widget.petId == null) return;
-    
-    try {
-        final service = PetEventService();
-        await service.init();
-        final serviceEvents = service.getEventsByPet(widget.petId!);
-        
-        if (serviceEvents.isEmpty) return;
 
-        setState(() {
-            // Create a map of existing event IDs to avoid duplicates
-            final existingIds = _events.map((e) => e['id']).toSet();
-            
-            for (var pEvent in serviceEvents) {
-                if (!existingIds.contains(pEvent.id)) {
-                    // Map PetEvent to AgendaEvent JSON format
-                    // Map EventType to EventCategory string
-                    String category = 'extras';
-                    final typeStr = pEvent.type.toString().split('.').last.toLowerCase();
-                    
-                    if (typeStr == 'vaccine') {
-                      category = 'vacina';
-                    } else if (typeStr == 'medication') category = 'remedios';
-                    else if (typeStr == 'veterinary') category = 'consulta';
-                    else if (typeStr == 'grooming') category = 'estetica';
-                    else if (typeStr == 'bath') category = 'banho';
-                    else if (typeStr == 'other') category = 'extras';
-                    
-                    final newEventMap = {
-                        'id': pEvent.id,
-                        'partnerId': widget.partner.id, // Assuming same partner or we preserve it
-                        'petId': pEvent.petName,
-                        'category': category,
-                        'title': pEvent.title,
-                        'description': pEvent.notes,
-                        'dateTime': pEvent.dateTime.toIso8601String(),
-                        'attendant': pEvent.attendant,
-                        'createdAt': pEvent.createdAt.toIso8601String(),
-                        // Compatibility keys
-                        'content': pEvent.notes,
-                        'date': pEvent.dateTime.toIso8601String(),
-                        'type': 'event',
-                    };
-                    
-                    _events.add(newEventMap);
-                    existingIds.add(pEvent.id);
-                }
-            }
-            
-            // Re-sort
-            _events.sort((a, b) {
-                final dateA = DateTime.parse(a['date']);
-                final dateB = DateTime.parse(b['date']);
-                return dateA.compareTo(dateB);
-            });
+    try {
+      final service = PetEventService();
+      await service.init();
+      final serviceEvents = service.getEventsByPet(widget.petId!);
+
+      if (serviceEvents.isEmpty) return;
+
+      setState(() {
+        // Create a map of existing event IDs to avoid duplicates
+        final existingIds = _events.map((e) => e['id']).toSet();
+
+        for (var pEvent in serviceEvents) {
+          if (!existingIds.contains(pEvent.id)) {
+            // Map PetEvent to AgendaEvent JSON format
+            // Map EventType to EventCategory string
+            String category = 'extras';
+            final typeStr =
+                pEvent.type.toString().split('.').last.toLowerCase();
+
+            if (typeStr == 'vaccine') {
+              category = 'vacina';
+            } else if (typeStr == 'medication')
+              category = 'remedios';
+            else if (typeStr == 'veterinary')
+              category = 'consulta';
+            else if (typeStr == 'grooming')
+              category = 'estetica';
+            else if (typeStr == 'bath')
+              category = 'banho';
+            else if (typeStr == 'other') category = 'extras';
+
+            final newEventMap = {
+              'id': pEvent.id,
+              'partnerId':
+                  widget.partner.id, // Assuming same partner or we preserve it
+              'petId': pEvent.petName,
+              'category': category,
+              'title': pEvent.title,
+              'description': pEvent.notes,
+              'dateTime': pEvent.dateTime.toIso8601String(),
+              'attendant': pEvent.attendant,
+              'createdAt': pEvent.createdAt.toIso8601String(),
+              // Compatibility keys
+              'content': pEvent.notes,
+              'date': pEvent.dateTime.toIso8601String(),
+              'type': 'event',
+            };
+
+            _events.add(newEventMap);
+            existingIds.add(pEvent.id);
+          }
+        }
+
+        // Re-sort
+        _events.sort((a, b) {
+          final dateA = DateTime.parse(a['date']);
+          final dateB = DateTime.parse(b['date']);
+          return dateA.compareTo(dateB);
         });
+      });
     } catch (e) {
-        debugPrint('Error loading events from service: $e');
+      debugPrint('Error loading events from service: $e');
     }
   }
 
@@ -120,11 +126,12 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       final eventDate = DateTime.parse(event['date']);
       return isSameDay(eventDate, day);
     }).toList()
-    ..sort((a, b) { // Sort chronologically
-         final dateA = DateTime.parse(a['date']);
-         final dateB = DateTime.parse(b['date']);
-         return dateA.compareTo(dateB);
-    });
+      ..sort((a, b) {
+        // Sort chronologically
+        final dateA = DateTime.parse(a['date']);
+        final dateB = DateTime.parse(b['date']);
+        return dateA.compareTo(dateB);
+      });
   }
 
   void _addEvent(Map<String, dynamic> newEvent) {
@@ -132,47 +139,51 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       _events.add(newEvent);
     });
     // Immediate Save (callback)
-    widget.onSave(_events); 
+    widget.onSave(_events);
 
     // Also persist to Service immediately
     if (widget.petId != null) {
-        _persistToService(newEvent);
+      _persistToService(newEvent);
     }
   }
 
   Future<void> _persistToService(Map<String, dynamic> eventMap) async {
-      final service = PetEventService();
-      await service.init();
-      
-      final agendaEvent = AgendaEvent.fromJson(eventMap);
-      
-      // Map back to PetEvent
-      EventType pType = EventType.other;
-      if (agendaEvent.category == EventCategory.vacina) {
-        pType = EventType.vaccine;
-      } else if (agendaEvent.category == EventCategory.banho) pType = EventType.bath;
-      else if (agendaEvent.category == EventCategory.tosa) pType = EventType.grooming;
-      else if (agendaEvent.category == EventCategory.remedios) pType = EventType.medication;
-      else if (agendaEvent.category == EventCategory.consulta || 
-         agendaEvent.category == EventCategory.emergencia ||
-         agendaEvent.category == EventCategory.saude ||
-         agendaEvent.category == EventCategory.exame ||
-         agendaEvent.category == EventCategory.cirurgia) pType = EventType.veterinary;
+    final service = PetEventService();
+    await service.init();
 
-      final pEvent = PetEvent(
-          id: agendaEvent.id,
-          petId: widget.petId!,
-          petName: widget.petId!,
-          title: agendaEvent.title,
-          type: pType,
-          dateTime: agendaEvent.dateTime,
-          notes: agendaEvent.description,
-          createdAt: agendaEvent.createdAt,
-          attendant: widget.partner.name,
-          completed: false,
-      );
-      
-      await service.addEvent(pEvent);
+    final agendaEvent = AgendaEvent.fromJson(eventMap);
+
+    // Map back to PetEvent
+    EventType pType = EventType.other;
+    if (agendaEvent.category == EventCategory.vacina) {
+      pType = EventType.vaccine;
+    } else if (agendaEvent.category == EventCategory.banho)
+      pType = EventType.bath;
+    else if (agendaEvent.category == EventCategory.tosa)
+      pType = EventType.grooming;
+    else if (agendaEvent.category == EventCategory.remedios)
+      pType = EventType.medication;
+    else if (agendaEvent.category == EventCategory.consulta ||
+        agendaEvent.category == EventCategory.emergencia ||
+        agendaEvent.category == EventCategory.saude ||
+        agendaEvent.category == EventCategory.exame ||
+        agendaEvent.category == EventCategory.cirurgia)
+      pType = EventType.veterinary;
+
+    final pEvent = PetEvent(
+      id: agendaEvent.id,
+      petId: widget.petId!,
+      petName: widget.petId!,
+      title: agendaEvent.title,
+      type: pType,
+      dateTime: agendaEvent.dateTime,
+      notes: agendaEvent.description,
+      createdAt: agendaEvent.createdAt,
+      attendant: widget.partner.name,
+      completed: false,
+    );
+
+    await service.addEvent(pEvent);
   }
 
   void _showAddEventModal() {
@@ -254,28 +265,32 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
 
   void _showExportDialog() {
     String reportType = 'Detalhamento';
-    
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: AppDesign.surfaceDark,
-          title: Text(AppLocalizations.of(context)!.agendaExportTitle, style: const TextStyle(color: AppDesign.textPrimaryDark)),
+          title: Text(AppLocalizations.of(context)!.agendaExportTitle,
+              style: const TextStyle(color: AppDesign.textPrimaryDark)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppLocalizations.of(context)!.agendaReportType, style: const TextStyle(color: AppDesign.textSecondaryDark)),
+                Text(AppLocalizations.of(context)!.agendaReportType,
+                    style: const TextStyle(color: AppDesign.textSecondaryDark)),
                 RadioListTile<String>(
-                  title: Text(AppLocalizations.of(context)!.agendaReportSummary, style: const TextStyle(color: AppDesign.textPrimaryDark)),
+                  title: Text(AppLocalizations.of(context)!.agendaReportSummary,
+                      style: const TextStyle(color: AppDesign.textPrimaryDark)),
                   value: 'Resumo',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
                   activeColor: AppDesign.petPink,
                 ),
                 RadioListTile<String>(
-                  title: Text(AppLocalizations.of(context)!.agendaReportDetail, style: const TextStyle(color: AppDesign.textPrimaryDark)),
+                  title: Text(AppLocalizations.of(context)!.agendaReportDetail,
+                      style: const TextStyle(color: AppDesign.textPrimaryDark)),
                   value: 'Detalhamento',
                   groupValue: reportType,
                   onChanged: (val) => setDialogState(() => reportType = val!),
@@ -287,50 +302,52 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text(AppLocalizations.of(context)!.commonCancel, style: const TextStyle(color: AppDesign.textSecondaryDark)),
+              child: Text(AppLocalizations.of(context)!.commonCancel,
+                  style: const TextStyle(color: AppDesign.textSecondaryDark)),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.pop(ctx);
-                
+
                 // Convert Map events to PetEvent objects for the report
                 final petEvents = _events.map((e) {
-                   return PetEvent(
-                      id: e['id'] ?? '',
-                      petId: widget.petId ?? 'N/A',
-                      petName: widget.petId ?? 'N/A',
-                      title: e['title'] ?? '',
-                      type: EventType.other,
-                      dateTime: DateTime.parse(e['date']),
-                      notes: e['content'],
-                      completed: false, // Default
-                      attendant: widget.partner.name,
-                   );
+                  return PetEvent(
+                    id: e['id'] ?? '',
+                    petId: widget.petId ?? 'N/A',
+                    petName: widget.petId ?? 'N/A',
+                    title: e['title'] ?? '',
+                    type: EventType.other,
+                    dateTime: DateTime.parse(e['date']),
+                    notes: e['content'],
+                    completed: false, // Default
+                    attendant: widget.partner.name,
+                  );
                 }).toList();
-                
+
                 // Sort by date desc
                 petEvents.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
                 final service = ExportService();
                 final pdf = await service.generateAgendaReport(
-                  events: petEvents,
-                  start: DateTime(2000),
-                  end: DateTime(2100),
-                  reportType: reportType,
-                  strings: AppLocalizations.of(context)!
-                );
-                
+                    events: petEvents,
+                    start: DateTime(2000),
+                    end: DateTime(2100),
+                    reportType: reportType,
+                    strings: AppLocalizations.of(context)!);
+
                 if (mounted) {
                   Navigator.push(
-                    context, 
-                    MaterialPageRoute(builder: (_) => PdfPreviewScreen(
-                      title: AppLocalizations.of(context)!.pdfAgendaReport,
-                      buildPdf: (format) async => pdf.save(),
-                    ))
-                  );
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => PdfPreviewScreen(
+                                title: AppLocalizations.of(context)!
+                                    .pdfAgendaReport,
+                                buildPdf: (format) async => pdf.save(),
+                              )));
                 }
               },
-              child: Text(AppLocalizations.of(context)!.agendaGeneratePDF, style: const TextStyle(color: AppDesign.petPink)),
+              child: Text(AppLocalizations.of(context)!.agendaGeneratePDF,
+                  style: const TextStyle(color: AppDesign.petPink)),
             ),
           ],
         ),
@@ -350,8 +367,14 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppLocalizations.of(context)!.agendaTitle, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12)),
-            Text(widget.partner.name, style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(AppLocalizations.of(context)!.agendaTitle,
+                style: GoogleFonts.poppins(
+                    color: AppDesign.textSecondaryDark, fontSize: 12)),
+            Text(widget.partner.name,
+                style: GoogleFonts.poppins(
+                    color: AppDesign.textPrimaryDark,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16)),
           ],
         ),
         leading: IconButton(
@@ -385,34 +408,47 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                   });
                 },
                 onFormatChanged: (format) {
-                  if (_calendarFormat != format) setState(() => _calendarFormat = format);
+                  if (_calendarFormat != format) {
+                    setState(() => _calendarFormat = format);
+                  }
                 },
                 onPageChanged: (focusedDay) {
                   _focusedDay = focusedDay;
                 },
                 eventLoader: _getEventsForDay, // Shows dots
-                
+
                 // Styles
                 headerStyle: HeaderStyle(
                   titleCentered: true,
                   formatButtonVisible: false,
-                  titleTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontSize: 16, fontWeight: FontWeight.bold),
-                  leftChevronIcon: const Icon(Icons.chevron_left, color: AppDesign.petPink),
-                  rightChevronIcon: const Icon(Icons.chevron_right, color: AppDesign.petPink),
+                  titleTextStyle: GoogleFonts.poppins(
+                      color: AppDesign.textPrimaryDark,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                  leftChevronIcon:
+                      const Icon(Icons.chevron_left, color: AppDesign.petPink),
+                  rightChevronIcon:
+                      const Icon(Icons.chevron_right, color: AppDesign.petPink),
                 ),
                 daysOfWeekStyle: const DaysOfWeekStyle(
                   weekendStyle: TextStyle(color: AppDesign.textSecondaryDark),
                   weekdayStyle: TextStyle(color: AppDesign.textSecondaryDark),
                 ),
                 calendarStyle: CalendarStyle(
-                  defaultTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
-                  weekendTextStyle: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
-                  todayTextStyle: GoogleFonts.poppins(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold),
+                  defaultTextStyle:
+                      GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
+                  weekendTextStyle:
+                      GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
+                  todayTextStyle: GoogleFonts.poppins(
+                      color: AppDesign.backgroundDark,
+                      fontWeight: FontWeight.bold),
                   todayDecoration: const BoxDecoration(
                     color: AppDesign.petPink,
                     shape: BoxShape.circle,
                   ),
-                  selectedTextStyle: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold),
+                  selectedTextStyle: GoogleFonts.poppins(
+                      color: AppDesign.textPrimaryDark,
+                      fontWeight: FontWeight.bold),
                   selectedDecoration: const BoxDecoration(
                     color: AppDesign.info,
                     shape: BoxShape.circle,
@@ -427,7 +463,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
             ),
 
             const SizedBox(height: 10),
-            
+
             // Header for Timeline
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -435,12 +471,21 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _selectedDay != null 
-                      ? DateFormat.MMMMd(Localizations.localeOf(context).toString()).format(_selectedDay!)
-                      : AppLocalizations.of(context)!.agendaToday,
-                    style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 14, fontWeight: FontWeight.w600),
+                    _selectedDay != null
+                        ? DateFormat.MMMMd(
+                                Localizations.localeOf(context).toString())
+                            .format(_selectedDay!)
+                        : AppLocalizations.of(context)!.agendaToday,
+                    style: GoogleFonts.poppins(
+                        color: AppDesign.textSecondaryDark,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600),
                   ),
-                  Text(AppLocalizations.of(context)!.agendaEventsCount(dailyEvents.length), style: const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12)),
+                  Text(
+                      AppLocalizations.of(context)!
+                          .agendaEventsCount(dailyEvents.length),
+                      style: const TextStyle(
+                          color: AppDesign.textSecondaryDark, fontSize: 12)),
                 ],
               ),
             ),
@@ -449,16 +494,18 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
             dailyEvents.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: dailyEvents.length,
                     itemBuilder: (context, index) {
                       final event = dailyEvents[index];
-                      return _buildTimelineItem(event, isLast: index == dailyEvents.length - 1);
+                      return _buildTimelineItem(event,
+                          isLast: index == dailyEvents.length - 1);
                     },
-            ),
-            
+                  ),
+
             // Padding for FAB
             const SizedBox(height: 80),
           ],
@@ -477,9 +524,12 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.event_available, size: 60, color: AppDesign.textPrimaryDark.withValues(alpha: 0.05)),
+          Icon(Icons.event_available,
+              size: 60,
+              color: AppDesign.textPrimaryDark.withValues(alpha: 0.05)),
           const SizedBox(height: 16),
-          Text(AppLocalizations.of(context)!.agendaNoEventsDay, style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
+          Text(AppLocalizations.of(context)!.agendaNoEventsDay,
+              style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
         ],
       ),
     );
@@ -494,21 +544,24 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
           // Timeline Line & Dot
           Column(
             children: [
-               Container(
-                 width: 12, height: 12,
-                 decoration: BoxDecoration(
-                   color: AppDesign.backgroundDark,
-                   border: Border.all(color: AppDesign.petPink, width: 2),
-                   shape: BoxShape.circle,
-                 ),
-               ),
-               Expanded(
-                 child: isLast ? const SizedBox() : Container(width: 2, color: Colors.white10),
-               )
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: AppDesign.backgroundDark,
+                  border: Border.all(color: AppDesign.petPink, width: 2),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              Expanded(
+                child: isLast
+                    ? const SizedBox()
+                    : Container(width: 2, color: Colors.white10),
+              )
             ],
           ),
           const SizedBox(width: 16),
-          
+
           // Content
           Expanded(
             child: Padding(
@@ -532,20 +585,29 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                           children: [
                             Text(
                               DateFormat('HH:mm').format(date),
-                              style: GoogleFonts.poppins(color: AppDesign.petPink, fontWeight: FontWeight.bold, fontSize: 16),
+                              style: GoogleFonts.poppins(
+                                  color: AppDesign.petPink,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           event['title'],
-                          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark, fontWeight: FontWeight.bold, fontSize: 15),
+                          style: GoogleFonts.poppins(
+                              color: AppDesign.textPrimaryDark,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15),
                         ),
-                        if (event['content'] != null && event['content'].toString().isNotEmpty) ...[
+                        if (event['content'] != null &&
+                            event['content'].toString().isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Text(
                             event['content'],
-                            style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 13),
+                            style: GoogleFonts.poppins(
+                                color: AppDesign.textSecondaryDark,
+                                fontSize: 13),
                           ),
                         ],
                       ],
@@ -560,5 +622,3 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
     );
   }
 }
-
-

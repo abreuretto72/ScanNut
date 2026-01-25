@@ -23,7 +23,7 @@ class IdentityFragment extends StatelessWidget {
   final List<String> activityOptions;
   final Map<String, List<File>> attachments;
   final Map<String, dynamic>? currentRawAnalysis;
-  
+
   final Function(String) onEspecieChanged;
   final Function(String) onSexoChanged;
   final Function(String?) onPorteChanged;
@@ -76,179 +76,188 @@ class IdentityFragment extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        // 1. NAME CARD
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle('Nome do Pet', icon: Icons.pets),
-                const SizedBox(height: 12),
-                ProfileDesignSystem.buildTextField(
-                  controller: nameController,
-                  label: 'Nome',
-                  icon: Icons.edit,
-                  isRequired: false,
-                  fontSize: 18,
-                  onChanged: onUserTyping,
-                ),
-              ],
+          // 1. NAME CARD
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle('Nome do Pet',
+                      icon: Icons.pets),
+                  const SizedBox(height: 12),
+                  ProfileDesignSystem.buildTextField(
+                    controller: nameController,
+                    label: 'Nome',
+                    icon: Icons.edit,
+                    isRequired: false,
+                    fontSize: 18,
+                    onChanged: onUserTyping,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        
-        const SizedBox(height: 12),
 
-        // 2. SPECIES
-        // 2. SPECIES (Card Wrapped)
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 ProfileDesignSystem.buildSectionTitle(l10n.species_label, icon: Icons.pets),
-                 const SizedBox(height: 12),
-                 _buildSpeciesSelector(l10n),
-              ],
+          const SizedBox(height: 12),
+
+          // 2. SPECIES
+          // 2. SPECIES (Card Wrapped)
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle(l10n.species_label,
+                      icon: Icons.pets),
+                  const SizedBox(height: 12),
+                  _buildSpeciesSelector(l10n),
+                ],
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 24),
-        
-        /*
+          const SizedBox(height: 24),
+
+          /*
         // 3. BREED (Moved inside RaceDetailsSection for grouping)
         */
-        RaceDetailsSection(
-          racaController: racaController,
-          pesoController: pesoController,
-          porte: porte,
-          currentRawAnalysis: currentRawAnalysis,
-          localizeValue: localizeValue,
-        ),
+          RaceDetailsSection(
+            racaController: racaController,
+            pesoController: pesoController,
+            porte: porte,
+            currentRawAnalysis: currentRawAnalysis,
+            localizeValue: localizeValue,
+          ),
 
-        const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-        const SizedBox(height: 24),
-        
-        // 4. CHARACTERISTICS GROUP (Age, Weight, Size, Sex, Repro)
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 ProfileDesignSystem.buildSectionTitle('Características *', icon: Icons.badge),
-                 const SizedBox(height: 16),
-                 
-                 // Row 1: Age & Weight
-                 Row(
-                   children: [
-                     Expanded(
+          const SizedBox(height: 24),
+
+          // 4. CHARACTERISTICS GROUP (Age, Weight, Size, Sex, Repro)
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle('Características *',
+                      icon: Icons.badge),
+                  const SizedBox(height: 16),
+
+                  // Row 1: Age & Weight
+                  Row(
+                    children: [
+                      Expanded(
                         child: ProfileDesignSystem.buildTextField(
                           controller: idadeController,
                           label: 'Idade',
                           icon: Icons.cake,
                           isRequired: false,
                         ),
-                     ),
-                     if (pesoController != null) ...[
+                      ),
+                      if (pesoController != null) ...[
                         const SizedBox(width: 12),
                         Expanded(
-                            child: ProfileDesignSystem.buildTextField(
-                              controller: pesoController!,
-                              label: 'Peso',
-                              icon: Icons.monitor_weight,
-                              isRequired: false,
-                            ),
+                          child: ProfileDesignSystem.buildTextField(
+                            controller: pesoController!,
+                            label: 'Peso',
+                            icon: Icons.monitor_weight,
+                            isRequired: false,
+                          ),
                         ),
-                     ]
-                   ],
-                 ),
-                 
-                 const SizedBox(height: 16),
-                 
-                 // Row 3: Sex (no title, icon only on first option)
-                 _buildSexSelector(l10n),
-                 
-                 const SizedBox(height: 16),
-                 
-                 // Row 4: Reproductive Status (no title, icon only on first option)
-                 _buildReproStatusSelector(l10n),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 24),
-        
-        // BIOLOGICAL PROFILE CARD
-        Card(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ProfileDesignSystem.buildSectionTitle(l10n.petBiologicalProfile, icon: Icons.science),
-                const SizedBox(height: 16),
-                
-                // 8. ACTIVITY
-                ProfileDesignSystem.buildOptionSelector(
-                  value: nivelAtividade,
-                  label: l10n.petActivityLevel,
-                  icon: Icons.directions_run,
-                  options: activityOptions,
-                  onChanged: (val) => onNivelAtividadeChanged(val!),
-                  isRequired: false,
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // 9. MICROCHIP
-                if (microchipController != null)
-                  ProfileDesignSystem.buildTextField(
-                    controller: microchipController!,
-                    label: 'Código do Microchip',
-                    icon: Icons.qr_code_2,
-                    keyboardType: TextInputType.number,
-                    onChanged: onUserTyping,
+                      ]
+                    ],
                   ),
-                
-                if (microchipController != null) const SizedBox(height: 16),
-                
-                // 10. IDENTITY ATTACHMENTS
-                Divider(color: Colors.white.withValues(alpha: 0.1)),
-                const SizedBox(height: 12),
-                AttachmentSection(
-                  title: l10n.pdfIdentitySection,
-                  files: attachments['identity'] ?? [],
-                  onAdd: onAddAttachment,
-                  onDelete: onDeleteAttachment,
-                ),
-              ],
+
+                  const SizedBox(height: 16),
+
+                  // Row 3: Sex (no title, icon only on first option)
+                  _buildSexSelector(l10n),
+
+                  const SizedBox(height: 16),
+
+                  // Row 4: Reproductive Status (no title, icon only on first option)
+                  _buildReproStatusSelector(l10n),
+                ],
+              ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 24),
-        CumulativeObservationsField(
-          sectionName: 'Identidade',
-          initialValue: observacoesIdentidade,
-          onChanged: onObservacoesChanged,
-          icon: Icons.pets,
-          accentColor: AppDesign.petPink,
-        ),
-      ],
+          const SizedBox(height: 24),
+
+          // BIOLOGICAL PROFILE CARD
+          Card(
+            color: Colors.white.withValues(alpha: 0.05),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ProfileDesignSystem.buildSectionTitle(
+                      l10n.petBiologicalProfile,
+                      icon: Icons.science),
+                  const SizedBox(height: 16),
+
+                  // 8. ACTIVITY
+                  ProfileDesignSystem.buildOptionSelector(
+                    value: nivelAtividade,
+                    label: l10n.petActivityLevel,
+                    icon: Icons.directions_run,
+                    options: activityOptions,
+                    onChanged: (val) => onNivelAtividadeChanged(val!),
+                    isRequired: false,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // 9. MICROCHIP
+                  if (microchipController != null)
+                    ProfileDesignSystem.buildTextField(
+                      controller: microchipController!,
+                      label: 'Código do Microchip',
+                      icon: Icons.qr_code_2,
+                      keyboardType: TextInputType.number,
+                      onChanged: onUserTyping,
+                    ),
+
+                  if (microchipController != null) const SizedBox(height: 16),
+
+                  // 10. IDENTITY ATTACHMENTS
+                  Divider(color: Colors.white.withValues(alpha: 0.1)),
+                  const SizedBox(height: 12),
+                  AttachmentSection(
+                    title: l10n.pdfIdentitySection,
+                    files: attachments['identity'] ?? [],
+                    onAdd: onAddAttachment,
+                    onDelete: onDeleteAttachment,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          CumulativeObservationsField(
+            sectionName: 'Identidade',
+            initialValue: observacoesIdentidade,
+            onChanged: onObservacoesChanged,
+            icon: Icons.pets,
+            accentColor: AppDesign.petPink,
+          ),
+        ],
       ),
     );
   }
@@ -278,7 +287,9 @@ class IdentityFragment extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: selected ? AppDesign.petPink.withValues(alpha: 0.1) : Colors.transparent,
+            color: selected
+                ? AppDesign.petPink.withValues(alpha: 0.1)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -290,7 +301,10 @@ class IdentityFragment extends StatelessWidget {
                 activeColor: AppDesign.petPink,
                 onChanged: (val) => onEspecieChanged(val!),
               ),
-              Text(label, style: TextStyle(color: selected ? Colors.white : Colors.white60, fontSize: 13)),
+              Text(label,
+                  style: TextStyle(
+                      color: selected ? Colors.white : Colors.white60,
+                      fontSize: 13)),
             ],
           ),
         ),
@@ -315,7 +329,10 @@ class IdentityFragment extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               '${l10n.reliability_label}: $reliability',
-              style: const TextStyle(color: AppDesign.petPink, fontSize: 11, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: AppDesign.petPink,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -348,7 +365,9 @@ class IdentityFragment extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppDesign.petPink.withValues(alpha: 0.1) : Colors.transparent,
+            color: selected
+                ? AppDesign.petPink.withValues(alpha: 0.1)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -360,7 +379,11 @@ class IdentityFragment extends StatelessWidget {
                 activeColor: AppDesign.petPink,
                 onChanged: (val) => onSexoChanged(val!),
               ),
-              Expanded(child: Text(label, style: TextStyle(color: selected ? Colors.white : Colors.white60, fontSize: 13))),
+              Expanded(
+                  child: Text(label,
+                      style: TextStyle(
+                          color: selected ? Colors.white : Colors.white60,
+                          fontSize: 13))),
             ],
           ),
         ),
@@ -393,7 +416,9 @@ class IdentityFragment extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? AppDesign.petPink.withValues(alpha: 0.1) : Colors.transparent,
+            color: selected
+                ? AppDesign.petPink.withValues(alpha: 0.1)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -405,7 +430,11 @@ class IdentityFragment extends StatelessWidget {
                 activeColor: AppDesign.petPink,
                 onChanged: (val) => onStatusReprodutivoChanged(val!),
               ),
-              Expanded(child: Text(label, style: TextStyle(color: selected ? Colors.white : Colors.white60, fontSize: 13))),
+              Expanded(
+                  child: Text(label,
+                      style: TextStyle(
+                          color: selected ? Colors.white : Colors.white60,
+                          fontSize: 13))),
             ],
           ),
         ),

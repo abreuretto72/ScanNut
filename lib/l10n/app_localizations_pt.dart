@@ -9,6 +9,41 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String get petChatTitle => 'Conversar com ScanNut AI';
+
+  @override
+  String get petChatPrompt => 'Pergunte algo sobre seu pet...';
+
+  @override
+  String get petChatDangerousAlert => '⚠️ Alerta de Perigo';
+
+  @override
+  String get petChatSafeAlert => '✅ Informação Confirmada';
+
+  @override
+  String petChatNoData(Object domain) {
+    return 'Ainda não tenho registros de $domain para este pet.';
+  }
+
+  @override
+  String get petChatIdentity => 'identidade';
+
+  @override
+  String get petChatHealth => 'saúde';
+
+  @override
+  String get petChatNutrition => 'nutrição';
+
+  @override
+  String get petChatTravel => 'viagens';
+
+  @override
+  String get petChatAgenda => 'agenda';
+
+  @override
+  String get petChatPlans => 'planos';
+
+  @override
   String get appTitle => 'ScanNut';
 
   @override
@@ -6985,6 +7020,110 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get travelDocFelvDesc =>
       'Importante para estadias em hotéis pet e segurança do felino.';
+
+  @override
+  String get tabScanWalk => 'ScanWalk';
+
+  @override
+  String get scanWalkNoPetError =>
+      'É necessário ter pelo menos um pet cadastrado para iniciar um passeio.';
+
+  @override
+  String get scanWalkTitle => 'Passeios Inteligentes';
+
+  @override
+  String get scanWalkMap => 'Mapa Interativo';
+
+  @override
+  String get scanWalkFriends => 'Amigos Encontrados';
+
+  @override
+  String get scanWalkAlerts => 'Zonas de Risco';
+
+  @override
+  String get scanWalkStart => 'Iniciar Passeio';
+
+  @override
+  String get scanWalkDistance => 'Distância';
+
+  @override
+  String get scanWalkDuration => 'Duração';
+
+  @override
+  String get walkXixi => 'Xixi';
+
+  @override
+  String get walkFezes => 'Fezes';
+
+  @override
+  String get walkAgua => 'Água';
+
+  @override
+  String get walkOutros => 'Outros';
+
+  @override
+  String get walkAmigo => 'Amigo';
+
+  @override
+  String get walkLatido => 'Latido';
+
+  @override
+  String get walkPerigo => 'Perigo';
+
+  @override
+  String get walkBrigas => 'Brigas';
+
+  @override
+  String get walkBristolScore => 'Escala Bristol';
+
+  @override
+  String get walkFriendDesc => 'Nome do Amigo';
+
+  @override
+  String get walkHazardDesc => 'Tipo de Perigo';
+
+  @override
+  String get walkFightDesc => 'Detalhes da Briga';
+
+  @override
+  String get walkDemoBtn => 'Demonstração';
+
+  @override
+  String get walkMicRec => 'Ouvindo...';
+
+  @override
+  String get walkCamRec => 'Foto capturada';
+
+  @override
+  String get walkBristolIdeal => 'Ideal';
+
+  @override
+  String get walkBristolConstipated => 'Duro';
+
+  @override
+  String get walkBristolLiquid => 'Líquido';
+
+  @override
+  String get walkExitConfirm => 'Deseja encerrar o passeio?';
+
+  @override
+  String get walkSaveSuccess => 'Registro salvo no 9º Relatório!';
+
+  @override
+  String get walkVoicePromptFriend => 'Diga o nome, sexo e idade do amigo.';
+
+  @override
+  String get walkVoicePromptDanger =>
+      'Diga o que é o perigo (ex: vidro, veneno).';
+
+  @override
+  String get walkVoicePromptFight => 'Diga raça e sexo do agressor.';
+
+  @override
+  String get walkAnalysisStool => 'Analisando Fezes (IA)...';
+
+  @override
+  String get walkAnalysisBark => 'Analisando Vocalização (IA)...';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).

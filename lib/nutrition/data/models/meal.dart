@@ -49,7 +49,9 @@ class Meal extends HiveObject {
       tipo: json['tipo'] ?? '',
       recipeId: json['recipeId'],
       nomePrato: json['nomePrato'],
-      itens: (json['itens'] as List?)?.map((i) => MealItem.fromJson(i)).toList() ?? [],
+      itens:
+          (json['itens'] as List?)?.map((i) => MealItem.fromJson(i)).toList() ??
+              [],
       observacoes: json['observacoes'] ?? '',
       criadoEm: DateTime.parse(json['criadoEm']),
     );

@@ -17,7 +17,8 @@ class UserProfileService {
       if (!Hive.isAdapterRegistered(23)) {
         Hive.registerAdapter(UserProfileAdapter());
       }
-      _box = await HiveAtomicManager().ensureBoxOpen<UserProfile>(boxName, cipher: cipher);
+      _box = await HiveAtomicManager()
+          .ensureBoxOpen<UserProfile>(boxName, cipher: cipher);
       debugPrint('✅ UserProfileService initialized (Secure).');
     } catch (e) {
       debugPrint('❌ Error initializing Secure UserProfileService: $e');

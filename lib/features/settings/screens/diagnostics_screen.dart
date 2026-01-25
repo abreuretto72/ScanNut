@@ -25,7 +25,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
   Future<void> _runTests() async {
     setState(() => _isRunning = true);
-    
+
     final results = <String, dynamic>{
       'timestamp': DateTime.now().toIso8601String(),
       'steps': [],
@@ -36,7 +36,9 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
       results['steps'].add({
         'name': 'Conectividade',
         'success': connectivity.isNotEmpty,
-        'detail': connectivity.isNotEmpty ? 'Conectado a google.com' : 'Sem acesso a google.com',
+        'detail': connectivity.isNotEmpty
+            ? 'Conectado a google.com'
+            : 'Sem acesso a google.com',
       });
     } catch (e) {
       results['steps'].add({
@@ -55,7 +57,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
   void _copyLogs() {
     Clipboard.setData(ClipboardData(text: logger.getLogsAsString()));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logs copiados para a área de transferência')),
+      const SnackBar(
+          content: Text('Logs copiados para a área de transferência')),
     );
   }
 
@@ -84,7 +87,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           ElevatedButton.icon(
             onPressed: _isRunning ? null : _runTests,
             icon: const Icon(Icons.play_arrow),
-            label: Text('Executar Testes de Conectividade', style: GoogleFonts.poppins()),
+            label: Text('Executar Testes de Conectividade',
+                style: GoogleFonts.poppins()),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00E676).withValues(alpha: 0.2),
               foregroundColor: const Color(0xFF00E676),
@@ -93,13 +97,15 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           ),
           const SizedBox(height: 24),
           if (_isRunning)
-            const Center(child: CircularProgressIndicator(color: Color(0xFF00E676)))
+            const Center(
+                child: CircularProgressIndicator(color: Color(0xFF00E676)))
           else if (_diagnosticResults != null)
             _buildResultsList(),
           const SizedBox(height: 32),
           Text(
             'Timeline de Logs:',
-            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           _buildLogsView(),
@@ -131,9 +137,16 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Text(label, style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(label,
+              style: GoogleFonts.poppins(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
-          Expanded(child: Text(value, style: GoogleFonts.poppins(color: Colors.white, fontSize: 12))),
+          Expanded(
+              child: Text(value,
+                  style:
+                      GoogleFonts.poppins(color: Colors.white, fontSize: 12))),
         ],
       ),
     );
@@ -149,8 +162,10 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             success ? Icons.check_circle : Icons.error,
             color: success ? Colors.green : Colors.red,
           ),
-          title: Text(step['name'], style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-          subtitle: Text(step['detail'], style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12)),
+          title: Text(step['name'],
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
+          subtitle: Text(step['detail'],
+              style: GoogleFonts.poppins(color: Colors.white60, fontSize: 12)),
         );
       }).toList(),
     );
