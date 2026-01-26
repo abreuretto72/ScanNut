@@ -2292,6 +2292,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petNutrition => '🍖 Nutrition';
 
   @override
+  String get foodChatMicUnavailable => 'Microphone unavailable.';
+
+  @override
+  String get foodChatStartListening => 'Tap to speak';
+
+  @override
+  String get foodChatStopListening => 'Stop recording';
+
+  @override
+  String get plantChatTitle => 'ScanNut Plant AI';
+
+  @override
+  String get plantChatPrompt => 'Ask about your plants...';
+
+  @override
+  String get plantChatWelcome =>
+      'Hello! I\'m your botanical assistant. How can I help your garden today?';
+
+  @override
   String get petGallery => 'Gallery';
 
   @override

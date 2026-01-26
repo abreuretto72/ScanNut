@@ -8,6 +8,8 @@ import '../../models/pet_analysis_result.dart';
 import '../../models/pet_profile_extended.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
 
+import '../pet_chat_screen.dart';
+
 /// Premium Dark UI for Pet Analysis Result (360° Dossier)
 /// Replaces the previous light/white design with a dark theme consistent with the App.
 class PetDossierView extends ConsumerStatefulWidget {
@@ -43,10 +45,22 @@ class _PetDossierViewState extends ConsumerState<PetDossierView> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isDiagnosis = widget.analysis.analysisType == 'diagnosis';
+    final petId = widget.petProfile?.id ?? widget.analysis.petId; // Using petId primarily
 
     return Scaffold(
       backgroundColor: AppDesign.backgroundDark,
       appBar: _buildAppBar(context, l10n),
+      floatingActionButton: petId != null ? FloatingActionButton(
+        backgroundColor: AppDesign.petPink,
+        child: const Icon(Icons.psychology, color: Colors.white),
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => PetChatScreen(
+            petId: petId,
+            petName: widget.petName ?? widget.analysis.petName ?? 'Pet',
+            profile: widget.petProfile,
+          )));
+        },
+      ) : null,
       body: SafeArea(
         child: Column(
           children: [

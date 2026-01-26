@@ -199,12 +199,14 @@ Funções do APP
 
 ## ✨ **NOVIDADES DA VERSÃO 1.6.0**
 
-### **🧠 Inteligência Conversacional (NutriChat IA)**
-- **RAG Nutricional:** Nova IA especializada em Food que utiliza o histórico alimentar do usuário para criar contexto. Chat acessível via ícone de "Cérebro" no histórico.
+### **🧠 Inteligência Conversacional (NutriChat IA & Plant AI)**
+- **RAG Nutricional & Botânico:** Nova IA especializada em Food e Plant que utiliza o histórico do usuário para criar contexto. Chat acessível via ícone de "Cérebro".
+- **Comando de Voz (STT):** Interação por voz integrada nos chats de Nutrição, Pet e Plantas. Fale naturalmente para perguntar.
 - **Micro-Apps Isolados:** Arquitetura de IA segregada por domínio (Food, Pet, Plant), cada uma com "System Prompt" e base de conhecimento próprios, evitando contaminação de contexto.
 - **Soberania de Configuração:** O motor de IA é configurável remotamente (`RemoteConfigService`), permitindo troca de modelos (ex: Gemini 1.5 Flash ↔ 2.0) sem update de app.
 
 ### **🛡️ Saneamento de UI e UX (Standard A25)**
+- **UI de Chat Premium:** Input de texto com microfone integrado, feedback visual de gravação e design glassmorphism dark.
 - **PDF Blindado:** Novo padrão visual unificado para relatórios PDF (Fundo Preto + Ícones Funcionais). Compartilhamento nativo reescrito para compatibilidade total com Samsung/Android 14.
 - **Layout Defensivo:** Cards de histórico com proteção anti-overflow (`145px cap`) e imagens "Flush Left" com `BoxFit.cover`. Botões de câmera elevados para não sobrepor a navegação (SafeArea).
 - **Semântica Visual:** Novo ícone `Psychology` (Cérebro) para indicar claramente funcionalidades de IA racional.

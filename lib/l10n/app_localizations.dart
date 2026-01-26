@@ -4427,6 +4427,42 @@ abstract class AppLocalizations {
   /// **'🍖 Alimentação'**
   String get petNutrition;
 
+  /// No description provided for @foodChatMicUnavailable.
+  ///
+  /// In pt, this message translates to:
+  /// **'Microfone indisponível.'**
+  String get foodChatMicUnavailable;
+
+  /// No description provided for @foodChatStartListening.
+  ///
+  /// In pt, this message translates to:
+  /// **'Toque para falar'**
+  String get foodChatStartListening;
+
+  /// No description provided for @foodChatStopListening.
+  ///
+  /// In pt, this message translates to:
+  /// **'Parar gravação'**
+  String get foodChatStopListening;
+
+  /// No description provided for @plantChatTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'ScanNut Plant AI'**
+  String get plantChatTitle;
+
+  /// No description provided for @plantChatPrompt.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pergunte sobre suas plantas...'**
+  String get plantChatPrompt;
+
+  /// No description provided for @plantChatWelcome.
+  ///
+  /// In pt, this message translates to:
+  /// **'Olá! Sou sua assistente botânica. Como posso ajudar seu jardim hoje?'**
+  String get plantChatWelcome;
+
   /// No description provided for @petGallery.
   ///
   /// In pt, this message translates to:

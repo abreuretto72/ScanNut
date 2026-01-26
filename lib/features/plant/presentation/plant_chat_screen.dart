@@ -6,26 +6,24 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
-import '../services/food_ai_chat_service.dart';
+import '../services/plant_ai_service.dart';
 
-class FoodChatScreen extends StatefulWidget {
-  const FoodChatScreen({super.key});
+class PlantChatScreen extends StatefulWidget {
+  const PlantChatScreen({super.key});
 
   @override
-  State<FoodChatScreen> createState() => _FoodChatScreenState();
+  State<PlantChatScreen> createState() => _PlantChatScreenState();
 }
 
-class _FoodChatScreenState extends State<FoodChatScreen> {
+class _PlantChatScreenState extends State<PlantChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final FoodAiChatService _aiService = FoodAiChatService();
+  final PlantAiService _aiService = PlantAiService();
 
   // Speech to Text
   final SpeechToText _speech = SpeechToText();
@@ -33,7 +31,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
   bool _isListening = false;
   String _lastWords = '';
 
-  // Mensagens: {'role': 'user'|'ai', 'text': '...'}
+  // Mensagens
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
 
@@ -42,27 +40,24 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
     super.initState();
     _initSpeech();
     
-    // Mensagem de boas vindas simulada (não salva no histórico de contexto ainda)
     WidgetsBinding.instance.addPostFrameCallback((_) {
        final l10n = AppLocalizations.of(context);
        if (l10n != null) {
          setState(() {
            _messages.add({
              'role': 'ai', 
-             'text': l10n.foodChatWelcome
+             'text': l10n.plantChatWelcome
            });
          });
        }
     });
   }
 
-  /// Inicializa o serviço de reconhecimento de fala
   void _initSpeech() async {
     try {
       _speechEnabled = await _speech.initialize(
         onError: (e) => debugPrint("Speech Error: $e"),
         onStatus: (status) {
-          debugPrint("Speech Status: $status");
           if (status == 'done' || status == 'notListening') {
              if (mounted) setState(() => _isListening = false);
           }
@@ -74,7 +69,6 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
     }
   }
 
-  /// Começa a escutar
   void _startListening() async {
     if (!_speechEnabled) {
       _initSpeech();
@@ -98,28 +92,17 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
       listenMode: ListenMode.dictation,
     );
     
-    if (mounted) {
-      setState(() {
-        _isListening = true;
-      });
-    }
+    if (mounted) setState(() => _isListening = true);
   }
 
-  /// Para de escutar
   void _stopListening() async {
     await _speech.stop();
-    if (mounted) {
-      setState(() {
-        _isListening = false;
-      });
-    }
+    if (mounted) setState(() => _isListening = false);
   }
 
   void _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-
-    final l10n = AppLocalizations.of(context)!;
 
     setState(() {
       _messages.add({'role': 'user', 'text': text});
@@ -127,11 +110,9 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
       _controller.clear();
     });
     _scrollToBottom();
-
-    // Adiciona ao contexto do serviço
+    
     _aiService.addToHistory('user', text);
 
-    // Envia para IA
     final response = await _aiService.sendQuery(text, locale: Localizations.localeOf(context).toString());
 
     if (!mounted) return;
@@ -162,12 +143,12 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
       _messages.clear();
       final l10n = AppLocalizations.of(context);
       if (l10n != null) {
-        _messages.add({'role': 'ai', 'text': l10n.foodChatWelcome});
+        _messages.add({'role': 'ai', 'text': l10n.plantChatWelcome});
       }
     });
   }
 
-  // 📝 GERAÇÃO DE PDF
+  // 📝 PDF EXPORT
   Future<void> _exportPdf() async {
     final l10n = AppLocalizations.of(context)!;
     final dateStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
@@ -176,7 +157,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => PdfPreviewScreen(
-          title: l10n.foodChatExportTitle(dateStr),
+          title: "ScanNut Plant Chat - $dateStr",
           buildPdf: (format) => _generatePdf(format, l10n, dateStr),
         ),
       ),
@@ -203,15 +184,15 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                 constraints: const pw.BoxConstraints(maxWidth: 400),
                 padding: const pw.EdgeInsets.all(10),
                 decoration: pw.BoxDecoration(
-                  color: isUser ? PdfColors.orange100 : PdfColors.grey100,
+                  color: isUser ? PdfColors.green100 : PdfColors.grey100,
                   borderRadius: pw.BorderRadius.circular(8),
-                  border: pw.Border.all(color: isUser ? PdfColors.orange300 : PdfColors.grey300),
+                  border: pw.Border.all(color: isUser ? PdfColors.green300 : PdfColors.grey300),
                 ),
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      isUser ? "Você" : "NutriChat IA",
+                      isUser ? "Você" : "Plant AI",
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.grey700),
                     ),
                     pw.SizedBox(height: 4),
@@ -224,15 +205,6 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
               ),
             );
           }).toList(),
-          pw.SizedBox(height: 20),
-          pw.Divider(color: PdfColors.grey300),
-          pw.Center(
-            child: pw.Text(
-              l10n.foodChatDisclaimer,
-              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey500),
-              textAlign: pw.TextAlign.center,
-            ),
-          ),
         ],
       ),
     );
@@ -246,11 +218,11 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text("ScanNut IA", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.orange800)),
+            pw.Text("ScanNut Plant AI", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 18, color: PdfColors.green800)),
             pw.Text(date, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
           ],
         ),
-        pw.Divider(color: PdfColors.orange800, thickness: 1),
+        pw.Divider(color: PdfColors.green800, thickness: 1),
       ],
     );
   }
@@ -264,7 +236,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
         border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300, width: 0.5)),
       ),
       child: pw.Text(
-        'ScanNut | IA Nutricional | © 2026 Multiverso Digital | contato@multiversodigital.com.br',
+        'ScanNut | Plant Intelligence | © 2026 Multiverso Digital',
         style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
       ),
     );
@@ -277,29 +249,27 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.foodChatTitle), // "NutriChat IA"
-        backgroundColor: AppDesign.foodOrange,
+        title: Text(l10n.plantChatTitle),
+        backgroundColor: Colors.green[800],
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
-            tooltip: l10n.exportPdfTooltip,
             onPressed: _messages.isEmpty ? null : _exportPdf,
           ),
           IconButton(
             icon: const Icon(Icons.delete_sweep),
             onPressed: _clearChat,
-            tooltip: l10n.foodChatClear,
           ),
         ],
       ),
-      backgroundColor: AppDesign.backgroundDark, // #121212
+      backgroundColor: AppDesign.backgroundDark,
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16), // Padding seguro
+              padding: const EdgeInsets.all(16),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
@@ -313,12 +283,12 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
                     decoration: BoxDecoration(
                       color: isUser 
-                          ? AppDesign.foodOrange.withValues(alpha: 0.2) 
-                          : Colors.green.withValues(alpha: 0.1), // Fundo verde leve para IA
+                          ? Colors.green[700]!.withOpacity(0.3)
+                          : Colors.grey[800]!.withOpacity(0.5),
                       border: Border.all(
                         color: isUser 
-                          ? AppDesign.foodOrange.withValues(alpha: 0.5) 
-                          : Colors.green.withValues(alpha: 0.3),
+                          ? Colors.greenAccent.withOpacity(0.5) 
+                          : Colors.white24,
                       ),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
@@ -331,15 +301,15 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isUser ? "Você" : "ScanNut AI",
+                          isUser ? "Você" : "Plant AI",
                           style: GoogleFonts.poppins(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: isUser ? AppDesign.foodOrange : Colors.greenAccent,
+                            color: isUser ? Colors.greenAccent : Colors.tealAccent,
                           ),
                         ),
                         const SizedBox(height: 4),
-                         MarkdownBody(
+                        MarkdownBody(
                           data: msg['text'] ?? '',
                           styleSheet: MarkdownStyleSheet(
                             p: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
@@ -362,94 +332,68 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                 children: [
                   const SizedBox(
                     width: 16, height: 16, 
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppDesign.foodOrange)
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.green)
                   ),
                   const SizedBox(width: 10),
-                  Text(l10n.foodChatRAGProcessing, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text("Analisando jardim...", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
             ),
 
-          // Input Area
           Container(
             padding: const EdgeInsets.all(16).copyWith(
-              bottom: MediaQuery.of(context).padding.bottom + 10 // Safe Area para não invadir botão home
+              bottom: MediaQuery.of(context).padding.bottom + 10
             ), 
             decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
+              color: Colors.black.withOpacity(0.5),
               border: const Border(top: BorderSide(color: Colors.white10)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: _isListening ? Colors.redAccent : Colors.transparent,
-                        width: 1,
+                  child: TextField(
+                    controller: _controller,
+                    minLines: 2,
+                    maxLines: 5,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: l10n.plantChatPrompt,
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      filled: true,
+                      fillColor: Colors.grey[900],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
                       ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _controller,
-                            minLines: 1,
-                            maxLines: 5,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              hintText: l10n.foodChatPrompt,
-                              hintStyle: const TextStyle(color: Colors.white38),
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 14),
-                            ),
-                            onSubmitted: (_) => _sendMessage(),
-                          ),
-                        ),
-                        // Mic Button (Inside)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4, right: 4),
-                          child: IconButton(
-                            onPressed: _speechEnabled
-                                ? (_isListening
-                                    ? _stopListening
-                                    : _startListening)
-                                : () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text(
-                                              l10n.foodChatMicUnavailable)),
-                                    );
-                                  },
-                            icon:
-                                Icon(_isListening ? Icons.mic_off : Icons.mic),
-                            color: _isListening
-                                ? Colors.redAccent
-                                : Colors.white54,
-                            tooltip: _isListening
-                                ? l10n.foodChatStopListening
-                                : l10n.foodChatStartListening,
-                            // Removed background style for cleaner "inside" look
-                          ),
-                        ),
-                      ],
-                    ),
+                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Send Button
+                IconButton(
+                  onPressed: _speechEnabled
+                      ? (_isListening ? _stopListening : _startListening)
+                      : () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.foodChatMicUnavailable)),
+                          );
+                        },
+                  icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
+                  color: _isListening ? Colors.redAccent : Colors.white70,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.grey[800],
+                    shape: const CircleBorder(),
+                  ),
+                ),
+                const SizedBox(width: 4),
                 IconButton(
                   onPressed: _isLoading ? null : _sendMessage,
                   icon: const Icon(Icons.send_rounded),
-                  color: AppDesign.foodOrange,
+                  color: Colors.greenAccent,
                   style: IconButton.styleFrom(
-                    backgroundColor:
-                        AppDesign.foodOrange.withValues(alpha: 0.1),
+                    backgroundColor: Colors.green.withOpacity(0.2),
                     shape: const CircleBorder(),
                   ),
                 ),

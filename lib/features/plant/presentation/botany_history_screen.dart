@@ -15,6 +15,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
 import 'widgets/plant_export_configuration_modal.dart';
 import 'widgets/plant_level_icon.dart';
+import 'plant_chat_screen.dart';
 
 class BotanyHistoryScreen extends StatefulWidget {
   const BotanyHistoryScreen({super.key});
@@ -53,6 +54,11 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
         backgroundColor: AppDesign.backgroundDark,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.psychology, color: AppDesign.plantGreen),
+            tooltip: "Plant AI Chat",
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PlantChatScreen())),
+          ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: () => _showExportModal(context),

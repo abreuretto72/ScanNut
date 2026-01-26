@@ -8,7 +8,7 @@ import '../../../core/theme/app_design.dart';
 import '../../../core/utils/permission_helper.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/pet_profile_extended.dart';
-import '../services/chat/context_aggregator_service.dart';
+import '../services/pet_ai_service.dart';
 
 class ChatMessage {
   final String text;
@@ -47,18 +47,30 @@ class _PetChatScreenState extends ConsumerState<PetChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
-  String _petContext = "";
+  // removed _petContext
 
   late stt.SpeechToText _speech;
   bool _isListeningVoice = false;
   bool _speechAvailable = false;
+  
+  final PetAiService _aiService = PetAiService();
 
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
     _initSpeech();
-    _loadContext();
+    
+    // Welcome message
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+       setState(() {
+         _messages.add(ChatMessage(
+           text: "Olá! Sou o ScanNut AI. Já carreguei todo o histórico do ${widget.petName}. Como posso ajudar hoje?",
+           isUser: false,
+           timestamp: DateTime.now(),
+         ));
+       });
+    });
   }
 
   Future<void> _initSpeech() async {
@@ -144,21 +156,7 @@ class _PetChatScreenState extends ConsumerState<PetChatScreen> {
     }
   }
 
-  Future<void> _loadContext() async {
-    final context =
-        await ContextAggregatorService.aggregateForRag(widget.petId);
-    if (mounted) {
-      setState(() {
-        _petContext = context;
-        _messages.add(ChatMessage(
-          text:
-              "Olá! Sou o ScanNut AI. Já carreguei todo o histórico do ${widget.petName}. Como posso ajudar hoje?",
-          isUser: false,
-          timestamp: DateTime.now(),
-        ));
-      });
-    }
-  }
+  /* removed _loadContext */
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -186,29 +184,15 @@ class _PetChatScreenState extends ConsumerState<PetChatScreen> {
       _controller.clear();
     });
     _scrollToBottom();
+    
+    _aiService.addToHistory('user', text);
 
     try {
-      final gemini = ref.read(geminiServiceProvider);
-
-      final prompt = """
-VOCÊ É O ASSISTENTE DE INTELIGÊNCIA VETERINÁRIA DO SCANNUT.
-CONHECIMENTO DISPONÍVEL: Você tem acesso aos dados de Identidade, Saúde, Nutrição, Viagens e Planos do pet.
-
-CONTEXTO INTEGRADO DO PET:
-$_petContext
-
-DIRETRIZES DE RESPOSTA:
-1. FOCO TOTAL NO CONTEXTO: Analise cuidadosamente as abas de SAÚDE e exames laboratoriais. Se o usuário perguntar sobre um resultado, procure na seção "DETALHES DE EXAMES LABORATORIAIS" e use a "ANÁLISE IA" ou "TEXTO EXTRAÍDO" para responder.
-2. OBSERVAÇÕES: Leve em conta todas as notas manuais feitas pelo tutor em cada aba.
-3. ALERTAS CRÍTICOS: Se a pergunta envolver venenos, chocolate, uva ou qualquer perigo alimentar, comece com "🚨 [DANGER]".
-4. STATUS POSITIVO: Se confirmar saúde perfeita, vacinas em dia ou peso ideal, comece com "✅ [SAFE]".
-5. LINGUAGEM: Responda de forma educativa no idioma do usuário.
-6. TRANSPARÊNCIA: Se a informação não estiver no contexto, diga que não encontrou registro específico no prontuário do pet.
-
-USUÁRIO PERGUNTOU: $text
-""";
-
-      final response = await gemini.generatePlainText(prompt);
+      final response = await _aiService.sendQuery(
+        text, 
+        widget.petId, 
+        locale: Localizations.localeOf(context).toString()
+      );
 
       bool isDangerous = response.contains("🚨 [DANGER]");
       bool isSafe = response.contains("✅ [SAFE]");
@@ -230,13 +214,13 @@ USUÁRIO PERGUNTOU: $text
           _isLoading = false;
         });
         _scrollToBottom();
+        _aiService.addToHistory('model', cleanResponse);
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _messages.add(ChatMessage(
-            text:
-                "Desculpe, tive um problema para processar sua pergunta. Pode tentar de novo?",
+            text: "Desculpe, tive um problema para processar sua pergunta. Pode tentar de novo?",
             isUser: false,
             timestamp: DateTime.now(),
           ));
