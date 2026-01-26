@@ -117,8 +117,14 @@ class ScanWalkReportEngine {
           mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
           children: friendEvents.map((e) {
             final desc = e['description']?.toString() ?? 'Amigo';
-            final name =
-                desc.replaceAll('Encontrou: ', '').split('(').first.trim();
+            final name = desc
+                .replaceAll('Encontrou: ', '')
+                .replaceAll('Manual: ', '')
+                .split('(')
+                .first
+                .split('•')
+                .first
+                .trim();
             return _buildFriendCircle(name, 'Pet');
           }).toList(),
         ),

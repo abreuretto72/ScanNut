@@ -19,5 +19,6 @@ class AnalysisSuccess<T> extends AnalysisState {
 
 class AnalysisError extends AnalysisState {
   final String message;
-  AnalysisError(this.message);
+  final String? visualFeedback; // 🛡️ V231: feedback visual (ex: 'critico' para fundo vermelho)
+  AnalysisError(this.message, {this.visualFeedback});
 }

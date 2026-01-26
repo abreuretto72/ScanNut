@@ -2,9 +2,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_design.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../models/walk_models.dart';
+import '../../services/friend_service.dart';
+import './friend_registration_form.dart';
 
-/// 🎯 Multimodal Capture Modal (Enhanced with Bristol Scale)
+/// 🎯 Multimodal Capture Modal (Enhanced with Bristol Scale and Manual Friend Registration)
 class MultimodalCaptureModal extends StatefulWidget {
   final WalkEventType eventType;
   final Function(Map<String, dynamic>?) onCapturePhoto;
@@ -28,19 +31,58 @@ class MultimodalCaptureModal extends StatefulWidget {
 }
 
 class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
-  // Bristol Scale State
   double _bristolScore = 3.0; // Normal/Ideal start
+  String? _manualDescription;
 
   Map<String, dynamic> get _currentData {
+    final data = <String, dynamic>{};
     if (widget.eventType == WalkEventType.poo) {
-      return {'bristol_score': _bristolScore.toInt()};
+      data['bristol_score'] = _bristolScore.toInt();
     }
-    return {};
+    if (_manualDescription != null) {
+      data['description'] = _manualDescription;
+    }
+    return data;
+  }
+
+  void _showManualFriendForm() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FriendRegistrationForm(
+        onSave: (friend) async {
+          final service = FriendService();
+          await service.init();
+          await service.saveFriend(friend);
+          
+          if (mounted) {
+            setState(() {
+              _manualDescription =
+                  'Manual: ${friend.name} (${friend.breed}) - Tutor: ${friend.ownerName}';
+            });
+
+
+
+            // Registra os dados mas mantém o modal aberto para o usuário ver ou adicionar foto
+            widget.onQuickLog(_currentData);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.friendSaveSuccess),
+                backgroundColor: AppDesign.success,
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final eventLabel = _getEventLabel(widget.eventType);
+    final l10n = AppLocalizations.of(context)!;
+    final eventLabel = _getEventLabel(context, widget.eventType);
     final eventColor = _getEventColor(widget.eventType);
     final eventIcon = _getEventIcon(widget.eventType);
 
@@ -91,7 +133,7 @@ class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
                             ),
                           ),
                           Text(
-                            'Escolha como documentar',
+                            l10n.loadingMsgWait.replaceAll('...', ''), // "Escolha como documentar" localized or similar
                             style: GoogleFonts.poppins(
                               color: Colors.white60,
                               fontSize: 12,
@@ -121,7 +163,7 @@ class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
                     ),
                     child: Column(
                       children: [
-                        Text("Escala de Bristol: ${_bristolScore.toInt()}",
+                        Text("${l10n.walkBristolScore}: ${_bristolScore.toInt()}",
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold)),
@@ -132,12 +174,12 @@ class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
                           divisions: 6,
                           activeColor: Colors.brown,
                           inactiveColor: Colors.white10,
-                          label: _getBristolLabel(_bristolScore.toInt()),
+                          label: _getBristolLabel(context, _bristolScore.toInt()),
                           onChanged: (val) =>
                               setState(() => _bristolScore = val),
                         ),
                         Text(
-                          _getBristolLabel(_bristolScore.toInt()),
+                          _getBristolLabel(context, _bristolScore.toInt()),
                           style:
                               TextStyle(color: Colors.brown[200], fontSize: 13),
                           textAlign: TextAlign.center,
@@ -149,56 +191,87 @@ class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
                 ],
 
                 // Capture Options
-                _buildCaptureOption(
-                  icon: Icons.camera_alt,
-                  label: 'Capturar Foto',
-                  description: 'Evidência visual do evento',
-                  color: Colors.blue,
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.onCapturePhoto(_currentData);
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                _buildCaptureOption(
-                  icon: Icons.mic,
-                  label: 'Gravar Nota de Voz',
-                  description: _getVoiceDescription(widget.eventType),
-                  color: Colors.purple,
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.onRecordVoice(_currentData);
-                  },
-                  isRecording: widget.isRecording,
-                ),
-
-                const SizedBox(height: 12),
-
-                _buildCaptureOption(
-                  icon: Icons.graphic_eq,
-                  label: 'Capturar Som',
-                  description: widget.eventType == WalkEventType.bark
-                      ? 'Análise emocional por IA'
-                      : 'Captura de áudio ambiente',
-                  color: Colors.orange,
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.onCaptureSound(_currentData);
-                  },
-                ),
-
                 if (widget.eventType == WalkEventType.friend) ...[
+                  // 1. Tirar foto do amigo
+                  _buildCaptureOption(
+                    icon: Icons.camera_alt,
+                    label: l10n.walkFriendPhoto,
+                    description: 'Evidência visual do encontro',
+                    color: Colors.blue,
+                    onTap: () {
+                      // Navigator.pop(context); // Mantém o modal aberto para retorno
+                      widget.onCapturePhoto(_currentData);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  // 2. Cadastrar o amigo e tutor
+                  _buildCaptureOption(
+                    icon: Icons.edit_note,
+                    label: l10n.walkFriendManualFull,
+                    description: l10n.walkFriendManualDesc,
+                    color: Colors.pinkAccent,
+                    onTap: _showManualFriendForm,
+                  ),
+                  const SizedBox(height: 12),
+                  // 3. Ditar ocorrências
+                  _buildCaptureOption(
+                    icon: Icons.mic,
+                    label: l10n.walkFriendVoice,
+                    description: _getVoiceDescription(context, widget.eventType),
+                    color: Colors.purple,
+                    onTap: () {
+                      // Navigator.pop(context); // Mantém o modal aberto para retorno
+                      widget.onRecordVoice(_currentData);
+                    },
+                    isRecording: widget.isRecording,
+                  ),
+                  const SizedBox(height: 12),
+                  // 4. Gravar latidos / miados do amigo
+                  _buildCaptureOption(
+                    icon: Icons.graphic_eq,
+                    label: l10n.walkFriendSound,
+                    description: l10n.walkAnalysisBark,
+                    color: Colors.orange,
+                    onTap: () {
+                      // Navigator.pop(context); // Mantém o modal aberto para retorno
+                      widget.onCaptureSound(_currentData);
+                    },
+                  ),
+                ] else ...[
+                  // Standard Generic Options
+                  _buildCaptureOption(
+                    icon: Icons.camera_alt,
+                    label: l10n.btn_capture_photo,
+                    description: 'Evidência visual do evento',
+                    color: Colors.blue,
+                    onTap: () {
+                      // Navigator.pop(context); // Mantém o modal aberto para retorno
+                      widget.onCapturePhoto(_currentData);
+                    },
+                  ),
                   const SizedBox(height: 12),
                   _buildCaptureOption(
-                    icon: Icons.auto_awesome,
-                    label: 'Demonstrar App',
-                    description: 'Mostre o ScanNut para o novo amigo!',
-                    color: Colors.pinkAccent,
+                    icon: Icons.mic,
+                    label: l10n.btn_voice_note,
+                    description: _getVoiceDescription(context, widget.eventType),
+                    color: Colors.purple,
                     onTap: () {
-                      Navigator.pop(context);
-                      widget.onQuickLog(_currentData);
+                      // Navigator.pop(context); // Mantém o modal aberto para retorno
+                      widget.onRecordVoice(_currentData);
+                    },
+                    isRecording: widget.isRecording,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildCaptureOption(
+                    icon: Icons.graphic_eq,
+                    label: l10n.btn_capture_sound,
+                    description: widget.eventType == WalkEventType.bark
+                        ? l10n.walkAnalysisBark
+                        : 'Captura de áudio ambiente',
+                    color: Colors.orange,
+                    onTap: () {
+                      // Navigator.pop(context); // Mantém o modal aberto para retorno
+                      widget.onCaptureSound(_currentData);
                     },
                   ),
                 ],
@@ -210,11 +283,11 @@ class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      Navigator.pop(context);
+                      Navigator.pop(context); // Aqui o pop é necessário para finalizar
                       widget.onQuickLog(_currentData);
                     },
                     icon: const Icon(Icons.flash_on, size: 18),
-                    label: const Text('Registro Rápido (Sem Mídia)'),
+                    label: Text(l10n.btn_quick_reg),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white70,
                       side: const BorderSide(color: Colors.white24),
@@ -307,7 +380,8 @@ class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
     );
   }
 
-  String _getBristolLabel(int score) {
+  String _getBristolLabel(BuildContext context, int score) {
+    final l10n = AppLocalizations.of(context)!;
     switch (score) {
       case 1:
         return "Tipo 1: Caroços duros separados";
@@ -328,35 +402,37 @@ class _MultimodalCaptureModalState extends State<MultimodalCaptureModal> {
     }
   }
 
-  String _getVoiceDescription(WalkEventType type) {
+  String _getVoiceDescription(BuildContext context, WalkEventType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case WalkEventType.friend:
-        return 'Fale: Nome, Idade, Sexo e Nome do Tutor';
+        return l10n.walkVoicePromptFriend;
       case WalkEventType.fight:
-        return 'Fale: Nome, Sexo, Idade e Raça do outro animal';
+        return l10n.walkVoicePromptFight;
       default:
         return 'Descreva o que observou';
     }
   }
 
-  String _getEventLabel(WalkEventType type) {
+  String _getEventLabel(BuildContext context, WalkEventType type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case WalkEventType.pee:
-        return 'Xixi';
+        return l10n.walkXixi;
       case WalkEventType.poo:
-        return 'Fezes';
+        return l10n.walkFezes;
       case WalkEventType.water:
-        return 'Água';
+        return l10n.walkAgua;
       case WalkEventType.others:
-        return 'Outros';
+        return l10n.walkOutros;
       case WalkEventType.friend:
-        return 'Amigo';
+        return l10n.walkAmigo;
       case WalkEventType.bark:
-        return 'Latido';
+        return l10n.walkLatido;
       case WalkEventType.hazard:
-        return 'Perigo';
+        return l10n.walkPerigo;
       case WalkEventType.fight:
-        return 'Brigas';
+        return l10n.walkBrigas;
       default:
         return 'Evento';
     }

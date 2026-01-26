@@ -29,21 +29,13 @@ class PetPrompts {
 $languageInstruction
 $contextBlock
 
-Act as a Senior Veterinary Diagnostic Expert. 
-You are performing an AUTOMATIC CLINICAL TRIAGE.
+You are a Senior Veterinary Diagnostic Expert.
+ANALYZE THE ATTACHED IMAGE IGNORING ANY GENERIC CATEGORY FILTERS.
 
-1. **LÓGICA DE DECISÃO (VISUAL MATCH)**:
-Identify the region in the image and process accordingly:
-- **Ocular Area**: Eye analysis (Hyperemia, Opacity, Secretion).
-- **Oral Area**: Dental analysis (Tartar, Gingivitis, Halitosis).
-- **Cutaneous Area**: Skin analysis (Alopecia, Ectoparasites, Scaling).
-- **Exposed Lesion**: Wound analysis (Depth, Secretion, Edges).
-- **Organic Waste (Stool)**: Coprological analysis (Bristol Score, Color, Inclusions).
-
-2. **PROTOCOL**:
-- Return ONLY the relevant specialist details object based on the detected category.
-- If 'Olhos' is detected, 'dental_details' should be null.
-- Set 'urgency_level' based on clinical findings (Red = Emergency).
+1. **DECISION LOGIC (CLINICAL FOCUS)**:
+- If eye/oral/skin/wound issues are detected, identify the lesion.
+- If stool is detected, use the Bristol scale.
+- GOLDEN RULE: If diagnosis is inconclusive, DO NOT return a category error. Return "urgency_level": "Vermelho" (or Red) and "immediate_care": "Imagem inconclusiva, requer nova captura com melhor iluminação e foco."
 
 Mandatory JSON Structure:
 {
@@ -86,10 +78,7 @@ Mandatory JSON Structure:
   "immediate_care": "string (First aid + Vet recommendation in $languageName)"
 }
 
-IMPORTANT:
-- Use only the detected category's detail object. The others should be omitted or null.
-- Include a legal disclaimer in 'immediate_care'.
-- IF THE IMAGE IS NOT A PET, return: {"error": "not_pet"}.
+- include a legal disclaimer in 'immediate_care'.
 ''';
   }
 
@@ -123,49 +112,30 @@ You are an expert Veterinary AI and Animal Nutritionist. Your task is to analyze
       - coat_type: Use "Corto", "Largo", "Doble", "Duro", "Rizado".
       - grooming_frequency: Use "Diaria", "Semanal", "Quincenal", "Mensual".
 
-[STRUCTURE]
+[STRICT JSON SCHEMA - FLATTENING PROTOCOL (v2.5)]
+You MUST return a FLAT JSON object. NO NESTING.
+MANDATORY FIELDS (Must be estimated if not visible):
+
 {
-  "identification": {
-    "species": "string (Identify species in $languageName - e.g. Cão/Gato)",
-    "breed": "string (Identify breed in $languageName)",
-    "lineage": "string (Classification: Trabalho/Companhia/Show/Esporte - in $languageName)", 
-    "origin_region": "string (Country/Region of origin - e.g. Alemanha, Reino Unido - in $languageName)",
-    "morphology_type": "string (e.g. Mesocéfalo, Braquicefálico, Dolicocéfalo - in $languageName)",
-    "size": "string (Small/Medium/Large/Giant - translated to $languageName)",
-    "longevity": "string (e.g. 12-15 years - in $languageName)"
+  "raca": "string (Identificação exata ou SRD com porte - em $languageName)",
+  "linhagem": "string (Companhia, Trabalho, Caça, Esporte - em $languageName)",
+  "regiao": "string (País de origem da raça - em $languageName)",
+  "morfologia": "string (Mesocéfalo, Braquicefálico, Dolicocéfalo - em $languageName)",
+  "longevidade": "string (Ex: 12-15 anos - em $languageName)",
+  "descricao_visual": "string (Descrição detalhada da pelagem e estado visível - em $languageName)",
+  "caracteristicas": "string (Traços de personalidade e comportamento social - em $languageName)",
+  "recomendacao": "string (Protocolo de checkup e cuidados específicos - em $languageName)",
+  "nivel_risco": "Verde" | "Amarelo" | "Vermelho",
+  "predisposicoes": ["string", "string"],
+  "curva_peso": {
+    "3_meses": "string (kg)",
+    "6_meses": "string (kg)",
+    "adulto": "string (kg)"
   },
-  "growth_curve": {
-    "weight_3_months": "string (Estimated kg)",
-    "weight_6_months": "string (Estimated kg)",
-    "weight_12_months": "string (Estimated kg)",
-    "adult_weight": "string (Estimated kg)"
-  },
-  "grooming": {
-    "coat_type": "string (in $languageName)",
-    "grooming_frequency": "string (in $languageName)"
-  },
-  "nutrition": {
-    "kcal_puppy": "string (Estimated daily kcal)",
-    "kcal_adult": "string (Estimated daily kcal)",
-    "kcal_senior": "string (Estimated daily kcal)",
-    "target_nutrients": ["string in $languageName"]
-  },
-  "health": {
-    "predispositions": ["string in $languageName", "string in $languageName"],
-    "preventive_checkup": "string (in $languageName)"
-  },
-  "lifestyle": {
-    "activity_level": "string (strictly in $languageName)",
-    "environment_type": "string (strictly in $languageName)",
-    "training_intelligence": "string (in $languageName)"
-  },
-  "behavior": {
-    "personality": "string (Descriptive personality traits inferred from breed/expression in $languageName)",
-    "social_behavior": "string (How they interact with humans/pets in $languageName)", 
-    "energy_level_desc": "string (Detailed description of energy needs in $languageName)"
-  },
-  "metadata": {
-    "reliability": "string (e.g. '98%' or 'Alta' - estimate AI confidence)"
+  "metas_caloricas": {
+    "filhote": "string (kcal)",
+    "adulto": "string (kcal)",
+    "senior": "string (kcal)"
   }
 }
 
@@ -194,8 +164,8 @@ If the image has no detectable features or information (e.g., a blank wall), ret
 $languageInstruction
 $contextBlock
 
-Act as a specialized Veterinary Coprologist and Diagnostic Expert. 
-You are performing a DEEP COPROLOGICAL ANALYSIS on a pet stool sample image.
+You are a specialized Veterinary Coprologist and Diagnostic Expert.
+ANALYZE THE ATTACHED STOOL SAMPLE IGNORING ANY GENERIC CATEGORY FILTERS.
 
 MISSION: Segment the sample into data layers:
 
@@ -236,9 +206,59 @@ Mandatory JSON Structure:
   "immediate_care": "string (Home care advice + disclaimer in $languageName)"
 }
 
-IMPORTANT:
-- IF THE IMAGE IS NOT STOOL/FEZES, return: {"error": "not_stool"}.
 - Be precise. If blood (Red) or tar-like (Black) stool is detected, set urgency to RED immediately.
+''';
+  }
+
+  /// Prompt especializado para Análise de Vocalização (Latidos/Miados)
+  static String getPetVocalizationPrompt(
+      String languageName, String languageInstruction, bool isPortuguese,
+      {Map<String, String>? contextData}) {
+    String contextBlock = "";
+    if (contextData != null &&
+        (contextData.containsKey('species') ||
+            contextData.containsKey('breed'))) {
+      contextBlock = '''
+        CONTEXT (SOURCE OF TRUTH): 
+        Target Pet Species: ${contextData['species'] ?? 'Unknown'}
+        Target Pet Breed: ${contextData['breed'] ?? 'Unknown'}
+        ''';
+    }
+
+    return '''
+$languageInstruction
+$contextBlock
+
+You are a Veterinary Ethologist and Animal Behaviorist specialized in vocalization analysis.
+ANALYZE THE ATTACHED AUDIO (or audio description) OF THE PET.
+
+MISSION: Identify the emotional state and potential needs based on the vocalization pattern.
+
+1. **EMOTIONAL MAPPING**:
+   - Classify the state: (Alert, Playful, Anxious, Aggressive, Pain, Fear, Seeking Attention).
+   - Rate the intensity and frequency.
+
+2. **ACOUSTIC DESCRIPTION**:
+   - Describe the pitch (High/Low), duration, and repetition pattern.
+
+3. **CONGRUENCE ANALYSIS**:
+   - For a ${contextData?['breed'] ?? 'pet'}, is this vocalization typical or a sign of distress?
+
+Mandatory JSON Structure:
+{
+  "analysis_type": "vocalization_analysis",
+  "emotional_state": "string (Dominant emotion in $languageName)",
+  "intensity": "string (Low | Medium | High)",
+  "vocalization_pattern": "string (Short description in $languageName)",
+  "visual_description": "Detailed behavioral report in $languageName",
+  "details": {
+      "possible_need": "string (Hunger, Walk, Protection, Pain relief - in $languageName)",
+      "confidence": "string (0-100%)"
+  },
+  "possible_causes": ["list of potential behavioral or physical triggers in $languageName"],
+  "urgency_level": "${isPortuguese ? 'Verde' : 'Green'}" | "${isPortuguese ? 'Amarelo' : 'Yellow'}" | "${isPortuguese ? 'Vermelho' : 'Red'}",
+  "immediate_care": "string (Behavioral advice or Vet recommendation in $languageName)"
+}
 ''';
   }
 }

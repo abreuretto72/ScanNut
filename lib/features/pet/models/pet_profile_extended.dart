@@ -255,17 +255,28 @@ class PetProfileExtended {
         DateTime.now().toIso8601String(); // Fix: Add timestamp
 
     // Inject UI Compatibility Keys (Adapters for EditPetForm specific widgets)
+    // 🛡️ V2.5 FLATTENING MAPPING: Inject detailed fields into rawAnalysis for persistence
     rawAnalysis['caracteristicas_fisicas'] = {
       'expectativa_vida': result.identificacao.expectativaVidaMedia,
       'porte': result.identificacao.porteEstimado,
       'peso_estimado': 'Consultar curva de crescimento',
+      'morfologia': result.identificacao.morfologiaBase, // New
+      'origem': result.identificacao.origemGeografica,   // New
     };
 
     rawAnalysis['temperamento'] = {
-      'personalidade': result.perfilComportamental.driveAncestral,
-      'comportamento_social':
-          'Sociabilidade nota ${result.perfilComportamental.sociabilidadeGeral}/5',
+      'personalidade': result.perfilComportamental.personalidade ?? result.perfilComportamental.driveAncestral,
+      'comportamento_social': result.perfilComportamental.comportamentoSocial ?? 'Sociabilidade nota ${result.perfilComportamental.sociabilidadeGeral}/5',
       'nivel_energia': result.perfilComportamental.nivelEnergia,
+      'descricao_energia': result.perfilComportamental.descricaoEnergia, // New
+    };
+
+    // Explicitly Map Growth Curve and Nutrition for UI consumption
+    rawAnalysis['curva_crescimento'] = result.identificacao.curvaCrescimento;
+    rawAnalysis['metas_nutricionais'] = result.nutricao.metaCalorica;
+    rawAnalysis['saude_preventiva'] = {
+        'predisposicoes': result.saude.predisposicaoDoencas,
+        'checkup': result.saude.checkupVeterinario['exames_obrigatorios_anuais']
     };
 
     // Ensure plano_semanal is accessible via alternative keys if needed (optional)

@@ -74,9 +74,9 @@ class ErrorHandler {
       return l10n.errorTimeout;
     }
 
-    // Erro 400 - Bad Request
+    // Erro 400 - Bad Request (Evitar hijack de categoria inválida)
     if (errorString.contains('400') || errorString.contains('bad request')) {
-      return l10n.analysisErrorInvalidCategory;
+      return l10n.errorGeneric;
     }
 
     // Erro 401/403 - Autenticação

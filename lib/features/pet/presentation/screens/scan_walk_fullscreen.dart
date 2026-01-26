@@ -59,6 +59,8 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
   
   bool _venuesLoaded = false;
   List<PartnerModel> _nearbyVenues = [];
+  PartnerModel? _selectedVenue;
+  final Set<String> _visitedVenueIds = {};
   
   // Settings
   double _safetyRadius = 500.0; // Padrão 500m
@@ -477,51 +479,6 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
     );
   }
 
-  void _logFeces() async {
-    int? score = await showDialog<int>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        backgroundColor: AppDesign.surfaceDark,
-        title: const Text("Escala Bristol (Fezes)", style: TextStyle(color: Colors.white)),
-        children: List.generate(7, (index) => SimpleDialogOption(
-          onPressed: () => Navigator.pop(context, index + 1),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Colors.white10)),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(backgroundColor: _getBristolColor(index + 1), radius: 10),
-                const SizedBox(width: 10),
-                Text("Tipo ${index + 1}", style: const TextStyle(color: Colors.white70)),
-              ],
-            ),
-          ),
-        )),
-      ),
-    );
-
-    if (score != null) {
-      final event = _multimodalController.buildCompleteEvent(
-        eventType: WalkEventType.poo,
-        description: "Bristol Score: $score",
-        bristolScore: score,
-        position: _currentPosition,
-      );
-
-      setState(() {
-        _events.add(event);
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Registro digestivo salvo!"))
-        );
-      }
-    }
-  }
-
   Color _getBristolColor(int score) {
     if (score <= 2) return Colors.brown.shade900;
     if (score >= 6) return Colors.yellow.shade800;
@@ -606,10 +563,12 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
               markerId: MarkerId(v.id),
               position: LatLng(v.latitude, v.longitude),
               icon: icon,
-              infoWindow: InfoWindow(
-                title: v.name,
-                snippet: snippet,
-              ),
+              onTap: () {
+                setState(() {
+                  _selectedVenue = v;
+                });
+              },
+              infoWindow: InfoWindow.noText, // Hide standard info window
               zIndex: 2, // Acima do mapa base
             )
           );
@@ -665,19 +624,35 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
   
   void _checkVenueProximity(Position pos) {
     for (var v in _nearbyVenues) {
+       if (_visitedVenueIds.contains(v.id)) continue;
+
        final dist = Geolocator.distanceBetween(pos.latitude, pos.longitude, v.latitude, v.longitude);
        if (dist < 50) { // 50 metros = Check-in
-          // Mostrar mensagem apenas uma vez por sessão/local (simplificado aqui com SnackBar simples)
-          // Idealmente controlar com um Set<String> _visitedVenues
+          setState(() {
+            _visitedVenueIds.add(v.id);
+            _selectedVenue = v; // Auto-select the venue when checked-in
+          });
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("🌳 Você chegou em ${v.name}! Bom passeio!"),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 3),
+              content: Row(
+                children: [
+                  const Icon(Icons.stars, color: Colors.amber),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "🌟 Check-in VIP: Você chegou em ${v.name}! Bom passeio!",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.deepPurple,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              duration: const Duration(seconds: 4),
             )
           );
-          // Remove from list to avoid spamming? Or keep for re-entry? 
-          // For simplicity, let's just break for now or handle state later.
           break; 
        }
     }
@@ -774,7 +749,13 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
             bottom: 0,
             left: 0,
             right: 0,
-            child: _buildTacticalPanel(),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_selectedVenue != null) _buildVenueInfoCard(),
+                _buildTacticalPanel(),
+              ],
+            ),
           ),
         ],
       ),
@@ -1069,7 +1050,7 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                    _buildTacticalBtn("Xixi", Icons.water_drop_outlined, Colors.yellow, WalkEventType.pee),
-                   _buildTacticalBtn("Fezes", Icons.circle, Colors.brown, WalkEventType.poo, hasCustomAction: true),
+                   _buildTacticalBtn("Fezes", Icons.circle, Colors.brown, WalkEventType.poo),
                    _buildTacticalBtn("Água", Icons.local_drink, Colors.blue, WalkEventType.water),
                    _buildTacticalBtn("Outros", Icons.more_horiz, Colors.teal, WalkEventType.others),
                 ],
@@ -1100,12 +1081,8 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
       onTap: () {
         if (_isRecording) return; // Ignore tap while recording
         
-        // Special handling for Fezes (Bristol Score)
-        if (hasCustomAction && eventType == WalkEventType.poo) {
-          _logFeces();
-        } else {
-          _openMultimodalCapture(eventType);
-        }
+        // Use the standard multimodal capture for consistency with Pee
+        _openMultimodalCapture(eventType);
       },
       
       child: Column(
@@ -1207,6 +1184,103 @@ class _ScanWalkFullscreenState extends State<ScanWalkFullscreen> with TickerProv
               child: const Text("CONCLUIR", style: TextStyle(color: Colors.white)),
             ),
           )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVenueInfoCard() {
+    if (_selectedVenue == null) return const SizedBox.shrink();
+
+    final nameLower = _selectedVenue!.name.toLowerCase();
+    bool isVip = nameLower.contains('dog') || nameLower.contains('cães') || nameLower.contains('cachorro') || nameLower.contains('k9') || nameLower.contains('agility') || nameLower.contains('cercado') || nameLower.contains('pet');
+    bool isWater = nameLower.contains('bebedouro') || nameLower.contains('fonte') || nameLower.contains('água');
+    bool isPlay = nameLower.contains('playground') || nameLower.contains('brinquedo') || nameLower.contains('recreação');
+    bool isNature = nameLower.contains('parque') || nameLower.contains('praça') || nameLower.contains('jardim') || nameLower.contains('bosque');
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppDesign.surfaceDark.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white10),
+        boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 10, offset: const Offset(0, 5))],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _selectedVenue!.name,
+                            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            _selectedVenue!.address,
+                            style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                      onPressed: () => setState(() => _selectedVenue = null),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    if (isVip) _buildAmenityBadge("Área Cercada", Icons.fence, Colors.orange),
+                    if (isWater) _buildAmenityBadge("Bebedouro", Icons.water_drop, Colors.blue),
+                    if (isPlay) _buildAmenityBadge("Playground", Icons.toys, Colors.pinkAccent),
+                    if (isNature && !isVip) _buildAmenityBadge("Área Verde", Icons.park, Colors.green),
+                    const Spacer(),
+                    Text(
+                      "${_selectedVenue!.rating} ⭐",
+                      style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAmenityBadge(String label, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
         ],
       ),
     );

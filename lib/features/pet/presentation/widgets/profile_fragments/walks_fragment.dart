@@ -70,7 +70,7 @@ class _WalksFragmentState extends State<WalksFragment> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.directions_walk,
-              size: 64, color: Colors.white.withOpacity(0.1)),
+              size: 64, color: Colors.white.withValues(alpha: 0.1)),
           const SizedBox(height: 16),
           Text(
             "Nenhum passeio registrado ainda.",

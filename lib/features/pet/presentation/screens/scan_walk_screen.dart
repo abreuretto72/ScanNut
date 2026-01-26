@@ -16,6 +16,9 @@ import '../../models/walk_models.dart';
 import '../../models/pet_profile_extended.dart';
 import '../../services/scan_walk_service.dart';
 import '../../services/session_guard.dart';
+import '../widgets/multimodal_capture_modal.dart';
+import 'package:scannut/core/services/gemini_service.dart';
+import 'package:scannut/core/enums/scannut_mode.dart';
 
 class ScanWalkScreen extends StatefulWidget {
   const ScanWalkScreen({super.key});
@@ -172,27 +175,83 @@ class _ScanWalkScreenState extends State<ScanWalkScreen>
 
     switch (type) {
       case WalkEventType.poo:
-        final XFile? photo =
-            await _picker.pickImage(source: ImageSource.camera);
-        if (photo == null) return;
-        photoPath = photo.path;
-
-        setState(() => _isAnalyzing = true);
-        await Future.delayed(const Duration(seconds: 1)); // AI Mock
-        bristol = 4;
-        description = "IA Bristol: 4 (${l10n.walkBristolIdeal})";
-        setState(() => _isAnalyzing = false);
-        break;
-
       case WalkEventType.friend:
-        audioPath = await _recordVoiceSnippet(l10n.walkVoicePromptFriend);
-        description = l10n.walkFriendDesc;
-        break;
-
       case WalkEventType.bark:
-        audioPath = await _recordVoiceSnippet(l10n.walkAnalysisBark);
-        description = "IA Vocal: Alerta";
-        break;
+        await showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (context) => MultimodalCaptureModal(
+            eventType: type,
+            onCapturePhoto: (extra) async {
+              final XFile? photo = await _picker.pickImage(source: ImageSource.camera);
+              if (photo != null) {
+                final event = WalkEvent(
+                  timestamp: DateTime.now(),
+                  type: type,
+                  description: extra?['description'],
+                  photoPath: photo.path,
+                  bristolScore: extra?['bristol_score'],
+                  lat: _currentPosition?.latitude,
+                  lng: _currentPosition?.longitude,
+                );
+                _addEvent(event);
+                
+                // Trigger AI for Stool
+                if (type == WalkEventType.poo) {
+                  _performAIAnalysis(event, File(photo.path), ScannutMode.petStoolAnalysis);
+                }
+              }
+            },
+            onRecordVoice: (extra) async {
+              final audio = await _recordVoiceSnippet(l10n.walkVoicePromptFriend);
+              if (audio != null) {
+                _addEvent(WalkEvent(
+                  timestamp: DateTime.now(),
+                  type: type,
+                  description: extra?['description'],
+                  audioPath: audio,
+                  bristolScore: extra?['bristol_score'],
+                  lat: _currentPosition?.latitude,
+                  lng: _currentPosition?.longitude,
+                ));
+              }
+            },
+            onCaptureSound: (extra) async {
+              final audio = await _recordVoiceSnippet(l10n.walkAnalysisBark);
+              if (audio != null) {
+                final event = WalkEvent(
+                  timestamp: DateTime.now(),
+                  type: type,
+                  description: extra?['description'] ?? "Captura Sonora",
+                  audioPath: audio,
+                  lat: _currentPosition?.latitude,
+                  lng: _currentPosition?.longitude,
+                );
+                _addEvent(event);
+
+                // Trigger AI for Vocalization
+                if (type == WalkEventType.bark) {
+                   _performAIAnalysis(event, File(audio), ScannutMode.petVocalizationAnalysis);
+                }
+              }
+            },
+            onQuickLog: (extra) {
+              _addEvent(WalkEvent(
+                timestamp: DateTime.now(),
+                type: type,
+                description: extra?['description'],
+                bristolScore: extra?['bristol_score'],
+                lat: _currentPosition?.latitude,
+                lng: _currentPosition?.longitude,
+              ));
+            },
+          ),
+        );
+        return;
+
+
+
 
       case WalkEventType.hazard:
       case WalkEventType.fight:
@@ -203,8 +262,8 @@ class _ScanWalkScreenState extends State<ScanWalkScreen>
             ? l10n.walkVoicePromptDanger
             : l10n.walkVoicePromptFight);
         description = type == WalkEventType.hazard
-            ? l10n.walkHazardDesc
-            : l10n.walkFightDesc;
+            ? "Perigo nas redondezas"
+            : "Briga de cães";
         break;
 
       default:
@@ -245,6 +304,45 @@ class _ScanWalkScreenState extends State<ScanWalkScreen>
     setState(() {
       _events.add(event);
     });
+  }
+
+  Future<void> _performAIAnalysis(WalkEvent event, File file, ScannutMode mode) async {
+    if (!mounted) return;
+    setState(() => _isAnalyzing = true);
+
+    try {
+      final gemini = GeminiService();
+      final result = await (mode == ScannutMode.petVocalizationAnalysis
+          ? gemini.analyzeAudio(audioFile: file, mode: mode)
+          : gemini.analyzeImage(imageFile: file, mode: mode));
+
+      final aiDesc = result['visual_description'] ??
+          result['emotional_state'] ??
+          result['summary'] ??
+          "Análise concluída";
+
+      final idx = _events.indexWhere((e) => e.timestamp == event.timestamp && e.type == event.type);
+      if (idx != -1 && mounted) {
+        setState(() {
+          _events[idx] = WalkEvent(
+            timestamp: event.timestamp,
+            type: event.type,
+            description: "IA: $aiDesc",
+            photoPath: event.photoPath,
+            audioPath: event.audioPath,
+            bristolScore: result['stool_details']?['consistency_bristol_scale'] != null 
+                ? int.tryParse(result['stool_details']['consistency_bristol_scale'].toString()) 
+                : event.bristolScore,
+            lat: event.lat,
+            lng: event.lng,
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint("🚨 AI Analysis Error: $e");
+    } finally {
+      if (mounted) setState(() => _isAnalyzing = false);
+    }
   }
 
   // --- UI BUILDING (FULLSCREEN) ---

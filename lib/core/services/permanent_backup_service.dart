@@ -53,17 +53,10 @@ class PermanentBackupService {
     Directory baseDir;
 
     if (Platform.isAndroid) {
-      // Android: Usar pasta Documents pública
-      final externalDir = await getExternalStorageDirectory();
-      if (externalDir == null) {
-        throw Exception('Não foi possível acessar armazenamento externo');
-      }
-
-      // Navegar para a raiz do armazenamento público
-      // De: /storage/emulated/0/Android/data/com.app/files
-      // Para: /storage/emulated/0/Documents/ScanNut_Backup
-      final storagePath = externalDir.path.split('/Android/').first;
-      baseDir = Directory('$storagePath/Documents/$_backupFolderName');
+      // 🛡️ V135: Usar diretório interno privado para evitar erros de permissão (errno 13)
+      // Mantendo na pasta Documents do app para organização
+      final appDocDir = await getApplicationDocumentsDirectory();
+      baseDir = Directory('${appDocDir.path}/$_backupFolderName');
     } else {
       // iOS: Usar Documents directory (acessível via Files app)
       final appDocDir = await getApplicationDocumentsDirectory();
@@ -92,12 +85,44 @@ class PermanentBackupService {
       // Coletar dados de todos os boxes críticos
       for (final boxName in _criticalBoxes) {
         try {
-          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
+          // 🛡️ V135: Se o box já estiver aberto (com qualquer tipo), usamos ele direto para evitar conflitos
+          Box box;
+          if (Hive.isBoxOpen(boxName)) {
+            box = Hive.box(boxName);
+          } else {
+            box = await HiveAtomicManager().ensureBoxOpen(boxName);
+          }
           await box.compact();
 
           final boxData = <String, dynamic>{};
           for (var key in box.keys) {
-            boxData[key.toString()] = box.get(key);
+            dynamic value = box.get(key);
+            if (value != null) {
+              try {
+                // 🛡️ V135: Robust Serialization Strategy
+                if (value is List) {
+                  // Handle Lists (e.g. recipes, history lists)
+                  boxData[key.toString()] = value.map((e) {
+                    try {
+                      return (e as dynamic).toJson();
+                    } catch (_) {
+                      return e; // Return primitive or toString if needed
+                    }
+                  }).toList();
+                } else {
+                  // Handle single Objects
+                  try {
+                    boxData[key.toString()] = (value as dynamic).toJson();
+                  } catch (_) {
+                    // Fallback: If no toJson, keep as is (primitive) or string
+                     boxData[key.toString()] = value;
+                  }
+                }
+              } catch (e) {
+                // Fallback global para item corrompido
+                boxData[key.toString()] = value.toString();
+              }
+            }
           }
 
           backupData['boxes'][boxName] = boxData;
@@ -208,11 +233,23 @@ class PermanentBackupService {
 
       for (final boxName in _criticalBoxes) {
         try {
-          Box box = await HiveAtomicManager().ensureBoxOpen(boxName);
+          Box box;
+          if (Hive.isBoxOpen(boxName)) {
+            box = Hive.box(boxName);
+          } else {
+            box = await HiveAtomicManager().ensureBoxOpen(boxName);
+          }
 
           final boxData = <String, dynamic>{};
           for (var key in box.keys) {
-            boxData[key.toString()] = box.get(key);
+            dynamic value = box.get(key);
+            if (value != null) {
+              try {
+                boxData[key.toString()] = value.toJson();
+              } catch (e) {
+                boxData[key.toString()] = value;
+              }
+            }
           }
           backupData['boxes'][boxName] = boxData;
         } catch (e) {

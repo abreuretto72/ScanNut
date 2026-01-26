@@ -12,9 +12,8 @@ import '../../../../core/theme/app_design.dart';
 
 class ResultCard extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
-  final VoidCallback onSave;
 
-  const ResultCard({super.key, required this.analysis, required this.onSave});
+  const ResultCard({super.key, required this.analysis});
 
   @override
   ConsumerState<ResultCard> createState() => _ResultCardState();
@@ -23,7 +22,6 @@ class ResultCard extends ConsumerStatefulWidget {
 class _ResultCardState extends ConsumerState<ResultCard>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isSaved = false;
 
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
@@ -914,24 +912,13 @@ class _ResultCardState extends ConsumerState<ResultCard>
       child: SafeArea(
         top: false,
         child: InkWell(
-          onTap: () {
-            if (!_isSaved) {
-              setState(() => _isSaved = true);
-              HapticFeedback.heavyImpact();
-              widget.onSave();
-            }
-          },
+          onTap: () => Navigator.pop(context),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             height: 56,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: _isSaved
-                    ? [
-                        AppDesign.accent,
-                        AppDesign.accent.withValues(alpha: 0.8)
-                      ]
-                    : [_themeColor, _themeColor.withValues(alpha: 0.8)],
+                colors: [_themeColor, _themeColor.withValues(alpha: 0.8)],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
@@ -945,22 +932,18 @@ class _ResultCardState extends ConsumerState<ResultCard>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  _isSaved ? Icons.check_circle : Icons.bookmark_add_outlined,
-                  color: _isSaved
-                      ? AppDesign.textPrimaryDark
-                      : AppDesign.backgroundDark,
-                  size: 24,
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  _isSaved ? "Salvo!" : "Salvar no Diário",
+                  "ENTENDIDO",
                   style: GoogleFonts.poppins(
+                    color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _isSaved
-                        ? AppDesign.textPrimaryDark
-                        : AppDesign.backgroundDark,
+                    letterSpacing: 1.2,
                   ),
                 ),
               ],

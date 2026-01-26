@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../services/pet_fallback_service.dart';
 
 class PetAnalysisResult {
@@ -133,10 +134,17 @@ class PetAnalysisResult {
 
     final reliabilityVal = mapReliability(json);
 
+    // 🔍 TRACE DE MAPEAMENTO (DIAGNÓSTICO N/A)
+    if (json['analysis_type'] == 'diagnosis' || json['analysis_type'] == 'stool_analysis') {
+       // Apenas logar se for análise clínica para não poluir o log
+       debugPrint("🔍 [MAPPING_TRACE] Chaves Recebidas: ${json.keys.toList()}");
+    }
+
     // Check for Diagnosis Mode
     if (json['analysis_type'] == 'diagnosis' ||
         json['analysis_type'] == 'stool_analysis' ||
-        json['urgency_level'] != null) {
+        json['urgency_level'] != null ||
+        json.containsKey('error')) {
       return PetAnalysisResult(
         analysisType: json['analysis_type'] ?? 'diagnosis',
         identificacao: IdentificacaoPet.empty(),
@@ -150,8 +158,9 @@ class PetAnalysisResult {
         petId: json['pet_id'] ?? json['id'], // 🛡️ V_UUID
         especieDiag: json['species'] ?? 'Pet',
         racaDiag: json['breed'] ?? 'N/A',
-        caracteristicasDiag: json['characteristics'] ?? 'N/A',
-        descricaoVisualDiag: json['visual_description'] ?? 'N/A',
+        // Fallback agressivo: Tenta PT, depois EN, depois padrão
+        caracteristicasDiag: json['caracteristicas'] ?? json['characteristics'] ?? json['details'] ?? (json.containsKey('error') ? 'Análise limitada' : 'Características não mapeadas'),
+        descricaoVisualDiag: json['descricao_visual'] ?? json['visual_description'] ?? json['description'] ?? (json.containsKey('error') ? 'Nota da IA: ${json['error']}' : 'Descrição indisponível'),
         possiveisCausasDiag: (json['possible_causes'] as List? ?? [])
             .map((e) => e.toString())
             .toList(),
@@ -174,8 +183,8 @@ class PetAnalysisResult {
         woundDetails: json['wound_details'] != null
             ? Map<String, dynamic>.from(json['wound_details'])
             : null, // 🛡️ V460
-        urgenciaNivelDiag: json['urgency_level'] ?? 'Verde',
-        orientacaoImediataDiag: json['immediate_care'] ?? 'Consulte um Vet.',
+        urgenciaNivelDiag: json['urgencia_nivel'] ?? json['urgency_level'] ?? json['risk_level'] ?? 'Amarelo',
+        orientacaoImediataDiag: json['recomendacao'] ?? json['recommendation'] ?? json['immediate_care'] ?? 'Consulte o histórico',
         tabelaBenigna: parseTable(json['tabela_benigna']),
         tabelaMaligna: parseTable(json['tabela_maligna']),
         planoSemanal: [],
@@ -185,18 +194,21 @@ class PetAnalysisResult {
     }
 
     // "Inference Master" Mapping
-    final idMap = _safeMap(json['identification']);
+    // 🛡️ [V_FLAT] Fallback to root JSON if identification map is empty (Gemini 2.5 Flattening)
+    final idMapRaw = _safeMap(json['identification']);
+    final idMap = idMapRaw.isNotEmpty ? idMapRaw : json;
+
     return PetAnalysisResult(
       analysisType: 'identification',
       identificacao: IdentificacaoPet.fromTotalInference(
           idMap, _safeMap(json['growth_curve'])),
       perfilComportamental:
-          PerfilComportamental.fromTotalInference(_safeMap(json['behavior'])),
+          PerfilComportamental.fromTotalInference(_safeMap(json['behavior']).isNotEmpty ? _safeMap(json['behavior']) : json), // Also flatten behavior
       nutricao: NutricaoEStrutura.fromTotalInference(
           _safeMap(json['nutrition']),
-          _safeMap(json['identification'])['size']?.toString() ?? 'Medium'),
+          (idMap['size'] ?? idMap['porte'] ?? 'Medium').toString()),
       higiene: Grooming.fromTotalInference(_safeMap(json['grooming'])),
-      saude: SaudePreventiva.fromTotalInference(_safeMap(json['health'])),
+      saude: SaudePreventiva.fromTotalInference(_safeMap(json['health']).isNotEmpty ? _safeMap(json['health']) : json), // Also flatten health if needed
       lifestyle:
           LifestyleEEducacao.fromTotalInference(_safeMap(json['lifestyle'])),
       dica: DicaEspecialista.empty(),
@@ -320,7 +332,7 @@ class IdentificacaoPet {
     final raca =
         getString(['breed_name', 'breed', 'raca', 'raça']) ?? 'Unknown Breed';
     final origem = getString(
-            ['origin_region', 'regiao_origem', 'region', 'pais_origem']) ??
+            ['origin_region', 'regiao_origem', 'region', 'pais_origem', 'regiao']) ??
         '';
     final morfologia = getString([
           'morphology_type',

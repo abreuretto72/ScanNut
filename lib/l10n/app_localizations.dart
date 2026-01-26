@@ -896,7 +896,7 @@ abstract class AppLocalizations {
   /// No description provided for @loadingFood.
   ///
   /// In pt, this message translates to:
-  /// **'Analisando alimento...'**
+  /// **'Analisando a imagem de comida...'**
   String get loadingFood;
 
   /// No description provided for @loadingPlant.
@@ -12491,6 +12491,48 @@ abstract class AppLocalizations {
   /// **'Selecione o tipo de registro'**
   String get petSelectRecordType;
 
+  /// No description provided for @feces_log_title.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registrar Fezes'**
+  String get feces_log_title;
+
+  /// No description provided for @btn_capture_photo.
+  ///
+  /// In pt, this message translates to:
+  /// **'Capturar Foto'**
+  String get btn_capture_photo;
+
+  /// No description provided for @btn_voice_note.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nota de Voz'**
+  String get btn_voice_note;
+
+  /// No description provided for @btn_capture_sound.
+  ///
+  /// In pt, this message translates to:
+  /// **'Capturar Som'**
+  String get btn_capture_sound;
+
+  /// No description provided for @btn_quick_reg.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registro Rápido'**
+  String get btn_quick_reg;
+
+  /// No description provided for @error_save_feces.
+  ///
+  /// In pt, this message translates to:
+  /// **'Não foi possível salvar o registro de fezes.'**
+  String get error_save_feces;
+
+  /// No description provided for @photo_captured_success.
+  ///
+  /// In pt, this message translates to:
+  /// **'Foto capturada e integrada ao histórico!'**
+  String get photo_captured_success;
+
   /// No description provided for @petShowAll.
   ///
   /// In pt, this message translates to:
@@ -13457,29 +13499,89 @@ abstract class AppLocalizations {
   /// **'Escala Bristol'**
   String get walkBristolScore;
 
-  /// No description provided for @walkFriendDesc.
+  /// No description provided for @walkFriendManual.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cadastro Manual'**
+  String get walkFriendManual;
+
+  /// No description provided for @walkFriendManualDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Registre os dados do novo amigo'**
+  String get walkFriendManualDesc;
+
+  /// No description provided for @walkFriendPhoto.
+  ///
+  /// In pt, this message translates to:
+  /// **'Tirar foto do amigo'**
+  String get walkFriendPhoto;
+
+  /// No description provided for @walkFriendManualFull.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cadastrar o amigo e tutor'**
+  String get walkFriendManualFull;
+
+  /// No description provided for @walkFriendVoice.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ditar ocorrências'**
+  String get walkFriendVoice;
+
+  /// No description provided for @walkFriendSound.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gravar latidos / miados do amigo'**
+  String get walkFriendSound;
+
+  /// No description provided for @friendName.
   ///
   /// In pt, this message translates to:
   /// **'Nome do Amigo'**
-  String get walkFriendDesc;
+  String get friendName;
 
-  /// No description provided for @walkHazardDesc.
+  /// No description provided for @friendGender.
   ///
   /// In pt, this message translates to:
-  /// **'Tipo de Perigo'**
-  String get walkHazardDesc;
+  /// **'Sexo'**
+  String get friendGender;
 
-  /// No description provided for @walkFightDesc.
+  /// No description provided for @friendAge.
   ///
   /// In pt, this message translates to:
-  /// **'Detalhes da Briga'**
-  String get walkFightDesc;
+  /// **'Idade'**
+  String get friendAge;
 
-  /// No description provided for @walkDemoBtn.
+  /// No description provided for @friendBreed.
   ///
   /// In pt, this message translates to:
-  /// **'Demonstração'**
-  String get walkDemoBtn;
+  /// **'Raça'**
+  String get friendBreed;
+
+  /// No description provided for @friendOwnerName.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nome do Tutor'**
+  String get friendOwnerName;
+
+  /// No description provided for @friendOwnerContact.
+  ///
+  /// In pt, this message translates to:
+  /// **'Contato do Tutor'**
+  String get friendOwnerContact;
+
+  /// No description provided for @friendSaveSuccess.
+  ///
+  /// In pt, this message translates to:
+  /// **'Amigo registrado com sucesso!'**
+  String get friendSaveSuccess;
+
+  /// No description provided for @friendValidationError.
+  ///
+  /// In pt, this message translates to:
+  /// **'Preencha os campos obrigatórios.'**
+  String get friendValidationError;
 
   /// No description provided for @walkMicRec.
   ///

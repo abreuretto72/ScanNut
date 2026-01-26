@@ -62,13 +62,19 @@ class RaceDetailsSection extends StatelessWidget {
 
   Widget _buildAnalysisContent(BuildContext context, AppLocalizations l10n) {
     final raw = currentRawAnalysis!;
+    // 🛡️ V2.5 FLATTENING MAPPING RECOVERY
     final ident = raw['identificacao'] as Map?;
-    final temp = raw['temperamento'] as Map?;
     final fisica = raw['caracteristicas_fisicas'] as Map?;
-    final origem = raw['origem_historia'] as String?;
-    final curiosidades = raw['curiosidades'] as List?;
+    final racaRoot = raw['raca']?.toString();
+    
+    // Recovery of detailed Keys
+    final linhagem = raw['linhagem']?.toString() ?? ident?['linhagemSrdProvavel']?.toString() ?? ident?['lineage']?.toString();
+    final morfologia = fisica?['morfologia']?.toString() ?? ident?['morfologia']?.toString() ?? ident?['morfologiaBase']?.toString();
+    final origem = fisica?['origem']?.toString() ?? ident?['origemGeografica']?.toString() ?? ident?['origin_region']?.toString();
+    final longevidade = raw['longevidade']?.toString() ?? fisica?['expectativa_vida']?.toString() ?? ident?['expectativaVidaMedia']?.toString();
 
-    if (ident == null && temp == null && fisica == null && origem == null) {
+    // If minimal data is missing, shrink
+    if (racaRoot == null && ident == null) {
       return const SizedBox.shrink();
     }
 
@@ -77,65 +83,37 @@ class RaceDetailsSection extends StatelessWidget {
       children: [
         Divider(color: Colors.white.withValues(alpha: 0.1)),
         const SizedBox(height: 12),
-        if (ident != null) ...[
-          _buildInfoRow(l10n.petRaceAnalysis,
-              localizeValue(ident['raca_predominante']?.toString())),
-        ],
-        if (fisica != null) ...[
-          _buildInfoRow(l10n.petLifeExpectancy,
-              fisica['expectativa_vida']?.toString() ?? l10n.petNotEstimated),
-          _buildInfoRow(l10n.petSize,
-              fisica['porte']?.toString() ?? l10n.petNotIdentified),
-          if (pesoController != null)
+        
+        // 1. LINHAGEM (Lineage)
+         if (linhagem != null && linhagem != 'N/A')
+          _buildInfoRow('Linhagem', linhagem),
+
+        // 2. MORFOLOGIA (Morphology)
+        if (morfologia != null && morfologia != 'N/A')
+          _buildInfoRow('Morfologia', morfologia),
+
+         // 3. ORIGEM (Origin)
+        if (origem != null && origem != 'N/A')
+          _buildInfoRow('Região de Origem', origem),
+
+        // 4. LONGEVIDADE (Longevity)
+        if (longevidade != null && longevidade != 'N/A')
+           _buildInfoRow(l10n.petLifeExpectancy, longevidade),
+
+        // 5. PORTE (Size)
+        if (fisica?['porte'] != null || porte != null)
+           _buildInfoRow(l10n.petSize,
+              porte ?? fisica?['porte']?.toString() ?? l10n.petNotIdentified),
+
+        // 6. PESO (Weight Feedback)
+        if (pesoController != null)
             WeightFeedbackSection(
                 pesoController: pesoController!,
-                raca: racaController?.text ??
-                    ident?['raca_predominante']?.toString(),
-                porte: porte ?? fisica['porte']?.toString())
-          else
+                raca: racaController?.text ?? racaRoot ?? 'SRD',
+                porte: porte ?? fisica?['porte']?.toString())
+        else if (fisica?['peso_estimado'] != null)
             _buildInfoRow(l10n.petTypicalWeight,
-                fisica['peso_estimado']?.toString() ?? l10n.petVariable),
-        ],
-
-        /*
-        if (temp != null) ...[
-        // Temperament and Social Behavior removed as per request
-        ],
-        */
-
-        if (origem != null) ...[
-          const SizedBox(height: 12),
-          ExpansionTile(
-            title: Text(l10n.petOrigin,
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-            collapsedIconColor: Colors.white54,
-            iconColor: AppDesign.petPink,
-            children: [
-              Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(origem,
-                      style: const TextStyle(color: Colors.white70)))
-            ],
-          )
-        ],
-        if (curiosidades != null && curiosidades.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          ExpansionTile(
-            title: Text(l10n.petCuriosities,
-                style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-            collapsedIconColor: Colors.white54,
-            iconColor: Colors.amber,
-            children: curiosidades
-                .map((c) => ListTile(
-                      leading:
-                          const Icon(Icons.star, color: Colors.amber, size: 16),
-                      title: Text(c.toString(),
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 13)),
-                    ))
-                .toList(),
-          )
-        ]
+                fisica!['peso_estimado']?.toString() ?? l10n.petVariable),
       ],
     );
   }
@@ -147,12 +125,12 @@ class RaceDetailsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-              width: 120,
+              width: 140, // Expanded label width for "Região de Origem"
               child: Text('$label:',
                   style: const TextStyle(color: Colors.white54, fontSize: 13))),
           Expanded(
               child: Text(value,
-                  style: const TextStyle(color: Colors.white, fontSize: 13))),
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500))),
         ],
       ),
     );

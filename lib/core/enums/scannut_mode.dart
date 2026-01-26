@@ -6,4 +6,5 @@ enum ScannutMode {
   petVisualAnalysis,
   petDocumentOCR,
   petStoolAnalysis,
+  petVocalizationAnalysis,
 }

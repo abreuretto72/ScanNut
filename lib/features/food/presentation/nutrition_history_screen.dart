@@ -391,7 +391,6 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           builder: (context) => FoodResultScreen(
             analysis: analysis,
             imageFile: item.imagePath != null ? File(item.imagePath!) : null,
-            onSave: () {},
             isReadOnly: true,
           ),
         ),

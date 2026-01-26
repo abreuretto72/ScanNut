@@ -1,61 +1,90 @@
-/// ============================================================================
-/// 🚫 COMPONENTE BLINDADO E CONGELADO - NÃO ALTERAR
-/// Este módulo de Análise de Comida foi concluído e validado.
-/// Nenhuma rotina ou lógica interna deve ser modificada.
-/// Data de Congelamento: 29/12/2025
-/// ============================================================================
-
-import 'dart:convert';
 import 'dart:io';
+import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/services/groq_api_service.dart';
-import '../../../core/utils/prompt_factory.dart';
-import '../../../core/enums/scannut_mode.dart';
 import '../models/food_analysis_model.dart';
+import '../data/food_constants.dart';
 
 final foodAnalysisServiceProvider = Provider<FoodAnalysisService>((ref) {
-  final groqService = ref.watch(groqApiServiceProvider);
-  return FoodAnalysisService(groqService);
+  final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
+  return FoodAnalysisService(apiKey);
 });
 
 class FoodAnalysisService {
-  final GroqApiService _groqService;
+  final String _apiKey;
+  late final Dio _dio;
 
-  FoodAnalysisService(this._groqService);
+  FoodAnalysisService(this._apiKey) {
+    // 🛡️ ISOLAMENTO TOTAL: Cliente HTTP exclusivo para o Módulo de Comida
+    _dio = Dio(BaseOptions(
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 45),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': _apiKey, // Autenticação direta
+      },
+      validateStatus: (status) => status! < 500,
+    ));
+  }
 
   Future<FoodAnalysisModel> analyzeFood(File image) async {
-    final prompt = PromptFactory.getPrompt(ScannutMode.food);
-
     try {
-      final jsonString = await _groqService.analyzeImage(image, prompt);
+      final bytes = await image.readAsBytes();
+      final base64Image = base64Encode(bytes).replaceAll(RegExp(r'\s+'), '');
 
-      if (jsonString == null) {
-        throw Exception("Não foi possível analisar o alimento.");
+      final requestBody = {
+        "contents": [
+          {
+            "parts": [
+              {"text": FoodConstants.systemPrompt},
+              {
+                "inlineData": {
+                  "mimeType": "image/jpeg",
+                  "data": base64Image
+                }
+              }
+            ]
+          }
+        ],
+        "generationConfig": {
+          "temperature": 0.1, // Precisão clínica
+          "responseMimeType": "application/json"
+        }
+      };
+
+      final response = await _dio.post(
+        FoodConstants.endpoint, 
+        data: requestBody
+      );
+
+      if (response.statusCode == 200) {
+        final rawText = response.data['candidates'][0]['content']['parts'][0]['text'];
+        final Map<String, dynamic> json = _safeJsonDecode(rawText);
+        
+        // 🛡️ DEBUG LOG: Rastreamento de Resposta da IA
+        // ignore: avoid_print
+        print('DEBUG_FOOD_RAW: $json');
+
+        // 🛡️ USO DO ESCUDO DE MAPEAMENTO
+        return FoodAnalysisModel.fromGemini(json);
+      } else {
+        throw Exception('Food Analysis Failed: ${response.statusCode}');
       }
-
-      // DEBUG: Print raw response to debug parsing issues
-      // ignore: avoid_print
-      print('🔍 RAW IA RESPONSE: $jsonString');
-
-      final cleanJson = jsonString
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .replaceAll('json', '') // Extra safety for loose "json" text
-          .trim();
-
-      final Map<String, dynamic> data = jsonDecode(cleanJson);
-
-      // Handle potential API response errors
-      if (data.containsKey('error')) {
-        throw Exception("Erro da IA: ${data['error']}");
-      }
-
-      return FoodAnalysisModel.fromJson(data);
     } catch (e) {
-      // Log specific parsing error
       // ignore: avoid_print
-      print('❌ Error parsing food analysis: $e');
+      print('❌ [FoodModule] Critical Error: $e');
       rethrow;
     }
   }
+
+  Map<String, dynamic> _safeJsonDecode(String text) {
+     try {
+       final clean = text.replaceAll('```json', '').replaceAll('```', '').trim();
+       return jsonDecode(clean);
+     } catch (e) {
+       return {'error': 'parse_error', 'raw': text};
+     }
+  }
 }
+

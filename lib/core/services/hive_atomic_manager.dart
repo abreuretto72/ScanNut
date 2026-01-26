@@ -57,9 +57,17 @@ class HiveAtomicManager {
         if (box.isOpen) return box;
       } catch (e) {
         debugPrint(
-            '⚠️ [V115-HIVE] Type conflict for $boxName. Resolving via global close. Error: $e');
-        await Hive.close();
-        // After global close, we continue to open with requested type below
+            '⚠️ [V115-HIVE] Type conflict for $boxName. Resolving via specific closure. Error: $e');
+        try {
+          // 🛡️ V135: Tenta fechar apenas o box problemático em vez de todo o sistema
+          if (Hive.isBoxOpen(boxName)) {
+            await Hive.box(boxName).close();
+          }
+        } catch (inner) {
+          debugPrint('☢️ [V115-HIVE] Nuclear fallback: closing all boxes for $boxName');
+          await Hive.close();
+        }
+        // After close, we continue to open with requested type below
       }
     }
 

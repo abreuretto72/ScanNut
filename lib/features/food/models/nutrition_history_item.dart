@@ -61,4 +61,21 @@ class NutritionHistoryItem extends HiveObject {
     this.imagePath,
     this.rawMetadata,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'timestamp': timestamp.toIso8601String(),
+      'foodName': foodName,
+      'calories': calories,
+      'proteins': proteins,
+      'carbs': carbs,
+      'fats': fats,
+      'isUltraprocessed': isUltraprocessed,
+      'biohackingTips': biohackingTips,
+      'recipesList': recipesList,
+      'imagePath': imagePath,
+      'rawMetadata': rawMetadata,
+    };
+  }
 }

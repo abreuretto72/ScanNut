@@ -1,4 +1,6 @@
 /// Nota: Este modelo é referido internamente como "FoodModel" nos planos de blindagem.
+import '../data/food_constants.dart';
+
 class FoodAnalysisModel {
   final IdentidadeESeguranca identidade;
   final MacronutrientesPro macros;
@@ -42,10 +44,121 @@ class FoodAnalysisModel {
     };
   }
 
+  // 🛡️ ESCUDO DE MAPEAMENTO (Factory Sovereign)
+  // Converte o JSON caótico da IA para a estrutura cristalina do App
+  factory FoodAnalysisModel.fromGemini(Map<String, dynamic> raw) {
+    if (raw['error'] == 'not_food' ||
+        raw['food_name'] == 'not_food') {
+      throw Exception('NOT_FOOD_DETECTED');
+    }
+
+    // 🛡️ V135: Nova Extração Categorizada
+    final resumo = raw['resumo'] ?? {};
+    final saude = raw['saude_biohacking'] ?? {};
+    final nutre = raw['nutrientes_detalhado'] ?? {};
+    final gastro = raw['gastronomia'] ?? {};
+
+    // Helper para buscar em categorias ou no root (fallback)
+    dynamic get(String key, {Map? category}) {
+       if (category != null && category.containsKey(key)) return category[key];
+       if (raw.containsKey(key)) return raw[key];
+       final synonyms = FoodConstants.keySynonyms[key] ?? [];
+       for (final s in synonyms) {
+         if (raw.containsKey(s)) return raw[s];
+         if (resumo.containsKey(s)) return resumo[s];
+         if (nutre.containsKey(s)) return nutre[s];
+       }
+       return null;
+    }
+
+    // Mapeamento de Identidade
+    final nome = get('food_name', category: resumo)?.toString() ?? 'Alimento Detectado';
+    final cal = get('calories_kcal', category: resumo);
+    final score = get('health_score', category: resumo);
+    final rec = get('recommendation', category: resumo) ?? saude['recommendation'] ?? "Equilíbrio é a chave.";
+    
+    final labels = resumo['allergens'] as List? ?? raw['allergens'] as List? ?? [];
+    final alerta = labels.isNotEmpty ? "Contém: ${labels.join(', ')}" : "Nenhum alerta crítico";
+
+    final identidadeMap = {
+      'nome': nome,
+      'status_processamento': 'Analisado com IA v135',
+      'semaforo_saude': _mapTrafficLight(score),
+      'alerta_critico': alerta,
+      'bioquimica_alert': '',
+      'estimativa_peso': 'Porção Padrão (100g)'
+    };
+
+    // Mapeamento de Macros
+    final m = nutre['macros'] ?? raw['macros'] ?? {};
+    final macrosMap = {
+      'calorias_100g': _parseCal(cal),
+      'proteinas': "${m['protein_g'] ?? 0}g",
+      'carboidratos_liquidos': "${m['carbs_g'] ?? 0}g",
+      'gorduras_perfil': "${m['fat_g'] ?? 0}g",
+      'indice_glicemico': 'Estimado'
+    };
+
+    // Mapeamento de Micronutrientes
+    final microsRaw = nutre['micros'] as List? ?? [];
+    final nutriList = microsRaw.map((mi) => NutrienteItem(
+      nome: mi['name']?.toString() ?? 'Nutriente',
+      quantidade: mi['value']?.toString() ?? '0',
+      percentualDv: mi['dv_percent'] ?? 0,
+      funcao: mi['function']?.toString() ?? 'Manutenção'
+    )).toList();
+
+    return FoodAnalysisModel(
+      identidade: IdentidadeESeguranca.fromJson(identidadeMap),
+      macros: MacronutrientesPro.fromJson(macrosMap),
+      micronutrientes: VitaminasEMinerais(
+        lista: nutriList,
+        sinergiaNutricional: nutre['synergy']?.toString() ?? 'Absorção Normal',
+      ),
+      analise: AnaliseProsContras(
+        pontosPositivos: List<String>.from(saude['pros'] ?? raw['pros'] ?? []),
+        pontosNegativos: List<String>.from(saude['cons'] ?? raw['cons'] ?? []),
+        vereditoIa: rec,
+      ),
+      performance: BiohackingPerformance.fromJson({
+        'satiety_index': saude['satiety_index'],
+        'focus_energy_impact': saude['focus_impact'],
+        'ideal_consumption_moment': saude['ideal_moment'],
+        'pontos_positivos_corpo': List<String>.from(saude['pros'] ?? []),
+      }),
+      gastronomia: InteligenciaCulinaria.fromJson({
+        'nutrient_preservation': gastro['prep_tip'],
+        'smart_swap': gastro['smart_swap'],
+        'expert_tip': rec
+      }),
+      receitas: (gastro['recipes'] as List? ?? []).map((r) => ReceitaRapida.fromJson(r)).toList(),
+      dicaEspecialista: rec,
+    );
+  }
+
+  static int _parseCal(dynamic val) {
+    if (val == null) return 0;
+    if (val is int) return val;
+    final s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
+    return int.tryParse(s) ?? 0;
+  }
+
+  static String _mapTrafficLight(dynamic score) {
+    final s = int.tryParse(score.toString()) ?? 5;
+    if (s >= 8) return 'Verde';
+    if (s >= 5) return 'Amarelo';
+    return 'Vermelho';
+  }
   factory FoodAnalysisModel.fromJson(Map<String, dynamic> json) {
-    // Debug logging to verify incoming keys
-    // ignore: avoid_print
-    print('🔍 Decoding FoodAnalysisModel: ${json.keys.toList()}');
+    // 🛡️ ESCUDO DE AUTO-DETECÇÃO: Se o JSON for plano ou categorizado (vinda direta da IA), usa o fromGemini.
+    // Se for estruturado (vindo do Cache/Hive), usa o mapeamento hierárquico.
+    if (json.containsKey('resumo') || 
+        json.containsKey('saude_biohacking') || 
+        json.containsKey('nutrientes_detalhado') ||
+        json.containsKey('food_name') || 
+        json.containsKey('calories_kcal')) {
+       return FoodAnalysisModel.fromGemini(json);
+    }
 
     return FoodAnalysisModel(
       identidade: IdentidadeESeguranca.fromJson(

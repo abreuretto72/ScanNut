@@ -470,7 +470,7 @@ class AppDrawer extends ConsumerWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: AppDesign.accent
-                    .withValues(alpha: 0.2), // withValues -> withOpacity
+                    .withValues(alpha: 0.2), // Updated to withValues
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.help_outline,

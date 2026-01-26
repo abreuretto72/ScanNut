@@ -402,6 +402,11 @@ Mantenha as chaves JSON em inglês.
         return PetPrompts.getPetStoolAnalysisPrompt(
             languageName, languageInstruction, isPortuguese,
             contextData: contextData);
+
+      case ScannutMode.petVocalizationAnalysis:
+        return PetPrompts.getPetVocalizationPrompt(
+            languageName, languageInstruction, isPortuguese,
+            contextData: contextData);
     }
   }
 

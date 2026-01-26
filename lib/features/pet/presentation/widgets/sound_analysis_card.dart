@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'package:scannut/core/enums/scannut_mode.dart';
 import 'package:scannut/core/theme/app_design.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 import 'package:scannut/core/services/gemini_service.dart';
@@ -128,7 +130,10 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   Future<void> _analyze(String path) async {
     final strings = AppLocalizations.of(context);
     try {
-      final result = await GeminiService().analyzeAudio(path);
+      final result = await GeminiService().analyzeAudio(
+        audioFile: File(path),
+        mode: ScannutMode.petVocalizationAnalysis,
+      );
 
       setState(() {
         _lastResult = result;
@@ -216,7 +221,7 @@ class _SoundAnalysisCardState extends State<SoundAnalysisCard> {
   @override
   Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
-    // Cores indicativas (Using withOpacity for compatibility)
+    // Cores indicativas (Using withValues for performance)
     final borderColor = _errorMessage != null
         ? Colors.red
         : (_lastResult != null

@@ -26,18 +26,18 @@ import '../../../core/models/analysis_state.dart';
 import '../../../core/enums/scannut_mode.dart';
 
 // Models
-import '../../food/models/food_analysis_model.dart';
 import '../../plant/models/plant_analysis_model.dart';
 import '../../pet/models/pet_analysis_result.dart';
 import '../../pet/models/pet_profile_extended.dart';
 import '../../pet/services/pet_profile_service.dart';
-import '../../food/services/nutrition_service.dart';
 import '../../plant/services/botany_service.dart';
 import '../../pet/presentation/widgets/edit_pet_form.dart';
 
-// Widgets
-import '../../food/presentation/widgets/result_card.dart';
-import '../../food/presentation/food_result_screen.dart';
+// Bodies (V135 Atomic Architecture)
+import '../../food/presentation/widgets/food_camera_body.dart';
+
+import '../../food/presentation/food_router.dart';
+import '../../food/providers/food_analysis_provider.dart';
 import '../../plant/presentation/widgets/plant_result_card.dart';
 import '../../pet/presentation/pet_result_screen.dart';
 import '../../pet/presentation/widgets/pet_selection_dialog.dart';
@@ -46,8 +46,6 @@ import '../../partners/presentation/partners_hub_screen.dart';
 import '../../partners/presentation/global_agenda_screen.dart';
 import 'widgets/app_drawer.dart';
 import '../../../core/theme/app_design.dart';
-import '../../../nutrition/presentation/screens/nutrition_home_screen.dart';
-import '../../food/presentation/nutrition_history_screen.dart';
 import '../../plant/presentation/botany_history_screen.dart';
 import '../../pet/presentation/screens/scan_walk_fullscreen.dart';
 import '../../pet/services/session_guard.dart';
@@ -60,13 +58,15 @@ class HomeView extends ConsumerStatefulWidget {
 }
 
 class _HomeViewState extends ConsumerState<HomeView>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   String? _petName; // stores pet name entered by user
   String? _petId; // 🛡️ UUID Link
   String? _displayPetName; // 🛡️ FIX: Pet name for loading overlay display
+  // 🛡️ V135: CameraController is now managed by individual bodies (FoodCameraBody, etc.)
+  // We keep this here ONLY for legacy Pet/Plant support until fully refactored.
   CameraController? _controller;
   List<CameraDescription>? _cameras;
-  int _currentIndex = -1; // -1 = Dashboard / No mode
+  int _currentIndex = 0; // 0=Food, 1=Plant, 2=Pet, 3=ScanWalk
   int _petMode =
       0; // 0 = Identification, 1 = Diagnosis, 2 = Stool (if supported)
   bool _isCameraInitialized = false;
@@ -537,8 +537,7 @@ class _HomeViewState extends ConsumerState<HomeView>
           if (capturedPetMode == 0) {
             mode = ScannutMode.petIdentification;
           } else {
-            mode = ScannutMode
-                .petDiagnosis; // 🛡️ V144: Unified Health Mode (Includes Stool)
+            mode = ScannutMode.petDiagnosis; // 🛡️ V144: Unified Health Mode (Handles general triage AND stool)
           }
           break;
         default:
@@ -591,44 +590,13 @@ class _HomeViewState extends ConsumerState<HomeView>
       debugPrint(
           '🔍 [DEBUG] _currentIndex: $_currentIndex, _petMode: $_petMode');
 
-      try {
-        // 2. Initialize analysis notifier
-        ref.read(analysisNotifierProvider.notifier).reset();
-
-        // 3. Analyze based on mode
-        final resultState =
-            await ref.read(analysisNotifierProvider.notifier).analyzeImage(
-                  imageFile: optimizedImage,
-                  mode: _currentIndex == 0
-                      ? ScannutMode.food
-                      : _currentIndex == 1
-                          ? ScannutMode.plant
-                          : (_petMode == 1
-                              ? ScannutMode.petDiagnosis
-                              : ScannutMode.petIdentification),
-                  petName: _petName,
-                  petId: _petId,
-                  excludedBases: excludedIngredients,
-                  locale: localeCode,
-                  contextData: contextData,
-                );
-
-        // 🛡️ V230: Master Analysis Flow Control
-        // Snapshot the state before reset to prevent race conditions in listeners
-        final stateSnapshot = resultState;
-
-        // Reset internal loading state immediately
-        ref.read(analysisNotifierProvider.notifier).reset();
-
-        // 4. Handle Result (Navigation, Saving, etc.)
-        await _handleAnalysisResult(stateSnapshot, optimizedImage);
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isProcessingAnalysis = false;
-          });
-        }
-      }
+      await _performAnalysis(
+        mode: mode,
+        image: optimizedImage,
+        locale: localeCode,
+        excluded: excludedIngredients,
+        contextData: contextData,
+      );
       debugPrint('🎉 _process: END SUCCESS');
     } catch (e) {
       debugPrint('❌❌❌ ERROR in _processCapturedImage: $e');
@@ -670,40 +638,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
     try {
       if (state is AnalysisSuccess) {
-        if (state.data is FoodAnalysisModel) {
-          // 🛡️ V231: Auto-Save Food Analysis to History
-          final foodData = state.data as FoodAnalysisModel;
-          final success =
-              await _handleSave('Food', data: foodData, image: image);
-
-          if (!success) {
-            debugPrint(
-                '🛑 Save failed, halting navigation to let user see error.');
-            return;
-          }
-
-          if (image != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FoodResultScreen(
-                  analysis: foodData,
-                  imageFile: image,
-                  onSave: () =>
-                      _handleSave('Food', data: foodData, image: image),
-                ),
-              ),
-            );
-          } else {
-            _showResultSheet(
-              context,
-              ResultCard(
-                analysis: foodData,
-                onSave: () => _handleSave('Food', data: foodData, image: image),
-              ),
-            );
-          }
-        } else if (state.data is PlantAnalysisModel) {
+        if (state.data is PlantAnalysisModel) {
           // 🛡️ V231: Auto-Save Plant Analysis to History
           final plantData = state.data as PlantAnalysisModel;
           final success =
@@ -894,8 +829,8 @@ class _HomeViewState extends ConsumerState<HomeView>
         return true;
       } else {
         // Food or Plant specialized save
-        if (type == 'Food' && activeData is FoodAnalysisModel) {
-          await NutritionService().saveFoodAnalysis(activeData, activeImage);
+        if (type == 'Food') {
+          await FoodRouter.saveAnalysis(activeData, activeImage);
         } else if (type == 'Plant' && activeData is PlantAnalysisModel) {
           await BotanyService().savePlantAnalysis(activeData, activeImage);
         }
@@ -948,17 +883,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    _checkSingleActiveTab();
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: AppDesign.backgroundDark,
-        body:
-            Center(child: CircularProgressIndicator(color: AppDesign.progress)),
-      );
-    }
+    // 🛡️ Monitoramento de Estado Global
+    final analysisState = ref.watch(analysisNotifierProvider);
+    final foodState = ref.watch(foodAnalysisNotifierProvider);
+
+    // Determine if any analysis is currently active (Food or Legacy)
+    final _isProcessingAnalysis = (analysisState is AnalysisLoading) || (foodState is AnalysisLoading);
 
     return PopScope(
       canPop: false,
@@ -968,694 +900,654 @@ class _HomeViewState extends ConsumerState<HomeView>
         _showExitDialog(context);
       },
       child: Scaffold(
-        backgroundColor: AppDesign.backgroundDark,
+        backgroundColor: Colors.black,
         drawer: const AppDrawer(),
         body: Stack(
           fit: StackFit.expand,
           children: [
-            if (_currentIndex != -1) ...[
-              if (_isCameraInitialized &&
-                  _controller != null &&
-                  _controller!.value.isInitialized &&
-                  !_isInitializingCamera)
-                CameraPreview(_controller!)
-              else
-                Container(color: AppDesign.backgroundDark),
+            // 1. IndexedStack para Corpos de Domínio (V135 Atomic)
+            IndexedStack(
+              index: _currentIndex,
+              children: [
+                // 0: FOOD DOMAIN (100% ISOLADO V135)
+                FoodCameraBody(isActive: _currentIndex == 0),
+                
+                // 1: PLANT DOMAIN (LEGACY - TODO: Refactor to PlantCameraBody)
+                _buildLegacyBody(1),
+                
+                // 2: PET DOMAIN (LEGACY - TODO: Refactor to PetCameraBody)
+                _buildLegacyBody(2),
+                
+                // 3: SCAN WALK (LEGACY)
+                // ScanWalkFullscreen is a full-screen route, not part of the IndexedStack directly.
+                // This placeholder ensures the index is valid, but ScanWalk is navigated to.
+                const SizedBox.shrink(), // ScanWalk is navigated to, not part of IndexedStack
+              ],
+            ),
+
+            // 2. Elementos de UI Globais (Menu, Botões de Ação)
+            // Exibidos apenas se não estiver processando fullscreen
+            if (!_isProcessingAnalysis) ...[
+               // Menu Button (Top Left)
+               Positioned(
+                 top: 50,
+                 left: 20,
+                 child: Builder(
+                   builder: (context) => _buildMenuButton(context),
+                 ),
+               ),
+
+               // Ações Específicas de Domínio (Legacy UI Overlays)
+               if (_currentIndex == 0) _buildFoodActions(), // Food actions moved here
+               if (_currentIndex == 1) _buildPlantActions(),
+               if (_currentIndex == 2) _buildPetActions(),
             ],
 
-            // 🛡️ LOADING OVERLAY (Analysis State)
-            if (ref.watch(analysisNotifierProvider) is AnalysisLoading)
-              Container(
-                color: Colors.black.withValues(alpha: 0.7), // Dimmed background
-                width: double.infinity,
-                height: double.infinity,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 24),
-                    decoration: BoxDecoration(
-                        color:
-                            Colors.white, // White card for Black Text contrast
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5))
-                        ]),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Loading Indicator (Orange for Food)
-                        const SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            color: AppDesign.foodOrange, // Food Domain Color
-                            strokeWidth: 3,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          _currentIndex == 0
-                              ? l10n.loadingMsgDiet
-                              : _currentIndex == 1
-                                  ? l10n.loadingMsgPlant
-                                  : _petMode == 1
-                                      ? l10n.loadingMsgClinical
-                                      : _petMode == 2
-                                          ? l10n.loadingMsgStool
-                                          : l10n.loadingMsgPetId,
-                          style: GoogleFonts.poppins(
-                            color: Colors.black, // PRETO PURO (Requested)
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        // 🛡️ FIX: Show pet name when analyzing pet image
-                        if (_currentIndex == 2 &&
-                            _displayPetName != null &&
-                            _displayPetName!.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            _displayPetName!,
-                            style: GoogleFonts.poppins(
-                              color: AppDesign.petPink,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.loadingMsgWait,
-                          style: GoogleFonts.poppins(
-                            color: Colors.black54,
-                            fontSize: 12,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            // 3. Loading Overlay Global para Legacy (Pet/Plant)
+            // FoodBody tem seu próprio loading, então filtramos aqui.
+            if (_currentIndex != 0)
+              _buildLegacyLoadingOverlay(analysisState),
 
-            // 2. Scan Frame Overlay - Show when mode selected OR when we have a captured image
-            if (_currentIndex != -1 || _capturedImage != null)
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Hint Banner ABOVE the frame
-                    if (_currentIndex != -1)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: IgnorePointer(
-                          ignoring: true,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                                color: AppDesign.getModeColor(_currentIndex),
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.3),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  )
-                                ]),
-                            child: Text(
-                              _getHintText(context),
-                              style: GoogleFonts.poppins(
-                                color: Colors.black, // Pure Black as requested
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    Container(
-                      width: 280,
-                      height: 280,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: _currentIndex == -1
-                                ? AppDesign.textPrimaryDark
-                                    .withValues(alpha: 0.5)
-                                : AppDesign.getModeColor(_currentIndex),
-                            width: 3),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: Stack(
-                        children: [
-                          if (_capturedImage != null)
-                            Positioned.fill(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(21),
-                                child: Image.file(
-                                  _capturedImage!,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      color: Colors.white10,
-                                      child: const Center(
-                                          child: Icon(Icons.broken_image,
-                                              color: Colors.white24, size: 40)),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          // Corner accents
-                          Positioned(
-                            top: -2,
-                            left: -2,
-                            child: Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  top: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                  left: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: -2,
-                            right: -2,
-                            child: Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  top: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                  right: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: -2,
-                            left: -2,
-                            child: Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                  left: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: -2,
-                            right: -2,
-                            child: Container(
-                              width: 30,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                  right: BorderSide(
-                                      color: _currentIndex == -1
-                                          ? AppDesign.accent
-                                          : AppDesign.getModeColor(
-                                              _currentIndex),
-                                      width: 4),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // 2.5 PET MODE TOGGLES (Top Center)
-            if (_currentIndex == 2)
-              Positioned(
-                top: 160, // Deep optical centering (~160px from top)
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppDesign.backgroundDark.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: Colors.white24),
-                      boxShadow: const [
-                        BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 8,
-                            offset: Offset(0, 4))
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Toggle 1: Identification
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _petMode = 0;
-                            });
-                            _clearCapturedImage();
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: _petMode == 0
-                                  ? AppDesign.getModeColor(2)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.pets,
-                                    size: 20,
-                                    color: _petMode == 0
-                                        ? Colors.black
-                                        : AppDesign
-                                            .textPrimaryDark), // Black Text
-                                if (_petMode == 0) ...[
-                                  const SizedBox(width: 8),
-                                  Text(
-                                      AppLocalizations.of(context)!
-                                          .modePetIdentification,
-                                      style: const TextStyle(
-                                          color: Colors.black,
-                                          fontWeight:
-                                              FontWeight.bold)), // Black Text
-                                ]
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Toggle 2: Diagnosis
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _petMode = 1;
-                            });
-                            _clearCapturedImage();
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: _petMode == 1
-                                  ? AppDesign.getModeColor(2)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.health_and_safety,
-                                    size: 20,
-                                    color: _petMode == 1
-                                        ? Colors.black
-                                        : AppDesign.textPrimaryDark),
-                                if (_petMode == 1) ...[
-                                  const SizedBox(width: 8),
-                                  Text(
-                                      AppLocalizations.of(context)!
-                                          .modePetHealth,
-                                      style: const TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold)),
-                                ]
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-            // 3. Menu Button (Top Left)
-            Positioned(
-              top: 50,
-              left: 20,
-              child: Builder(
-                builder: (context) => Container(
-                  decoration: BoxDecoration(
-                    color: AppDesign.backgroundDark.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color:
-                            AppDesign.textPrimaryDark.withValues(alpha: 0.2)),
-                  ),
-                  child: IconButton(
-                    icon: Icon(AppDesign.iconMenu,
-                        color: _currentIndex == -1
-                            ? AppDesign.textPrimaryDark
-                            : AppDesign.getModeColor(_currentIndex),
-                        size: 28),
-                    onPressed: () {
-                      _clearCapturedImage();
-                      Scaffold.of(context).openDrawer();
-                    },
-                  ),
-                ),
-              ),
-            ),
-
-            // 3.5 Nutrition Button (Top Right) - Only for Food Mode
-            if (_currentIndex == 0)
-              Positioned(
-                top: 50,
-                right: 20,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // History Button (New)
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.history,
-                            color: AppDesign.getModeColor(0), size: 28),
-                        tooltip: AppLocalizations.of(context)!
-                            .tooltipNutritionHistory,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const NutritionHistoryScreen()),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Nutrition Module Button (Existing)
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.restaurant_menu,
-                            color: AppDesign.getModeColor(0), size: 28),
-                        tooltip: AppLocalizations.of(context)!
-                            .tooltipNutritionManagement,
-                        onPressed: () {
-                          try {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const NutritionHomeScreen(),
-                              ),
-                            );
-                          } catch (e) {
-                            debugPrint('❌ Error opening Nutrition module: $e');
-                            AppFeedback.showError(context,
-                                '${AppLocalizations.of(context)!.errorNavigationPrefix}$e');
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // 3.5 Action Buttons (Top Right) - Only for Plant Mode
-            if (_currentIndex == 1)
-              Positioned(
-                top: 50,
-                right: 20,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // History Button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.history,
-                            color: AppDesign.getModeColor(1), size: 28),
-                        tooltip:
-                            AppLocalizations.of(context)!.tooltipBotanyHistory,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const BotanyHistoryScreen()),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // 3.5 Action Buttons (Top Right) - Only for Pet Mode
-            if (_currentIndex == 2)
-              Positioned(
-                top: 50,
-                right: 20,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Agenda Global Button (only in PET mode)
-                    if (_currentIndex == 2) ...[
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.2)),
-                        ),
-                        child: IconButton(
-                          icon: Icon(Icons.calendar_month,
-                              color: AppDesign.getModeColor(2), size: 28),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const GlobalAgendaScreen()),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                    ],
-                    // Partners Button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.handshake,
-                            color: AppDesign.getModeColor(2), size: 28),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const PartnersHubScreen()),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // History Button
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2)),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.pets,
-                            color: AppDesign.getModeColor(2), size: 28),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const PetHistoryScreen()),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // 3. Shutter Button (Center) - Only show when mode is selected and NOT ScanWalk
-            if (_currentIndex != -1 && _currentIndex != 3)
-              Positioned(
-                bottom: 155, // Lifted +5px (Total 155px)
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: _buildCaptureControls(),
-                ),
-              ),
-
-            // 4. Loading Overlay - Using Consumer to watch analysis state
-            Consumer(
-              builder: (context, ref, child) {
-                final analysisState = ref.watch(analysisNotifierProvider);
-                if (analysisState is AnalysisLoading) {
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Background Preview
-                      if (analysisState.imagePath != null)
-                        Image.file(
-                          File(analysisState.imagePath!),
-                          fit: BoxFit.cover,
-                        ),
-
-                      // Dark Overlay
-                      Container(
-                        color: Colors.black.withValues(alpha: 0.7),
-                      ),
-
-                      // Loading Content
-                      Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                              child: const CircularProgressIndicator(
-                                color: AppDesign.accent,
-                                strokeWidth: 3,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                              _translateLoadingMessage(analysisState.message,
-                                  AppLocalizations.of(context)!),
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                shadows: [
-                                  const Shadow(
-                                      blurRadius: 4,
-                                      color: Colors.black,
-                                      offset: Offset(0, 2)),
-                                ],
-                              ),
-                            ),
-                            // 🛡️ FIX: Display pet name below the loading message
-                            if (_displayPetName != null &&
-                                _displayPetName!.isNotEmpty) ...[
-                              const SizedBox(height: 12),
-                              Text(
-                                _displayPetName!,
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  color: AppDesign.getModeColor(
-                                      2), // Pink color for pet
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  shadows: [
-                                    const Shadow(
-                                        blurRadius: 4,
-                                        color: Colors.black,
-                                        offset: Offset(0, 2)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-
-            // 5. Bottom Bar
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: _buildBottomBar(),
-            ),
+             // 4. Bottom Bar (Navegação)
+             Align(
+                alignment: Alignment.bottomCenter,
+                child: _buildBottomBar(),
+             ),
           ],
         ),
       ),
     );
+  }
+
+  // Wrapper temporário para lógica antiga de Pet/Planta
+  Widget _buildLegacyBody(int index) {
+     final bool isActive = _currentIndex == index;
+     // Se não ativo, retorna vazio para economizar recursos
+     if (!isActive) return const SizedBox.shrink();
+
+     return Stack(
+       fit: StackFit.expand,
+       children: [
+         // Camera Preview Legacy
+         if (_capturedImage != null)
+           Image.file(_capturedImage!, fit: BoxFit.cover)
+         else if (_controller != null && _controller!.value.isInitialized)
+           CameraPreview(_controller!)
+         else
+           Container(color: Colors.black),
+         
+         // Scan Frame Overlay - Show when mode selected OR when we have a captured image
+         if (_currentIndex != -1 || _capturedImage != null)
+           Center(
+             child: Column(
+               mainAxisSize: MainAxisSize.min,
+               children: [
+                 // Hint Banner ABOVE the frame
+                 if (_currentIndex != -1)
+                   Padding(
+                     padding: const EdgeInsets.only(bottom: 16),
+                     child: IgnorePointer(
+                       ignoring: true,
+                       child: Container(
+                         padding: const EdgeInsets.symmetric(
+                             horizontal: 16, vertical: 8),
+                         decoration: BoxDecoration(
+                             color: AppDesign.getModeColor(_currentIndex),
+                             borderRadius: BorderRadius.circular(20),
+                             boxShadow: [
+                               BoxShadow(
+                                 color: Colors.black.withValues(alpha: 0.3),
+                                 blurRadius: 4,
+                                 offset: const Offset(0, 2),
+                               )
+                             ]),
+                         child: Text(
+                           _getHintText(context),
+                           style: GoogleFonts.poppins(
+                             color: Colors.black, // Pure Black as requested
+                             fontWeight: FontWeight.w600,
+                             fontSize: 14,
+                           ),
+                         ),
+                       ),
+                     ),
+                   ),
+
+                 Container(
+                   width: 280,
+                   height: 280,
+                   decoration: BoxDecoration(
+                     border: Border.all(
+                         color: _currentIndex == -1
+                             ? AppDesign.textPrimaryDark
+                                 .withValues(alpha: 0.5)
+                             : AppDesign.getModeColor(_currentIndex),
+                         width: 3),
+                     borderRadius: BorderRadius.circular(24),
+                   ),
+                   child: Stack(
+                     children: [
+                       if (_capturedImage != null)
+                         Positioned.fill(
+                           child: ClipRRect(
+                             borderRadius: BorderRadius.circular(21),
+                             child: Image.file(
+                               _capturedImage!,
+                               fit: BoxFit.cover,
+                               errorBuilder: (context, error, stackTrace) {
+                                 return Container(
+                                   color: Colors.white10,
+                                   child: const Center(
+                                       child: Icon(Icons.broken_image,
+                                           color: Colors.white24, size: 40)),
+                                 );
+                               },
+                             ),
+                           ),
+                         ),
+                       // Corner accents
+                       Positioned(
+                         top: -2,
+                         left: -2,
+                         child: Container(
+                           width: 30,
+                           height: 30,
+                           decoration: BoxDecoration(
+                             border: Border(
+                               top: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                               left: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                             ),
+                           ),
+                         ),
+                       ),
+                       Positioned(
+                         top: -2,
+                         right: -2,
+                         child: Container(
+                           width: 30,
+                           height: 30,
+                           decoration: BoxDecoration(
+                             border: Border(
+                               top: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                               right: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                             ),
+                           ),
+                         ),
+                       ),
+                       Positioned(
+                         bottom: -2,
+                         left: -2,
+                         child: Container(
+                           width: 30,
+                           height: 30,
+                           decoration: BoxDecoration(
+                             border: Border(
+                               bottom: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                               left: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                             ),
+                           ),
+                         ),
+                       ),
+                       Positioned(
+                         bottom: -2,
+                         right: -2,
+                         child: Container(
+                           width: 30,
+                           height: 30,
+                           decoration: BoxDecoration(
+                             border: Border(
+                               bottom: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                               right: BorderSide(
+                                   color: _currentIndex == -1
+                                       ? AppDesign.accent
+                                       : AppDesign.getModeColor(
+                                           _currentIndex),
+                                   width: 4),
+                             ),
+                           ),
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+               ],
+             ),
+           ),
+           
+         // Controles Legacy (só se ativo e não processando)
+         if (!_isProcessingAnalysis)
+           Positioned(
+             bottom: 155, // Lifted +5px (Total 155px)
+             left: 0,
+             right: 0,
+             child: Center(
+               child: _buildCaptureControls(),
+             ),
+           ),
+           
+         // Overlay de Modos Pet (Se index 2)
+         if (index == 2) _buildPetModeToggles(),
+       ],
+     );
+  }
+
+  Widget _buildMenuButton(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppDesign.backgroundDark.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: AppDesign.textPrimaryDark.withValues(alpha: 0.2)),
+      ),
+      child: IconButton(
+        icon: Icon(AppDesign.iconMenu,
+            color: _currentIndex == -1
+                ? AppDesign.textPrimaryDark
+                : AppDesign.getModeColor(_currentIndex),
+            size: 28),
+        onPressed: () {
+          _clearCapturedImage();
+          Scaffold.of(context).openDrawer();
+        },
+      ),
+    );
+  }
+
+  Widget _buildFoodActions() {
+    return Positioned(
+      top: 50,
+      right: 20,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // History Button (New)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.history,
+                  color: AppDesign.getModeColor(0), size: 28),
+              tooltip: AppLocalizations.of(context)!
+                  .tooltipNutritionHistory,
+              onPressed: () => FoodRouter.navigateToHistory(context),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Nutrition Module Button (Existing)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.restaurant_menu,
+                  color: AppDesign.getModeColor(0), size: 28),
+              tooltip: AppLocalizations.of(context)!
+                  .tooltipNutritionManagement,
+              onPressed: () => FoodRouter.navigateToManagement(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlantActions() {
+    return Positioned(
+      top: 50,
+      right: 20,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // History Button
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.history,
+                  color: AppDesign.getModeColor(1), size: 28),
+              tooltip:
+                  AppLocalizations.of(context)!.tooltipBotanyHistory,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const BotanyHistoryScreen()),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPetActions() {
+    return Positioned(
+      top: 50,
+      right: 20,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Agenda Global Button (only in PET mode)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.calendar_month,
+                  color: AppDesign.getModeColor(2), size: 28),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const GlobalAgendaScreen()),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Partners Button
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.handshake,
+                  color: AppDesign.getModeColor(2), size: 28),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const PartnersHubScreen()),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          // History Button
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.pets,
+                  color: AppDesign.getModeColor(2), size: 28),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const PetHistoryScreen()),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPetModeToggles() {
+    return Positioned(
+      top: 160, // Deep optical centering (~160px from top)
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppDesign.backgroundDark.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white24),
+            boxShadow: const [
+              BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 8,
+                  offset: Offset(0, 4))
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Toggle 1: Identification
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _petMode = 0;
+                  });
+                  _clearCapturedImage();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _petMode == 0
+                        ? AppDesign.getModeColor(2)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.pets,
+                          size: 20,
+                          color: _petMode == 0
+                              ? Colors.black
+                              : AppDesign
+                                  .textPrimaryDark), // Black Text
+                      if (_petMode == 0) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                            AppLocalizations.of(context)!
+                                .modePetIdentification,
+                            style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight:
+                                    FontWeight.bold)), // Black Text
+                      ]
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Toggle 2: Diagnosis
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _petMode = 1;
+                  });
+                  _clearCapturedImage();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _petMode == 1
+                        ? AppDesign.getModeColor(2)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.health_and_safety,
+                          size: 20,
+                          color: _petMode == 1
+                              ? Colors.black
+                              : AppDesign.textPrimaryDark),
+                      if (_petMode == 1) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                            AppLocalizations.of(context)!
+                                .modePetHealth,
+                            style: const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold)),
+                      ]
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLegacyLoadingOverlay(AnalysisState analysisState) {
+    final l10n = AppLocalizations.of(context)!;
+    if (analysisState is AnalysisLoading) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background Preview
+          if (analysisState.imagePath != null)
+            Image.file(
+              File(analysisState.imagePath!),
+              fit: BoxFit.cover,
+            ),
+
+          // Dark Overlay
+          Container(
+            color: Colors.black.withValues(alpha: 0.7),
+          ),
+
+          // Loading Content
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 32, vertical: 24),
+              decoration: BoxDecoration(
+                  color:
+                      Colors.white, // White card for Black Text contrast
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5))
+                  ]),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Loading Indicator (Orange for Food)
+                  const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: CircularProgressIndicator(
+                      color: AppDesign.foodOrange, // Food Domain Color
+                      strokeWidth: 3,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    _currentIndex == 0
+                        ? l10n.loadingMsgDiet
+                        : _currentIndex == 1
+                            ? l10n.loadingMsgPlant
+                            : _petMode == 1
+                                ? l10n.loadingMsgClinical
+                                : _petMode == 2
+                                    ? l10n.loadingMsgStool
+                                    : l10n.loadingMsgPetId,
+                    style: GoogleFonts.poppins(
+                      color: Colors.black, // PRETO PURO (Requested)
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  // 🛡️ FIX: Show pet name when analyzing pet image
+                  if (_currentIndex == 2 &&
+                      _displayPetName != null &&
+                      _displayPetName!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _displayPetName!,
+                      style: GoogleFonts.poppins(
+                        color: AppDesign.petPink,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.loadingMsgWait,
+                    style: GoogleFonts.poppins(
+                      color: Colors.black54,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   Widget _buildCaptureControls() {
@@ -2113,6 +2005,45 @@ class _HomeViewState extends ConsumerState<HomeView>
         ],
       ),
     );
+  }
+
+  Future<void> _performAnalysis({
+    required ScannutMode mode,
+    required File image,
+    required String locale,
+    required List<String> excluded,
+    required Map<String, String>? contextData,
+  }) async {
+    try {
+      if (mode == ScannutMode.food) {
+        await FoodRouter.analyzeAndOpen(
+            context: context, ref: ref, image: image);
+        return;
+      }
+
+      ref.read(analysisNotifierProvider.notifier).reset();
+      final resultState = await ref
+          .read(analysisNotifierProvider.notifier)
+          .analyzeImage(
+            imageFile: image,
+            mode: mode,
+            petName: _petName,
+            petId: _petId,
+            excludedBases: excluded,
+            locale: locale,
+            contextData: contextData,
+          );
+
+      final stateSnapshot = resultState;
+      ref.read(analysisNotifierProvider.notifier).reset();
+      await _handleAnalysisResult(stateSnapshot, image);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingAnalysis = false;
+        });
+      }
+    }
   }
 
   String _getHintText(BuildContext context) {

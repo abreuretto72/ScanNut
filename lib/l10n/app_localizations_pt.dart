@@ -434,7 +434,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ops! Algo deu errado. Seus dados estão seguros. Tente novamente.';
 
   @override
-  String get loadingFood => 'Analisando alimento...';
+  String get loadingFood => 'Analisando a imagem de comida...';
 
   @override
   String get loadingPlant => 'Analisando a planta...';
@@ -6556,6 +6556,28 @@ class AppLocalizationsPt extends AppLocalizations {
   String get petSelectRecordType => 'Selecione o tipo de registro';
 
   @override
+  String get feces_log_title => 'Registrar Fezes';
+
+  @override
+  String get btn_capture_photo => 'Capturar Foto';
+
+  @override
+  String get btn_voice_note => 'Nota de Voz';
+
+  @override
+  String get btn_capture_sound => 'Capturar Som';
+
+  @override
+  String get btn_quick_reg => 'Registro Rápido';
+
+  @override
+  String get error_save_feces => 'Não foi possível salvar o registro de fezes.';
+
+  @override
+  String get photo_captured_success =>
+      'Foto capturada e integrada ao histórico!';
+
+  @override
   String get petShowAll => 'Mostrar todos';
 
   @override
@@ -7077,16 +7099,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String get walkBristolScore => 'Escala Bristol';
 
   @override
-  String get walkFriendDesc => 'Nome do Amigo';
+  String get walkFriendManual => 'Cadastro Manual';
 
   @override
-  String get walkHazardDesc => 'Tipo de Perigo';
+  String get walkFriendManualDesc => 'Registre os dados do novo amigo';
 
   @override
-  String get walkFightDesc => 'Detalhes da Briga';
+  String get walkFriendPhoto => 'Tirar foto do amigo';
 
   @override
-  String get walkDemoBtn => 'Demonstração';
+  String get walkFriendManualFull => 'Cadastrar o amigo e tutor';
+
+  @override
+  String get walkFriendVoice => 'Ditar ocorrências';
+
+  @override
+  String get walkFriendSound => 'Gravar latidos / miados do amigo';
+
+  @override
+  String get friendName => 'Nome do Amigo';
+
+  @override
+  String get friendGender => 'Sexo';
+
+  @override
+  String get friendAge => 'Idade';
+
+  @override
+  String get friendBreed => 'Raça';
+
+  @override
+  String get friendOwnerName => 'Nome do Tutor';
+
+  @override
+  String get friendOwnerContact => 'Contato do Tutor';
+
+  @override
+  String get friendSaveSuccess => 'Amigo registrado com sucesso!';
+
+  @override
+  String get friendValidationError => 'Preencha os campos obrigatórios.';
 
   @override
   String get walkMicRec => 'Ouvindo...';

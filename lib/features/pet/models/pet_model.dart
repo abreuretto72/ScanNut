@@ -42,6 +42,25 @@ class PetModel {
     );
   }
 
+  // 🛡️ Pattern copyWith para atualizações imutáveis e atômicas
+  PetModel copyWith({
+    String? id,
+    PetIdentitySet? identity,
+    PetHealthSet? health,
+    PetMenuSet? menu,
+    PetAgendaSet? agenda,
+    DateTime? lastUpdated,
+  }) {
+    return PetModel(
+      id: id ?? this.id,
+      identity: identity ?? this.identity,
+      health: health ?? this.health,
+      menu: menu ?? this.menu,
+      agenda: agenda ?? this.agenda,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'identity': identity.toJson(),
@@ -70,6 +89,11 @@ class PetIdentitySet {
   final bool isNeutered;
   final String? microchip;
   final DateTime? birthDate;
+  // 🛡️ V2.5: Novos Campos Biométricos
+  final String? longevity; // Longevidade estimada
+  final String? originRegion; // Região de origem
+  final String? lineage; // Linhagem
+  final String? morphology; // Morfologia
 
   PetIdentitySet({
     required this.name,
@@ -79,7 +103,39 @@ class PetIdentitySet {
     this.isNeutered = false,
     this.microchip,
     this.birthDate,
+    this.longevity,
+    this.originRegion,
+    this.lineage,
+    this.morphology,
   });
+
+  PetIdentitySet copyWith({
+    String? name,
+    String? species,
+    String? breed,
+    String? sex,
+    bool? isNeutered,
+    String? microchip,
+    DateTime? birthDate,
+    String? longevity,
+    String? originRegion,
+    String? lineage,
+    String? morphology,
+  }) {
+    return PetIdentitySet(
+      name: name ?? this.name,
+      species: species ?? this.species,
+      breed: breed ?? this.breed,
+      sex: sex ?? this.sex,
+      isNeutered: isNeutered ?? this.isNeutered,
+      microchip: microchip ?? this.microchip,
+      birthDate: birthDate ?? this.birthDate,
+      longevity: longevity ?? this.longevity,
+      originRegion: originRegion ?? this.originRegion,
+      lineage: lineage ?? this.lineage,
+      morphology: morphology ?? this.morphology,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'name': name,
@@ -89,6 +145,10 @@ class PetIdentitySet {
         'isNeutered': isNeutered,
         'microchip': microchip,
         'birthDate': birthDate?.toIso8601String(),
+        'longevity': longevity,
+        'originRegion': originRegion,
+        'lineage': lineage,
+        'morphology': morphology,
       };
 
   factory PetIdentitySet.fromJson(Map<String, dynamic> json) => PetIdentitySet(
@@ -101,6 +161,10 @@ class PetIdentitySet {
         birthDate: json['birthDate'] != null
             ? DateTime.parse(json['birthDate'])
             : null,
+        longevity: json['longevity'],
+        originRegion: json['originRegion'],
+        lineage: json['lineage'],
+        morphology: json['morphology'],
       );
 }
 
@@ -109,23 +173,42 @@ class PetHealthSet {
   final List<BiometricEntry> biometricsHistory;
   final List<ConditionEntry> conditions; // Feridas, diagnósticos
   final List<MedicalAttachment> attachments;
+  // 🛡️ V2.5: Predisposições Genéticas
+  final List<String> predispositions;
 
   PetHealthSet({
     required this.biometricsHistory,
     required this.conditions,
     required this.attachments,
+    this.predispositions = const [],
   });
+
+  PetHealthSet copyWith({
+    List<BiometricEntry>? biometricsHistory,
+    List<ConditionEntry>? conditions,
+    List<MedicalAttachment>? attachments,
+    List<String>? predispositions,
+  }) {
+    return PetHealthSet(
+      biometricsHistory: biometricsHistory ?? this.biometricsHistory,
+      conditions: conditions ?? this.conditions,
+      attachments: attachments ?? this.attachments,
+      predispositions: predispositions ?? this.predispositions,
+    );
+  }
 
   factory PetHealthSet.empty() => PetHealthSet(
         biometricsHistory: [],
         conditions: [],
         attachments: [],
+        predispositions: [],
       );
 
   Map<String, dynamic> toJson() => {
         'biometricsHistory': biometricsHistory.map((e) => e.toJson()).toList(),
         'conditions': conditions.map((e) => e.toJson()).toList(),
         'attachments': attachments.map((e) => e.toJson()).toList(),
+        'predispositions': predispositions,
       };
 
   factory PetHealthSet.fromJson(Map<String, dynamic> json) => PetHealthSet(
@@ -141,6 +224,7 @@ class PetHealthSet {
                 ?.map((e) => MedicalAttachment.fromJson(e))
                 .toList() ??
             [],
+        predispositions: List<String>.from(json['predispositions'] ?? []),
       );
 
   // Helper to add biometric data without overwriting
@@ -252,6 +336,22 @@ class PetMenuSet {
     required this.preferences,
   });
 
+  PetMenuSet copyWith({
+    String? dietType,
+    List<MenuCycle>? history,
+    MenuCycle? currentPlan,
+    List<String>? restrictions,
+    List<String>? preferences,
+  }) {
+    return PetMenuSet(
+      dietType: dietType ?? this.dietType,
+      history: history ?? this.history,
+      currentPlan: currentPlan ?? this.currentPlan,
+      restrictions: restrictions ?? this.restrictions,
+      preferences: preferences ?? this.preferences,
+    );
+  }
+
   factory PetMenuSet.empty() => PetMenuSet(
         history: [],
         restrictions: [],
@@ -321,6 +421,16 @@ class PetAgendaSet {
     required this.vaccines,
     required this.events,
   });
+
+  PetAgendaSet copyWith({
+    Map<String, DateTime>? vaccines,
+    List<AgendaEvent>? events,
+  }) {
+    return PetAgendaSet(
+      vaccines: vaccines ?? this.vaccines,
+      events: events ?? this.events,
+    );
+  }
 
   factory PetAgendaSet.empty() => PetAgendaSet(
         vaccines: {},

@@ -1,39 +1,21 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
-import '../../../core/widgets/pro_access_wrapper.dart';
-import '../../../l10n/app_localizations.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../services/nutrition_service.dart';
+import 'package:percent_indicator/percent_indicator.dart'; // Pilar: Resolução de Dependência
+import 'package:intl/intl.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../models/food_analysis_model.dart';
-import '../../../core/providers/settings_provider.dart';
-import '../../../core/widgets/pdf_action_button.dart';
-import '../../../core/services/export_service.dart';
-import '../../../core/widgets/pdf_preview_screen.dart';
-import '../../../nutrition/domain/usecases/scan_to_nutrition_mapper.dart';
-import '../../../nutrition/presentation/controllers/nutrition_providers.dart';
-import '../../../core/theme/app_design.dart';
-import 'nutrition_history_screen.dart';
-import '../../../core/services/gemini_service.dart';
-import '../services/recipe_service.dart';
-import '../models/recipe_history_item.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'recipe_history_screen.dart';
+import '../services/food_pdf_service.dart';
 
 class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
   final File? imageFile;
-  final VoidCallback onSave;
   final bool isReadOnly;
 
   const FoodResultScreen({
     super.key,
     required this.analysis,
     this.imageFile,
-    required this.onSave,
     this.isReadOnly = false,
   });
 
@@ -41,1148 +23,603 @@ class FoodResultScreen extends ConsumerStatefulWidget {
   ConsumerState<FoodResultScreen> createState() => _FoodResultScreenState();
 }
 
-class _FoodResultScreenState extends ConsumerState<FoodResultScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  late ScrollController _scrollController;
-  final Color _themeColor = AppDesign.foodOrange; // Orange Food Theme
-
-  bool _isSaved = false;
-  late FoodAnalysisModel _analysis;
-  bool _isGeneratingRecipes = false;
-  bool _isOpeningRecipe = false; // 🛡️ V132: Loop Lock
+class _FoodResultScreenState extends ConsumerState<FoodResultScreen> {
+  bool _isGeneratingPdf = false;
+  final Color _themeColor = const Color(0xFF4CAF50); // Cor de domínio Comida (Verde)
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-    _scrollController = ScrollController();
-    if (widget.isReadOnly) {
-      _isSaved = true;
-    }
-    _analysis = widget.analysis;
-    if (!widget.isReadOnly) {
-      _autoSaveRecipes();
-    }
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _generatePDF() async {
-    try {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PdfPreviewScreen(
-            title: AppLocalizations.of(context)!
-                .pdfFoodAnalysisTitle(widget.analysis.identidade.nome),
-            buildPdf: (format) async {
-              final pdf = await ExportService().generateFoodAnalysisReport(
-                analysis: _analysis,
-                imageFile: widget.imageFile,
-                strings: AppLocalizations.of(context)!,
-              );
-              return pdf.save();
-            },
-          ),
-        ),
-      );
-    } catch (e) {
-      debugPrint("Erro ao gerar PDF: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(AppLocalizations.of(context)!
-                  .pdfErrorGeneration(e.toString())),
-              backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
+  // --- CONSTRUTORES DE UI (PROTEÇÃO SM A256E) ---
 
   @override
   Widget build(BuildContext context) {
-    final dailyGoal = ref.read(settingsProvider).dailyCalorieGoal;
+    final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: NestedScrollView(
-        controller: _scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              expandedHeight: 350.0,
-              pinned: true,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              actions: [
-                PdfActionButton(
-                  onPressed: _generatePDF,
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              SliverAppBar(
+                expandedHeight: 300,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: _buildImageHeader(),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.menu_book, color: Colors.white),
-                  onPressed: _onRecipeClick,
-                  tooltip: AppLocalizations.of(context)!.tooltipSavedRecipes,
+                actions: [
+                  IconButton(
+                    icon: _isGeneratingPdf 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.share),
+                    onPressed: _isGeneratingPdf ? null : () => _generatePdf(context),
+                  ),
+                ],
+              ),
+              SliverToBoxAdapter(
+                child: _buildMainInfo(l10n),
+              ),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _SliverAppBarDelegate(
+                  TabBar(
+                    labelColor: _themeColor,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: _themeColor,
+                    isScrollable: true,
+                    tabs: const [
+                      Tab(text: "RESUMO"),
+                      Tab(text: "SAÚDE"),
+                      Tab(text: "NUTRIENTES"),
+                      Tab(text: "GASTRONOMIA"),
+                    ],
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.check_circle,
-                      color: AppDesign.foodOrange), // Synced with Food Domain
-                  onPressed: null, // No action needed
-                  tooltip: AppLocalizations.of(context)!.tooltipAutoSaved,
-                ),
-                const SizedBox(width: 8),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: Stack(
-                  fit: StackFit.expand,
+              ),
+            ];
+          },
+          body: TabBarView(
+            children: [
+              _buildResumoTab(l10n),
+              _buildSaudeTab(l10n),
+              _buildNutrientesTab(l10n),
+              _buildGastronomiaTab(l10n),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResumoTab(AppLocalizations l10n) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 150),
+      child: Column(
+        children: [
+          _buildNutritionalTable(l10n),
+          _buildRecommendationCard(l10n),
+          if (widget.analysis.identidade.alertaCritico.contains(':')) _buildAllergenWarning(),
+          _buildProsConsRow(l10n),
+          _buildFooter(l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSaudeTab(AppLocalizations l10n) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 150),
+      child: Column(
+        children: [
+          _buildBiohackingSection(l10n),
+          _buildFooter(l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNutrientesTab(AppLocalizations l10n) {
+    final micros = widget.analysis.micronutrientes;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildNutritionalTable(l10n),
+          const SizedBox(height: 16),
+          Text("Micronutrientes (Estimativa IA)", style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          if (micros.lista.isEmpty) 
+             Center(child: Padding(padding: const EdgeInsets.all(20), child: Text("Carregando inteligência...", style: TextStyle(color: Colors.grey)))),
+          ...micros.lista.map((n) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (widget.imageFile != null)
-                      Hero(
-                        tag: 'captured_food_image',
-                        child: Image.file(
-                          widget.imageFile!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                            color: Colors.grey.shade900,
-                            child: const Center(
-                                child: Icon(Icons.broken_image,
-                                    size: 50, color: Colors.white24)),
-                          ),
-                        ),
-                      )
-                    else
-                      Container(color: Colors.grey.shade900),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.2),
-                            Colors.black.withValues(alpha: 0.8),
-                            Colors.black,
-                          ],
-                          stops: const [0.5, 0.7, 0.9, 1.0],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 20,
-                      bottom: 80,
-                      right: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildCalorieBadge(dailyGoal),
-                          const SizedBox(height: 8),
-                          Text(
-                            (_analysis.identidade.nome == 'UNKNOWN_FOOD')
-                                ? AppLocalizations.of(context)!.unknownFood
-                                : _analysis.identidade.nome
-                                    .replaceAll('aproximadamente', '±')
-                                    .replaceAll('Aproximadamente', '±'),
-                            style: GoogleFonts.poppins(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              shadows: const [
-                                Shadow(
-                                    blurRadius: 10,
-                                    color: Colors.black54,
-                                    offset: Offset(0, 2)),
-                              ],
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
+                    Text(n.nome, style: const TextStyle(fontWeight: FontWeight.w500)),
+                    Text("${n.quantidade} (${n.percentualDv}%)", style: TextStyle(color: _themeColor, fontWeight: FontWeight.bold)),
                   ],
                 ),
-              ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(60),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(25)),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorColor: _themeColor,
-                    indicatorWeight: 3,
-                    labelColor: _themeColor,
-                    unselectedLabelColor: Colors.white54,
-                    isScrollable: true,
-                    labelStyle: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold, fontSize: 13),
-                    tabs: [
-                      Tab(text: AppLocalizations.of(context)!.tabSummary),
-                      Tab(text: AppLocalizations.of(context)!.tabHealth),
-                      Tab(text: AppLocalizations.of(context)!.tabNutrients),
-                      Tab(text: AppLocalizations.of(context)!.tabGastronomy),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildResumoTab(),
-            _buildSaudeTab(),
-            _buildNutrientesTab(),
-            _buildGastronomiaTab(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.black,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.05),
-              offset: const Offset(0, -4),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const NutritionHistoryScreen(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppDesign.foodOrange,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.btnGoToList,
-                style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCalorieBadge(int dailyGoal) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.local_fire_department_rounded,
-              color: _themeColor, size: 16),
-          const SizedBox(width: 6),
-          Text(
-            "${_analysis.macros.calorias100g} kcal / 100g",
-            style: GoogleFonts.poppins(
-                color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- TAB 1: RESUMO ---
-  Widget _buildResumoTab() {
-    final l10n = AppLocalizations.of(context)!;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // _buildVitalityHeader removed as per user request (exclusivo para plantas)
-          Text(l10n.foodVerdict, style: _sectionTitleStyle),
-          const SizedBox(height: 8),
-          Text(
-              widget.analysis.analise.vereditoIa
-                  .replaceAll('aproximadamente', '±')
-                  .replaceAll('Aproximadamente', '±'),
-              style: GoogleFonts.poppins(
-                  color: Colors.white70,
-                  fontSize: 15,
-                  fontStyle: FontStyle.italic)),
-          const SizedBox(height: 24),
-          Text(l10n.foodPros, style: _sectionTitleStyle),
-          const SizedBox(height: 12),
-          ..._analysis.analise.pontosPositivos.map((p) => _buildPointRow(
-              p
-                  .replaceAll('aproximadamente', '±')
-                  .replaceAll('Aproximadamente', '±'),
-              Icons.check_circle,
-              AppDesign.foodOrange)),
-          const SizedBox(height: 16),
-          Text(l10n.foodCons, style: _sectionTitleStyle),
-          const SizedBox(height: 12),
-          ..._analysis.analise.pontosNegativos.map((p) => _buildPointRow(
-              p
-                  .replaceAll('aproximadamente', '±')
-                  .replaceAll('Aproximadamente', '±'),
-              Icons.warning_rounded,
-              Colors.orangeAccent)),
-          const SizedBox(height: 20),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(l10n.foodDisclaimer,
-                  textAlign: TextAlign.center,
-                  style:
-                      GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
-            ),
-          ),
-          const SizedBox(height: 80),
-        ],
-      ),
-    );
-  }
-
-  // --- TAB 2: SAÚDE ---
-  Widget _buildSaudeTab() {
-    final l10n = AppLocalizations.of(context)!;
-    final performance = _analysis.performance;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildGlassCard(
-            title: l10n.foodBiohacking,
-            icon: Icons.bolt,
-            color: Colors.purpleAccent,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildProgressRow(l10n.foodSatietyIndex,
-                    performance.indiceSaciedade / 5.0, Colors.tealAccent),
-                const SizedBox(height: 20),
-                Text("${l10n.foodBodyBenefits}:",
-                    style: GoogleFonts.poppins(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                ...performance.pontosPositivosCorpo.map((p) =>
-                    _buildPointRow(p, Icons.trending_up, Colors.tealAccent)),
-                const SizedBox(height: 12),
-                Text("${l10n.foodAttention}:",
-                    style: GoogleFonts.poppins(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                ...performance.pontosAtencaoCorpo.map((p) => _buildPointRow(
-                    p, Icons.priority_high, Colors.orangeAccent)),
-                const Divider(color: Colors.white10, height: 24),
-                _buildInfoRow(
-                    "${l10n.foodFocusEnergy}:", performance.impactoFocoEnergia),
-                _buildInfoRow("${l10n.foodIdealMoment}:",
-                    performance.momentoIdealConsumo),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildGlassCard(
-            title: l10n.foodSafetyBio,
-            icon: Icons.security,
-            color: Colors.blueAccent,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoRow("${l10n.foodCriticalAlerts}:",
-                    _analysis.identidade.alertaCritico),
-                const SizedBox(height: 10),
-                _buildInfoRow("${l10n.foodBioChem}:",
-                    _analysis.identidade.bioquimicaAlert),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(l10n.foodDisclaimer,
-                  textAlign: TextAlign.center,
-                  style:
-                      GoogleFonts.poppins(color: Colors.white30, fontSize: 10)),
-            ),
-          ),
-          const SizedBox(height: 80),
-        ],
-      ),
-    );
-  }
-
-  // --- TAB 3: NUTRIENTES ---
-  Widget _buildNutrientesTab() {
-    final l10n = AppLocalizations.of(context)!;
-    final macros = _analysis.macros;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.nutrientsAdvancedMacros, style: _sectionTitleStyle),
-          const SizedBox(height: 16),
-          _buildMacroDetailRow(l10n.nutrientsProteins, macros.proteinas,
-              l10n.labelAminoProfile, Colors.blue),
-          _buildMacroDetailRow(
-              l10n.nutrientsCarbs,
-              macros.carboidratosLiquidos,
-              "${l10n.labelGlycemicImpact}: ${macros.indiceGlicemico}",
-              Colors.amber),
-          _buildMacroDetailRow(l10n.nutrientsFats, macros.gordurasPerfil,
-              l10n.labelFattyAcids, Colors.red),
-          const SizedBox(height: 24),
-
-          ProAccessWrapper(
-            featureName: l10n.featureMicrosTitle,
-            featureDescription: l10n.featureMicrosDesc,
-            featureIcon: FontAwesomeIcons.dna,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.nutrientsMinerals, style: _sectionTitleStyle),
-                const SizedBox(height: 16),
-                ..._analysis.micronutrientes.lista
-                    .map((n) => _buildNutrientLinear(n)),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.auto_awesome,
-                          color: Colors.cyanAccent, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "${l10n.nutrientsSynergy}: ${_analysis.micronutrientes.sinergiaNutricional}",
-                          style: GoogleFonts.poppins(
-                              fontSize: 12, color: Colors.cyanAccent),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 4),
+                LinearPercentIndicator(
+                  lineHeight: 8.0,
+                  percent: (n.percentualDv / 100).clamp(0, 1),
+                  progressColor: _themeColor,
+                  backgroundColor: _themeColor.withValues(alpha: 0.1),
+                  barRadius: const Radius.circular(10),
+                  animation: true,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 20),
-          // Disclaimer
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                l10n.foodDisclaimer,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10),
-              ),
-            ),
-          ),
-          const SizedBox(height: 80),
+          )),
+          if (micros.sinergiaNutricional.isNotEmpty) ...[
+             const SizedBox(height: 20),
+             Container(
+               padding: const EdgeInsets.all(12),
+               decoration: BoxDecoration(
+                 color: _themeColor.withValues(alpha: 0.05),
+                 borderRadius: BorderRadius.circular(12),
+                 border: Border.all(color: _themeColor.withValues(alpha: 0.2)),
+               ),
+               child: Column(
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                   Row(children: [Icon(Icons.auto_awesome, size: 16, color: _themeColor), const SizedBox(width: 8), Text("Sinergia", style: TextStyle(fontWeight: FontWeight.bold, color: _themeColor))]),
+                   const SizedBox(height: 8),
+                   Text(micros.sinergiaNutricional, style: const TextStyle(fontSize: 12)),
+                 ],
+               ),
+             ),
+          ],
+          const SizedBox(height: 150),
+          _buildFooter(l10n),
         ],
       ),
     );
   }
 
-  // --- TAB 4: GASTRONOMIA ---
-  Widget _buildGastronomiaTab() {
-    final l10n = AppLocalizations.of(context)!;
+  Widget _buildGastronomiaTab(AppLocalizations l10n) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.only(bottom: 150),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(l10n.recipesQuick, style: _sectionTitleStyle),
-              if (_isGeneratingRecipes)
-                const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation(Colors.orangeAccent)))
-              else
-                IconButton(
-                  icon: const Icon(Icons.refresh_rounded,
-                      color: Colors.orangeAccent),
-                  onPressed: _generateMoreRecipes,
-                  tooltip: AppLocalizations.of(context)!.tooltipGenerateRecipes,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                )
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (_isGeneratingRecipes)
+          _buildGastronomySection(l10n),
+          if (widget.analysis.receitas.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Text(AppLocalizations.of(context)!.foodConsultingChef,
-                  style: GoogleFonts.poppins(
-                      color: Colors.orangeAccent,
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic)),
-            ),
-
-          ..._analysis.receitas.map((r) => _buildRecipeCard(r)),
-          const SizedBox(height: 24),
-          _buildGlassCard(
-            title: l10n.recipesCulinaryIntel,
-            icon: Icons.restaurant_menu,
-            color: Colors.orangeAccent,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoRow("${l10n.foodPreservation}:",
-                    _analysis.gastronomia.preservacaoNutrientes),
-                const SizedBox(height: 16),
-                _buildInfoRow(
-                    "${l10n.foodSmartSwap}:", _analysis.gastronomia.smartSwap),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          _buildGlassCard(
-            title: l10n.recipesExpertTip,
-            icon: Icons.lightbulb,
-            color: Colors.amberAccent,
-            child: Text(
-                _analysis.gastronomia.dicaEspecialista
-                    .replaceAll('aproximadamente', '±')
-                    .replaceAll('Aproximadamente', '±'),
-                style: GoogleFonts.poppins(color: Colors.white, height: 1.5)),
-          ),
-          const SizedBox(height: 20),
-          // Disclaimer
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                l10n.foodDisclaimer,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(color: Colors.white30, fontSize: 10),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Receitas Recomendadas", style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  ...widget.analysis.receitas.map((r) => Card(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ExpansionTile(
+                      title: Text(r.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text("Preparo: ${r.tempoPreparo}"),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(r.instrucoes, style: const TextStyle(fontSize: 12)),
+                        )
+                      ],
+                    ),
+                  )),
+                ],
               ),
-            ),
-          ),
-          const SizedBox(height: 80),
+            )
+          ],
+          _buildFooter(l10n),
         ],
       ),
     );
   }
 
-  // --- HELPERS ---
-
-  // --- HELPERS ---
-
-  Color _getSemaforoColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'verde':
-        return AppDesign.foodOrange;
-      case 'amarelo':
-        return Colors.amberAccent;
-      case 'vermelho':
-        return Colors.redAccent;
-      default:
-        return AppDesign.foodOrange;
-    }
-  }
-
-  Widget _buildVitalityHeader(Color statusColor) {
+  Widget _buildAllergenWarning() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: Colors.white10,
-        border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          CircularPercentIndicator(
-            radius: 35,
-            lineWidth: 6,
-            percent: widget.analysis.identidade.semaforoSaude.toLowerCase() ==
-                    'verde'
-                ? 0.95
-                : (widget.analysis.identidade.semaforoSaude.toLowerCase() ==
-                        'amarelo'
-                    ? 0.6
-                    : 0.3),
-            progressColor: statusColor,
-            center: Icon(Icons.shield_rounded, color: statusColor, size: 30),
-            animation: true,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                    _translateStatus(
-                            widget.analysis.identidade.statusProcessamento)
-                        .toUpperCase(),
-                    style: GoogleFonts.poppins(
-                        color: statusColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold)),
-                Text(
-                    "${AppLocalizations.of(context)!.labelTrafficLight}: ${_translateStatus(widget.analysis.identidade.semaforoSaude)}",
-                    style: GoogleFonts.poppins(
-                        color: Colors.white70, fontSize: 13)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecipeCard(ReceitaRapida recipe) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                  child: Text(recipe.nome,
-                      style: GoogleFonts.poppins(
-                          color: _themeColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15))),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                    color: _themeColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8)),
-                child: Text(recipe.tempoPreparo,
-                    style: GoogleFonts.poppins(
-                        color: _themeColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-              recipe.instrucoes
-                  .replaceAll('aproximadamente', '±')
-                  .replaceAll('Aproximadamente', '±'),
-              style: GoogleFonts.poppins(
-                  color: Colors.white70, fontSize: 13, height: 1.4)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGlassCard(
-      {required String title,
-      required IconData icon,
-      required Color color,
-      required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white10)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: Text(title,
-                      style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16),
-                      overflow: TextOverflow.ellipsis)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
-          Text(
-              value
-                  .replaceAll('aproximadamente', '±')
-                  .replaceAll('Aproximadamente', '±'),
-              style: GoogleFonts.poppins(
-                  color: Colors.white, fontSize: 13, height: 1.4)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPointRow(String text, IconData icon, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 18),
+          const Icon(Icons.warning_amber_rounded, color: Colors.red),
           const SizedBox(width: 12),
           Expanded(
-              child: Text(
-                  text
-                      .replaceAll('aproximadamente', '±')
-                      .replaceAll('Aproximadamente', '±'),
-                  style: GoogleFonts.poppins(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 14))),
+            child: Text(
+              widget.analysis.identidade.alertaCritico,
+              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildProgressRow(String label, double percent, Color color) {
+  Widget _buildProsConsRow(AppLocalizations l10n) {
+    final pros = widget.analysis.analise.pontosPositivos;
+    final cons = widget.analysis.analise.pontosNegativos;
+    
+    if (pros.isEmpty && cons.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (pros.isNotEmpty) Expanded(child: _buildProsConsCard("Prós", pros, Colors.green)),
+          if (pros.isNotEmpty && cons.isNotEmpty) const SizedBox(width: 12),
+          if (cons.isNotEmpty) Expanded(child: _buildProsConsCard("Contras", cons, Colors.red)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProsConsCard(String title, List<String> items, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13)),
+          const SizedBox(height: 8),
+          ...items.take(3).map((item) => Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text("• $item", style: const TextStyle(fontSize: 11)),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBiohackingSection(AppLocalizations l10n) {
+    final performance = widget.analysis.performance;
+    if (performance.impactoFocoEnergia.isEmpty && performance.pontosPositivosCorpo.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 0,
+      color: Colors.blue.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.blue.withValues(alpha: 0.2)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.bolt, color: Colors.blue),
+                const SizedBox(width: 8),
+                Text("Biohacking & Performance", 
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.blue)),
+              ],
+            ),
+            if (performance.impactoFocoEnergia.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text("Impacto Foco/Energia:", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(performance.impactoFocoEnergia, style: const TextStyle(fontSize: 13)),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _buildBioBadge(Icons.timer, performance.momentoIdealConsumo),
+                const SizedBox(width: 8),
+                _buildBioBadge(Icons.restaurant_menu, "Saciedade: ${performance.indiceSaciedade}/10"),
+              ],
+            ),
+            if (performance.pontosPositivosCorpo.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              ...performance.pontosPositivosCorpo.map((tip) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("• ", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                    Expanded(child: Text(tip, style: const TextStyle(fontSize: 12))),
+                  ],
+                ),
+              )),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGastronomySection(AppLocalizations l10n) {
+    final gastro = widget.analysis.gastronomia;
+    if (gastro.smartSwap.isEmpty && gastro.dicaEspecialista.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 0,
+      color: Colors.orange.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.orange.withValues(alpha: 0.2)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.restaurant, color: Colors.orange),
+                const SizedBox(width: 8),
+                Text("Inteligência Culinária", 
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange)),
+              ],
+            ),
+            if (gastro.smartSwap.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text("Smart Swap (Troca Inteligente):", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(gastro.smartSwap, style: const TextStyle(fontSize: 13)),
+            ],
+            if (gastro.preservacaoNutrientes.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text("Técnica de Preparo:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(gastro.preservacaoNutrientes, style: const TextStyle(fontSize: 13)),
+            ],
+            if (gastro.dicaEspecialista.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text("Dica do Expert:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(gastro.dicaEspecialista, style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBioBadge(IconData icon, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.blue.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 14, color: Colors.blue),
+            const SizedBox(width: 4),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue), overflow: TextOverflow.ellipsis)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(AppLocalizations l10n) {
+    return Column(
+      children: [
+        Divider(color: Colors.white.withValues(alpha: 0.1), indent: 40, endIndent: 40),
+        const SizedBox(height: 16),
+        Text(
+          "ScanNut © 2026",
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.3),
+            fontSize: 12,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          "Nutrição Inteligente & Biohacking",
+          style: TextStyle(
+            color: _themeColor.withValues(alpha: 0.2),
+            fontSize: 10,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageHeader() {
+    if (widget.imageFile == null) {
+      return Container(
+        height: 150,
+        width: double.infinity,
+        color: Colors.grey.shade900,
+        child: const Icon(Icons.fastfood, size: 60, color: Colors.white24),
+      );
+    }
+    return Container(
+      height: 250,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: FileImage(widget.imageFile!),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainInfo(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.analysis.identidade.nome,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: _themeColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildHealthIndicator(l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHealthIndicator(AppLocalizations l10n) {
+    double score = 0.5;
+    Color color = Colors.orange;
+    final status = widget.analysis.identidade.semaforoSaude.toLowerCase();
+    
+    if (status.contains('verde') || status.contains('green')) {
+      score = 0.9;
+      color = Colors.green;
+    } else if (status.contains('vermelho') || status.contains('red')) {
+      score = 0.2;
+      color = Colors.red;
+    } else {
+      score = 0.5;
+      color = Colors.orange;
+    }
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12)),
-        const SizedBox(height: 8),
-        LinearPercentIndicator(
-          lineHeight: 6,
-          percent: percent.clamp(0.0, 1.0),
+        Text("Semáforo: ${widget.analysis.identidade.semaforoSaude}", 
+          style: TextStyle(color: color, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        LinearPercentIndicator( 
+          lineHeight: 12.0,
+          percent: score,
           progressColor: color,
-          backgroundColor: Colors.white10,
-          barRadius: const Radius.circular(3),
-          padding: EdgeInsets.zero,
+          backgroundColor: Colors.white.withValues(alpha: 0.1), 
+          barRadius: const Radius.circular(10),
           animation: true,
         ),
       ],
     );
   }
 
-  Widget _buildMacroDetailRow(
-      String label, String value, String detail, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-              width: 4,
-              height: 50,
-              decoration: BoxDecoration(
-                  color: color, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: GoogleFonts.poppins(
-                        color: color,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(
-                  value
-                      .replaceAll('aproximadamente', '±')
-                      .replaceAll('Aproximadamente', '±'),
-                  style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  detail,
-                  style:
-                      GoogleFonts.poppins(color: Colors.white54, fontSize: 12),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNutrientLinear(NutrienteItem n) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                flex: 2,
-                child: Text(
-                  n.nome,
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 13),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                flex: 1,
-                child: Text(
-                  "${n.quantidade.replaceAll('aproximadamente', '±').replaceAll('Aproximadamente', '±')} (${n.percentualDv}%)",
-                  style: GoogleFonts.poppins(
-                      color: _themeColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.right,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          LinearPercentIndicator(
-            lineHeight: 4,
-            percent: (n.percentualDv / 100.0).clamp(0.0, 1.0),
-            progressColor: _themeColor,
-            backgroundColor: Colors.white10,
-            barRadius: const Radius.circular(2),
-            padding: EdgeInsets.zero,
-            animation: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Salva no histórico de alimentos
-  Future<void> _saveToHistory() async {
-    try {
-      await NutritionService().saveFoodAnalysis(_analysis, widget.imageFile);
-
-      if (mounted) {
-        setState(() {
-          _isSaved = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.analysisSavedSuccess),
-            backgroundColor: AppDesign.foodOrange,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('❌ Error saving to history: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text(AppLocalizations.of(context)!.errorSaving(e.toString())),
-              backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  Future<void> _onRecipeClick() async {
-    if (_isOpeningRecipe) return;
-
-    setState(() => _isOpeningRecipe = true);
-
-    try {
-      await Navigator.push(context,
-          MaterialPageRoute(builder: (_) => const RecipeHistoryScreen()));
-    } finally {
-      if (mounted) {
-        // Add small delay to prevent rapid re-entry
-        await Future.delayed(const Duration(milliseconds: 500));
-        setState(() => _isOpeningRecipe = false);
-      }
-    }
-  }
-
-  /// Adiciona ao plano de hoje
-  Future<void> _addToTodayPlan() async {
-    try {
-      final tipo = await _showMealTypeDialog();
-      if (tipo == null) return;
-
-      final currentPlan = ref.read(currentWeekPlanProvider);
-
-      if (currentPlan == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ Crie um plano semanal primeiro'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-        return;
-      }
-
-      final todayPlan = currentPlan.getDayByDate(DateTime.now());
-      if (todayPlan == null) return;
-
-      final meal = ScanToNutritionMapper.createMealFromScan(
-        analysis: _analysis,
-        tipo: tipo,
-      );
-
-      todayPlan.meals.add(meal);
-      await todayPlan.save();
-      ref.read(currentWeekPlanProvider.notifier).refresh();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ Adicionado ao plano ($tipo)'),
-            backgroundColor: AppDesign.foodOrange,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('❌ Error: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  Future<String?> _showMealTypeDialog() async {
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey.shade900,
-        title: Text('Tipo de Refeição',
-            style: GoogleFonts.poppins(color: Colors.white)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+  Widget _buildNutritionalTable(AppLocalizations l10n) {
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            ListTile(
-              leading:
-                  const Icon(Icons.free_breakfast, color: AppDesign.foodOrange),
-              title: Text('Café da Manhã',
-                  style: GoogleFonts.poppins(color: Colors.white)),
-              onTap: () => Navigator.pop(context, 'cafe'),
-            ),
-            ListTile(
-              leading:
-                  const Icon(Icons.lunch_dining, color: AppDesign.foodOrange),
-              title: Text('Almoço',
-                  style: GoogleFonts.poppins(color: Colors.white)),
-              onTap: () => Navigator.pop(context, 'almoco'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.cookie, color: AppDesign.foodOrange),
-              title: Text('Lanche',
-                  style: GoogleFonts.poppins(color: Colors.white)),
-              onTap: () => Navigator.pop(context, 'lanche'),
-            ),
-            ListTile(
-              leading:
-                  const Icon(Icons.dinner_dining, color: AppDesign.foodOrange),
-              title: Text('Jantar',
-                  style: GoogleFonts.poppins(color: Colors.white)),
-              onTap: () => Navigator.pop(context, 'jantar'),
-            ),
+            _nutritionRow("Calorias", "${widget.analysis.macros.calorias100g} kcal/100g", Icons.fireplace),
+            _nutritionRow("Proteínas", widget.analysis.macros.proteinas, Icons.fitness_center),
+            _nutritionRow("Carboidratos", widget.analysis.macros.carboidratosLiquidos, Icons.grain),
+            _nutritionRow("Gorduras", widget.analysis.macros.gordurasPerfil, Icons.water_drop),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _generateMoreRecipes() async {
-    setState(() {
-      _isGeneratingRecipes = true;
-    });
+  Widget _nutritionRow(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, color: _themeColor, size: 20),
+          const SizedBox(width: 12),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          const Spacer(),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildRecommendationCard(AppLocalizations l10n) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: _themeColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _themeColor.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.lightbulb, color: _themeColor),
+              const SizedBox(width: 8),
+              Text("Recomendação", style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(widget.analysis.analise.vereditoIa),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generatePdf(BuildContext context) async {
+    setState(() => _isGeneratingPdf = true);
     try {
-      final gemini = ref.read(geminiServiceProvider);
-      final fName = _analysis.identidade.nome;
-
-      final prompt = """
-        Atue como um chef de cozinha criativo e saudável.
-        Gere 3 NOVAS e diferentes receitas rápidas (max 15 min) utilizando o ingrediente principal: $fName.
-        Responda na língua do utilizador (Português, Inglês ou Espanhol).
-        Seja criativo, fuja do óbvio.
-        Retorne APENAS um JSON válido com a seguinte estrutura estrita:
-        {
-          "receitas": [
-            {
-              "nome": "Nome do Prato",
-              "tempo_preparo": "15 min",
-              "instrucoes": "Passo 1, Passo 2..."
-            }
-          ]
-        }
-        """;
-
-      final responseMap = await gemini.generateTextContent(prompt);
-
-      if (responseMap.containsKey('receitas') &&
-          responseMap['receitas'] is List) {
-        final List<dynamic> rawList = responseMap['receitas'];
-        final newRecipes =
-            rawList.map((e) => ReceitaRapida.fromJson(e)).toList();
-
-        if (newRecipes.isNotEmpty) {
-          setState(() {
-            _analysis = FoodAnalysisModel(
-              identidade: _analysis.identidade,
-              macros: _analysis.macros,
-              micronutrientes: _analysis.micronutrientes,
-              analise: _analysis.analise,
-              performance: _analysis.performance,
-              gastronomia: _analysis.gastronomia,
-              receitas: newRecipes,
-              dicaEspecialista: _analysis.dicaEspecialista,
-            );
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Receitas atualizadas! 🍳'),
-                backgroundColor: AppDesign.foodOrange),
-          );
-
-          // ANTI-GRAVITY FORCE SAVE
-          try {
-            if (!Hive.isBoxOpen('recipe_history_box')) {
-              await Hive.openBox<RecipeHistoryItem>('recipe_history_box');
-            }
-            final box = Hive.box<RecipeHistoryItem>('recipe_history_box');
-            for (var r in newRecipes) {
-              final item = RecipeHistoryItem(
-                id: "${DateTime.now().microsecondsSinceEpoch}_${r.nome.hashCode}",
-                foodName: _analysis.identidade.nome,
-                recipeName: r.nome,
-                instructions: r.instrucoes,
-                prepTime: r.tempoPreparo,
-                timestamp: DateTime.now(),
-              );
-              await box.add(item);
-            }
-          } catch (e) {
-            debugPrint('❌ Force Save Failed: $e');
-          }
-
-          _autoSaveRecipes();
-        }
-      }
-    } catch (e) {
-      debugPrint('Erro ao gerar receitas: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Erro ao gerar receitas. Tente novamente.'),
-            backgroundColor: Colors.red),
+      final pdfService = FoodPdfService();
+      final labels = FoodPdfLabels(
+        title: "Análise Nutricional",
+        date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+        nutrientsTable: "Tabela Nutricional",
+        qty: "Qtd",
+        dailyGoal: "% Diário",
+        calories: "Calorias",
+        proteins: "Proteínas",
+        carbs: "Carboidratos",
+        fats: "Gorduras",
+        healthRating: "Nível de Saúde",
+        clinicalRec: "Parecer Clínico",
+        disclaimer: "Aviso: Consulte um especialista.",
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isGeneratingRecipes = false;
-        });
-      }
-    }
-  }
 
-  Future<void> _autoSaveRecipes() async {
-    // 🛡️ V138: Safe Auto-Save via Service (Fixed Syntax)
-    try {
-      if (_analysis.receitas.isNotEmpty) {
-        await RecipeService()
-            .saveAuto(_analysis.receitas, _analysis.identidade.nome);
-      }
+      await pdfService.generateAndPreview(widget.analysis, labels);
     } catch (e) {
-      debugPrint('⚠️ Error auto-saving recipes: $e');
+       debugPrint("PDF Error: $e");
+       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erro ao gerar PDF: $e")));
+    } finally {
+      if (mounted) setState(() => _isGeneratingPdf = false);
     }
   }
+}
 
-  TextStyle get _sectionTitleStyle => GoogleFonts.poppins(
-      fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white);
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
 
-  String _translateStatus(String status) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (status.toLowerCase().trim()) {
-      case 'in natura':
-      case 'unprocessed':
-      case 'natural':
-        return l10n.foodInNatura;
-      case 'verde':
-      case 'green':
-        return l10n.commonGreen;
-      case 'amarelo':
-      case 'yellow':
-        return l10n.commonYellow;
-      case 'vermelho':
-      case 'red':
-      case 'rojo':
-        return l10n.commonRed;
-      case 'nenhum':
-      case 'none':
-      case 'ninguno':
-        return l10n.commonNone;
-      default:
-        return status;
-    }
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: _tabBar,
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

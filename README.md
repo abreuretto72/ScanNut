@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.5.7  
+**Versão:** 1.5.8  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -200,6 +200,17 @@ Funções do APP
 - **Proteção Contra "Data Nuke":** Corrigido bug crítico onde a inicialização prematura do `PetProfileService` (antes do login) causava o wipe completo do banco de dados de pets. Implementada "Guard Clause" que aborta a operação caso a chave de criptografia não esteja disponível.
 - **Auto-Save Estabilizado:** Corrigido crash (`DependOnInheritedWidget`) na tela de resultados ao tentar salvar automaticamente. A rotina agora aguarda o ciclo de renderização completo.
 - **Deduplicação Inteligente:** Sistema aprimorado para evitar processamento repetido da mesma imagem.
+
+---
+
+## ✨ **NOVIDADES DA VERSÃO 1.5.8**
+
+### **🛡️ Arquitetura Atômica (V135)**
+- **Isolamento de Domínios:** A `HomeView` foi refatorada para usar `IndexedStack`, garantindo que os domínios de Comida, Planta e Pet operem em ambientes isolados com ciclos de vida independentes.
+- **Estabilidade de Câmera:** Fim dos conflitos de "recurso ocupado" ao alternar entre abas. O novo `FoodCameraBody` gerencia sua própria instância de câmera.
+- **Persistência Robusta:** O `PermanentBackupService` foi blindado contra erros de serialização de listas (List<T>), garantindo backups 100% seguros mesmo com estruturas de dados complexas.
+- **Autosave Nativo:** O fluxo de análise de alimentos agora salva automaticamente os resultados no banco de dados local antes mesmo de exibir o resultado, prevenindo perda de dados.
+- **Proteção de Saída:** Restauração do diálogo de confirmação ao sair do app (`PopScope`), evitando fechamentos acidentais.
 
 ---
 

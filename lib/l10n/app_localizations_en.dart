@@ -428,7 +428,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Oops! Something went wrong. Your data is safe. Try again.';
 
   @override
-  String get loadingFood => 'Analyzing food...';
+  String get loadingFood => 'Analyzing food image...';
 
   @override
   String get loadingPlant => 'Analyzing plant...';
@@ -6528,6 +6528,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petSelectRecordType => 'Select record type';
 
   @override
+  String get feces_log_title => 'Log Feces';
+
+  @override
+  String get btn_capture_photo => 'Capture Photo';
+
+  @override
+  String get btn_voice_note => 'Voice Note';
+
+  @override
+  String get btn_capture_sound => 'Capture Sound';
+
+  @override
+  String get btn_quick_reg => 'Quick Log';
+
+  @override
+  String get error_save_feces => 'Could not save feces record.';
+
+  @override
+  String get photo_captured_success =>
+      'Photo captured and integrated into history!';
+
+  @override
   String get petShowAll => 'Show all';
 
   @override
@@ -7046,16 +7068,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walkBristolScore => 'Bristol Score';
 
   @override
-  String get walkFriendDesc => 'Friend\'s Name';
+  String get walkFriendManual => 'Manual Registration';
 
   @override
-  String get walkHazardDesc => 'Danger Type';
+  String get walkFriendManualDesc => 'Register new friend details';
 
   @override
-  String get walkFightDesc => 'Fight Details';
+  String get walkFriendPhoto => 'Take a photo of the friend';
 
   @override
-  String get walkDemoBtn => 'Demo';
+  String get walkFriendManualFull => 'Register friend and owner';
+
+  @override
+  String get walkFriendVoice => 'Dictate occurrences';
+
+  @override
+  String get walkFriendSound => 'Record friend\'s barks / meows';
+
+  @override
+  String get friendName => 'Friend\'s Name';
+
+  @override
+  String get friendGender => 'Gender';
+
+  @override
+  String get friendAge => 'Age';
+
+  @override
+  String get friendBreed => 'Breed';
+
+  @override
+  String get friendOwnerName => 'Owner\'s Name';
+
+  @override
+  String get friendOwnerContact => 'Owner\'s Contact';
+
+  @override
+  String get friendSaveSuccess => 'Friend registered successfully!';
+
+  @override
+  String get friendValidationError => 'Please fill in all mandatory fields.';
 
   @override
   String get walkMicRec => 'Listening...';
