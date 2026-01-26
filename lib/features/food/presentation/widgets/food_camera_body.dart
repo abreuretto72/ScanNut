@@ -73,7 +73,8 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_controller!.value.isInitialized) return;
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized) return;
 
     if (state == AppLifecycleState.inactive) {
       _disposeCamera();
@@ -133,13 +134,14 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
   }
 
   Future<void> _onCapture() async {
-    if (_controller == null || !_controller!.value.isInitialized || _isProcessing) return;
+    final controller = _controller;
+    if (controller == null || !controller.value.isInitialized || _isProcessing) return;
 
     try {
       setState(() => _isProcessing = true);
       HapticFeedback.mediumImpact();
 
-      final XFile rawFile = await _controller!.takePicture();
+      final XFile rawFile = await controller.takePicture();
       final File optimizedFile = await _optimizeImage(File(rawFile.path));
       
       if (!mounted) return;
@@ -228,14 +230,17 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
 
     if (!widget.isActive) return const SizedBox.shrink();
 
+    final captured = _capturedImage;
+    final controller = _controller;
+
     return Stack(
       fit: StackFit.expand,
       children: [
         // 1. Camera Preview ou Imagem Capturada
-        if (_capturedImage != null)
-          Image.file(_capturedImage!, fit: BoxFit.cover)
-        else if (_controller != null && _controller!.value.isInitialized)
-          CameraPreview(_controller!)
+        if (captured != null)
+          Image.file(captured, fit: BoxFit.cover)
+        else if (controller != null && controller.value.isInitialized)
+          CameraPreview(controller)
         else
           Container(color: Colors.black),
 
@@ -251,7 +256,8 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
   Widget _buildLoadingOverlay(BuildContext context, AnalysisState state) {
     String message = 'Processando...';
     if (state is AnalysisLoading) {
-      message = AppLocalizations.of(context)!.loadingFood; // Usa string traduzida "Analizando la imagen de comida..."
+      final l10n = AppLocalizations.of(context);
+      message = l10n?.loadingFood ?? "Analisando...";
     }
 
     return Container(
@@ -301,53 +307,62 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
   }
 
   Widget _buildControls(BuildContext context) {
+    // 🛡️ Samsung A25 Defense: Eleva os botões acima da NavigationBar de domínios
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final totalOffset = kBottomNavigationBarHeight + bottomPadding + 20;
+
     return Align(
-        alignment: Alignment.bottomCenter,
+      alignment: Alignment.bottomCenter,
+      child: SafeArea(
         child: Padding(
-            padding: const EdgeInsets.only(bottom: 120), // Espaço para BottomBar
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Galeria
-                GestureDetector(
-                  onTap: _pickFromGallery,
+          padding: EdgeInsets.only(bottom: totalOffset),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // 🛡️ V135: Compact Layout
+            children: [
+              // Galeria
+              GestureDetector(
+                onTap: _pickFromGallery,
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _domainColor, width: 2),
+                  ),
+                  child: Icon(Icons.photo_library, color: _domainColor, size: 26),
+                ),
+              ),
+              const SizedBox(width: 30),
+              
+              // Shutter
+              GestureDetector(
+                onTap: _onCapture,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _domainColor, width: 4),
+                    color: _domainColor.withValues(alpha: 0.2),
+                  ),
+                  padding: const EdgeInsets.all(4),
                   child: Container(
-                    width: 56,
-                    height: 56,
                     decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _domainColor, width: 2),
+                      shape: BoxShape.circle,
+                      color: _domainColor,
                     ),
-                    child: Icon(Icons.photo_library, color: _domainColor, size: 26),
+                    child: const Icon(Icons.camera_alt, color: AppDesign.backgroundDark, size: 36),
                   ),
                 ),
-                const SizedBox(width: 30),
-                
-                // Shutter
-                GestureDetector(
-                  onTap: _onCapture,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _domainColor, width: 4),
-                        color: _domainColor.withValues(alpha: 0.2),
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _domainColor,
-                      ),
-                      child: const Icon(Icons.camera_alt, color: AppDesign.backgroundDark, size: 36),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(width: 86), // Balanço
-              ],
-            )));
+              ),
+              
+              const SizedBox(width: 86), // Balanço visual para o botão de troca de câmera (se existisse à direita)
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -24,13 +24,16 @@ class RecipeHistoryItemAdapter extends TypeAdapter<RecipeHistoryItem> {
       prepTime: fields[4] as String,
       timestamp: fields[5] as DateTime,
       imagePath: fields[6] as String?,
+      justification: fields[7] as String?,
+      difficulty: fields[8] as String?,
+      calories: fields[9] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, RecipeHistoryItem obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +47,13 @@ class RecipeHistoryItemAdapter extends TypeAdapter<RecipeHistoryItem> {
       ..writeByte(5)
       ..write(obj.timestamp)
       ..writeByte(6)
-      ..write(obj.imagePath);
+      ..write(obj.imagePath)
+      ..writeByte(7)
+      ..write(obj.justification)
+      ..writeByte(8)
+      ..write(obj.difficulty)
+      ..writeByte(9)
+      ..write(obj.calories);
   }
 
   @override

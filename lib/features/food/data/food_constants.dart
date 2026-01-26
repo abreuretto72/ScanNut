@@ -51,7 +51,16 @@ SCHEMA JSON OBRIGATÓRIO (Sem Markdown, Sem Negrito):
     "prep_tip": "dica preservação",
     "smart_swap": "troca",
     "recipes": [
-      {"name": "nome", "instructions": "passos", "prep_time": "15 min"}
+      {
+        "name": "nome",
+        "instructions": "passos (máx 3 etapas)",
+        "prep_time": "15 min",
+        "justification": "justificativa nutricional",
+        "difficulty": "Fácil",
+        "calories": "200kcal"
+      },
+      { "name": ".", "instructions": ".", "prep_time": ".", "justification": ".", "difficulty": ".", "calories": "." },
+      { "name": ".", "instructions": ".", "prep_time": ".", "justification": ".", "difficulty": ".", "calories": "." }
     ]
   }
 }

@@ -14,6 +14,7 @@ import '../../../core/services/permanent_backup_service.dart';
 
 import '../../../core/services/media_vault_service.dart';
 import '../../../core/services/hive_atomic_manager.dart';
+import 'food_logger.dart';
 
 class NutritionService {
   static final NutritionService _instance = NutritionService._internal();
@@ -109,9 +110,9 @@ class NutritionService {
       try {
         final recipesListTyped = analysis.receitas
             .map((r) => {
-                  'nome': r.nome,
-                  'instrucoes': r.instrucoes,
-                  'tempo': r.tempoPreparo,
+                  'nome': r.name,
+                  'instrucoes': r.instructions,
+                  'tempo': r.prepTime,
                 })
             .toList();
 
@@ -231,6 +232,69 @@ class NutritionService {
     return 0;
   }
 
+
+
+  Future<void> appendRecipes(String foodName, List elements) async {
+    final box = await _ensureBox();
+    
+    // Find latest item with this food name
+    final keys = box.keys.toList();
+    dynamic targetKey;
+    NutritionHistoryItem? targetItem;
+
+    for (var key in keys.reversed) {
+      final item = box.get(key);
+      if (item != null && item.foodName == foodName) {
+        targetKey = key;
+        targetItem = item;
+        break; // Found latest
+      }
+    }
+
+    if (targetItem != null && targetKey != null) {
+      // Convert new recipes to Map format if they are RecipeSuggestion
+      final List<Map<String, String>> newMaps = elements.map((e) {
+        if (e is Map) {
+          // Ensure map has String keys and values
+          return e.map((k, v) => MapEntry(k.toString(), v.toString()));
+        }
+        // Assume RecipeSuggestion
+        return {
+          'nome': e.name.toString(),
+          'instrucoes': e.instructions.toString(),
+          'tempo': e.prepTime.toString(),
+          // Store extra fields if needed, NutritionHistoryItem checks mainly these
+        };
+      }).toList();
+
+      final updatedList = [...targetItem.recipesList, ...newMaps];
+      
+      final newItem = NutritionHistoryItem(
+        id: targetItem.id,
+        timestamp: targetItem.timestamp,
+        foodName: targetItem.foodName,
+        calories: targetItem.calories,
+        proteins: targetItem.proteins,
+        carbs: targetItem.carbs,
+        fats: targetItem.fats,
+        isUltraprocessed: targetItem.isUltraprocessed,
+        biohackingTips: targetItem.biohackingTips,
+        recipesList: updatedList,
+        imagePath: targetItem.imagePath,
+        rawMetadata: targetItem.rawMetadata,
+      );
+      
+      await box.put(targetKey, newItem);
+      await box.flush(); // Immediate reconstruction/flush
+      
+      FoodLogger().traceHiveAppend(boxName, targetKey.toString(), true);
+      debugPrint("✅ [NutritionService] Appended ${newMaps.length} recipes to $foodName");
+    } else {
+      FoodLogger().logError('hive_append_failed', error: 'Target item not found', stackTrace: StackTrace.current);
+      debugPrint("⚠️ [NutritionService] Could not find item to append recipes: $foodName");
+    }
+  }
+
   Future<void> clearAllFood() async {
     final box = await _ensureBox();
     debugPrint(
@@ -238,5 +302,50 @@ class NutritionService {
     await box.clear();
     // await box.compact(); // Optional optimization
     debugPrint('✅ [NutritionService] All food history cleared.');
+  }
+
+  Future<void> removeRecipe(String foodName, String recipeName) async {
+    final box = await _ensureBox();
+    
+    // Find latest item with this food name
+    final keys = box.keys.toList();
+    dynamic targetKey;
+    NutritionHistoryItem? targetItem;
+
+    for (var key in keys.reversed) {
+      final item = box.get(key);
+      if (item != null && item.foodName == foodName) {
+        targetKey = key;
+        targetItem = item;
+        break; 
+      }
+    }
+
+    if (targetItem != null && targetKey != null) {
+      final updatedList = targetItem.recipesList.where((r) {
+        final name = (r as Map)['nome'] ?? (r as Map)['name'];
+        return name != recipeName;
+      }).toList();
+      
+      final newItem = NutritionHistoryItem(
+        id: targetItem.id,
+        timestamp: targetItem.timestamp,
+        foodName: targetItem.foodName,
+        calories: targetItem.calories,
+        proteins: targetItem.proteins,
+        carbs: targetItem.carbs,
+        fats: targetItem.fats,
+        isUltraprocessed: targetItem.isUltraprocessed,
+        biohackingTips: targetItem.biohackingTips,
+        recipesList: updatedList,
+        imagePath: targetItem.imagePath,
+        rawMetadata: targetItem.rawMetadata,
+      );
+      
+      await box.put(targetKey, newItem);
+      await box.flush();
+      
+      debugPrint("✅ [NutritionService] Removed recipe '$recipeName' from $foodName");
+    }
   }
 }

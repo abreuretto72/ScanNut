@@ -69,6 +69,7 @@ dependencies:
   local_auth: ^2.3.0
 
   package_info_plus: any
+  flutter_markdown: ^0.7.7+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

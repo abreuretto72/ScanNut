@@ -7176,6 +7176,85 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get walkAnalysisBark => 'Analisando Vocalização (IA)...';
+
+  @override
+  String get foodRecipesTitle => 'Receitas Sugeridas';
+
+  @override
+  String get foodJustification => 'Por que esta receita?';
+
+  @override
+  String get foodIngredients => 'Ingredientes';
+
+  @override
+  String get foodInstructions => 'Modo de Preparo';
+
+  @override
+  String get foodDifficulty => 'Dificuldade';
+
+  @override
+  String get foodRecipesTooltip => 'Ver sugestões de receitas';
+
+  @override
+  String get exportPdfTooltip => 'Baixar PDF Nutricional';
+
+  @override
+  String get foodGenerateMoreRecipes => 'Gerar mais receitas com IA';
+
+  @override
+  String get foodFallbackMessage =>
+      'IA instável. Carregando sugestões do Nutricionista.';
+
+  @override
+  String get food_generating_recipes => 'Gerando novas receitas...';
+
+  @override
+  String get food_recipe_origin => 'Baseado em';
+
+  @override
+  String get food_error_maintenance =>
+      'Sistema em manutenção. Tente mais tarde.';
+
+  @override
+  String get food_delete_confirm_title => 'Excluir Receita';
+
+  @override
+  String get food_delete_confirm_body =>
+      'Deseja excluir permanentemente esta receita do histórico?';
+
+  @override
+  String get food_delete_confirm_action => 'Excluir';
+
+  @override
+  String get food_cancel => 'Cancelar';
+
+  @override
+  String get foodChatTitle => 'NutriChat IA';
+
+  @override
+  String get foodChatPrompt => 'Pergunte sobre sua dieta...';
+
+  @override
+  String get foodChatWelcome =>
+      'Olá! Sou sua IA Nutricional. Analisei seu histórico e estou pronta para ajudar com cardápios, dicas e dúvidas.';
+
+  @override
+  String get foodChatRAGProcessing => 'Analisando seu histórico alimentar...';
+
+  @override
+  String foodChatExportTitle(String date) {
+    return 'Conversa Nutricional - $date';
+  }
+
+  @override
+  String get foodChatClear => 'Limpar Conversa';
+
+  @override
+  String get foodChatEmpty => 'Nada por aqui ainda. Pergunte algo!';
+
+  @override
+  String get foodChatDisclaimer =>
+      'ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista.';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).

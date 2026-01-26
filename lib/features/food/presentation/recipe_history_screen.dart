@@ -7,8 +7,8 @@ import '../../../core/theme/app_design.dart';
 import '../models/recipe_history_item.dart';
 import '../services/recipe_service.dart';
 import 'widgets/recipe_export_configuration_modal.dart';
-import '../../../core/services/export_service.dart';
-import '../../../core/widgets/pdf_preview_screen.dart';
+import '../services/food_export_service.dart';
+import 'food_pdf_preview_screen.dart';
 import 'package:scannut/l10n/app_localizations.dart';
 
 class RecipeHistoryScreen extends StatefulWidget {
@@ -55,10 +55,13 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const SizedBox.shrink();
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.historyTitleRecipes,
+        title: Text(l10n.historyTitleRecipes,
             style: GoogleFonts.poppins(
                 color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
@@ -71,7 +74,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: () => _showExportModal(context),
-            tooltip: AppLocalizations.of(context)!.tooltipExportPdf,
+            tooltip: l10n.tooltipExportPdf,
           )
         ],
       ),
@@ -83,8 +86,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                   child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                      AppLocalizations.of(context)!
-                          .historyErrorLoading(_errorMessage),
+                      l10n.historyErrorLoading(_errorMessage),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(color: Colors.redAccent)),
                 ))
@@ -109,7 +111,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                                     .withValues(alpha: 0.5)),
                             const SizedBox(height: 16),
                             Text(
-                              AppLocalizations.of(context)!.historyEmptyRecipes,
+                              l10n.historyEmptyRecipes,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
                                   color: Colors.white54, fontSize: 16),
@@ -211,7 +213,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: Text(
-                            AppLocalizations.of(context)!.btnViewDetails,
+                            AppLocalizations.of(context)?.btnViewDetails ?? '',
                             style: GoogleFonts.poppins(
                                 color: Colors.white54, fontSize: 11)),
                       ),
@@ -248,8 +250,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                 ),
               const SizedBox(height: 16),
               Text(
-                  AppLocalizations.of(context)!
-                      .labelMainIngredient(recipe.foodName),
+                  l10n.labelMainIngredient(recipe.foodName),
                   style:
                       GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
               const SizedBox(height: 16),
@@ -262,7 +263,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.commonClose,
+            child: Text(l10n.commonClose,
                 style: GoogleFonts.poppins(color: Colors.white)),
           ),
         ],
@@ -279,7 +280,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
 
     if (allItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(AppLocalizations.of(context)!.msgNoHistoryToExport)));
+          content: Text(l10n.msgNoHistoryToExport)));
       return;
     }
 
@@ -302,23 +303,58 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
           );
 
           try {
-            final doc = await ExportService().generateRecipeBookReport(
-                items: selectedItems, strings: AppLocalizations.of(context)!);
-
-            // Close loading dialog
+            // Close loading dialog before pushing
             if (Navigator.canPop(context)) {
               Navigator.pop(context);
             }
 
             if (!mounted) return;
 
-            // Navigate to PDF preview
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PdfPreviewScreen(
-                  title: AppLocalizations.of(context)!.pdfTitleRecipeBook,
-                  buildPdf: (format) async => doc.save(),
+                builder: (context) => FoodPdfPreviewScreen(
+                  labels: FoodPdfLabels(
+                    title: l10n.pdfTitleRecipeBook,
+                    date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                    nutrientsTable: l10n.pdfDetailedNutrition,
+                    qty: l10n.pdfQuantity,
+                    dailyGoal: l10n.pdfGoalLabel,
+                    calories: l10n.pdfCalories,
+                    proteins: l10n.foodProt,
+                    carbs: l10n.foodCarb,
+                    fats: l10n.foodFat,
+                    healthRating: l10n.labelTrafficLight,
+                    clinicalRec: l10n.pdfAiVerdict,
+                    disclaimer: "Aviso: Consulte um especialista.",
+                    recipesTitle: l10n.foodRecipesTitle,
+                    justificationLabel: l10n.foodJustification,
+                    difficultyLabel: l10n.foodDifficulty,
+                    instructionsLabel: l10n.foodInstructions,
+                  ),
+                  buildPdf: (format) async {
+                    return await FoodExportService().generateRecipeHistoryReportFromList(
+                      selectedItems,
+                      FoodPdfLabels(
+                        title: l10n.pdfTitleRecipeBook,
+                        date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                        nutrientsTable: l10n.pdfDetailedNutrition,
+                        qty: l10n.pdfQuantity,
+                        dailyGoal: l10n.pdfGoalLabel,
+                        calories: l10n.pdfCalories,
+                        proteins: l10n.foodProt,
+                        carbs: l10n.foodCarb,
+                        fats: l10n.foodFat,
+                        healthRating: l10n.labelTrafficLight,
+                        clinicalRec: l10n.pdfAiVerdict,
+                        disclaimer: "Aviso: Consulte um especialista.",
+                        recipesTitle: l10n.foodRecipesTitle,
+                        justificationLabel: l10n.foodJustification,
+                        difficultyLabel: l10n.foodDifficulty,
+                        instructionsLabel: l10n.foodInstructions,
+                      ),
+                    );
+                  },
                 ),
               ),
             );
@@ -332,8 +368,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
 
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(AppLocalizations.of(context)!
-                      .pdfErrorGeneration(e.toString()))));
+                  content: Text(l10n.pdfErrorGeneration(e.toString()))));
             }
           }
         },
@@ -346,17 +381,17 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text(AppLocalizations.of(context)!.dialogClearHistoryTitle,
+        title: Text(l10n.dialogClearHistoryTitle,
             style: GoogleFonts.poppins(color: Colors.white)),
-        content: Text(AppLocalizations.of(context)!.dialogClearHistoryBody,
+        content: Text(l10n.dialogClearHistoryBody,
             style: GoogleFonts.poppins(color: Colors.white70)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text(AppLocalizations.of(context)!.commonCancel)),
+              child: Text(l10n.commonCancel)),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text(AppLocalizations.of(context)!.commonDelete,
+              child: Text(l10n.commonDelete,
                   style: const TextStyle(color: Colors.red))),
         ],
       ),

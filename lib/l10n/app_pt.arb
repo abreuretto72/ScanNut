@@ -2716,7 +2716,32 @@
   "btn_capture_sound": "Capturar Som",
   "btn_quick_reg": "Registro Rápido",
   "error_save_feces": "Não foi possível salvar o registro de fezes.",
-  "photo_captured_success": "Foto capturada e integrada ao histórico!"
+  "photo_captured_success": "Foto capturada e integrada ao histórico!",
+  "foodRecipesTitle": "Receitas Sugeridas",
+  "foodJustification": "Por que esta receita?",
+  "foodIngredients": "Ingredientes",
+  "foodInstructions": "Modo de Preparo",
+  "foodDifficulty": "Dificuldade",
+  "foodRecipesTooltip": "Ver sugestões de receitas",
+  "exportPdfTooltip": "Baixar PDF Nutricional",
+  "foodGenerateMoreRecipes": "Gerar mais receitas com IA",
+  "foodFallbackMessage": "IA instável. Carregando sugestões do Nutricionista.",
+  "food_generating_recipes": "Gerando novas receitas...",
+  "food_recipe_origin": "Baseado em",
+  "food_error_maintenance": "Sistema em manutenção. Tente mais tarde.",
+  "food_delete_confirm_title": "Excluir Receita",
+  "food_delete_confirm_body": "Deseja excluir permanentemente esta receita do histórico?",
+  "food_delete_confirm_action": "Excluir",
+  "food_cancel": "Cancelar",
+  "foodChatTitle": "NutriChat IA",
+  "foodChatPrompt": "Pergunte sobre sua dieta...",
+  "foodChatWelcome": "Olá! Sou sua IA Nutricional. Analisei seu histórico e estou pronta para ajudar com cardápios, dicas e dúvidas.",
+  "foodChatRAGProcessing": "Analisando seu histórico alimentar...",
+  "foodChatExportTitle": "Conversa Nutricional - {date}",
+  "@foodChatExportTitle": {"placeholders": {"date": {"type": "String"}}},
+  "foodChatClear": "Limpar Conversa",
+  "foodChatEmpty": "Nada por aqui ainda. Pergunte algo!",
+  "foodChatDisclaimer": "ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista."
 }
 
 

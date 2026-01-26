@@ -28,11 +28,12 @@ class _FoodExportConfigurationModalState
 
   // Computed property to get items filtered by DATE
   List<NutritionHistoryItem> get _dateFilteredItems {
-    if (_selectedDateRange == null) return widget.allItems;
+    final range = _selectedDateRange;
+    if (range == null) return widget.allItems;
     return widget.allItems.where((item) {
       return item.timestamp.isAfter(
-              _selectedDateRange!.start.subtract(const Duration(seconds: 1))) &&
-          item.timestamp.isBefore(_selectedDateRange!.end
+              range.start.subtract(const Duration(seconds: 1))) &&
+          item.timestamp.isBefore(range.end
               .add(const Duration(days: 1))); // Inclusive end day
     }).toList();
   }
@@ -97,7 +98,7 @@ class _FoodExportConfigurationModalState
                       Text(
                         _selectedDateRange == null
                             ? 'Todo o período'
-                            : '${DateFormat('dd/MM').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM').format(_selectedDateRange!.end)}',
+                            : '${DateFormat('dd/MM').format(_selectedDateRange?.start ?? DateTime.now())} - ${DateFormat('dd/MM').format(_selectedDateRange?.end ?? DateTime.now())}',
                         style: GoogleFonts.poppins(color: Colors.white),
                       ),
                       const Spacer(),
@@ -215,7 +216,7 @@ class _FoodExportConfigurationModalState
               onPrimary: Colors.white,
             ),
           ),
-          child: child!,
+          child: child ?? const SizedBox.shrink(),
         );
       },
     );

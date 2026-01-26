@@ -1,5 +1,6 @@
 /// Nota: Este modelo é referido internamente como "FoodModel" nos planos de blindagem.
 import '../data/food_constants.dart';
+import 'recipe_suggestion.dart';
 
 class FoodAnalysisModel {
   final IdentidadeESeguranca identidade;
@@ -8,7 +9,7 @@ class FoodAnalysisModel {
   final AnaliseProsContras analise;
   final BiohackingPerformance performance;
   final InteligenciaCulinaria gastronomia;
-  final List<ReceitaRapida> receitas;
+  final List<RecipeSuggestion> receitas;
   final String dicaEspecialista;
 
   FoodAnalysisModel({
@@ -28,7 +29,7 @@ class FoodAnalysisModel {
   String get advice => analise.vereditoIa;
   List<String> get benefits => analise.pontosPositivos;
   List<String> get risks => analise.pontosNegativos;
-  List<ReceitaRapida> get recipes => receitas;
+  List<RecipeSuggestion> get recipes => receitas;
   MacronutrientesPro get macronutrients => macros;
 
   Map<String, dynamic> toJson() {
@@ -38,7 +39,7 @@ class FoodAnalysisModel {
       'mapa_de_vitaminas_e_minerais': micronutrientes.toJson(),
       'analise_pros_e_contras': analise.toJson(),
       'biohacking_e_performance': performance.toJson(),
-      'receitas_rapidas_15min': receitas.map((r) => r.toJson()).toList(),
+      'receitas_sugeridas': receitas.map((r) => r.toJson()).toList(),
       'inteligencia_culinaria': gastronomia.toJson(),
       'dica_do_especialista': dicaEspecialista,
     };
@@ -131,7 +132,7 @@ class FoodAnalysisModel {
         'smart_swap': gastro['smart_swap'],
         'expert_tip': rec
       }),
-      receitas: (gastro['recipes'] as List? ?? []).map((r) => ReceitaRapida.fromJson(r)).toList(),
+      receitas: (gastro['recipes'] as List? ?? []).map((r) => RecipeSuggestion.fromJson(r, foodName: nome)).toList(),
       dicaEspecialista: rec,
     );
   }
@@ -179,10 +180,10 @@ class FoodAnalysisModel {
           json['culinary_intelligence'] ??
               json['inteligencia_culinaria'] ??
               {}),
-      receitas: ((json['quick_recipes_15min'] ?? json['receitas_rapidas_15min'])
+      receitas: ((json['receitas_sugeridas'] ?? json['receitas_rapidas_15min'])
                   as List? ??
               [])
-          .map((e) => ReceitaRapida.fromJson(e))
+          .map((e) => RecipeSuggestion.fromJson(e))
           .toList(),
       dicaEspecialista: json['dica_do_especialista'] ??
           json['expert_tip'] ??
@@ -448,35 +449,7 @@ class BiohackingPerformance {
   }
 }
 
-class ReceitaRapida {
-  final String nome;
-  final String instrucoes;
-  final String tempoPreparo;
 
-  ReceitaRapida({
-    required this.nome,
-    required this.instrucoes,
-    required this.tempoPreparo,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'nome': nome,
-        'instrucoes': instrucoes,
-        'tempo_preparo': tempoPreparo,
-      };
-
-  factory ReceitaRapida.fromJson(Map<String, dynamic> json) {
-    return ReceitaRapida(
-      nome: json['name']?.toString() ?? json['nome']?.toString() ?? '',
-      instrucoes: json['instructions']?.toString() ??
-          json['instrucoes']?.toString() ??
-          '',
-      tempoPreparo: json['prep_time']?.toString() ??
-          json['tempo_preparo']?.toString() ??
-          '15 min',
-    );
-  }
-}
 
 class InteligenciaCulinaria {
   final String preservacaoNutrientes;

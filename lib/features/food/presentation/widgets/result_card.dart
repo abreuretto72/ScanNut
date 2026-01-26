@@ -9,6 +9,9 @@ import '../../../../core/utils/color_helper.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
+import '../../services/food_export_service.dart';
+import '../food_pdf_preview_screen.dart';
+import 'package:intl/intl.dart';
 
 class ResultCard extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
@@ -23,7 +26,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  AppLocalizations get l10n => AppLocalizations.of(context)!;
+  AppLocalizations? get l10n => AppLocalizations.of(context);
 
   @override
   void initState() {
@@ -62,7 +65,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const SizedBox.shrink();
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
@@ -97,93 +101,53 @@ class _ResultCardState extends ConsumerState<ResultCard>
                 ),
 
                 // Header
+                // Cabeçalho com Título e Botões de Ação
                 Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Título Flexível (Evita esconder o retângulo à direita)
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () => _showRecipesDialog(context),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      widget.analysis.itemName
-                                          .replaceAll('aproximadamente', '±')
-                                          .replaceAll('Aproximadamente', '±'),
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppDesign.textPrimaryDark,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: AppDesign
-                                            .textSecondaryDark
-                                            .withValues(alpha: 0.3),
-                                        decorationStyle:
-                                            TextDecorationStyle.dotted,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.menu_book_rounded,
-                                    color: AppDesign.textSecondaryDark,
-                                    size: 20,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              l10n.cardTapForRecipes,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: _themeColor,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          widget.analysis.itemName.replaceAll('aproximadamente', '±'),
+                          style: GoogleFonts.poppins(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF4CAF50), // Verde conforme a imagem
+                          ),
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () => _showVitalityScoreDialog(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: _themeColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: _themeColor.withValues(alpha: 0.5)),
-                          ),
-                          child: Column(
-                            children: [
-                              Text(
-                                _vitalityScore.toStringAsFixed(1),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: _themeColor,
-                                ),
-                              ),
-                              Text(
-                                l10n.cardScore,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 10,
-                                  color: _themeColor.withValues(alpha: 0.8),
-                                ),
-                              ),
-                              Icon(
-                                Icons.info_outline,
-                                size: 12,
-                                color: _themeColor.withValues(alpha: 0.6),
-                              ),
-                            ],
-                          ),
+                      const SizedBox(width: 12),
+                      // O Retângulo Laranja: Fundo dos ícones de PDF e Receitas
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF9800), // Laranja (foodOrange)
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Ícone de Receitas (Branco)
+                            IconButton(
+                              onPressed: () => _showRecipesDialog(context),
+                              icon: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 24),
+                              tooltip: l10n.foodRecipesTooltip,
+                            ),
+                            // Divisor interno sutil (Saneamento de Linter)
+                            Container(
+                              width: 1,
+                              height: 20,
+                              color: Colors.white.withValues(alpha: 0.3),
+                            ),
+                            // Ícone de PDF (Branco)
+                            IconButton(
+                              onPressed: () => _generateFoodPdf(widget.analysis),
+                              icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 24),
+                              tooltip: l10n.exportPdfTooltip,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -240,7 +204,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
   }
 
   Widget _buildOverviewTab(ScrollController scrollController) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const SizedBox.shrink();
     final settings = ref.watch(settingsProvider);
     final dailyGoal = settings.dailyCalorieGoal;
 
@@ -641,7 +606,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
   }
 
   Widget _buildDetailsTab(ScrollController scrollController) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const SizedBox.shrink();
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.all(24),
@@ -692,7 +658,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
   }
 
   Widget _buildInsightsTab(ScrollController scrollController) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const SizedBox.shrink();
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.all(24),
@@ -1419,7 +1386,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
       },
     };
 
-    final info = macroInfo[macroType]!;
+    final info = macroInfo[macroType];
+    if (info == null) return;
 
     showDialog(
       context: context,
@@ -1631,7 +1599,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Receitas Inteligentes',
+                          AppLocalizations.of(context)?.foodRecipesTitle ?? 'Receitas',
                           style: GoogleFonts.poppins(
                             color: AppDesign.textPrimaryDark,
                             fontSize: 20,
@@ -1706,11 +1674,11 @@ class _ResultCardState extends ConsumerState<ResultCard>
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: AppDesign.surfaceDark,
+                            color: const Color(0xFF4CAF50).withValues(alpha: 0.1), // Green tint
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: AppDesign.textPrimaryDark
-                                    .withValues(alpha: 0.1)),
+                                color: const Color(0xFF4CAF50)
+                                    .withValues(alpha: 0.3)),
                           ),
                           child: Theme(
                             data: Theme.of(context).copyWith(
@@ -1735,29 +1703,37 @@ class _ResultCardState extends ConsumerState<ResultCard>
                                 ),
                               ),
                               title: Text(
-                                recipe.nome,
+                                recipe.name,
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Padding(
                                 padding: const EdgeInsets.only(top: 6),
-                                child: Row(
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
                                   children: [
                                     _buildRecipeBadge(
                                       Icons.timer,
-                                      recipe.tempoPreparo,
+                                      recipe.prepTime,
                                       Colors.blue,
                                     ),
-                                    const SizedBox(width: 8),
                                     _buildRecipeBadge(
                                       Icons.speed,
-                                      'Rápido',
-                                      'Rápido' == 'Fácil'
+                                      recipe.difficulty,
+                                      recipe.difficulty == 'Fácil'
                                           ? AppDesign.foodOrange
                                           : Colors.orange,
+                                    ),
+                                    _buildRecipeBadge(
+                                      Icons.local_fire_department,
+                                      recipe.calories,
+                                      Colors.redAccent,
                                     ),
                                   ],
                                 ),
@@ -1766,13 +1742,29 @@ class _ResultCardState extends ConsumerState<ResultCard>
                                 // Instructions
                                 Padding(
                                   padding: const EdgeInsets.all(12),
-                                  child: Text(
-                                    recipe.instrucoes,
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                      height: 1.5,
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (recipe.justification.isNotEmpty) ...[
+                                          Text(
+                                            "💡 ${recipe.justification}",
+                                            style: GoogleFonts.poppins(
+                                              color: const Color(0xFF4CAF50),
+                                              fontSize: 13,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                      ],
+                                      Text(
+                                        recipe.instructions,
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -1819,11 +1811,46 @@ class _ResultCardState extends ConsumerState<ResultCard>
       final RegExp regExp = RegExp(r'(\d+)');
       final match = regExp.firstMatch(value);
       if (match != null) {
-        return double.parse(match.group(1)!);
+        final val = match.group(1);
+        return double.tryParse(val ?? '0') ?? 0.0;
       }
       return 1.0; // Fallback
     } catch (e) {
       return 1.0;
     }
+  }
+
+  Future<void> _generateFoodPdf(FoodAnalysisModel analysis) async {
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+    final labels = FoodPdfLabels(
+      title: l10n.pdfFoodTitle,
+      date: DateFormat.yMd(l10n.localeName).format(DateTime.now()),
+      nutrientsTable: l10n.pdfDetailedNutrition,
+      qty: l10n.pdfQuantity,
+      dailyGoal: l10n.pdfGoalLabel,
+      calories: l10n.pdfCalories,
+      proteins: l10n.foodProt,
+      carbs: l10n.foodCarb,
+      fats: l10n.foodFat,
+      healthRating: l10n.labelTrafficLight,
+      clinicalRec: l10n.pdfAiVerdict,
+      disclaimer: l10n.foodDisclaimer,
+      recipesTitle: l10n.foodRecipesTitle,
+      justificationLabel: l10n.foodJustification,
+      difficultyLabel: l10n.foodDifficulty,
+      instructionsLabel: l10n.foodInstructions,
+    );
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FoodPdfPreviewScreen(
+          analysis: analysis,
+          labels: labels,
+        ),
+      ),
+    );
   }
 }

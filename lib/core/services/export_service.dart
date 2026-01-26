@@ -208,13 +208,10 @@ class ExportService {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text(appName,
+            pw.Text('© 2026 Multiverso Digital  |  $supportEmail',
                 style:
                     const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
             pw.Text(pageText,
-                style:
-                    const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-            pw.Text(supportEmail,
                 style:
                     const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
           ],
@@ -4177,6 +4174,7 @@ class ExportService {
               dateLabel: strings.pdfDate, color: colorFood),
           footer: (context) => buildFooter(context, strings: strings),
           build: (context) => [
+            // 1. HEADER & BASIC INFO
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -4188,7 +4186,7 @@ class ExportService {
                     decoration: pw.BoxDecoration(
                       borderRadius:
                           const pw.BorderRadius.all(pw.Radius.circular(8)),
-                      border: pw.Border.all(color: PdfColors.grey400),
+                      border: pw.Border.all(color: colorFood, width: 1.5),
                     ),
                     child: pw.ClipRRect(
                       horizontalRadius: 8,
@@ -4200,26 +4198,30 @@ class ExportService {
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text(analysis.identidade.nome,
+                      pw.Text(analysis.identidade.nome.toUpperCase(),
                           style: pw.TextStyle(
                               fontWeight: pw.FontWeight.bold,
-                              fontSize: 18,
+                              fontSize: 16,
                               color: PdfColors.black)),
+                      pw.SizedBox(height: 5),
+                      pw.Text(
+                          '${analysis.identidade.statusProcessamento} • ${analysis.identidade.semaforoSaude}',
+                          style: const pw.TextStyle(
+                              fontSize: 10, color: PdfColors.grey700)),
                       pw.SizedBox(height: 5),
                       pw.Row(
                         children: [
                           buildIndicator(
                               '${strings.pdfCalories}:',
                               '${analysis.macros.calorias100g} kcal/100g',
-                              PdfColors.red700),
+                              colorFood),
                           pw.SizedBox(width: 10),
                           buildIndicator(
-                            '${strings.pdfTrafficLight}:',
+                            'Semaforo:',
                             analysis.identidade.semaforoSaude,
                             _getTrafficLightColor(
                                 analysis.identidade.semaforoSaude),
                           ),
-                          pw.SizedBox(width: 10),
                         ],
                       ),
                     ],
@@ -4227,7 +4229,9 @@ class ExportService {
                 ),
               ],
             ),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 15),
+
+            // 2. IA VERDICT (TAB 3)
             buildSectionHeader(strings.pdfExSummary, color: colorFood),
             pw.Container(
               padding: const pw.EdgeInsets.all(10),
@@ -4237,7 +4241,7 @@ class ExportService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('${strings.pdfAiVerdict}:',
+                  pw.Text('VEREDITO DA IA:',
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold, fontSize: 10)),
                   pw.Text(analysis.analise.vereditoIa,
@@ -4245,7 +4249,9 @@ class ExportService {
                 ],
               ),
             ),
-            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 15),
+
+            // 3. DETAILED MACROS (TAB 2)
             buildSectionHeader(strings.pdfDetailedNutrition, color: colorFood),
             pw.TableHelper.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
@@ -4263,20 +4269,61 @@ class ExportService {
                 [
                   strings.nutrientsProteins,
                   analysis.macros.proteinas,
-                  strings.labelAminoProfile
+                  strings.labelAminoProfile ?? 'Perfil de Aminos'
                 ],
                 [
                   strings.nutrientsCarbs,
                   analysis.macros.carboidratosLiquidos,
-                  '${strings.labelGlycemicImpact}: ${analysis.macros.indiceGlicemico}'
+                  '${strings.labelGlycemicImpact ?? "Impacto Glicêmico"}: ${analysis.macros.indiceGlicemico}'
                 ],
                 [
                   strings.nutrientsFats,
                   analysis.macros.gordurasPerfil,
-                  strings.labelFattyAcids
+                  strings.labelFattyAcids ?? 'Ácidos Graxos'
                 ],
               ],
             ),
+            pw.SizedBox(height: 15),
+
+            // 4. PERFORMANCE & BIOHACKING (TAB 3 CONT.)
+            pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+              pw.Expanded(
+                  child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                    pw.Text('BENEFÍCIOS AO CORPO:',
+                        style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                    ...analysis.performance.pontosPositivosCorpo
+                        .map((e) => _buildSafeBullet(e, fontSize: 8)),
+                  ])),
+              pw.SizedBox(width: 15),
+              pw.Expanded(
+                  child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                      children: [
+                    pw.Text('SINERGIA NUTRICIONAL:',
+                        style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold, fontSize: 9)),
+                    pw.Text(analysis.micronutrientes.sinergiaNutricional,
+                        style: const pw.TextStyle(fontSize: 8)),
+                  ])),
+            ]),
+            pw.SizedBox(height: 15),
+
+            // 5. GASTRONOMY & STORAGE (TAB 4)
+            buildSectionHeader('GASTRONOMIA & PRESERVAÇÃO', color: colorFood),
+            pw.Row(children: [
+              pw.Expanded(
+                  child: _buildReportRow('Dica do Expert:',
+                      analysis.gastronomia.dicaEspecialista)),
+              pw.SizedBox(width: 10),
+              pw.Expanded(
+                  child: _buildReportRow(
+                      'Smart Swap:', analysis.gastronomia.smartSwap)),
+            ]),
+            _buildReportRow(
+                'Preservação:', analysis.gastronomia.preservacaoNutrientes),
           ],
         ),
       );
@@ -5644,16 +5691,17 @@ class ExportService {
                                 mainAxisAlignment:
                                     pw.MainAxisAlignment.spaceBetween,
                                 children: [
-                                  pw.Text(r.nome,
+                                  pw.Text(r.name,
                                       style: pw.TextStyle(
                                           fontWeight: pw.FontWeight.bold,
                                           fontSize: 9)),
-                                  pw.Text(r.tempoPreparo,
+
+                                  pw.Text(r.prepTime,
                                       style: const pw.TextStyle(
                                           fontSize: 8,
                                           color: PdfColors.grey600)),
                                 ]),
-                            pw.Text(r.instrucoes,
+                            pw.Text(r.instructions,
                                 style: const pw.TextStyle(fontSize: 8),
                                 maxLines: 2),
                           ]))),
@@ -5688,31 +5736,8 @@ class ExportService {
     }
     return warning;
   }
-
-  pw.Widget _buildFooter(pw.Context context, AppLocalizations l10n) {
-    const fontSize = 9.0;
-
-    return pw.Container(
-        alignment: pw.Alignment.centerRight,
-        margin: const pw.EdgeInsets.only(top: 10),
-        child: pw.Column(children: [
-          pw.Divider(thickness: 0.5, color: PdfColors.black),
-          pw.SizedBox(height: 5),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              // Left: Author & Copyright
-              pw.Text(
-                '${l10n.developed_by} Multiverso Digital Copyright 2026',
-                style: const pw.TextStyle(fontSize: fontSize),
-              ),
-              // Right: Pagination
-              pw.Text(
-                '${context.pageNumber} / ${context.pagesCount}',
-                style: const pw.TextStyle(fontSize: fontSize),
-              ),
-            ],
-          ),
-        ]));
+  // Unificado para usar o buildFooter público e manter consistência
+  pw.Widget _buildFooter(pw.Context context, AppLocalizations strings) {
+    return buildFooter(context, strings: strings);
   }
 }

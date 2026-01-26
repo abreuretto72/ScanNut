@@ -25,6 +25,15 @@ class RecipeHistoryItem extends HiveObject {
   @HiveField(6)
   final String? imagePath;
 
+  @HiveField(7)
+  final String? justification;
+
+  @HiveField(8)
+  final String? difficulty;
+
+  @HiveField(9)
+  final String? calories;
+
   RecipeHistoryItem({
     required this.id,
     required this.foodName,
@@ -33,5 +42,8 @@ class RecipeHistoryItem extends HiveObject {
     required this.prepTime,
     required this.timestamp,
     this.imagePath,
+    this.justification,
+    this.difficulty,
+    this.calories,
   });
 }

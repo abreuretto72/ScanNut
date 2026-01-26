@@ -321,6 +321,45 @@ class GeminiService {
     }
   }
 
+  /// Specialized generation with custom model (e.g. Gemini 2.0)
+  Future<String> generateWithModel({
+    required String prompt, 
+    required String model,
+    String? apiEndpoint,
+  }) async {
+    try {
+      final String path = apiEndpoint != null 
+          ? '$apiEndpoint$model:generateContent'
+          : '/v1beta/models/$model:generateContent';
+
+      final response = await _dio.post(
+        path,
+        queryParameters: {'key': _apiKey},
+        data: {
+          'contents': [{'parts': [{'text': prompt}]}],
+          'generationConfig': {
+             'temperature': 0.1,
+             'responseMimeType': 'text/plain' 
+          },
+        },
+        options: Options(
+          headers: {
+            'x-goog-api-key': _apiKey,
+            'X-Android-Package': 'com.multiversodigital.scannut',
+            'X-Android-Cert': 'AC:92:22:DC:06:3F:B2:A5:00:05:6B:40:AE:6F:3E:44:E2:A9:5F:F6',
+            'Content-Type': 'application/json',
+          },
+        ),
+      ).timeout(const Duration(seconds: 45));
+
+      final text = response.data['candidates']?[0]?['content']?['parts']?[0]?['text'];
+      if (text == null || text.isEmpty) throw Exception('Empty response');
+      return text.toString();
+    } catch (e) {
+      throw GeminiException('Erro na geração 2.0: $e', type: GeminiErrorType.serverError);
+    }
+  }
+
   // PILAR 6: FALLBACK PARA EVITAR CARDS VAZIOS
   // PILAR 6: FALLBACK PARA EVITAR CARDS VAZIOS
   Map<String, dynamic> _extractJson(String text) {

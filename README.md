@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.5.8  
+**Versão:** 1.6.0  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -16,6 +16,7 @@ O **ScanNut** é um assistente visual de IA que analisa alimentos, plantas e pet
 - 📸 Análise instantânea de alimentos via câmera
 - 🔢 Cálculo automático de calorias, proteínas, carboidratos e gorduras
 - 📅 Histórico completo de análises
+- 🧠 **Novo:** NutriChat IA (Chat com RAG contextual)
 - 🗓️ Planejamento semanal de refeições
 Lista de compras
 
@@ -194,12 +195,19 @@ Funções do APP
             Observação(falado)
 ---
 
-## ✨ **NOVIDADES DA VERSÃO 7.2.2**
+---
 
-### **🛡️ Correções Críticas de Persistência (Atomic Shield)**
-- **Proteção Contra "Data Nuke":** Corrigido bug crítico onde a inicialização prematura do `PetProfileService` (antes do login) causava o wipe completo do banco de dados de pets. Implementada "Guard Clause" que aborta a operação caso a chave de criptografia não esteja disponível.
-- **Auto-Save Estabilizado:** Corrigido crash (`DependOnInheritedWidget`) na tela de resultados ao tentar salvar automaticamente. A rotina agora aguarda o ciclo de renderização completo.
-- **Deduplicação Inteligente:** Sistema aprimorado para evitar processamento repetido da mesma imagem.
+## ✨ **NOVIDADES DA VERSÃO 1.6.0**
+
+### **🧠 Inteligência Conversacional (NutriChat IA)**
+- **RAG Nutricional:** Nova IA especializada em Food que utiliza o histórico alimentar do usuário para criar contexto. Chat acessível via ícone de "Cérebro" no histórico.
+- **Micro-Apps Isolados:** Arquitetura de IA segregada por domínio (Food, Pet, Plant), cada uma com "System Prompt" e base de conhecimento próprios, evitando contaminação de contexto.
+- **Soberania de Configuração:** O motor de IA é configurável remotamente (`RemoteConfigService`), permitindo troca de modelos (ex: Gemini 1.5 Flash ↔ 2.0) sem update de app.
+
+### **🛡️ Saneamento de UI e UX (Standard A25)**
+- **PDF Blindado:** Novo padrão visual unificado para relatórios PDF (Fundo Preto + Ícones Funcionais). Compartilhamento nativo reescrito para compatibilidade total com Samsung/Android 14.
+- **Layout Defensivo:** Cards de histórico com proteção anti-overflow (`145px cap`) e imagens "Flush Left" com `BoxFit.cover`. Botões de câmera elevados para não sobrepor a navegação (SafeArea).
+- **Semântica Visual:** Novo ícone `Psychology` (Cérebro) para indicar claramente funcionalidades de IA racional.
 
 ---
 

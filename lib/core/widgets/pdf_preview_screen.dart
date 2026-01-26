@@ -1,46 +1,54 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:open_filex/open_filex.dart';
+import '../theme/app_design.dart';
 
 class PdfPreviewScreen extends StatelessWidget {
   final String title;
   final Future<Uint8List> Function(PdfPageFormat format) buildPdf;
+  final bool showShare;
 
   const PdfPreviewScreen({
     super.key,
     required this.title,
     required this.buildPdf,
+    this.showShare = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Nome do arquivo para exportação
+    final fileName = 'ScanNut_${title.replaceAll(' ', '_')}.pdf';
+
     return Scaffold(
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Colors.grey[900], // 🛡️ Background Preto Institucional
       appBar: AppBar(
-        title: Text(title,
-            style: const TextStyle(color: Colors.white, fontSize: 16)),
-        backgroundColor: Colors.black,
+        title: Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.black, // 🛡️ AppBar Preta
+        foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
       ),
       body: Theme(
-        data: ThemeData
-            .light(), // Força fundo claro para o PDF para não conflitar com o rosa
+        // 🛡️ Força tema claro interno para o PDF não bugar cores
+        data: ThemeData.light(),
         child: PdfPreview(
           build: buildPdf,
-          canChangeOrientation: false,
-          canChangePageFormat: false,
-          allowPrinting: false,
-          allowSharing: false,
+          // 🛡️ Configuração Blindada: Remove controles extras
           canDebug: false,
-          pdfFileName: '${title.replaceAll(' ', '_')}.pdf',
+          canChangePageFormat: false,
+          canChangeOrientation: false,
+          allowPrinting: false, 
+          allowSharing: false,
+          loadingWidget: const Center(
+            child: CircularProgressIndicator(color: AppDesign.foodOrange),
+          ),
+          pdfFileName: fileName,
           maxPageWidth: 700,
-          actions: const [],
+          actions: const [], 
         ),
       ),
       bottomNavigationBar: Container(
@@ -59,29 +67,23 @@ class PdfPreviewScreen extends StatelessWidget {
                 },
               ),
               _buildBottomAction(
-                icon: Icons.open_in_new,
-                tooltip: 'Abrir no Visualizador',
+                icon: Icons.open_in_new, // Vis. Externa
+                tooltip: 'Abrir Externamente',
                 onPressed: () async {
                   final bytes = await buildPdf(PdfPageFormat.a4);
-                  final tempDir = await getTemporaryDirectory();
-                  final file =
-                      File('${tempDir.path}/${title.replaceAll(' ', '_')}.pdf');
-                  await file.writeAsBytes(bytes);
-                  await OpenFilex.open(file.path);
+                  await Printing.sharePdf(bytes: bytes, filename: fileName);
                 },
               ),
-              _buildBottomAction(
-                icon: Icons.share,
-                tooltip: 'Compartilhar',
-                onPressed: () async {
-                  final bytes = await buildPdf(PdfPageFormat.a4);
-                  final tempDir = await getTemporaryDirectory();
-                  final file =
-                      File('${tempDir.path}/${title.replaceAll(' ', '_')}.pdf');
-                  await file.writeAsBytes(bytes);
-                  await Share.shareXFiles([XFile(file.path)], text: title);
-                },
-              ),
+              if (showShare)
+                _buildBottomAction(
+                  icon: Icons.share,
+                  tooltip: 'Compartilhar',
+                  onPressed: () async {
+                    // 🛡️ Compartilhamento Nativo Blindado
+                    final bytes = await buildPdf(PdfPageFormat.a4);
+                    await Printing.sharePdf(bytes: bytes, filename: fileName);
+                  },
+                ),
             ],
           ),
         ),
@@ -89,19 +91,16 @@ class PdfPreviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomAction(
-      {required IconData icon,
-      required String tooltip,
-      required VoidCallback onPressed}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(icon, color: Colors.white, size: 28),
-          onPressed: onPressed,
-          tooltip: tooltip,
-        ),
-      ],
+  Widget _buildBottomAction({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      icon: Icon(icon, color: Colors.white, size: 28),
+      onPressed: onPressed,
+      tooltip: tooltip,
     );
   }
 }
+

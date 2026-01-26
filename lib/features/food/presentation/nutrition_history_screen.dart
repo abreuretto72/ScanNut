@@ -11,10 +11,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/translation_mapper.dart';
 import '../../../core/theme/app_design.dart';
-import '../../../core/services/export_service.dart';
-import '../../../core/widgets/pdf_preview_screen.dart';
+import '../services/food_export_service.dart';
+import 'food_pdf_preview_screen.dart';
 import '../../../core/services/media_vault_service.dart';
 import 'widgets/food_export_configuration_modal.dart';
+import 'widgets/food_history_card.dart';
+import 'food_chat_screen.dart';
 
 class NutritionHistoryScreen extends StatefulWidget {
   const NutritionHistoryScreen({super.key});
@@ -44,7 +46,10 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     debugPrint('🖥️ [HistoryScreen] Building...');
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const SizedBox.shrink();
+
+
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -54,6 +59,13 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
         backgroundColor: Colors.black,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.psychology, color: AppDesign.foodOrange),
+            tooltip: "NutriChat IA",
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const FoodChatScreen()));
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: _generateHistoryPdf,
@@ -78,35 +90,65 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           return ValueListenableBuilder<Box<NutritionHistoryItem>>(
             valueListenable: listenable,
             builder: (context, box, _) {
-              final items = box.values
-                  .whereType<NutritionHistoryItem>()
-                  .toList()
-                  .reversed
-                  .toList();
-              debugPrint(
-                  '🔄 [HistoryScreen] Rebuilding List. Count: ${items.length}');
-
-              if (items.isEmpty) {
+              debugPrint('📡 [HistoryScreen] ValueListenable Builder Triggered. Box Name: ${box.name} | Length: ${box.length}');
+              
+              final List<NutritionHistoryItem> items = [];
+              try {
+                // 🛠️ Defesa contra corrupção de registro individual no Hive
+                items.addAll(box.values
+                    .whereType<NutritionHistoryItem>()
+                    .toList()
+                    .reversed);
+                
+                debugPrint('🔄 [HistoryScreen] Filtered items count: ${items.length}');
+              } catch (e) {
+                debugPrint('❌ [HistoryScreen] CRITICAL ERROR reading box values: $e');
+                // Se o box estiver ilegível, retornamos estado vazio/erro em vez de crash
                 return _buildEmptyState();
               }
 
-              return AnimationLimiter(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return AnimationConfiguration.staggeredList(
-                      position: index,
-                      duration: const Duration(milliseconds: 375),
-                      child: SlideAnimation(
-                        verticalOffset: 50.0,
-                        child: FadeInAnimation(
-                          child: _buildFoodCard(item),
-                        ),
-                      ),
-                    );
+              if (items.isNotEmpty) {
+                debugPrint('   First item: ${items.first.foodName} | ID: ${items.first.id}');
+              }
+
+              if (items.isEmpty) {
+                debugPrint('📭 [HistoryScreen] Displaying Empty State');
+                return _buildEmptyState();
+              }
+
+              debugPrint('🎨 [HistoryScreen] Building AnimationLimiter with ${items.length} cards...');
+              
+              return RepaintBoundary(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    debugPrint('🔃 [HistoryScreen] Manual Refresh Triggered');
+                    await NutritionService().init();
+                    setState(() {});
                   },
+                  color: const Color(0xFF00E676),
+                  backgroundColor: Colors.black,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: items.length,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      debugPrint('🎴 [HistoryScreen] Building card index $index: ${item.foodName}');
+                      try {
+                        return FoodHistoryCard(
+                          item: item,
+                          onTap: () => _showDetailModal(item),
+                          onDelete: () => _confirmDelete(item),
+                        );
+                      } catch (e) {
+                        debugPrint('❌ [HistoryScreen] ERROR building card at index $index: $e');
+                        return ListTile(
+                          title: Text("Erro ao carregar item $index", 
+                          style: const TextStyle(color: Colors.red))
+                        );
+                      }
+                    },
+                  ),
                 ),
               );
             },
@@ -117,7 +159,8 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   }
 
   Widget _buildEmptyState() {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return const SizedBox.shrink();
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -129,209 +172,23 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
             style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
           ),
           const SizedBox(height: 24),
-          // V108: Removed Manual Reload Button (Reactive UI)
+          // 🛡️ RECOVERY TRIGGER: Botão de redundância caso a lista falhe silenciosamente
+          ElevatedButton.icon(
+            onPressed: () => setState(() {}),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade900),
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            label: const Text("FORÇAR ATUALIZAÇÃO", style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildFoodCard(NutritionHistoryItem item) {
-    final l10n = AppLocalizations.of(context)!;
-    return GestureDetector(
-      onTap: () => _showDetailModal(item),
-      child: Container(
-        // height: 140, // Removed fixed height to prevent overflow
-        constraints: const BoxConstraints(minHeight: 120),
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade900.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: item.isUltraprocessed
-                ? Colors.redAccent.withValues(alpha: 0.3)
-                : AppDesign.foodOrange.withValues(alpha: 0.2),
-          ),
-        ),
-        // Removed IntrinsicHeight to fix layout error
-        child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start, // Align to top since heights differ
-          children: [
-            // Image Thumbnail
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(20)),
-              child: Hero(
-                tag: 'img_${item.id}',
-                child: item.imagePath != null
-                    ? FutureBuilder<String>(
-                        future: MediaVaultService().attemptRecovery(
-                            item.imagePath!,
-                            category: MediaVaultService.FOOD_DIR),
-                        builder: (context, snapshot) {
-                          final displayPath = snapshot.data ?? item.imagePath!;
-                          return Image.file(
-                            File(displayPath),
-                            width: 100,
-                            height: 120, // Fixed height for image
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                              width: 100,
-                              height: 120,
-                              color: Colors.grey.shade800,
-                              child: const Icon(Icons.broken_image,
-                                  color: Colors.white24),
-                            ),
-                          );
-                        },
-                      )
-                    : Container(
-                        width: 100,
-                        height: 120,
-                        color: Colors.grey.shade800,
-                        child:
-                            const Icon(Icons.fastfood, color: Colors.white24),
-                      ),
-              ),
-            ),
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            TranslationMapper.localizeFoodName(
-                                item.foodName, l10n),
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              DateFormat(
-                                      'dd/MM',
-                                      Localizations.localeOf(context)
-                                          .toString())
-                                  .format(item.timestamp),
-                              style: GoogleFonts.poppins(
-                                  color: Colors.grey, fontSize: 10),
-                            ),
-                            GestureDetector(
-                              onTap: () => _confirmDelete(item),
-                              child: const Padding(
-                                padding: EdgeInsets.all(4.0),
-                                child: Icon(Icons.delete_outline,
-                                    color: Colors.red, size: 20),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '${item.calories} ${l10n.foodKcalPer100g}',
-                        style: GoogleFonts.poppins(
-                            color: const Color(0xFF00E676),
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                    const Divider(color: Colors.white10),
-                    Row(
-                      children: [
-                        Expanded(
-                            child: _buildMacroMini(l10n.foodProt, item.proteins,
-                                const Color(0xFF6F8CFF))),
-                        Expanded(
-                            child: _buildMacroMini(l10n.foodCarb, item.carbs,
-                                const Color(0xFFFFC24B))),
-                        Expanded(
-                            child: _buildMacroMini(l10n.foodFat, item.fats,
-                                const Color(0xFFFF6FAE))),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildMacroMini(String label, String value, Color color) {
-    // Sanitização rigorosa: Extrai apenas o valor principal (ex: ± 15g ou 20g)
-    final sanitized = value
-        .replaceAll('aproximadamente', '±')
-        .replaceAll('Aproximadamente', '±');
-
-    // Tenta capturar o padrão de peso (ex: 15g, 15.5g, ±15g)
-    final match = RegExp(r'(±?\s*\d+[.,]?\d*\s*g)', caseSensitive: false)
-        .firstMatch(sanitized);
-
-    String shortValue;
-    if (match != null) {
-      shortValue = match.group(1)!.trim();
-    } else {
-      // Fallback para lógica antiga resumida se não achar o padrão
-      shortValue = sanitized
-          .replaceAll(RegExp(r'\bpor\b', caseSensitive: false), '')
-          .split('(')[0]
-          .split('/')[0]
-          .split(',')[0] // Remove labels extras como ", proteínas"
-          .trim();
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            color: color.withValues(alpha: 0.85),
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          shortValue,
-          style: GoogleFonts.poppins(
-            color: color,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.visible,
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
 
   Future<void> _confirmDelete(NutritionHistoryItem item) async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -366,14 +223,15 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   void _showDetailModal(NutritionHistoryItem item) {
     debugPrint('🔍 [History] Opening details for: ${item.foodName}');
 
-    if (item.rawMetadata != null) {
-      debugPrint('📄 [History] keys: ${item.rawMetadata!.keys.toList()}');
+    final metadata = item.rawMetadata;
+    if (metadata != null) {
+      debugPrint('📄 [History] keys: ${metadata.keys.toList()}');
       // debugPrint('📄Raw: ${item.rawMetadata}'); // Uncomment if needed, can be huge
     } else {
       debugPrint('⚠️ [History] rawMetadata is NULL');
     }
 
-    if (item.rawMetadata == null || item.rawMetadata!.isEmpty) {
+    if (metadata == null || metadata.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
               'Detalhes antigos não suportados na visualização completa.')));
@@ -396,7 +254,8 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
         ),
       );
     } catch (e, stack) {
-      final l10n = AppLocalizations.of(context)!;
+      final l10n = AppLocalizations.of(context);
+      if (l10n == null) return;
       debugPrint('❌ [History] Error parsing history item: $e');
       debugPrint(stack.toString());
       ScaffoldMessenger.of(context)
@@ -426,7 +285,8 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   }
 
   Future<void> _generateHistoryPdf() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
     if (_items.isEmpty) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(l10n.msgNoHistoryToExport)));
@@ -450,15 +310,47 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => PdfPreviewScreen(
-                title: l10n.pdfTitleFoodHistory(
-                    DateFormat('dd/MM').format(DateTime.now())),
+              builder: (context) => FoodPdfPreviewScreen(
+                labels: FoodPdfLabels(
+                  title: l10n.pdfTitleFoodHistory(DateFormat('dd/MM').format(DateTime.now())),
+                  date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                  nutrientsTable: l10n.pdfDetailedNutrition,
+                  qty: l10n.pdfQuantity,
+                  dailyGoal: l10n.pdfGoalLabel,
+                  calories: l10n.pdfCalories,
+                  proteins: l10n.foodProt,
+                  carbs: l10n.foodCarb,
+                  fats: l10n.foodFat,
+                  healthRating: l10n.labelTrafficLight,
+                  clinicalRec: l10n.pdfAiVerdict,
+                  disclaimer: "Aviso: Consulte um especialista.",
+                  recipesTitle: l10n.foodRecipesTitle,
+                  justificationLabel: l10n.foodJustification,
+                  difficultyLabel: l10n.foodDifficulty,
+                  instructionsLabel: l10n.foodInstructions,
+                ),
                 buildPdf: (format) async {
-                  final doc = await ExportService().generateFoodHistoryReport(
-                    items: selectedItems,
-                    strings: AppLocalizations.of(context)!,
+                  return await FoodExportService().generateFoodHistoryReport(
+                    selectedItems,
+                    FoodPdfLabels(
+                      title: l10n.pdfTitleFoodHistory(DateFormat('dd/MM').format(DateTime.now())),
+                      date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                      nutrientsTable: l10n.pdfDetailedNutrition,
+                      qty: l10n.pdfQuantity,
+                      dailyGoal: l10n.pdfGoalLabel,
+                      calories: l10n.pdfCalories,
+                      proteins: l10n.foodProt,
+                      carbs: l10n.foodCarb,
+                      fats: l10n.foodFat,
+                      healthRating: l10n.labelTrafficLight,
+                      clinicalRec: l10n.pdfAiVerdict,
+                      disclaimer: "Aviso: Consulte um especialista.",
+                      recipesTitle: l10n.foodRecipesTitle,
+                      justificationLabel: l10n.foodJustification,
+                      difficultyLabel: l10n.foodDifficulty,
+                      instructionsLabel: l10n.foodInstructions,
+                    ),
                   );
-                  return doc.save();
                 },
               ),
             ),

@@ -7146,4 +7146,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walkAnalysisBark => 'Analyzing Bark (AI)...';
+
+  @override
+  String get foodRecipesTitle => 'Suggested Recipes';
+
+  @override
+  String get foodJustification => 'Why this recipe?';
+
+  @override
+  String get foodIngredients => 'Ingredients';
+
+  @override
+  String get foodInstructions => 'Preparation';
+
+  @override
+  String get foodDifficulty => 'Difficulty';
+
+  @override
+  String get foodRecipesTooltip => 'See recipe suggestions';
+
+  @override
+  String get exportPdfTooltip => 'Download Nutritional PDF';
+
+  @override
+  String get foodGenerateMoreRecipes => 'Generate more recipes with AI';
+
+  @override
+  String get foodFallbackMessage =>
+      'AI unstable. Loading Nutritionist suggestions.';
+
+  @override
+  String get food_generating_recipes => 'Generating new recipes...';
+
+  @override
+  String get food_recipe_origin => 'Based on';
+
+  @override
+  String get food_error_maintenance =>
+      'System under maintenance. Try again later.';
+
+  @override
+  String get food_delete_confirm_title => 'Delete Recipe';
+
+  @override
+  String get food_delete_confirm_body =>
+      'Do you want to permanently delete this recipe from your history?';
+
+  @override
+  String get food_delete_confirm_action => 'Delete';
+
+  @override
+  String get food_cancel => 'Cancel';
+
+  @override
+  String get foodChatTitle => 'NutriChat IA';
+
+  @override
+  String get foodChatPrompt => 'Pergunte sobre sua dieta...';
+
+  @override
+  String get foodChatWelcome =>
+      'Olá! Sou sua IA Nutricional. Analisei seu histórico e estou pronta para ajudar com cardápios, dicas e dúvidas.';
+
+  @override
+  String get foodChatRAGProcessing => 'Analisando seu histórico alimentar...';
+
+  @override
+  String foodChatExportTitle(String date) {
+    return 'Conversa Nutricional - $date';
+  }
+
+  @override
+  String get foodChatClear => 'Limpar Conversa';
+
+  @override
+  String get foodChatEmpty => 'Nada por aqui ainda. Pergunte algo!';
+
+  @override
+  String get foodChatDisclaimer =>
+      'ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista.';
 }

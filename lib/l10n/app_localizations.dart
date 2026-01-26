@@ -13654,6 +13654,150 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Analisando Vocalização (IA)...'**
   String get walkAnalysisBark;
+
+  /// No description provided for @foodRecipesTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Receitas Sugeridas'**
+  String get foodRecipesTitle;
+
+  /// No description provided for @foodJustification.
+  ///
+  /// In pt, this message translates to:
+  /// **'Por que esta receita?'**
+  String get foodJustification;
+
+  /// No description provided for @foodIngredients.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ingredientes'**
+  String get foodIngredients;
+
+  /// No description provided for @foodInstructions.
+  ///
+  /// In pt, this message translates to:
+  /// **'Modo de Preparo'**
+  String get foodInstructions;
+
+  /// No description provided for @foodDifficulty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dificuldade'**
+  String get foodDifficulty;
+
+  /// No description provided for @foodRecipesTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Ver sugestões de receitas'**
+  String get foodRecipesTooltip;
+
+  /// No description provided for @exportPdfTooltip.
+  ///
+  /// In pt, this message translates to:
+  /// **'Baixar PDF Nutricional'**
+  String get exportPdfTooltip;
+
+  /// No description provided for @foodGenerateMoreRecipes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerar mais receitas com IA'**
+  String get foodGenerateMoreRecipes;
+
+  /// No description provided for @foodFallbackMessage.
+  ///
+  /// In pt, this message translates to:
+  /// **'IA instável. Carregando sugestões do Nutricionista.'**
+  String get foodFallbackMessage;
+
+  /// No description provided for @food_generating_recipes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Gerando novas receitas...'**
+  String get food_generating_recipes;
+
+  /// No description provided for @food_recipe_origin.
+  ///
+  /// In pt, this message translates to:
+  /// **'Baseado em'**
+  String get food_recipe_origin;
+
+  /// No description provided for @food_error_maintenance.
+  ///
+  /// In pt, this message translates to:
+  /// **'Sistema em manutenção. Tente mais tarde.'**
+  String get food_error_maintenance;
+
+  /// No description provided for @food_delete_confirm_title.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir Receita'**
+  String get food_delete_confirm_title;
+
+  /// No description provided for @food_delete_confirm_body.
+  ///
+  /// In pt, this message translates to:
+  /// **'Deseja excluir permanentemente esta receita do histórico?'**
+  String get food_delete_confirm_body;
+
+  /// No description provided for @food_delete_confirm_action.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir'**
+  String get food_delete_confirm_action;
+
+  /// No description provided for @food_cancel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Cancelar'**
+  String get food_cancel;
+
+  /// No description provided for @foodChatTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'NutriChat IA'**
+  String get foodChatTitle;
+
+  /// No description provided for @foodChatPrompt.
+  ///
+  /// In pt, this message translates to:
+  /// **'Pergunte sobre sua dieta...'**
+  String get foodChatPrompt;
+
+  /// No description provided for @foodChatWelcome.
+  ///
+  /// In pt, this message translates to:
+  /// **'Olá! Sou sua IA Nutricional. Analisei seu histórico e estou pronta para ajudar com cardápios, dicas e dúvidas.'**
+  String get foodChatWelcome;
+
+  /// No description provided for @foodChatRAGProcessing.
+  ///
+  /// In pt, this message translates to:
+  /// **'Analisando seu histórico alimentar...'**
+  String get foodChatRAGProcessing;
+
+  /// No description provided for @foodChatExportTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Conversa Nutricional - {date}'**
+  String foodChatExportTitle(String date);
+
+  /// No description provided for @foodChatClear.
+  ///
+  /// In pt, this message translates to:
+  /// **'Limpar Conversa'**
+  String get foodChatClear;
+
+  /// No description provided for @foodChatEmpty.
+  ///
+  /// In pt, this message translates to:
+  /// **'Nada por aqui ainda. Pergunte algo!'**
+  String get foodChatEmpty;
+
+  /// No description provided for @foodChatDisclaimer.
+  ///
+  /// In pt, this message translates to:
+  /// **'ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista.'**
+  String get foodChatDisclaimer;
 }
 
 class _AppLocalizationsDelegate

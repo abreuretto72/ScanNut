@@ -2712,5 +2712,21 @@
   "btn_capture_sound": "Capture Sound",
   "btn_quick_reg": "Quick Log",
   "error_save_feces": "Could not save feces record.",
-  "photo_captured_success": "Photo captured and integrated into history!"
+  "photo_captured_success": "Photo captured and integrated into history!",
+  "foodRecipesTitle": "Suggested Recipes",
+  "foodJustification": "Why this recipe?",
+  "foodIngredients": "Ingredients",
+  "foodInstructions": "Preparation",
+  "foodDifficulty": "Difficulty",
+  "foodRecipesTooltip": "See recipe suggestions",
+  "exportPdfTooltip": "Download Nutritional PDF",
+  "foodGenerateMoreRecipes": "Generate more recipes with AI",
+  "foodFallbackMessage": "AI unstable. Loading Nutritionist suggestions.",
+  "food_generating_recipes": "Generating new recipes...",
+  "food_recipe_origin": "Based on",
+  "food_error_maintenance": "System under maintenance. Try again later.",
+  "food_delete_confirm_title": "Delete Recipe",
+  "food_delete_confirm_body": "Do you want to permanently delete this recipe from your history?",
+  "food_delete_confirm_action": "Delete",
+  "food_cancel": "Cancel"
 }
