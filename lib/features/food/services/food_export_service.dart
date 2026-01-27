@@ -152,14 +152,14 @@ class FoodExportService {
   }
 
   /// 📜 RELATÓRIO B: Livro de Receitas Recomendadas (Exclusivo)
-  Future<Uint8List> generateRecipeBookPdf(FoodAnalysisModel data, FoodPdfLabels labels) async {
+  Future<Uint8List> generateRecipeBookPdf(FoodAnalysisModel data, FoodPdfLabels labels, {bool isChefVision = false}) async {
     final pdf = pw.Document();
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        footer: (context) => _buildFooter(context),
+        footer: (context) => _buildFooter(context, isChefVision: isChefVision),
         header: (context) => _buildHeader(labels),
         build: (context) => [
           pw.SizedBox(height: 10),
@@ -358,7 +358,11 @@ class FoodExportService {
     );
   }
 
-  pw.Widget _buildFooter(pw.Context context) {
+  pw.Widget _buildFooter(pw.Context context, {bool isChefVision = false}) {
+    final text = isChefVision 
+      ? 'ScanNut | Chef Vision: Sugestão de Receitas | © 2026 Multiverso Digital'
+      : 'ScanNut | Página ${context.pageNumber} de ${context.pagesCount} | Copyright 2026 ScanNut Multiverso Digital | contato@multiversodigital.com.br';
+
     return pw.Container(
       alignment: pw.Alignment.center,
       margin: const pw.EdgeInsets.only(top: 20),
@@ -367,7 +371,7 @@ class FoodExportService {
         border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300, width: 0.5)),
       ),
       child: pw.Text(
-        'ScanNut | Página ${context.pageNumber} de ${context.pagesCount} | © 2026 Multiverso Digital | contato@multiversodigital.com.br',
+        text,
         style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey600),
       ),
     );

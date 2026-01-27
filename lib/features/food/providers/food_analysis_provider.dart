@@ -32,12 +32,19 @@ class FoodAnalysisNotifier extends StateNotifier<AnalysisState> {
     super.dispose();
   }
 
-  Future<AnalysisState> analyze(File image) async {
-    state = AnalysisLoading(message: 'loadingFood', imagePath: image.path);
+  Future<AnalysisState> analyze(File image, {bool isMeal = false, bool isChefVision = false, String? userConstraints}) async {
+    state = AnalysisLoading(message: isChefVision ? 'Criando receitas...' : 'loadingFood', imagePath: image.path);
     
     try {
       // 1. Chamada Isolada: Uso do Service exclusivo do módulo Food
-      final result = await _service.analyzeFood(image);
+      FoodAnalysisModel result;
+      if (isChefVision) {
+        result = await _service.analyzeChefVision(image, constraints: userConstraints);
+      } else if (isMeal) {
+        result = await _service.analyzeMeal(image);
+      } else {
+        result = await _service.analyzeFood(image);
+      }
       
       // 2. 🚀 AUTO-SAVE MANDATÓRIO (V135): Salva em background antes do sucesso
       await _saveAutomatically(result, image);

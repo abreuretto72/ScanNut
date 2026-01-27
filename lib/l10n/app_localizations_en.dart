@@ -7244,4 +7244,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get foodChatDisclaimer =>
       'ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista.';
+
+  @override
+  String get msgRecipeDiscarded => 'Invalid Recipe Discarded';
+
+  @override
+  String get msgRecipeDiscardedDesc =>
+      'Incomplete suggestions were removed to ensure the quality of your history.';
+
+  @override
+  String get chefVisionTitle => 'Chef Vision';
+
+  @override
+  String get errorRecipeDataCorrupted =>
+      'Recipe data corrupted or too short. Removing record.';
 }

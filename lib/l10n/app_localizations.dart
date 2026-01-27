@@ -13834,6 +13834,30 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista.'**
   String get foodChatDisclaimer;
+
+  /// No description provided for @msgRecipeDiscarded.
+  ///
+  /// In pt, this message translates to:
+  /// **'Receita Inválida Descartada'**
+  String get msgRecipeDiscarded;
+
+  /// No description provided for @msgRecipeDiscardedDesc.
+  ///
+  /// In pt, this message translates to:
+  /// **'Removidas sugestões incompletas para garantir a qualidade do seu histórico.'**
+  String get msgRecipeDiscardedDesc;
+
+  /// No description provided for @chefVisionTitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Chef Vision'**
+  String get chefVisionTitle;
+
+  /// No description provided for @errorRecipeDataCorrupted.
+  ///
+  /// In pt, this message translates to:
+  /// **'Dados da receita corrompidos ou muito curtos. Removendo registro.'**
+  String get errorRecipeDataCorrupted;
 }
 
 class _AppLocalizationsDelegate

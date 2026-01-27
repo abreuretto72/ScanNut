@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/food_analysis_model.dart';
 import '../data/food_constants.dart';
+import '../services/food_remote_config_repository.dart';
 
 final foodAnalysisServiceProvider = Provider<FoodAnalysisService>((ref) {
   final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
@@ -29,7 +30,32 @@ class FoodAnalysisService {
   }
 
   Future<FoodAnalysisModel> analyzeFood(File image) async {
+    return _analyzeGeneric(image, FoodConstants.systemPrompt);
+  }
+
+  Future<FoodAnalysisModel> analyzeMeal(File image) async {
+    return _analyzeGeneric(image, FoodConstants.mealSystemPrompt);
+  }
+
+  // 🧑‍🍳 CHEF VISION
+  Future<FoodAnalysisModel> analyzeChefVision(File image, {String? constraints}) async {
+    String finalPrompt = FoodConstants.chefVisionSystemPrompt;
+    if (constraints != null && constraints.isNotEmpty) {
+      finalPrompt += "\n\nRESTRIÇÃO/PEDIDO DO USUÁRIO (RAG): $constraints. AJUSTE AS RECEITAS PARA ATENDER A ESTE PEDIDO.";
+    }
+    return _analyzeGeneric(image, finalPrompt);
+  }
+
+
+  Future<FoodAnalysisModel> _analyzeGeneric(File image, String prompt) async {
     try {
+      // 🛡️ DYNAMIC CONFIG: Fetch latest endpoint/model from Remote Config
+      final configRepo = FoodRemoteConfigRepository();
+      final config = await configRepo.fetchRemoteConfig();
+      // Construct URL: base + model + :generateContent
+      // Ensure slash handling if needed, but config default assumes '.../models/'
+      final endpointUrl = '${config.apiEndpoint}${config.activeModel}:generateContent';
+
       final bytes = await image.readAsBytes();
       final base64Image = base64Encode(bytes).replaceAll(RegExp(r'\s+'), '');
 
@@ -37,7 +63,7 @@ class FoodAnalysisService {
         "contents": [
           {
             "parts": [
-              {"text": FoodConstants.systemPrompt},
+              {"text": prompt},
               {
                 "inlineData": {
                   "mimeType": "image/jpeg",
@@ -54,7 +80,7 @@ class FoodAnalysisService {
       };
 
       final response = await _dio.post(
-        FoodConstants.endpoint, 
+        endpointUrl, // Dynamic Endpoint
         data: requestBody
       );
 

@@ -17,6 +17,7 @@ import '../../../../core/utils/app_feedback.dart';
 import '../../../../core/models/analysis_state.dart';
 import '../../providers/food_analysis_provider.dart';
 import '../food_router.dart';
+import './food_camera_overlay.dart';
 
 /// 📸 FOOD DOMAIN CAMERA BODY (V135)
 /// Micro-app independente para captura e análise de comida.
@@ -244,13 +245,194 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
         else
           Container(color: Colors.black),
 
-        // 2. Loading Overlay (Estilo V135)
+        // 2. MOLDURA DE ENQUADRAMENTO (Lei de Ferro)
+        // Sempre visível se a câmera estiver ativa, mesmo durante processamento
+        if (controller != null && controller.value.isInitialized)
+          const FoodCameraOverlay(),
+
+        // 3. Loading Overlay (Estilo V135)
         if (isLoading) _buildLoadingOverlay(context, analysisState),
 
-        // 3. Controles de Captura (Escondidos se carregando)
+        // 4. Controles de Captura (Escondidos se carregando)
         if (!isLoading) _buildControls(context),
+        
+        // 5. Domain Top Actions (Isolado no Micro-App)
+        if (!isLoading) _buildTopActions(context),
       ],
     );
+  }
+
+  Widget _buildTopActions(BuildContext context) {
+    return Positioned(
+      top: 50,
+      right: 20,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // History Button
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.history, color: AppDesign.foodOrange, size: 28),
+              tooltip: AppLocalizations.of(context)?.tooltipNutritionHistory,
+              onPressed: () => FoodRouter.navigateToHistory(context),
+            ),
+          ),
+          const SizedBox(width: 12),
+          
+          // 🚀 MEAL ANALYSIS (Central & Exclusive)
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppDesign.foodOrange.withValues(alpha: 0.8), width: 1.5),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.restaurant, color: AppDesign.foodOrange, size: 28), 
+              tooltip: "Chef Vision: Sugestão de Receitas",
+              onPressed: _onChefVision,
+            ),
+            ),
+          const SizedBox(width: 12),
+
+          // Management
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.restaurant_menu, color: AppDesign.foodOrange, size: 28),
+              tooltip: AppLocalizations.of(context)?.tooltipNutritionManagement,
+              onPressed: () => FoodRouter.navigateToManagement(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _onChefVision() async {
+    final constraintController = TextEditingController();
+    
+    // Show Selection Dialog
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true, // Allow keyboard
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppDesign.backgroundDark.withValues(alpha: 0.95),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+            border: Border.all(color: AppDesign.success.withValues(alpha: 0.5)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(height: 20),
+              
+              const Icon(Icons.auto_awesome, color: AppDesign.success, size: 40),
+              const SizedBox(height: 12),
+              
+              Text(
+                "Chef Vision", 
+                style: GoogleFonts.poppins(color: AppDesign.success, fontSize: 22, fontWeight: FontWeight.bold)
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Mostre seus ingredientes! Aponte a câmera para os alimentos (na geladeira ou bancada) e eu sugerirei receitas completas para você.", 
+                style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13),
+                textAlign: TextAlign.center
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Input de Restrições (Saneamento V135)
+              TextField(
+                controller: constraintController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: "Ex: Sem fritura, tenho pressa, sou vegano...",
+                  hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+                  filled: true,
+                  fillColor: Colors.white.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  prefixIcon: const Icon(Icons.mic, color: AppDesign.foodOrange), // Visual cue for voice (impl: text for now)
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildActionTile(Icons.camera_alt, "Câmera", () {
+                     Navigator.pop(context);
+                     _pickChefVisionImage(ImageSource.camera, constraintController.text);
+                  }),
+                  _buildActionTile(Icons.photo_library, "Galeria", () {
+                     Navigator.pop(context);
+                     _pickChefVisionImage(ImageSource.gallery, constraintController.text);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 30),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionTile(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 60, height: 60,
+            decoration: BoxDecoration(
+              color: Colors.white10,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppDesign.foodOrange),
+            ),
+            child: Icon(icon, color: Colors.white, size: 30),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(color: Colors.white70))
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickChefVisionImage(ImageSource source, String constraints) async {
+    try {
+      final picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: source);
+      
+      if (image != null && mounted) {
+        final File rawFile = File(image.path);
+        
+        await FoodRouter.analyzeAndOpen(
+           context: context, 
+           ref: ref, 
+           image: rawFile,
+           isChefVision: true,
+           userConstraints: constraints
+        );
+      }
+    } catch (e) {
+      debugPrint("❌ Error picking chef vision image: $e");
+    }
   }
 
   Widget _buildLoadingOverlay(BuildContext context, AnalysisState state) {
@@ -307,9 +489,8 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
   }
 
   Widget _buildControls(BuildContext context) {
-    // 🛡️ Samsung A25 Defense: Eleva os botões acima da NavigationBar de domínios
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final totalOffset = kBottomNavigationBarHeight + bottomPadding + 20;
+    // 🛡️ Samsung A25 Defense: Eleva os botões acima da NavigationBar de domínios (80px + 16px padding + margin)
+    final totalOffset = 116.0;
 
     return Align(
       alignment: Alignment.bottomCenter,

@@ -114,37 +114,40 @@ class FoodHistoryCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              TranslationMapper.localizeFoodName(safeFoodName, l10n),
+                              safeFoodName.toLowerCase().contains('inventário')
+                                  ? l10n.chefVisionTitle
+                                  : TranslationMapper.localizeFoodName(safeFoodName, l10n),
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 13, // Reduzido para evitar overlap em telas pequenas
                                 color: Colors.white,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 8),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
                                 DateFormat('dd/MM', localeStr).format(safeTimestamp),
                                 style: GoogleFonts.poppins(
-                                    color: Colors.grey, fontSize: 10),
+                                    color: Colors.white60, fontSize: 10),
                               ),
                               GestureDetector(
                                 onTap: onDelete,
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                  child: Icon(Icons.delete_forever,
-                                      color: Colors.redAccent, size: 20),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  child: const Icon(Icons.delete_forever,
+                                      color: Colors.redAccent, size: 18),
                                 ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       
                       // ⚖️ CALORIE LINE: FittedBox sem Flexible para evitar "hasSize: false"
                       FittedBox(
@@ -153,8 +156,8 @@ class FoodHistoryCard extends StatelessWidget {
                         child: Text(
                           '\u00B1 $safeCalories ${l10n.foodKcalPer100g}',
                           style: GoogleFonts.poppins(
-                              color: const Color(0xFF00E676),
-                              fontWeight: FontWeight.w600),
+                              color: AppDesign.foodOrange, // Sincronia com domínio
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                       
@@ -239,7 +242,7 @@ class FoodHistoryCard extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.poppins(
-            color: color.withOpacity(0.85),
+            color: color.withValues(alpha: 0.85),
             fontSize: 10,
             fontWeight: FontWeight.w500,
           ),
@@ -248,7 +251,7 @@ class FoodHistoryCard extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          shortValue,
+          '\u00B1 $shortValue',
           style: GoogleFonts.poppins(
             color: color,
             fontSize: 12,

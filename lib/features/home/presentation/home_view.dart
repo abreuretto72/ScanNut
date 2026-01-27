@@ -938,7 +938,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                ),
 
                // Ações Específicas de Domínio (Legacy UI Overlays)
-               if (_currentIndex == 0) _buildFoodActions(), // Food actions moved here
+
                if (_currentIndex == 1) _buildPlantActions(),
                if (_currentIndex == 2) _buildPetActions(),
             ],
@@ -1195,7 +1195,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // History Button (New)
+          // History Button
           Container(
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.5),
@@ -1346,7 +1346,7 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Widget _buildPetModeToggles() {
     return Positioned(
-      top: 160, // Deep optical centering (~160px from top)
+      top: 160, 
       left: 0,
       right: 0,
       child: Center(
@@ -1367,7 +1367,6 @@ class _HomeViewState extends ConsumerState<HomeView>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Toggle 1: Identification
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -1391,8 +1390,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                           size: 20,
                           color: _petMode == 0
                               ? Colors.black
-                              : AppDesign
-                                  .textPrimaryDark), // Black Text
+                              : AppDesign.textPrimaryDark),
                       if (_petMode == 0) ...[
                         const SizedBox(width: 8),
                         Text(
@@ -1400,15 +1398,13 @@ class _HomeViewState extends ConsumerState<HomeView>
                                 .modePetIdentification,
                             style: const TextStyle(
                                 color: Colors.black,
-                                fontWeight:
-                                    FontWeight.bold)), // Black Text
+                                fontWeight: FontWeight.bold)),
                       ]
                     ],
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              // Toggle 2: Diagnosis
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -1452,6 +1448,8 @@ class _HomeViewState extends ConsumerState<HomeView>
       ),
     );
   }
+
+
 
   Widget _buildLegacyLoadingOverlay(AnalysisState analysisState) {
     final l10n = AppLocalizations.of(context)!;

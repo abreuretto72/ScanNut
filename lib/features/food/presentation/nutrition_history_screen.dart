@@ -7,6 +7,7 @@ import '../services/nutrition_service.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../models/food_analysis_model.dart';
 import 'food_result_screen.dart';
+import 'food_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/translation_mapper.dart';
@@ -32,7 +33,37 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    _performInitialSanitation();
     _loadHistory();
+  }
+
+  Future<void> _performInitialSanitation() async {
+    // 🧹 SANEAMENTO RETROATIVO (Lei de Ferro)
+    // Limpa receitas corrompidas e histórico de sugestões antes de exibir
+    try {
+      final removed = await NutritionService().sanitizeHistoryItems();
+      if (removed > 0 && mounted) {
+        final l10n = AppLocalizations.of(context);
+        if (l10n != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.msgRecipeDiscarded, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(l10n.msgRecipeDiscardedDesc, style: const TextStyle(fontSize: 12)),
+                ],
+              ),
+              backgroundColor: AppDesign.foodOrange.withValues(alpha: 0.9),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Erro ao sanear histórico de nutrição: $e');
+    }
   }
 
   Future<void> _loadHistory() async {
@@ -220,7 +251,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
     }
   }
 
-  void _showDetailModal(NutritionHistoryItem item) {
+  Future<void> _showDetailModal(NutritionHistoryItem item) async {
     debugPrint('🔍 [History] Opening details for: ${item.foodName}');
 
     final metadata = item.rawMetadata;
@@ -243,15 +274,31 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
       final jsonMap = _convertToMapStringDynamic(item.rawMetadata);
       final analysis = FoodAnalysisModel.fromJson(jsonMap);
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FoodResultScreen(
-            analysis: analysis,
-            imageFile: item.imagePath != null ? File(item.imagePath!) : null,
-            isReadOnly: true,
-          ),
-        ),
+      final isChefVision = item.foodName?.toLowerCase().contains('inventário') ?? false;
+
+      // 🛡️ LEI DE FERRO: Validação de Dados Chef Vision
+      if (isChefVision) {
+         final hasValidRecipes = analysis.receitas.any((r) => r.instructions.length > 20);
+         if (!hasValidRecipes) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(AppLocalizations.of(context)!.errorRecipeDataCorrupted),
+                  backgroundColor: AppDesign.error,
+                )
+              );
+            }
+            return;
+         }
+      }
+
+      // 🚀 NAVEGAÇÃO INTELIGENTE (FoodRouter Protocol)
+      // Direciona para a tela correta baseada na origem dos dados
+      await FoodRouter.navigateToResult(
+        context: context,
+        analysis: analysis,
+        imageFile: item.imagePath != null ? File(item.imagePath!) : null,
+        isChefVision: isChefVision,
       );
     } catch (e, stack) {
       final l10n = AppLocalizations.of(context);

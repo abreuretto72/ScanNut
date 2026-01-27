@@ -2734,5 +2734,9 @@
   "food_delete_confirm_title": "Delete Recipe",
   "food_delete_confirm_body": "Do you want to permanently delete this recipe from your history?",
   "food_delete_confirm_action": "Delete",
-  "food_cancel": "Cancel"
+  "food_cancel": "Cancel",
+  "msgRecipeDiscarded": "Invalid Recipe Discarded",
+  "msgRecipeDiscardedDesc": "Incomplete suggestions were removed to ensure the quality of your history.",
+  "chefVisionTitle": "Chef Vision",
+  "errorRecipeDataCorrupted": "Recipe data corrupted or too short. Removing record."
 }

@@ -33,6 +33,29 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
     debugPrint('🔍 [RecipeHistoryScreen] Starting initialization...');
     try {
       await RecipeService().init();
+      // 🧹 SANEAMENTO RETROATIVO (Lei de Ferro)
+      final removed = await RecipeService().sanitizeRecipeBox();
+      
+      if (removed > 0 && mounted) {
+        final l10n = AppLocalizations.of(context);
+        if (l10n != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.msgRecipeDiscarded, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(l10n.msgRecipeDiscardedDesc, style: const TextStyle(fontSize: 12)),
+                ],
+              ),
+              backgroundColor: AppDesign.foodOrange.withValues(alpha: 0.9),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+      
       debugPrint('✅ [RecipeHistoryScreen] Service initialized successfully.');
       if (mounted) {
         setState(() {

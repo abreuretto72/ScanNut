@@ -117,22 +117,18 @@ class RecipeService {
   Future<void> saveAuto(List<RecipeSuggestion> recipes, String foodName) async {
     if (_box == null || !_box!.isOpen) await init();
 
-    // 🛡️ GARANTIA DE DADOS: Se a lista estiver vazia ou o primeiro item for inválido,
-    // garantimos uma vaga com EmergencyRecipes.
-    List<RecipeSuggestion> processedRecipes = List.from(recipes);
-    if (processedRecipes.isEmpty || !processedRecipes.first.isValid) {
+    // 🛡️ [LEI DE FERRO] BARREIRA DE PERSISTÊNCIA: Filtragem Atômica
+    // Descartamos imediatamente qualquer receita que não atenda aos requisitos mínimos de utilidade.
+    final List<RecipeSuggestion> validRecipes = recipes.where((r) => r.isValid).toList();
+
+    if (validRecipes.isEmpty) {
+      debugPrint('⚠️ [RecipeService] Nenhuma receita válida detectada para "$foodName". Acionando Fallback Local...');
+      // Se não houver nenhuma válida, garantimos pelo menos uma do EmergencyRecipes
       final fallbacks = EmergencyRecipes.getFallback(foodName);
-      if (processedRecipes.isEmpty) {
-        processedRecipes.addAll(fallbacks);
-      } else {
-        processedRecipes[0] = fallbacks.first;
-      }
+      validRecipes.add(fallbacks.first);
     }
 
-    for (var recipe in processedRecipes) {
-      // 🛡️ Validação Final: Se mesmo após o processamento houver algo nulo (improvável), skip.
-      if (!recipe.isValid) continue;
-      
+    for (var recipe in validRecipes) {
       // Check for duplication (simple check by name + foodName)
       final exists = _box!.values.any((item) =>
           item.foodName == foodName && item.recipeName == recipe.name);
@@ -157,6 +153,31 @@ class RecipeService {
         _generateImageForRecipe(key, item);
       }
     }
+  }
+
+  /// 🧹 SANEAMENTO RETROATIVO (Lei de Ferro)
+  /// Remove permanentemente receitas sem instruções ou corrompidas do histórico.
+  Future<int> sanitizeRecipeBox() async {
+    if (_box == null || !_box!.isOpen) await init();
+    
+    final keysToDelete = <dynamic>[];
+    
+    for (var entry in _box!.toMap().entries) {
+      final item = entry.value;
+      // Validação de Integridade: Instructions vazia ou muito curta
+      if (item.instructions.trim().isEmpty || item.instructions.length < 20) {
+        debugPrint('🧹 [RecipeService] Deletando receita inválida: ${item.recipeName} (ID: ${item.id})');
+        keysToDelete.add(entry.key);
+      }
+    }
+
+    if (keysToDelete.isNotEmpty) {
+      await _box!.deleteAll(keysToDelete);
+      debugPrint('✅ [RecipeService] Saneamento concluído. ${keysToDelete.length} itens removidos.');
+    } else {
+      debugPrint('✅ [RecipeService] Histórico saudável. Nenhum item removido.');
+    }
+    return keysToDelete.length;
   }
 
   Future<void> _generateImageForRecipe(

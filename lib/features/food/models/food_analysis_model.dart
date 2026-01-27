@@ -1,6 +1,6 @@
 /// Nota: Este modelo é referido internamente como "FoodModel" nos planos de blindagem.
 import '../data/food_constants.dart';
-import 'recipe_suggestion.dart';
+import 'package:scannut/features/food/models/recipe_suggestion.dart';
 
 class FoodAnalysisModel {
   final IdentidadeESeguranca identidade;

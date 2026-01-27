@@ -2747,7 +2747,11 @@
   "@foodChatExportTitle": {"placeholders": {"date": {"type": "String"}}},
   "foodChatClear": "Limpar Conversa",
   "foodChatEmpty": "Nada por aqui ainda. Pergunte algo!",
-  "foodChatDisclaimer": "ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista."
+  "foodChatDisclaimer": "ATENÇÃO: Sou uma IA. Minhas sugestões não substituem um nutricionista.",
+  "msgRecipeDiscarded": "Receita Inválida Descartada",
+  "msgRecipeDiscardedDesc": "Removidas sugestões incompletas para garantir a qualidade do seu histórico.",
+  "chefVisionTitle": "Chef Vision",
+  "errorRecipeDataCorrupted": "Dados da receita corrompidos ou muito curtos. Removendo registro."
 }
 
 

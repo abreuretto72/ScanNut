@@ -1,6 +1,6 @@
 # 🐾 ScanNut - AI Visual Assistant
 
-**Versão:** 1.6.0  
+**Versão:** 1.7.0  
 **Plataforma:** Android / iOS  
 **Idiomas:** Português, English, Español
 
@@ -17,6 +17,8 @@ O **ScanNut** é um assistente visual de IA que analisa alimentos, plantas e pet
 - 🔢 Cálculo automático de calorias, proteínas, carboidratos e gorduras
 - 📅 Histórico completo de análises
 - 🧠 **Novo:** NutriChat IA (Chat com RAG contextual)
+- 🍳 **Novo:** Chef Vision (Inventário de ingredientes automático)
+- 📜 **Novo:** Geração de receitas via captura de geladeira/armário
 - 🗓️ Planejamento semanal de refeições
 Lista de compras
 
@@ -194,6 +196,18 @@ Funções do APP
             Dicas e Documentos(Nacional ou Internacional) 
             Observação(falado)
 ---
+
+---
+
+## ✨ **NOVIDADES DA VERSÃO 1.7.0**
+
+### **🍳 Chef Vision & Inventário Inteligente**
+- **Captura Multi-Ingrediente:** Sistema de câmera otimizado para detectar múltiplos ingredientes simultaneamente.
+- **Moldura de Precisão:** Nova interface de câmera com moldura laranja (`AppDesign.foodOrange`) para centralização perfeita de alimentos.
+- **Proteção SM A256E:** Ajustes de elevação de botões e padding de rodapé especificamente para o Samsung A25, evitando overlap com navegação do sistema.
+- **Histórico Inteligente:** Navegação contextual que diferencia análises nutricionais de sessões do Chef Vision, carregando receitas instantaneamente.
+- **Relatório B (PDF):** Geração de PDFs exclusivos "Chef Vision" com layout otimizado, ícones premium e modo de preparo detalhado.
+- **Blindagem Cromática:** Erradicação total do "flash verde" na transição de telas, garantindo o laranja como identidade visual mestre do domínio Food.
 
 ---
 

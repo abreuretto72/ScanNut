@@ -18,12 +18,14 @@ class FoodResultScreen extends ConsumerStatefulWidget {
   final FoodAnalysisModel analysis;
   final File? imageFile;
   final bool isReadOnly;
+  final int initialTab;
 
   const FoodResultScreen({
     super.key,
     required this.analysis,
     this.imageFile,
     this.isReadOnly = false,
+    this.initialTab = 0,
   });
 
   @override
@@ -32,8 +34,8 @@ class FoodResultScreen extends ConsumerStatefulWidget {
 
 class _FoodResultScreenState extends ConsumerState<FoodResultScreen> {
   bool _isGeneratingPdf = false;
-  final Color _themeColor = const Color(0xFF4CAF50); // Cor de domínio Comida (Verde)
-  Color _activeThemeColor = const Color(0xFF4CAF50);
+  static const Color _themeColor = AppDesign.foodOrange; // Cor de domínio Comida (Laranja Mestre V135)
+  Color _activeThemeColor = AppDesign.foodOrange;
   late FoodAnalysisModel _analysis;
 
   @override
@@ -48,13 +50,14 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> {
       final config = await FoodRemoteConfigRepository().fetchRemoteConfig();
       if (mounted) {
         setState(() {
-          _activeThemeColor = config.enforceOrangeTheme ? AppDesign.foodOrange : _themeColor;
+          // Garante Laranja como padrão mesmo que o RemoteConfig demore
+          _activeThemeColor = config.enforceOrangeTheme ? AppDesign.foodOrange : AppDesign.foodOrange;
         });
         
         // Success Notification (Multiverso Digital Sync)
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text("Configuração sincronizada com Multiverso Digital", style: TextStyle(color: Colors.white, fontSize: 12)),
-          backgroundColor: Colors.green.withValues(alpha: 0.7),
+          content: const Text("Sincronizado com Multiverso Digital", style: TextStyle(color: Colors.white, fontSize: 12)),
+          backgroundColor: AppDesign.foodOrange.withValues(alpha: 0.7),
           duration: const Duration(seconds: 2),
         ));
       }
@@ -72,6 +75,7 @@ class _FoodResultScreenState extends ConsumerState<FoodResultScreen> {
 
     return DefaultTabController(
       length: 4,
+      initialIndex: widget.initialTab,
       child: Scaffold(
         body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {

@@ -386,6 +386,150 @@ class ExportService {
     );
     return pdf;
   }
+  
+  /// 🧑‍🍳 CHEF VISION REPORT
+  Future<pw.Document> generateChefVisionReport({
+    required FoodAnalysisModel analysis,
+    required AppLocalizations strings,
+    File? imageFile,
+  }) async {
+    final pdf = pw.Document();
+    final String timestampStr = DateFormat.yMd(strings.localeName).add_Hm().format(DateTime.now());
+    
+    // Load Image
+    pw.ImageProvider? mainImage;
+    if (imageFile != null) {
+      mainImage = await safeLoadImage(imageFile.path);
+    }
+    
+    // Custom Footer for Chef Vision
+    pw.Widget buildChefFooter(pw.Context context) {
+       final pageText = strings.pdfPage(context.pageNumber, context.pagesCount);
+       return pw.Column(
+        children: [
+          pw.Divider(thickness: 0.5, color: PdfColors.grey300),
+          pw.SizedBox(height: 5),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('ScanNut | Chef Vision | © 2026 Multiverso Digital',
+                  style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+              pw.Text(pageText,
+                  style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+            ],
+          ),
+        ],
+      );
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(35),
+        header: (context) => buildHeader("CHEF VISION: RELATÓRIO DE RECEITAS", timestampStr, color: colorFood, dateLabel: strings.pdfDateLabel),
+        footer: (context) => buildChefFooter(context),
+        build: (context) {
+          final List<pw.Widget> content = [];
+          
+          // 1. Header Layout with Image
+          if (mainImage != null) {
+             content.add(
+               pw.Container(
+                 height: 150,
+                 width: double.infinity,
+                 margin: const pw.EdgeInsets.only(bottom: 20),
+                 child: pw.Center(
+                    child: pw.ClipRRect(
+                      horizontalRadius: 8,
+                      verticalRadius: 8,
+                      child: pw.Image(mainImage, fit: pw.BoxFit.cover)
+                    )
+                 )
+               )
+             );
+          }
+          
+          // 2. Inventory Summary
+          final inventory = analysis.identidade.nome.replaceAll("Inventário: ", "");
+          content.add(
+            pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              margin: const pw.EdgeInsets.only(bottom: 20),
+              decoration: pw.BoxDecoration(
+                 color: colorFood.flatten(), // Lighter Orange
+                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+                 border: pw.Border.all(color: colorFood)
+              ),
+              child: pw.Column(
+                 crossAxisAlignment: pw.CrossAxisAlignment.start,
+                 children: [
+                    pw.Text("INVENTÁRIO DETECTADO", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)),
+                    pw.SizedBox(height: 5),
+                    pw.Text(inventory, style: const pw.TextStyle(fontSize: 12, color: PdfColors.black))
+                 ]
+              )
+            )
+          );
+          
+          // 3. Recipes Loop
+          for (final recipe in analysis.receitas) {
+             content.add(
+               pw.Container(
+                 margin: const pw.EdgeInsets.only(bottom: 25),
+                 decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+                    borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8))
+                 ),
+                 child: pw.Column(
+                   crossAxisAlignment: pw.CrossAxisAlignment.start,
+                   children: [
+                      // Card Header
+                      pw.Container(
+                        padding: const pw.EdgeInsets.all(10),
+                        decoration: pw.BoxDecoration(
+                           color: colorFood,
+                           borderRadius: const pw.BorderRadius.only(topLeft: pw.Radius.circular(8), topRight: pw.Radius.circular(8)),
+                        ),
+                        child: pw.Row(
+                           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                           children: [
+                              pw.Expanded(child: pw.Text(recipe.name, style: pw.TextStyle(color: PdfColors.white, fontWeight: pw.FontWeight.bold, fontSize: 14))),
+                              pw.Text("${recipe.prepTime} | ${recipe.calories}", style: pw.TextStyle(color: PdfColors.white, fontSize: 10))
+                           ]
+                        )
+                      ),
+                      
+                      // Card Body
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(12),
+                        child: pw.Column(
+                           crossAxisAlignment: pw.CrossAxisAlignment.start,
+                           children: [
+                              pw.Text("MODO DE PREPARO & INGREDIENTES", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: colorFood)),
+                              pw.SizedBox(height: 5),
+                              pw.Text(
+                                  recipe.instructions.replaceAll("**", "").replaceAll("Ingredientes Usados:", "\nIngredientes Usados:").replaceAll("Modo de Preparo:", "\nModo de Preparo:"),
+                                  style: const pw.TextStyle(fontSize: 10,  lineSpacing: 1.5)
+                              ),
+                              pw.Divider(color: PdfColors.grey300),
+                              pw.Text(recipe.justification, style: pw.TextStyle(fontStyle: pw.FontStyle.italic, fontSize: 9, color: PdfColors.grey600))
+                           ]
+                        )
+                      )
+                   ]
+                 )
+               )
+             );
+          }
+          
+          return content;
+        }
+      )
+    );
+    
+    return pdf;
+  }
+
 
   /// 2. PARTNERS REPORT (UNIFIED LAYOUT)
   Future<pw.Document> generatePartnersReport({

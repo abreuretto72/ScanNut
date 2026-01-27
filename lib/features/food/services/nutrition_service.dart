@@ -108,7 +108,10 @@ class NutritionService {
           '🔍 [NutritionService] Preparing to save analysis for: ${analysis.identidade.nome}');
 
       try {
-        final recipesListTyped = analysis.receitas
+        // 🛡️ [LEI DE FERRO] BARREIRA DE PERSISTÊNCIA: Filtragem Atômica
+        final validRecipes = analysis.receitas.where((r) => r.isValid).toList();
+        
+        final recipesListTyped = validRecipes
             .map((r) => {
                   'nome': r.name,
                   'instrucoes': r.instructions,
@@ -116,7 +119,7 @@ class NutritionService {
                 })
             .toList();
 
-        debugPrint('   Recipes Count: ${recipesListTyped.length}');
+        debugPrint('   Recipes Count (Filtered): ${recipesListTyped.length}');
         if (recipesListTyped.isNotEmpty) {
           debugPrint(
               '   Sample Recipe Type: ${recipesListTyped.first.runtimeType}');
@@ -347,5 +350,53 @@ class NutritionService {
       
       debugPrint("✅ [NutritionService] Removed recipe '$recipeName' from $foodName");
     }
+  }
+
+  /// 🧹 SANEAMENTO DE HISTÓRICO (Lei de Ferro)
+  /// Remove receitas inválidas ou vazias de dentro dos itens de histórico.
+  Future<int> sanitizeHistoryItems() async {
+    final box = await _ensureBox();
+    final keys = box.keys.toList();
+    int removedCount = 0;
+
+    for (var key in keys) {
+      final item = box.get(key);
+      if (item != null) {
+        final originalCount = item.recipesList.length;
+        // Filtrar receitas que não possuem instruções úteis
+        final filteredList = item.recipesList.where((r) {
+          final instr = r['instrucoes'] ?? r['instructions'] ?? '';
+          return instr.trim().isNotEmpty && instr.length >= 20;
+        }).toList();
+
+        if (filteredList.length != originalCount) {
+          debugPrint('🧹 [NutritionService] Saneando item: ${item.foodName}. Removidas ${originalCount - filteredList.length} receitas inválidas.');
+          
+          final newItem = NutritionHistoryItem(
+            id: item.id,
+            timestamp: item.timestamp,
+            foodName: item.foodName,
+            calories: item.calories,
+            proteins: item.proteins,
+            carbs: item.carbs,
+            fats: item.fats,
+            isUltraprocessed: item.isUltraprocessed,
+            biohackingTips: item.biohackingTips,
+            recipesList: filteredList,
+            imagePath: item.imagePath,
+            rawMetadata: item.rawMetadata,
+          );
+          
+          await box.put(key, newItem);
+          removedCount += (originalCount - filteredList.length);
+        }
+      }
+    }
+
+    if (removedCount > 0) {
+      await box.flush();
+      debugPrint('✅ [NutritionService] Saneamento concluído. Total de $removedCount receitas descartadas.');
+    }
+    return removedCount;
   }
 }
