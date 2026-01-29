@@ -10,7 +10,8 @@ import 'package:printing/printing.dart';
 
 import 'package:speech_to_text/speech_to_text.dart';
 
-import '../../../../l10n/app_localizations.dart';
+import 'package:scannut/l10n/app_localizations.dart';
+import 'package:scannut/features/food/l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../services/food_ai_chat_service.dart';
@@ -45,11 +46,12 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
     // Mensagem de boas vindas simulada (não salva no histórico de contexto ainda)
     WidgetsBinding.instance.addPostFrameCallback((_) {
        final l10n = AppLocalizations.of(context);
-       if (l10n != null) {
+       final foodL10n = FoodLocalizations.of(context);
+       if (l10n != null && foodL10n != null) {
          setState(() {
            _messages.add({
              'role': 'ai', 
-             'text': l10n.foodChatWelcome
+             'text': foodL10n.foodChatWelcome
            });
          });
        }
@@ -94,8 +96,12 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
         }
       },
       localeId: Localizations.localeOf(context).toString(),
-      cancelOnError: true,
       listenMode: ListenMode.dictation,
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+      onSoundLevelChange: null,
+      cancelOnError: true,
+      partialResults: true,
     );
     
     if (mounted) {
@@ -120,6 +126,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
     if (text.isEmpty) return;
 
     final l10n = AppLocalizations.of(context)!;
+    final foodL10n = FoodLocalizations.of(context)!;
 
     setState(() {
       _messages.add({'role': 'user', 'text': text});
@@ -160,9 +167,9 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
     _aiService.clearHistory();
     setState(() {
       _messages.clear();
-      final l10n = AppLocalizations.of(context);
-      if (l10n != null) {
-        _messages.add({'role': 'ai', 'text': l10n.foodChatWelcome});
+      final foodL10n = FoodLocalizations.of(context);
+      if (foodL10n != null) {
+        _messages.add({'role': 'ai', 'text': foodL10n.foodChatWelcome});
       }
     });
   }
@@ -170,20 +177,21 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
   // 📝 GERAÇÃO DE PDF
   Future<void> _exportPdf() async {
     final l10n = AppLocalizations.of(context)!;
-    final dateStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final foodL10n = FoodLocalizations.of(context)!;
+    final dateStr = DateFormat('dd-MM-yyyy').format(DateTime.now());
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => PdfPreviewScreen(
-          title: l10n.foodChatExportTitle(dateStr),
-          buildPdf: (format) => _generatePdf(format, l10n, dateStr),
+          title: foodL10n.foodChatExportTitle(dateStr),
+          buildPdf: (format) => _generatePdf(format, foodL10n, dateStr),
         ),
       ),
     );
   }
 
-  Future<Uint8List> _generatePdf(PdfPageFormat format, AppLocalizations l10n, String date) async {
+  Future<Uint8List> _generatePdf(PdfPageFormat format, FoodLocalizations l10n, String date) async {
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -240,7 +248,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
     return pdf.save();
   }
 
-  pw.Widget _buildPdfHeader(AppLocalizations l10n, String date) {
+  pw.Widget _buildPdfHeader(FoodLocalizations l10n, String date) {
     return pw.Column(
       children: [
         pw.Row(
@@ -273,23 +281,24 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return const SizedBox.shrink();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.foodChatTitle), // "NutriChat IA"
+        title: Text(foodL10n.foodChatTitle), // "NutriChat IA"
         backgroundColor: AppDesign.foodOrange,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
-            tooltip: l10n.exportPdfTooltip,
+            tooltip: foodL10n.foodExportPdfTooltip,
             onPressed: _messages.isEmpty ? null : _exportPdf,
           ),
           IconButton(
             icon: const Icon(Icons.delete_sweep),
             onPressed: _clearChat,
-            tooltip: l10n.foodChatClear,
+            tooltip: foodL10n.foodChatClear,
           ),
         ],
       ),
@@ -365,7 +374,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppDesign.foodOrange)
                   ),
                   const SizedBox(width: 10),
-                  Text(l10n.foodChatRAGProcessing, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(foodL10n.foodChatRAGProcessing, style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
             ),
@@ -402,7 +411,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                             maxLines: 5,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              hintText: l10n.foodChatPrompt,
+                              hintText: foodL10n.foodChatPrompt,
                               hintStyle: const TextStyle(color: Colors.white38),
                               border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
@@ -423,7 +432,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                           content: Text(
-                                              l10n.foodChatMicUnavailable)),
+                                              foodL10n.foodChatMicUnavailable)),
                                     );
                                   },
                             icon:
@@ -432,8 +441,8 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
                                 ? Colors.redAccent
                                 : Colors.white54,
                             tooltip: _isListening
-                                ? l10n.foodChatStopListening
-                                : l10n.foodChatStartListening,
+                                ? foodL10n.foodChatStopListening
+                                : foodL10n.foodChatStartListening,
                             // Removed background style for cleaner "inside" look
                           ),
                         ),

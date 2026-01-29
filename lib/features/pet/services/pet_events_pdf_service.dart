@@ -6,18 +6,19 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../core/services/export_service.dart';
+import '../services/pet_export_service.dart';
 import '../models/pet_event_model.dart';
 import '../models/pet_profile_extended.dart';
 import '../services/pet_event_repository.dart';
-import '../services/pet_profile_service.dart';
+import '../../../core/services/base_pdf_helper.dart';
+import 'pet_profile_service.dart';
 
 class PetEventsPdfService {
   static final PetEventsPdfService _instance = PetEventsPdfService._internal();
   factory PetEventsPdfService() => _instance;
   PetEventsPdfService._internal();
 
-  final _exportService = ExportService();
+  // final _exportService = PetExportService(); // Removed
   final _repo = PetEventRepository();
   final _profileService = PetProfileService();
 
@@ -107,7 +108,7 @@ class PetEventsPdfService {
       // 1. Pre-load Pet Photo
       pw.ImageProvider? petPhoto;
       if (profile?.imagePath != null) {
-        petPhoto = await _exportService.safeLoadImage(profile!.imagePath);
+        petPhoto = await BasePdfHelper.safeLoadImage(profile!.imagePath!);
       }
 
       // 2. Pre-load Event Thumbnails
@@ -121,7 +122,7 @@ class PetEventsPdfService {
         for (var img in images) {
           if (totalImagesLoaded >= maxImagesTotal) break;
           // Load from Vault! (safeLoadImage handles vault detection)
-          final provider = await _exportService.safeLoadImage(img.path);
+          final provider = await BasePdfHelper.safeLoadImage(img.path);
           if (provider != null) {
             thumbnails[event.id] ??= [];
             thumbnails[event.id]!.add(provider);
@@ -157,11 +158,12 @@ class PetEventsPdfService {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(35),
-          header: (context) => _exportService.buildHeader(
+          header: (context) => BasePdfHelper.buildHeader(
               l10n.petEvent_reportTitle, timestampStr,
-              color: ExportService.colorPet),
+              color: PetExportService.themeColor,
+              appName: 'ScanNut'),
           footer: (context) =>
-              _exportService.buildFooter(context, strings: l10n),
+              BasePdfHelper.buildFooter(context, strings: l10n),
           build: (context) => [
             // Header Info Card
             pw.Container(
@@ -219,7 +221,7 @@ class PetEventsPdfService {
                     width: double.infinity,
                     padding: const pw.EdgeInsets.symmetric(
                         vertical: 4, horizontal: 8),
-                    color: ExportService.colorPet, // 🎨 Domain Color Pink
+                    color: PetExportService.themeColor, // 🎨 Domain Color Pink
                     child: pw.Text(
                       DateFormat.yMMMMEEEEd(l10n.localeName)
                           .format(entry.key)
@@ -286,7 +288,7 @@ class PetEventsPdfService {
                                   style: pw.TextStyle(
                                       fontWeight: pw.FontWeight.bold,
                                       fontSize: 8,
-                                      color: ExportService.colorPet)),
+                                      color: PetExportService.themeColor)),
                               pw.SizedBox(width: 8),
                               pw.Expanded(
                                   child: pw.Text(event.title,

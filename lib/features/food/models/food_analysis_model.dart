@@ -1,6 +1,6 @@
 /// Nota: Este modelo é referido internamente como "FoodModel" nos planos de blindagem.
 import '../data/food_constants.dart';
-import 'package:scannut/features/food/models/recipe_suggestion.dart';
+import 'package:scannut/features/food/models/food_recipe_suggestion.dart';
 
 class FoodAnalysisModel {
   final IdentidadeESeguranca identidade;
@@ -53,11 +53,14 @@ class FoodAnalysisModel {
       throw Exception('NOT_FOOD_DETECTED');
     }
 
-    // 🛡️ V135: Nova Extração Categorizada
-    final resumo = raw['resumo'] ?? {};
-    final saude = raw['saude_biohacking'] ?? {};
-    final nutre = raw['nutrientes_detalhado'] ?? {};
-    final gastro = raw['gastronomia'] ?? {};
+    // 🛡️ V136: Nova Extração Categorizada Segura (Previne crash String != Map)
+    // 🛡️ V136: Nova Extração Categorizada Segura
+    // Uses static _safeMap helper to prevent scope issues
+    final resumo = _safeMap(raw['resumo']);
+    final saude = _safeMap(raw['saude_biohacking']);
+    final nutre = _safeMap(raw['nutrientes_detalhado']);
+    final gastro = _safeMap(raw['gastronomia']);
+    final tecnico = _safeMap(raw['tecnico']);
 
     // Helper para buscar em categorias ou no root (fallback)
     dynamic get(String key, {Map? category}) {
@@ -73,34 +76,42 @@ class FoodAnalysisModel {
     }
 
     // Mapeamento de Identidade
-    final nome = get('food_name', category: resumo)?.toString() ?? 'Alimento Detectado';
-    final cal = get('calories_kcal', category: resumo);
+    final nome = raw['resumo']?['food_name'] ?? get('food_name', category: resumo)?.toString() ?? 'Alimento Detectado';
+    final cal = raw['resumo']?['calories_kcal'] ?? get('calories_kcal', category: resumo);
     final score = get('health_score', category: resumo);
-    final rec = get('recommendation', category: resumo) ?? saude['recommendation'] ?? "Equilíbrio é a chave.";
+    final rec = get('recommendation', category: resumo) ?? saude['recommendation'] ?? raw['recommendation'] ?? "Equilíbrio é a chave.";
     
     final labels = resumo['allergens'] as List? ?? raw['allergens'] as List? ?? [];
     final alerta = labels.isNotEmpty ? "Contém: ${labels.join(', ')}" : "Nenhum alerta crítico";
 
+    // 🛡️ V136: Mapeamento Técnico Gemini 2.5
+    // Technical mapping handled via _safeMap above.
+
+
     final identidadeMap = {
       'nome': nome,
-      'status_processamento': 'Analisado com IA v135',
+      'status_processamento': 'Analisado com IA v136',
       'semaforo_saude': _mapTrafficLight(score),
       'alerta_critico': alerta,
       'bioquimica_alert': '',
-      'estimativa_peso': 'Porção Padrão (100g)'
+      'estimativa_peso': resumo['estimated_weight_g']?.toString() ?? 'Porção Padrão (100g)',
+      'nivel_processamento': tecnico['processing_level']?.toString(),
+      'metodo_coccao': tecnico['cooking_method']?.toString(),
+      'validade': tecnico['shelf_life_fridge']?.toString(),
     };
 
     // Mapeamento de Macros
-    final m = nutre['macros'] ?? raw['macros'] ?? {};
+    final m = _safeMap(nutre['macros']);
+    // Fallback para raiz se não achar em nutre['macros']
     final macrosMap = {
       'calorias_100g': _parseCal(cal),
-      'proteinas': "${m['protein_g'] ?? 0}g",
-      'carboidratos_liquidos': "${m['carbs_g'] ?? 0}g",
-      'gorduras_perfil': "${m['fat_g'] ?? 0}g",
+      'proteinas': "${m['protein_g']?.toString() ?? raw['protein_g']?.toString() ?? '0'}g",
+      'carboidratos_liquidos': "${m['carbs_g']?.toString() ?? raw['carbs_g']?.toString() ?? '0'}g",
+      'gorduras_perfil': "${m['fat_g']?.toString() ?? raw['fat_g']?.toString() ?? '0'}g",
       'indice_glicemico': 'Estimado'
     };
 
-    // Mapeamento de Micronutrientes
+    // Mapeamento de Micronutrientes: V2.5 pode ter sinergia em nutre['synergy']
     final microsRaw = nutre['micros'] as List? ?? [];
     final nutriList = microsRaw.map((mi) => NutrienteItem(
       nome: mi['name']?.toString() ?? 'Nutriente',
@@ -122,17 +133,22 @@ class FoodAnalysisModel {
         vereditoIa: rec,
       ),
       performance: BiohackingPerformance.fromJson({
-        'satiety_index': saude['satiety_index'],
-        'focus_energy_impact': saude['focus_impact'],
-        'ideal_consumption_moment': saude['ideal_moment'],
-        'pontos_positivos_corpo': List<String>.from(saude['pros'] ?? []),
+        'satiety_index': _normalizeSatiety(saude['satiety_index']),
+        'focus_energy_impact': (saude['focus_impact'] ?? saude['focus_energy_impact'])?.toString(),
+        'ideal_consumption_moment': saude['ideal_moment']?.toString(),
+        'body_positives': List<String>.from(saude['pros'] ?? raw['pros'] ?? []),
+        'body_attention_points': List<String>.from(saude['cons'] ?? raw['cons'] ?? []),
+        'advanced_insights': List<String>.from(saude['advanced_insights'] ?? []),
       }),
       gastronomia: InteligenciaCulinaria.fromJson({
         'nutrient_preservation': gastro['prep_tip'],
         'smart_swap': gastro['smart_swap'],
-        'expert_tip': rec
+        'expert_tip': rec,
+        'recipes': gastro['recipes'] ?? raw['recipes'] ?? []
       }),
-      receitas: (gastro['recipes'] as List? ?? []).map((r) => RecipeSuggestion.fromJson(r, foodName: nome)).toList(),
+      receitas: ((gastro['recipes'] ?? raw['recipes']) as List? ?? [])
+          .map((r) => RecipeSuggestion.fromJson(r, foodName: nome))
+          .toList(),
       dicaEspecialista: rec,
     );
   }
@@ -143,6 +159,29 @@ class FoodAnalysisModel {
     final s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
     return int.tryParse(s) ?? 0;
   }
+
+  static Map<String, dynamic> _safeMap(dynamic input) {
+    if (input is Map<String, dynamic>) return input;
+    if (input is Map) return Map<String, dynamic>.from(input);
+    return {};
+  }
+
+  static dynamic _normalizeSatiety(dynamic value) {
+    if (value == null) return 5;
+    if (value is num) {
+      if (value > 10) return value / 10;
+      return value;
+    }
+    if (value is String) {
+       // Remove /10 if present
+       final clean = value.replaceAll('/10', '').trim();
+       final numVal = double.tryParse(clean) ?? 5.0;
+       if (numVal > 10) return numVal / 10;
+       return numVal;
+    }
+    return 5;
+  }
+
 
   static String _mapTrafficLight(dynamic score) {
     final s = int.tryParse(score.toString()) ?? 5;
@@ -201,13 +240,21 @@ class FoodAnalysisModel {
 
 class IdentidadeESeguranca {
   final String nome;
-  final String statusProcessamento;
+  final String statusProcessamento; // Legacy (Ex: In Natura)
   final String semaforoSaude;
   final String alertaCritico;
   final String bioquimicaAlert;
-  // 🛡️ [V135] Novos Campos para Human Food
+  
+  // 🛡️ [V135] Novos Campos Human Food
   final String? estimativaPeso;
-  final String? metodoPreparo;
+
+  // 🛡️ [V136 - Gemini 2.5] Expansão Técnica
+  final String? nivelProcessamento; 
+  final String? metodoCoccao;
+  final String? validade;
+
+  // Compatibility (Getter only)
+  String? get metodoPreparo => metodoCoccao;
 
   IdentidadeESeguranca({
     required this.nome,
@@ -216,7 +263,9 @@ class IdentidadeESeguranca {
     required this.alertaCritico,
     required this.bioquimicaAlert,
     this.estimativaPeso,
-    this.metodoPreparo,
+    this.nivelProcessamento,
+    this.metodoCoccao,
+    this.validade,
   });
 
   Map<String, dynamic> toJson() => {
@@ -226,17 +275,24 @@ class IdentidadeESeguranca {
         'alerta_critico': alertaCritico,
         'bioquimica_alert': bioquimicaAlert,
         'estimativa_peso': estimativaPeso,
-        'metodo_preparo': metodoPreparo,
+        'nivel_processamento': nivelProcessamento,
+        'metodo_coccao': metodoCoccao,
+        'validade': validade,
       };
 
   factory IdentidadeESeguranca.fromJson(Map<String, dynamic> json) {
+    // Shared extraction logic
+    final cookMethod = json['cooking_method']?.toString() ?? 
+                       json['metodo_coccao']?.toString() ?? 
+                       json['metodo_preparo']?.toString();
+
     return IdentidadeESeguranca(
       nome: json['name']?.toString() ??
           json['nome']?.toString() ??
           'UNKNOWN_FOOD',
       statusProcessamento: json['processing_status']?.toString() ??
           json['status_processamento']?.toString() ??
-          'In natura',
+          'In natura', 
       semaforoSaude: json['health_traffic_light']?.toString() ??
           json['semaforo_saude']?.toString() ??
           'Verde',
@@ -248,8 +304,13 @@ class IdentidadeESeguranca {
           '',
       estimativaPeso: json['weight_estimate']?.toString() ??
           json['estimativa_peso']?.toString(),
-      metodoPreparo: json['preparation_method']?.toString() ??
-          json['metodo_preparo']?.toString(),
+    
+      // Novos Campos V136
+      nivelProcessamento: json['processing_level']?.toString() ?? 
+                         json['nivel_processamento']?.toString(),
+      metodoCoccao: cookMethod,
+      validade: json['shelf_life_fridge']?.toString() ?? 
+               json['validade']?.toString(),
     );
   }
 }
@@ -403,6 +464,9 @@ class BiohackingPerformance {
   final int indiceSaciedade;
   final String impactoFocoEnergia;
   final String momentoIdealConsumo;
+  
+  // 🛡️ [V136] Insights Avançados (Gemini 2.5)
+  final List<String> insightsAvancados;
 
   BiohackingPerformance({
     required this.pontosPositivosCorpo,
@@ -410,6 +474,7 @@ class BiohackingPerformance {
     required this.indiceSaciedade,
     required this.impactoFocoEnergia,
     required this.momentoIdealConsumo,
+    this.insightsAvancados = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -418,6 +483,7 @@ class BiohackingPerformance {
         'indice_saciedade': indiceSaciedade,
         'impacto_foco_energia': impactoFocoEnergia,
         'momento_ideal_consumo': momentoIdealConsumo,
+        'insights_avancados': insightsAvancados,
       };
 
   factory BiohackingPerformance.fromJson(Map<String, dynamic> json) {
@@ -445,6 +511,11 @@ class BiohackingPerformance {
       momentoIdealConsumo: json['ideal_consumption_moment']?.toString() ??
           json['momento_ideal_consumo']?.toString() ??
           '',
+          
+      // V136
+      insightsAvancados: ((json['advanced_insights'] ?? 
+                          json['insights_avancados']) as List? ?? [])
+                          .map((e) => e.toString()).toList(),
     );
   }
 }

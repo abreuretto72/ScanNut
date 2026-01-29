@@ -62,7 +62,23 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core:1.13.0")
+    implementation("androidx.core:core:1.13.1")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.core:core:1.13.1")
+        force("androidx.core:core-ktx:1.13.1")
+        force("androidx.browser:browser:1.8.0")
+        force("androidx.activity:activity:1.9.0")
+        force("androidx.activity:activity-ktx:1.9.0")
+        // Force CameraX to 1.3.4 (stable, pre-AGP 8.6 requirement)
+        force("androidx.camera:camera-core:1.3.4")
+        force("androidx.camera:camera-camera2:1.3.4")
+        force("androidx.camera:camera-lifecycle:1.3.4")
+        force("androidx.camera:camera-video:1.3.4")
+        
+    }
 }
 
 flutter {

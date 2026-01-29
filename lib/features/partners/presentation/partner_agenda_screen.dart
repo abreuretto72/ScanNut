@@ -9,7 +9,7 @@ import '../../../core/models/partner_model.dart';
 import '../models/agenda_event.dart';
 import '../../pet/services/pet_event_service.dart';
 import '../../pet/models/pet_event.dart';
-import '../../../core/services/export_service.dart';
+import '../../pet/services/pet_export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import './widgets/add_event_modal.dart';
@@ -327,7 +327,7 @@ class _PartnerAgendaScreenState extends State<PartnerAgendaScreen> {
                 // Sort by date desc
                 petEvents.sort((a, b) => b.dateTime.compareTo(a.dateTime));
 
-                final service = ExportService();
+                final service = PetExportService();
                 final pdf = await service.generateAgendaReport(
                     events: petEvents,
                     start: DateTime(2000),

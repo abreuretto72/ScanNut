@@ -1,7 +1,7 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-import '../../../core/services/remote_config_service.dart';
+import 'food_config_service.dart';
 import '../../../../core/services/gemini_service.dart';
 import 'nutrition_service.dart';
 import '../models/nutrition_history_item.dart';
@@ -22,13 +22,13 @@ class FoodAiChatService {
 
   void addToHistory(String role, String text) => _chatHistory.add({'role': role, 'text': text});
   void clearHistory() => _chatHistory.clear();
-  final RemoteConfigService _remoteConfig = RemoteConfigService();
+  final FoodConfigService _foodConfig = FoodConfigService();
 
   /// Envia a pergunta do usuário enriquecida com RAG
   Future<String> sendQuery(String userQuery, {String locale = 'pt'}) async {
     try {
       // 0. Obter Configuração Remota (ou Fallback)
-      final config = await _remoteConfig.getFoodConfig();
+      final config = await _foodConfig.getFoodConfig();
       debugPrint('🧠 [FoodAiChat] Using Model: ${config.activeModel}');
 
       // 1. RAG: Buscar contexto do histórico alimentar

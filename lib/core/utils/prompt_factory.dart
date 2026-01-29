@@ -1,5 +1,5 @@
 import '../constants/botany_prompts.dart';
-import '../constants/nutrition_prompts.dart';
+import '../../features/food/services/food_prompts.dart';
 import '../constants/pet_prompts.dart';
 import '../enums/scannut_mode.dart';
 
@@ -375,7 +375,7 @@ Mantenha as chaves JSON em inglês.
 
     switch (mode) {
       case ScannutMode.food:
-        return NutritionPrompts.getFoodAnalysisPrompt(
+        return FoodPrompts.getFoodAnalysisPrompt(
             languageName, languageInstruction);
 
       case ScannutMode.plant:

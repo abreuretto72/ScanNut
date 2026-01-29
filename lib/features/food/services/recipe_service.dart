@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../models/recipe_history_item.dart';
-import '../models/recipe_suggestion.dart';
+import '../models/food_recipe_history_item.dart';
+import '../models/food_recipe_suggestion.dart';
 import '../models/food_analysis_model.dart';
 import '../../../core/services/hive_atomic_manager.dart';
 import '../../../core/services/gemini_service.dart';
 import 'food_logger.dart';
 import '../data/emergency_recipes.dart';
-import 'food_remote_config_repository.dart';
+import 'food_config_service.dart';
 
 class RecipeService {
   static final RecipeService _instance = RecipeService._internal();
@@ -20,7 +20,7 @@ class RecipeService {
 
   Future<List<RecipeSuggestion>> generateRecipeSuggestions(String foodName) async {
     // 1. Fetch Remote Config (Dynamic Model Selection)
-    final remoteConfig = await FoodRemoteConfigRepository().fetchRemoteConfig();
+    final remoteConfig = await FoodConfigService().getFoodConfig();
     final modelName = remoteConfig.activeModel;
     final qty = remoteConfig.recipesPerRequest;
 

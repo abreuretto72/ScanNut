@@ -1,0 +1,4 @@
+arb-dir: lib/features/food/l10n
+template-arb-file: food_pt.arb
+output-class: FoodLocalizations
+output-dir: lib/features/food/l10n

@@ -11,7 +11,7 @@ import '../../pet/services/pet_profile_service.dart';
 import '../../pet/presentation/widgets/edit_pet_form.dart';
 import 'partner_event_detail_screen.dart';
 import '../../../core/widgets/pdf_action_button.dart';
-import '../../../core/services/export_service.dart';
+import '../../pet/services/pet_export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 
 import '../../../core/theme/app_design.dart';
@@ -883,7 +883,7 @@ class _GlobalAgendaScreenState extends State<GlobalAgendaScreen> {
           builder: (context) => PdfPreviewScreen(
             title: 'Relatório de Agenda',
             buildPdf: (format) async {
-              final pdf = await ExportService().generateAgendaReport(
+              final pdf = await PetExportService().generateAgendaReport(
                   events: events,
                   start: start,
                   end: end,

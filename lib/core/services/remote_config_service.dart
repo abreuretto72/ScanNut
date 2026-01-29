@@ -32,8 +32,7 @@ class AiConfig {
   bool get enforceOrangeTheme => extras['enforce_orange_theme'] as bool? ?? false;
 }
 
-/// Alias para manter compatibilidade com código existente de Food
-typedef FoodConfig = AiConfig;
+
 
 /// Serviço Centralizado de Configuração Remota (Soberania de Dados)
 class RemoteConfigService {
@@ -47,10 +46,7 @@ class RemoteConfigService {
   // Cache por domínio
   final Map<String, AiConfig> _cache = {};
 
-  /// Busca configuração específica para Comida
-  Future<AiConfig> getFoodConfig() async {
-    return _fetchConfig('food_config.json', 'food');
-  }
+
 
   /// Busca configuração específica para Pet
   Future<AiConfig> getPetConfig() async {

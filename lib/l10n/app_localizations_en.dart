@@ -428,9 +428,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Oops! Something went wrong. Your data is safe. Try again.';
 
   @override
-  String get loadingFood => 'Analyzing food image...';
-
-  @override
   String get loadingPlant => 'Analyzing plant...';
 
   @override
@@ -438,88 +435,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingPetHealth => 'Analyzing PET health...';
-
-  @override
-  String get nutrientsAdvancedMacros => 'Advanced Macronutrients';
-
-  @override
-  String get nutrientsProteins => 'Proteins';
-
-  @override
-  String get nutrientsCarbs => 'Carbohydrates';
-
-  @override
-  String get nutrientsFats => 'Fats';
-
-  @override
-  String get nutrientsMinerals => 'Minerals & Vitamins';
-
-  @override
-  String get nutrientsSynergy => 'Synergy';
-
-  @override
-  String get recipesQuick => 'Quick Recipes (under 15 min)';
-
-  @override
-  String get recipesCulinaryIntel => 'Culinary Intelligence';
-
-  @override
-  String get recipesExpertTip => 'Expert Tip';
-
-  @override
-  String get labelGlycemicImpact => 'Glycemic Impact';
-
-  @override
-  String get labelFattyAcids => 'Fatty Acids';
-
-  @override
-  String get labelAminoProfile => 'Amino Acid Profile';
-
-  @override
-  String get foodSafetyBio => 'Safety & Biochemistry';
-
-  @override
-  String get foodIdealMoment => 'Ideal Moment';
-
-  @override
-  String get foodCriticalAlerts => 'Critical Alerts';
-
-  @override
-  String get foodBioChem => 'Biochemistry & Neutralization';
-
-  @override
-  String get foodPreservation => 'Preservation';
-
-  @override
-  String get foodSmartSwap => 'Smart Swap';
-
-  @override
-  String get foodDisclaimer =>
-      'Note: Nutritional information is estimated. Always consult a healthcare professional.';
-
-  @override
-  String get foodVerdict => 'AI Verdict';
-
-  @override
-  String get foodPros => 'Pros';
-
-  @override
-  String get foodCons => 'Points of Attention';
-
-  @override
-  String get foodBiohacking => 'Biohacking Performance';
-
-  @override
-  String get foodSatietyIndex => 'Satiety Index';
-
-  @override
-  String get foodBodyBenefits => 'Body Benefits';
-
-  @override
-  String get foodAttention => 'Attention';
-
-  @override
-  String get foodFocusEnergy => 'Focus & Energy';
 
   @override
   String get paywallTitle => 'Unlock Full Power';
@@ -1231,33 +1146,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get petSpecialistOrientation => 'Specialist Orientation';
 
   @override
-  String get foodHistoryTitle => 'Food History';
-
-  @override
-  String get foodHistoryEmpty => 'No analysis saved yet.';
-
-  @override
-  String get foodReload => 'Reload';
-
-  @override
-  String get foodKcalPer100g => 'kcal / 100g';
-
-  @override
-  String get foodProt => 'Prot.';
-
-  @override
-  String get foodCarb => 'Carb.';
-
-  @override
-  String get foodFat => 'Fat';
-
-  @override
-  String get foodDeleteConfirmTitle => 'Delete Analysis?';
-
-  @override
-  String get foodDeleteConfirmContent => 'This action cannot be undone.';
-
-  @override
   String get commonUnderstand => 'I UNDERSTAND';
 
   @override
@@ -1936,63 +1824,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Plan your shopping focusing on seasonal items to save money and gain health.';
 
   @override
-  String get foodRice => 'Rice';
-
-  @override
-  String get foodBeans => 'Beans';
-
-  @override
-  String get foodChicken => 'Chicken';
-
-  @override
-  String get foodMeat => 'Meat';
-
-  @override
-  String get foodFish => 'Fish';
-
-  @override
-  String get foodEgg => 'Egg';
-
-  @override
-  String get foodBread => 'Bread';
-
-  @override
-  String get foodMilk => 'Milk';
-
-  @override
-  String get foodCoffee => 'Coffee';
-
-  @override
-  String get foodYogurt => 'Yogurt';
-
-  @override
-  String get foodFruit => 'Fruit';
-
-  @override
-  String get foodSalad => 'Salad';
-
-  @override
-  String get foodVegetables => 'Vegetables';
-
-  @override
-  String get foodPasta => 'Pasta';
-
-  @override
-  String get foodPotato => 'Potato';
-
-  @override
-  String get foodCassava => 'Cassava';
-
-  @override
-  String get foodCheese => 'Cheese';
-
-  @override
-  String get foodJuice => 'Juice';
-
-  @override
-  String get foodWater => 'Water';
-
-  @override
   String get defaultWoundAnalysis =>
       'Visual analysis of detected wound or injury';
 
@@ -2023,36 +1854,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get featureMicrosDesc =>
       'Get complete analysis of vitamins, minerals and how they interact.';
-
-  @override
-  String get foodApple => 'Apple';
-
-  @override
-  String get foodBanana => 'Banana';
-
-  @override
-  String get foodCorn => 'Corn';
-
-  @override
-  String get foodPeas => 'Peas';
-
-  @override
-  String get foodCarrot => 'Carrot';
-
-  @override
-  String get foodTomato => 'Tomato';
-
-  @override
-  String get foodOnion => 'Onion';
-
-  @override
-  String get foodGarlic => 'Garlic';
-
-  @override
-  String get foodOrange => 'Orange';
-
-  @override
-  String get foodPineapple => 'Pineapple';
 
   @override
   String get unknownFood => 'Unknown Food';
@@ -2290,6 +2091,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petNutrition => '🍖 Nutrition';
+
+  @override
+  String get deleteFoodAnalysis => 'Excluir as Análises e o Histórico';
+
+  @override
+  String get deleteFoodAnalysisSubtitle =>
+      'Apaga todas as fotos e resultados de análises de comida.';
+
+  @override
+  String get deleteFoodRecipes => 'Excluir as Receitas';
+
+  @override
+  String get deleteFoodRecipesSubtitle =>
+      'Apaga histórico de receitas geradas e sugestões.';
+
+  @override
+  String get deleteFoodAi => 'Excluir as Refeições da IA';
+
+  @override
+  String get deleteFoodAiSubtitle =>
+      'Apaga histórico de conversas e registros de refeições na IA.';
+
+  @override
+  String get deleteFoodMenus => 'Excluir os Cardápios';
+
+  @override
+  String get deleteFoodMenusSubtitle =>
+      'Apaga planos semanais e listas de compras.';
+
+  @override
+  String get deleteFoodAll => 'Excluir TUDO';
+
+  @override
+  String get deleteFoodAllSubtitle =>
+      'Apaga TODOS os dados do domínio de alimentos. Irreversível.';
 
   @override
   String get foodChatMicUnavailable => 'Microphone unavailable.';

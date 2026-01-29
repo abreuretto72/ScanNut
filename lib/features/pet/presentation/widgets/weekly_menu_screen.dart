@@ -10,7 +10,7 @@ import '../../services/meal_plan_service.dart';
 import '../../services/pet_shopping_list_service.dart';
 import '../../services/pet_menu_generator_service.dart';
 import '../../services/pet_profile_service.dart'; // Added
-import '../../../../core/services/export_service.dart';
+import '../../services/pet_export_service.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
 import 'pet_menu_filter_dialog.dart';
 import '../../models/meal_plan_request.dart';
@@ -184,7 +184,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen>
       }
 
       // 3. Generate
-      await ExportService().generateWeeklyMenuReport(
+      await PetExportService().generateWeeklyMenuReport(
         petName: widget.petName,
         raceName: widget.raceName,
         dietType: selectedPlans.first.dietType, // Use first as representative
@@ -207,7 +207,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen>
             builder: (context) => PdfPreviewScreen(
               title: "Cardápio Nutricional: ${widget.petName}",
               buildPdf: (format) async {
-                final pdf = await ExportService().generateWeeklyMenuReport(
+                final pdf = await PetExportService().generateWeeklyMenuReport(
                   petName: widget.petName,
                   raceName: widget.raceName,
                   dietType: selectedPlans.first.dietType,
@@ -494,7 +494,7 @@ class _WeeklyMenuScreenState extends ConsumerState<WeeklyMenuScreen>
                 builder: (context) => PdfPreviewScreen(
                   title: "${l10n.pdfReportTitle}: ${widget.petName}",
                   buildPdf: (format) async =>
-                      (await ExportService().generateWeeklyMenuReport(
+                      (await PetExportService().generateWeeklyMenuReport(
                     petName: widget.petName,
                     raceName: widget.raceName,
                     dietType: newPlan.dietType,

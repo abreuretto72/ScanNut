@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../models/recipe_suggestion.dart';
+import '../../models/food_recipe_suggestion.dart';
 import '../../../../core/theme/app_design.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../features/food/l10n/app_localizations.dart';
 
 class FoodRecipeCard extends StatelessWidget {
   final RecipeSuggestion recipe;
@@ -22,8 +22,8 @@ class FoodRecipeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     try {
-      final l10n = AppLocalizations.of(context);
-      if (l10n == null) return const SizedBox.shrink();
+      final foodL10n = FoodLocalizations.of(context);
+      if (foodL10n == null) return const SizedBox.shrink();
       
       // 🛡️ DATA DEFENSE
       final safeName = recipe.name ?? 'Sem Nome';
@@ -43,19 +43,27 @@ class FoodRecipeCard extends StatelessWidget {
 
       if (isExpansionTile) {
         return Card(
+          color: const Color(0xFF1E1E1E),
+          elevation: 2,
           margin: const EdgeInsets.only(bottom: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
           child: ExpansionTile(
             title: Text(safeName, 
               style: TextStyle(fontWeight: FontWeight.bold, color: themeColor),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            subtitle: Text("${l10n.food_recipe_origin}: $safeSourceFood"),
+            subtitle: Text(foodL10n.foodOrigin(safeSourceFood), style: const TextStyle(color: Colors.white70)),
             trailing: IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
               onPressed: onDelete,
               iconSize: 20,
             ),
+            iconColor: Colors.white70,
+            collapsedIconColor: Colors.white54,
             children: [
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -63,8 +71,8 @@ class FoodRecipeCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildMacroInfo(caloriesFormatted, safePrepTime),
-                    const Divider(height: 24),
-                    Text(safeInstructions, style: const TextStyle(fontSize: 12)),
+                    Divider(height: 24, color: Colors.white.withValues(alpha: 0.1)),
+                    Text(safeInstructions, style: const TextStyle(fontSize: 12, color: Colors.white)),
                   ],
                 ),
               )
@@ -75,7 +83,12 @@ class FoodRecipeCard extends StatelessWidget {
 
       // Modal/Dialog version (non-expansion)
       return Card(
+        color: const Color(0xFF1E1E1E), // Dark
         margin: const EdgeInsets.only(bottom: 16),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -92,29 +105,29 @@ class FoodRecipeCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        Text("${l10n.food_recipe_origin}: $safeSourceFood", 
-                          style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(foodL10n.foodOrigin(safeSourceFood), 
+                          style: const TextStyle(fontSize: 12, color: Colors.white70)),
                       ],
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                     onPressed: onDelete,
-                    tooltip: l10n.food_delete_confirm_action,
+                    tooltip: foodL10n.food_delete_confirm_action,
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               _buildMacroInfo(caloriesFormatted, safePrepTime),
-              const Divider(height: 24),
+              Divider(height: 24, color: Colors.white.withValues(alpha: 0.1)),
               if (safeJustification.isNotEmpty) ...[
-                Text(l10n.foodJustification, style: TextStyle(color: themeColor, fontWeight: FontWeight.bold)),
-                Text(safeJustification, style: const TextStyle(fontStyle: FontStyle.italic)),
+                Text(foodL10n.foodJustificationLabel, style: TextStyle(color: themeColor, fontWeight: FontWeight.bold)),
+                Text(safeJustification, style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.white70)),
                 const SizedBox(height: 12),
               ],
-              Text("${l10n.foodInstructions ?? 'Instruções'}:", style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text("${foodL10n.foodInstructionsLabel ?? 'Instruções'}:", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
               const SizedBox(height: 4),
-              Text(safeInstructions),
+              Text(safeInstructions, style: const TextStyle(color: Colors.white)),
             ],
           ),
         ),

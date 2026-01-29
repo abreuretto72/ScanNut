@@ -2,8 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../models/nutrition_history_item.dart';
+import '../../models/food_nutrition_history_item.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../features/food/l10n/app_localizations.dart';
 import '../../../../core/utils/translation_mapper.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/services/media_vault_service.dart';
@@ -24,7 +25,8 @@ class FoodHistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     try {
       final l10n = AppLocalizations.of(context);
-      if (l10n == null) return const SizedBox.shrink();
+      final foodL10n = FoodLocalizations.of(context);
+      if (l10n == null || foodL10n == null) return const SizedBox.shrink();
       
       // 🛡️ DATA DEFENSE: Garantia de que valores nulos do Hive não matem a UI
       final safeFoodName = item.foodName ?? 'Alimento';
@@ -116,7 +118,7 @@ class FoodHistoryCard extends StatelessWidget {
                             child: Text(
                               safeFoodName.toLowerCase().contains('inventário')
                                   ? l10n.chefVisionTitle
-                                  : TranslationMapper.localizeFoodName(safeFoodName, l10n),
+                                  : TranslationMapper.localizeFoodName(safeFoodName, foodL10n),
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13, // Reduzido para evitar overlap em telas pequenas
@@ -154,7 +156,7 @@ class FoodHistoryCard extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '\u00B1 $safeCalories ${l10n.foodKcalPer100g}',
+                          '\u00B1 $safeCalories ${foodL10n.foodKcalPer100g}',
                           style: GoogleFonts.poppins(
                               color: AppDesign.foodOrange, // Sincronia com domínio
                               fontWeight: FontWeight.bold),
@@ -172,15 +174,15 @@ class FoodHistoryCard extends StatelessWidget {
                           children: [
                             SizedBox(
                                 width: 70,
-                                child: _buildMacroMini(l10n.foodProt, safeProteins,
+                                child: _buildMacroMini(foodL10n.foodProt, safeProteins,
                                     const Color(0xFF6F8CFF))),
                             SizedBox(
                                 width: 70,
-                                child: _buildMacroMini(l10n.foodCarb, safeCarbs,
+                                child: _buildMacroMini(foodL10n.foodCarb, safeCarbs,
                                     const Color(0xFFFFC24B))),
                             SizedBox(
                                 width: 70,
-                                child: _buildMacroMini(l10n.foodFat, safeFats,
+                                child: _buildMacroMini(foodL10n.foodFat, safeFats,
                                     const Color(0xFFFF6FAE))),
                           ],
                         ),

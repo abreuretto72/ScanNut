@@ -33,6 +33,8 @@ class FoodAnalysisNotifier extends StateNotifier<AnalysisState> {
   }
 
   Future<AnalysisState> analyze(File image, {bool isMeal = false, bool isChefVision = false, String? userConstraints}) async {
+    debugPrint('🔄 [FoodTrace] Notifier.analyze called. ChefVision: $isChefVision');
+    // 🛡️ REATIVIDADE IMEDIATA: State Loading disparado antes de qualquer await
     state = AnalysisLoading(message: isChefVision ? 'Criando receitas...' : 'loadingFood', imagePath: image.path);
     
     try {
@@ -51,9 +53,11 @@ class FoodAnalysisNotifier extends StateNotifier<AnalysisState> {
       
       // 3. Mapeamento V135: O Service já retorna o modelo rico
       state = AnalysisSuccess<FoodAnalysisModel>(result);
+      debugPrint('✅ [FoodTrace] Notifier State: Success. Data: ${result.identidade.nome}');
       return state;
     } catch (e) {
       debugPrint('❌ FoodAnalysisNotifier Error: $e');
+      debugPrint('❌ [FoodTrace] Notifier State: Error. $e');
       state = AnalysisError("Falha na análise nutricional: $e");
       return state;
     }
@@ -73,6 +77,9 @@ class FoodAnalysisNotifier extends StateNotifier<AnalysisState> {
   }
 
   void reset() {
-    state = AnalysisIdle();
+    debugPrint('🧹 [FoodNotifier] Forçando Reset de Estado para Idle.');
+    if (state is! AnalysisIdle) {
+      state = AnalysisIdle();
+    }
   }
 }

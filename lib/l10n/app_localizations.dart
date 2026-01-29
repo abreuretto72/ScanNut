@@ -893,12 +893,6 @@ abstract class AppLocalizations {
   /// **'Ops! Algo deu errado. Seus dados estão seguros. Tente novamente.'**
   String get errorGeneric;
 
-  /// No description provided for @loadingFood.
-  ///
-  /// In pt, this message translates to:
-  /// **'Analisando a imagem de comida...'**
-  String get loadingFood;
-
   /// No description provided for @loadingPlant.
   ///
   /// In pt, this message translates to:
@@ -916,168 +910,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Analisando saúde do PET...'**
   String get loadingPetHealth;
-
-  /// No description provided for @nutrientsAdvancedMacros.
-  ///
-  /// In pt, this message translates to:
-  /// **'Macronutrientes Avançados'**
-  String get nutrientsAdvancedMacros;
-
-  /// No description provided for @nutrientsProteins.
-  ///
-  /// In pt, this message translates to:
-  /// **'Proteínas'**
-  String get nutrientsProteins;
-
-  /// No description provided for @nutrientsCarbs.
-  ///
-  /// In pt, this message translates to:
-  /// **'Carboidratos'**
-  String get nutrientsCarbs;
-
-  /// No description provided for @nutrientsFats.
-  ///
-  /// In pt, this message translates to:
-  /// **'Gorduras'**
-  String get nutrientsFats;
-
-  /// No description provided for @nutrientsMinerals.
-  ///
-  /// In pt, this message translates to:
-  /// **'Minerais e Vitaminas'**
-  String get nutrientsMinerals;
-
-  /// No description provided for @nutrientsSynergy.
-  ///
-  /// In pt, this message translates to:
-  /// **'Sinergia'**
-  String get nutrientsSynergy;
-
-  /// No description provided for @recipesQuick.
-  ///
-  /// In pt, this message translates to:
-  /// **'Receitas Rápidas (até 15 min)'**
-  String get recipesQuick;
-
-  /// No description provided for @recipesCulinaryIntel.
-  ///
-  /// In pt, this message translates to:
-  /// **'Inteligência Culinária'**
-  String get recipesCulinaryIntel;
-
-  /// No description provided for @recipesExpertTip.
-  ///
-  /// In pt, this message translates to:
-  /// **'Dica do Especialista'**
-  String get recipesExpertTip;
-
-  /// No description provided for @labelGlycemicImpact.
-  ///
-  /// In pt, this message translates to:
-  /// **'Impacto Glicêmico'**
-  String get labelGlycemicImpact;
-
-  /// No description provided for @labelFattyAcids.
-  ///
-  /// In pt, this message translates to:
-  /// **'Ácidos Graxos'**
-  String get labelFattyAcids;
-
-  /// No description provided for @labelAminoProfile.
-  ///
-  /// In pt, this message translates to:
-  /// **'Perfil de Aminoácidos'**
-  String get labelAminoProfile;
-
-  /// No description provided for @foodSafetyBio.
-  ///
-  /// In pt, this message translates to:
-  /// **'Segurança & Bioquímica'**
-  String get foodSafetyBio;
-
-  /// No description provided for @foodIdealMoment.
-  ///
-  /// In pt, this message translates to:
-  /// **'Momento Ideal'**
-  String get foodIdealMoment;
-
-  /// No description provided for @foodCriticalAlerts.
-  ///
-  /// In pt, this message translates to:
-  /// **'Alertas Críticos'**
-  String get foodCriticalAlerts;
-
-  /// No description provided for @foodBioChem.
-  ///
-  /// In pt, this message translates to:
-  /// **'Bioquímica e Neutralização'**
-  String get foodBioChem;
-
-  /// No description provided for @foodPreservation.
-  ///
-  /// In pt, this message translates to:
-  /// **'Preservação'**
-  String get foodPreservation;
-
-  /// No description provided for @foodSmartSwap.
-  ///
-  /// In pt, this message translates to:
-  /// **'Smart Swap (Troca)'**
-  String get foodSmartSwap;
-
-  /// No description provided for @foodDisclaimer.
-  ///
-  /// In pt, this message translates to:
-  /// **'Nota: As informações nutricionais são estimadas. Consulte sempre um profissional de saúde.'**
-  String get foodDisclaimer;
-
-  /// No description provided for @foodVerdict.
-  ///
-  /// In pt, this message translates to:
-  /// **'Veredito da IA'**
-  String get foodVerdict;
-
-  /// No description provided for @foodPros.
-  ///
-  /// In pt, this message translates to:
-  /// **'Pontos Positivos'**
-  String get foodPros;
-
-  /// No description provided for @foodCons.
-  ///
-  /// In pt, this message translates to:
-  /// **'Pontos de Atenção'**
-  String get foodCons;
-
-  /// No description provided for @foodBiohacking.
-  ///
-  /// In pt, this message translates to:
-  /// **'Performance Biohacking'**
-  String get foodBiohacking;
-
-  /// No description provided for @foodSatietyIndex.
-  ///
-  /// In pt, this message translates to:
-  /// **'Índice de Saciedade'**
-  String get foodSatietyIndex;
-
-  /// No description provided for @foodBodyBenefits.
-  ///
-  /// In pt, this message translates to:
-  /// **'Benefícios para o Corpo'**
-  String get foodBodyBenefits;
-
-  /// No description provided for @foodAttention.
-  ///
-  /// In pt, this message translates to:
-  /// **'Atenção'**
-  String get foodAttention;
-
-  /// No description provided for @foodFocusEnergy.
-  ///
-  /// In pt, this message translates to:
-  /// **'Foco e Energia'**
-  String get foodFocusEnergy;
 
   /// No description provided for @paywallTitle.
   ///
@@ -2393,60 +2225,6 @@ abstract class AppLocalizations {
   /// **'Orientação do Especialista'**
   String get petSpecialistOrientation;
 
-  /// No description provided for @foodHistoryTitle.
-  ///
-  /// In pt, this message translates to:
-  /// **'Histórico das Comidas'**
-  String get foodHistoryTitle;
-
-  /// No description provided for @foodHistoryEmpty.
-  ///
-  /// In pt, this message translates to:
-  /// **'Nenhuma análise salva ainda.'**
-  String get foodHistoryEmpty;
-
-  /// No description provided for @foodReload.
-  ///
-  /// In pt, this message translates to:
-  /// **'Recarregar'**
-  String get foodReload;
-
-  /// No description provided for @foodKcalPer100g.
-  ///
-  /// In pt, this message translates to:
-  /// **'kcal / 100g'**
-  String get foodKcalPer100g;
-
-  /// No description provided for @foodProt.
-  ///
-  /// In pt, this message translates to:
-  /// **'Prot.'**
-  String get foodProt;
-
-  /// No description provided for @foodCarb.
-  ///
-  /// In pt, this message translates to:
-  /// **'Carb.'**
-  String get foodCarb;
-
-  /// No description provided for @foodFat.
-  ///
-  /// In pt, this message translates to:
-  /// **'Gord.'**
-  String get foodFat;
-
-  /// No description provided for @foodDeleteConfirmTitle.
-  ///
-  /// In pt, this message translates to:
-  /// **'Excluir Análise?'**
-  String get foodDeleteConfirmTitle;
-
-  /// No description provided for @foodDeleteConfirmContent.
-  ///
-  /// In pt, this message translates to:
-  /// **'Esta ação não pode ser desfeita.'**
-  String get foodDeleteConfirmContent;
-
   /// No description provided for @commonUnderstand.
   ///
   /// In pt, this message translates to:
@@ -3725,120 +3503,6 @@ abstract class AppLocalizations {
   /// **'Planeje suas compras com foco em itens da estação para economizar e ganhar saúde.'**
   String get tipDefault;
 
-  /// No description provided for @foodRice.
-  ///
-  /// In pt, this message translates to:
-  /// **'Arroz'**
-  String get foodRice;
-
-  /// No description provided for @foodBeans.
-  ///
-  /// In pt, this message translates to:
-  /// **'Feijão'**
-  String get foodBeans;
-
-  /// No description provided for @foodChicken.
-  ///
-  /// In pt, this message translates to:
-  /// **'Frango'**
-  String get foodChicken;
-
-  /// No description provided for @foodMeat.
-  ///
-  /// In pt, this message translates to:
-  /// **'Carne'**
-  String get foodMeat;
-
-  /// No description provided for @foodFish.
-  ///
-  /// In pt, this message translates to:
-  /// **'Peixe'**
-  String get foodFish;
-
-  /// No description provided for @foodEgg.
-  ///
-  /// In pt, this message translates to:
-  /// **'Ovo'**
-  String get foodEgg;
-
-  /// No description provided for @foodBread.
-  ///
-  /// In pt, this message translates to:
-  /// **'Pão'**
-  String get foodBread;
-
-  /// No description provided for @foodMilk.
-  ///
-  /// In pt, this message translates to:
-  /// **'Leite'**
-  String get foodMilk;
-
-  /// No description provided for @foodCoffee.
-  ///
-  /// In pt, this message translates to:
-  /// **'Café'**
-  String get foodCoffee;
-
-  /// No description provided for @foodYogurt.
-  ///
-  /// In pt, this message translates to:
-  /// **'Iogurte'**
-  String get foodYogurt;
-
-  /// No description provided for @foodFruit.
-  ///
-  /// In pt, this message translates to:
-  /// **'Fruta'**
-  String get foodFruit;
-
-  /// No description provided for @foodSalad.
-  ///
-  /// In pt, this message translates to:
-  /// **'Salada'**
-  String get foodSalad;
-
-  /// No description provided for @foodVegetables.
-  ///
-  /// In pt, this message translates to:
-  /// **'Legumes'**
-  String get foodVegetables;
-
-  /// No description provided for @foodPasta.
-  ///
-  /// In pt, this message translates to:
-  /// **'Macarrão'**
-  String get foodPasta;
-
-  /// No description provided for @foodPotato.
-  ///
-  /// In pt, this message translates to:
-  /// **'Batata'**
-  String get foodPotato;
-
-  /// No description provided for @foodCassava.
-  ///
-  /// In pt, this message translates to:
-  /// **'Mandioca'**
-  String get foodCassava;
-
-  /// No description provided for @foodCheese.
-  ///
-  /// In pt, this message translates to:
-  /// **'Queijo'**
-  String get foodCheese;
-
-  /// No description provided for @foodJuice.
-  ///
-  /// In pt, this message translates to:
-  /// **'Suco'**
-  String get foodJuice;
-
-  /// No description provided for @foodWater.
-  ///
-  /// In pt, this message translates to:
-  /// **'Água'**
-  String get foodWater;
-
   /// No description provided for @defaultWoundAnalysis.
   ///
   /// In pt, this message translates to:
@@ -3898,66 +3562,6 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'Obtenha análise completa de vitaminas, minerais e como eles interagem.'**
   String get featureMicrosDesc;
-
-  /// No description provided for @foodApple.
-  ///
-  /// In pt, this message translates to:
-  /// **'Maçã'**
-  String get foodApple;
-
-  /// No description provided for @foodBanana.
-  ///
-  /// In pt, this message translates to:
-  /// **'Banana'**
-  String get foodBanana;
-
-  /// No description provided for @foodCorn.
-  ///
-  /// In pt, this message translates to:
-  /// **'Milho'**
-  String get foodCorn;
-
-  /// No description provided for @foodPeas.
-  ///
-  /// In pt, this message translates to:
-  /// **'Ervilha'**
-  String get foodPeas;
-
-  /// No description provided for @foodCarrot.
-  ///
-  /// In pt, this message translates to:
-  /// **'Cenoura'**
-  String get foodCarrot;
-
-  /// No description provided for @foodTomato.
-  ///
-  /// In pt, this message translates to:
-  /// **'Tomate'**
-  String get foodTomato;
-
-  /// No description provided for @foodOnion.
-  ///
-  /// In pt, this message translates to:
-  /// **'Cebola'**
-  String get foodOnion;
-
-  /// No description provided for @foodGarlic.
-  ///
-  /// In pt, this message translates to:
-  /// **'Alho'**
-  String get foodGarlic;
-
-  /// No description provided for @foodOrange.
-  ///
-  /// In pt, this message translates to:
-  /// **'Laranja'**
-  String get foodOrange;
-
-  /// No description provided for @foodPineapple.
-  ///
-  /// In pt, this message translates to:
-  /// **'Abacaxi'**
-  String get foodPineapple;
 
   /// No description provided for @unknownFood.
   ///
@@ -4426,6 +4030,66 @@ abstract class AppLocalizations {
   /// In pt, this message translates to:
   /// **'🍖 Alimentação'**
   String get petNutrition;
+
+  /// No description provided for @deleteFoodAnalysis.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir as Análises e o Histórico'**
+  String get deleteFoodAnalysis;
+
+  /// No description provided for @deleteFoodAnalysisSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apaga todas as fotos e resultados de análises de comida.'**
+  String get deleteFoodAnalysisSubtitle;
+
+  /// No description provided for @deleteFoodRecipes.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir as Receitas'**
+  String get deleteFoodRecipes;
+
+  /// No description provided for @deleteFoodRecipesSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apaga histórico de receitas geradas e sugestões.'**
+  String get deleteFoodRecipesSubtitle;
+
+  /// No description provided for @deleteFoodAi.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir as Refeições da IA'**
+  String get deleteFoodAi;
+
+  /// No description provided for @deleteFoodAiSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apaga histórico de conversas e registros de refeições na IA.'**
+  String get deleteFoodAiSubtitle;
+
+  /// No description provided for @deleteFoodMenus.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir os Cardápios'**
+  String get deleteFoodMenus;
+
+  /// No description provided for @deleteFoodMenusSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apaga planos semanais e listas de compras.'**
+  String get deleteFoodMenusSubtitle;
+
+  /// No description provided for @deleteFoodAll.
+  ///
+  /// In pt, this message translates to:
+  /// **'Excluir TUDO'**
+  String get deleteFoodAll;
+
+  /// No description provided for @deleteFoodAllSubtitle.
+  ///
+  /// In pt, this message translates to:
+  /// **'Apaga TODOS os dados do domínio de alimentos. Irreversível.'**
+  String get deleteFoodAllSubtitle;
 
   /// No description provided for @foodChatMicUnavailable.
   ///

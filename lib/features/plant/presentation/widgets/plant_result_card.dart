@@ -9,7 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../models/plant_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
-import '../../../../core/services/export_service.dart';
+import '../../services/plant_export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../services/botany_service.dart';
 import '../../models/botany_history_item.dart';
@@ -160,7 +160,7 @@ class _PlantResultCardState extends State<PlantResultCard>
             buildPdf: (format) async {
               debugPrint("📄 [PLANT_PDF] Callback buildPdf acionado.");
               try {
-                final pdf = await ExportService().generatePlantAnalysisReport(
+                final pdf = await PlantExportService().generatePlantAnalysisReport(
                   analysis: widget.analysis,
                   strings: AppLocalizations.of(context)!,
                   imageFile:

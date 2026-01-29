@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/food_analysis_provider.dart';
 import 'package:scannut/features/food/models/food_analysis_model.dart';
-import 'food_result_screen.dart';
+import 'package:scannut/features/food/presentation/food_intelligence_screen.dart';
 import 'widgets/result_card.dart';
 import 'nutrition_history_screen.dart';
-import '../../../nutrition/presentation/screens/nutrition_home_screen.dart';
+import '../nutrition/presentation/screens/nutrition_home_screen.dart';
 import '../../../core/models/analysis_state.dart';
 import '../services/nutrition_service.dart';
 
@@ -38,11 +38,18 @@ class FoodRouter {
         userConstraints: userConstraints
       );
 
-      if (!context.mounted) return;
+      debugPrint('🔄 [FoodTrace] Router received state: ${state.runtimeType}');
+
+      if (!context.mounted) {
+        debugPrint('⚠️ [FoodTrace] Context not mounted after analysis.');
+        return;
+      }
 
       // 2. Encaminha para o Tratamento de Resultado (Persistência + Navegação)
       if (context.mounted) {
         await handleResult(context, state, image, isChefVision: isChefVision);
+      } else {
+         debugPrint('⚠️ [FoodTrace] Context unmounted before handleResult.');
       }
       
       // 3. Reset Final para Limpeza de Memória
@@ -62,7 +69,11 @@ class FoodRouter {
 
   /// Ponto de entrada atômico para processar o resultado da IA
   static Future<void> handleResult(BuildContext context, AnalysisState state, File? image, {bool isChefVision = false}) async {
-    if (state is! AnalysisSuccess || state.data is! FoodAnalysisModel) return;
+    debugPrint('🔄 [FoodTrace] handleResult called with ${state.runtimeType}');
+    if (state is! AnalysisSuccess || state.data is! FoodAnalysisModel) {
+       debugPrint('❌ [FoodTrace] Invalid state for handleResult: $state');
+       return;
+    }
     
     final analysis = state.data as FoodAnalysisModel;
 
@@ -77,6 +88,7 @@ class FoodRouter {
         imageFile: image,
         isChefVision: isChefVision,
       );
+      debugPrint('🚀 [FoodTrace] Navigating to Result Screen');
     } catch (e) {
       debugPrint('❌ FoodRouter Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -119,21 +131,25 @@ class FoodRouter {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => FoodResultScreen(
+          builder: (context) => FoodIntelligenceScreen( // 🚀 UNIFIED NAVIGATION (2.5)
             analysis: analysis,
             imageFile: imageFile,
-            initialTab: 0,
           ),
         ),
       );
     } else {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (context) => ResultCard(
-          analysis: analysis,
-        ),
+      // Falback for no-image scenario, or maybe direct to full screen as well?
+      // "Abandon Legacy" -> Let's push to full screen even without image for consistency,
+      // or keep ResultCard for modal. The prompt said "Abandono de Legado".
+      // Let's use FoodIntelligenceScreen for EVERYTHING.
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+           builder: (context) => FoodIntelligenceScreen(
+             analysis: analysis,
+             imageFile: null,
+           )
+        )
       );
     }
   }

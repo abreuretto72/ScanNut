@@ -9,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/splash/splash_screen.dart';
 import 'core/providers/settings_provider.dart';
 import 'l10n/app_localizations.dart';
+import 'features/food/l10n/app_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/services/file_upload_service.dart';
@@ -21,7 +22,7 @@ import 'features/pet/models/vaccine_status.dart';
 import 'features/pet/models/weekly_meal_plan.dart';
 import 'features/pet/models/brand_suggestion.dart';
 import 'core/services/subscription_service.dart';
-import 'nutrition/nutrition_hive_adapters.dart';
+
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -81,8 +82,7 @@ void main() async {
       Hive.registerAdapter(BrandSuggestionAdapter());
     }
 
-    // Register Nutrition module adapters (TypeIds 24-30)
-    NutritionHiveAdapters.registerAdapters();
+    // Nutrition module adapters are now registered in FoodModule.init()
 
     // 🔐 MEDIA VAULT: Secure Storage & Migration (Priority 1)
     try {
@@ -206,6 +206,7 @@ class ScanNutApp extends ConsumerWidget {
       ),
       localizationsDelegates: const [
         AppLocalizations.delegate,
+        FoodLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

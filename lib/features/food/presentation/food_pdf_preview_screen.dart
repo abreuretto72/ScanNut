@@ -1,40 +1,45 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
-import '../services/food_export_service.dart';
-import '../models/food_analysis_model.dart';
-import '../../../../core/widgets/pdf_preview_screen.dart';
+import 'package:printing/printing.dart';
 
 class FoodPdfPreviewScreen extends StatelessWidget {
-  final FoodAnalysisModel? analysis;
-  final FoodPdfLabels labels;
-  final bool isRecipesOnly;
-  final Future<Uint8List> Function(PdfPageFormat format)? buildPdf;
+  final String foodName;
+  final String? pdfPath;
+  final Future<Uint8List> Function(PdfPageFormat)? buildPdf;
 
   const FoodPdfPreviewScreen({
     super.key,
-    this.analysis,
-    required this.labels,
-    this.isRecipesOnly = false,
+    required this.foodName,
+    this.pdfPath,
     this.buildPdf,
   });
 
   @override
   Widget build(BuildContext context) {
-    final reportTitle = analysis != null ? analysis!.identidade.nome : labels.title;
-
-    return PdfPreviewScreen(
-      title: "Relatório: $reportTitle",
-      buildPdf: (format) async {
-        if (buildPdf != null) return await buildPdf!(format);
-        if (analysis == null) throw Exception("Dados insuficientes");
-
-        return isRecipesOnly 
-          ? await FoodExportService().generateRecipeBookPdf(analysis!, labels)
-          : await FoodExportService().generateFullAnalysisPdf(analysis!, labels);
-      },
-      showShare: true,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Relatório: $foodName"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: PdfPreview(
+        build: (format) async {
+          if (buildPdf != null) {
+            return buildPdf!(format);
+          } else if (pdfPath != null) {
+            return File(pdfPath!).readAsBytes();
+          }
+          return Uint8List(0);
+        },
+        allowPrinting: true,
+        allowSharing: true,
+        canChangeOrientation: false,
+        canChangePageFormat: false,
+      ),
     );
   }
-
 }

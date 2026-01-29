@@ -33,7 +33,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/partner_service.dart';
 import '../../../../core/models/partner_model.dart';
 import '../../../../core/widgets/pdf_action_button.dart';
-import '../../../../core/services/export_service.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
 import '../../../../core/widgets/app_pdf_icon.dart';
 import '../../models/lab_exam.dart';
@@ -3296,8 +3295,6 @@ class _EditPetFormState extends State<EditPetForm>
         debugPrint(
             '🔴 [V74] NO MEAL PLAN DATA - PDF will show "not defined" message');
       }
-
-      final exportService = ExportService();
 
       // Construct current profile from screen data (freshest state)
       final profile = PetProfileExtended(

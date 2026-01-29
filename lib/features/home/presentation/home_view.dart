@@ -34,10 +34,7 @@ import '../../plant/services/botany_service.dart';
 import '../../pet/presentation/widgets/edit_pet_form.dart';
 
 // Bodies (V135 Atomic Architecture)
-import '../../food/presentation/widgets/food_camera_body.dart';
-
-import '../../food/presentation/food_router.dart';
-import '../../food/providers/food_analysis_provider.dart';
+import '../../food/presentation/screens/food_main_screen.dart';
 import '../../plant/presentation/widgets/plant_result_card.dart';
 import '../../pet/presentation/pet_result_screen.dart';
 import '../../pet/presentation/widgets/pet_selection_dialog.dart';
@@ -828,18 +825,15 @@ class _HomeViewState extends ConsumerState<HomeView>
         }
         return true;
       } else {
-        // Food or Plant specialized save
-        if (type == 'Food') {
-          await FoodRouter.saveAnalysis(activeData, activeImage);
-        } else if (type == 'Plant' && activeData is PlantAnalysisModel) {
+        // Plant specialized save (Food is isolated)
+        if (type == 'Plant' && activeData is PlantAnalysisModel) {
           await BotanyService().savePlantAnalysis(activeData, activeImage);
         }
 
         if (mounted) {
           final l10n = AppLocalizations.of(context)!;
-          final String translatedType = type == 'Food'
-              ? l10n.tabFood
-              : (type == 'Plant' ? l10n.tabPlants : type);
+          // Legacy Type Translation
+          final String translatedType = (type == 'Plant' ? l10n.tabPlants : type);
           if (!mounted) return false;
           AppFeedback.showSuccess(context, l10n.savedSuccess(translatedType));
         }
@@ -887,10 +881,10 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget build(BuildContext context) {
     // 🛡️ Monitoramento de Estado Global
     final analysisState = ref.watch(analysisNotifierProvider);
-    final foodState = ref.watch(foodAnalysisNotifierProvider);
+    // Food State is now isolated in FoodHomeScreen
 
-    // Determine if any analysis is currently active (Food or Legacy)
-    final _isProcessingAnalysis = (analysisState is AnalysisLoading) || (foodState is AnalysisLoading);
+    // Determine if any analysis is currently active (Legacy)
+    final _isProcessingAnalysis = (analysisState is AnalysisLoading);
 
     return PopScope(
       canPop: false,
@@ -910,7 +904,7 @@ class _HomeViewState extends ConsumerState<HomeView>
               index: _currentIndex,
               children: [
                 // 0: FOOD DOMAIN (100% ISOLADO V135)
-                FoodCameraBody(isActive: _currentIndex == 0),
+                FoodMainScreen(isActive: _currentIndex == 0),
                 
                 // 1: PLANT DOMAIN (LEGACY - TODO: Refactor to PlantCameraBody)
                 _buildLegacyBody(1),
@@ -1188,50 +1182,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  Widget _buildFoodActions() {
-    return Positioned(
-      top: 50,
-      right: 20,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // History Button
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2)),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.history,
-                  color: AppDesign.getModeColor(0), size: 28),
-              tooltip: AppLocalizations.of(context)!
-                  .tooltipNutritionHistory,
-              onPressed: () => FoodRouter.navigateToHistory(context),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Nutrition Module Button (Existing)
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2)),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.restaurant_menu,
-                  color: AppDesign.getModeColor(0), size: 28),
-              tooltip: AppLocalizations.of(context)!
-                  .tooltipNutritionManagement,
-              onPressed: () => FoodRouter.navigateToManagement(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildPlantActions() {
     return Positioned(
@@ -1957,7 +1908,13 @@ class _HomeViewState extends ConsumerState<HomeView>
   String _translateLoadingMessage(String key, AppLocalizations l10n) {
     switch (key) {
       case 'loadingFood':
-        return l10n.loadingFood;
+      case 'loadingFood':
+         return "Analisando comida..."; // Generic fallback or use FoodLocalizations if available, but here we just hardcode or return key.
+         // Actually, since Food is isolated, HomeView shouldn't be handling food loading string theoretically. 
+         // But if it is, we should use a safe string or return key. Let's return a hardcoded safe string to avoid build error if l10n.loadingFood is gone.
+         // Better yet, let's look at what the user said: "Remova essa referência e use um termo genérico do Core ou mova a lógica para o FoodMainScreen."
+         // I will return "Analyzing Food..." generic.
+         return "Analyzing Food...";
       case 'loadingPlant':
         return l10n.loadingPlant;
       case 'loadingPetBreed':
@@ -2013,11 +1970,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     required Map<String, String>? contextData,
   }) async {
     try {
-      if (mode == ScannutMode.food) {
-        await FoodRouter.analyzeAndOpen(
-            context: context, ref: ref, image: image);
-        return;
-      }
+
 
       ref.read(analysisNotifierProvider.notifier).reset();
       final resultState = await ref

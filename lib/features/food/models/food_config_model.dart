@@ -13,7 +13,7 @@ class FoodConfigModel {
 
   factory FoodConfigModel.fromJson(Map<String, dynamic> json) {
     return FoodConfigModel(
-      activeModel: json['active_model'] ?? 'gemini-2.0-flash-exp', // Fallback seguro
+      activeModel: json['active_model'] ?? 'gemini-2.0-flash', // Fallback seguro
       apiEndpoint: json['api_endpoint'] ?? 'https://generativelanguage.googleapis.com/v1beta/models/',
       enforceOrangeTheme: json['enforce_orange_theme'] ?? true,
       recipesPerRequest: json['recipes_per_request'] ?? 3,
@@ -23,7 +23,7 @@ class FoodConfigModel {
   // Fallback Invariável conforme Lei de Ferro
   factory FoodConfigModel.defaultConfig() {
     return FoodConfigModel(
-      activeModel: 'gemini-2.0-flash-exp',
+      activeModel: 'gemini-2.0-flash',
       apiEndpoint: 'https://generativelanguage.googleapis.com/v1beta/models/',
       enforceOrangeTheme: true,
       recipesPerRequest: 3,

@@ -13,7 +13,7 @@ import '../../../core/theme/app_design.dart';
 
 import 'package:intl/intl.dart';
 import 'package:scannut/l10n/app_localizations.dart';
-import '../../../core/services/export_service.dart';
+import '../services/partner_export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import './widgets/radar_export_filter_modal.dart';
 import '../../pet/services/pet_indexing_service.dart';
@@ -317,7 +317,7 @@ class _PartnerRegistrationScreenState extends State<PartnerRegistrationScreen> {
         builder: (context) => PdfPreviewScreen(
           title: '${AppLocalizations.of(context)!.pdfReportTitle} - $name',
           buildPdf: (format) async {
-            final pdf = await ExportService().generateSinglePartnerReport(
+            final pdf = await PartnerExportService().generateSinglePartnerReport(
               partner: partner,
               strings: AppLocalizations.of(context)!,
             );
@@ -1231,14 +1231,15 @@ class _RadarBottomSheetState extends ConsumerState<_RadarBottomSheet> {
             MaterialPageRoute(
               builder: (context) => PdfPreviewScreen(
                 title: 'Relatório Radar Geo',
-                buildPdf: (format) => ExportService()
-                    .generateRadarReport(
-                      partners: partners,
-                      userLat: _currentPosition?.latitude ?? 0.0,
-                      userLng: _currentPosition?.longitude ?? 0.0,
-                      strings: AppLocalizations.of(context)!,
-                    )
-                    .then((pdf) => pdf.save()),
+                buildPdf: (format) async {
+                  final pdf = await PartnerExportService().generateRadarReport(
+                    partners: partners,
+                    userLat: _currentPosition?.latitude ?? 0.0,
+                    userLng: _currentPosition?.longitude ?? 0.0,
+                    strings: AppLocalizations.of(context)!,
+                  );
+                  return pdf.save();
+                },
               ),
             ),
           );

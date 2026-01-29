@@ -18,12 +18,12 @@ import '../../features/pet/services/meal_plan_service.dart';
 import '../../features/food/services/nutrition_service.dart';
 import '../../features/plant/services/botany_service.dart';
 import '../../features/food/services/workout_service.dart';
-import '../../nutrition/data/datasources/nutrition_profile_service.dart';
-import '../../nutrition/data/datasources/weekly_plan_service.dart';
-import '../../nutrition/data/datasources/meal_log_service.dart';
-import '../../nutrition/data/datasources/shopping_list_service.dart';
+import '../../features/food/nutrition/data/datasources/nutrition_profile_service.dart';
+import '../../features/food/nutrition/data/datasources/weekly_plan_service.dart';
+import '../../features/food/nutrition/data/datasources/meal_log_service.dart';
+import '../../features/food/nutrition/data/datasources/shopping_list_service.dart';
 import '../services/partner_service.dart';
-import '../../nutrition/data/datasources/menu_filter_service.dart';
+import '../../features/food/nutrition/data/datasources/menu_filter_service.dart';
 import '../../features/pet/services/pet_event_repository.dart';
 import 'hive_atomic_manager.dart';
 

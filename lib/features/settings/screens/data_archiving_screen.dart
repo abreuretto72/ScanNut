@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'media_manager_screen.dart';
 
+import '../../../l10n/app_localizations.dart';
+
 import '../../../core/theme/app_design.dart';
 import '../../../core/utils/snackbar_helper.dart';
 import '../../../features/pet/services/pet_profile_service.dart';
@@ -439,7 +441,7 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
     return Column(
       children: [
         _buildDomainDeleteCard(
-            title: 'ALIMENTOS',
+            title: AppLocalizations.of(context)!.tabFood.toUpperCase(),
             icon: Icons.restaurant,
             color: Colors.orange,
             actions: [
@@ -574,13 +576,32 @@ class _DataManagerScreenState extends ConsumerState<DataManagerScreen> {
               child: const Text('Cancelar')),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
-              await action();
-              if (title == 'CONTA COMPLETA') return;
+              Navigator.pop(context); // Fecha diálogo
+              
+              // Show loading feedback (optional but good for UX)
+              if(mounted) {
+                 ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Processando exclusão...'), duration: Duration(milliseconds: 800))
+                 );
+              }
 
-              if (mounted) {
-                SnackBarHelper.showSuccess(context, 'Excluído com sucesso.');
-                _calculateStorageUsage();
+              try {
+                await action();
+                
+                // Check if widget is still mounted before showing result
+                if (mounted) {
+                   // For FACTORY RESET, the function handles its own navigation/feedback mostly, 
+                   // but for specific domains we must show success here.
+                   if (title != 'CONTA COMPLETA') {
+                      SnackBarHelper.showSuccess(context, '$title excluído com sucesso.');
+                   }
+                   _calculateStorageUsage();
+                }
+              } catch (e) {
+                if (mounted) {
+                  SnackBarHelper.showError(context, 'Erro ao excluir $title: $e');
+                  debugPrint('Exam Delete Error: $e');
+                }
               }
             },
             child: Text('EXCLUIR',

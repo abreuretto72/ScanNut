@@ -8,9 +8,11 @@ import '../../models/food_analysis_model.dart';
 import '../../../../core/utils/color_helper.dart';
 import '../../../../core/providers/settings_provider.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../features/food/l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
-import '../../services/food_export_service.dart';
+import '../../models/food_pdf_labels.dart';
 import '../food_pdf_preview_screen.dart';
+import '../../services/food_export_service.dart';
 import 'package:intl/intl.dart';
 
 class ResultCard extends ConsumerStatefulWidget {
@@ -62,11 +64,39 @@ class _ResultCardState extends ConsumerState<ResultCard>
     }
     return score.clamp(1.0, 10.0);
   }
+  
+  // 🛡️ Helper V136
+  Widget _buildModernBadge(String text, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(text, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Color _getProcessingColor(String level) {
+    final l = level.toLowerCase();
+    if (l.contains('ultra')) return Colors.red;
+    if (l.contains('processado')) return Colors.orange;
+    return Colors.green;
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return const SizedBox.shrink();
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
@@ -98,6 +128,13 @@ class _ResultCardState extends ConsumerState<ResultCard>
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
+                ),
+                // 🔴 DEBUG BANNER V136
+                Container(
+                  width: double.infinity, 
+                  color: Colors.red, 
+                  padding: const EdgeInsets.all(4),
+                  child: const Center(child: Text('MOTOR 2.5 ATIVO (TESTE UI)', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))
                 ),
 
                 // Header
@@ -133,7 +170,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                             IconButton(
                               onPressed: () => _showRecipesDialog(context),
                               icon: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 24),
-                              tooltip: l10n.foodRecipesTooltip,
+                              tooltip: foodL10n.foodRecipesTooltip,
                             ),
                             // Divisor interno sutil (Saneamento de Linter)
                             Container(
@@ -145,7 +182,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                             IconButton(
                               onPressed: () => _generateFoodPdf(widget.analysis),
                               icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white, size: 24),
-                              tooltip: l10n.exportPdfTooltip,
+                              tooltip: foodL10n.foodExportPdfTooltip,
                             ),
                           ],
                         ),
@@ -153,6 +190,66 @@ class _ResultCardState extends ConsumerState<ResultCard>
                     ],
                   ),
                 ),
+                
+                // 🛡️ [V136] Expanded Badge Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        if (widget.analysis.identidade.nivelProcessamento != null) ...[
+                          _buildModernBadge(
+                             widget.analysis.identidade.nivelProcessamento!, 
+                             _getProcessingColor(widget.analysis.identidade.nivelProcessamento!),
+                             Icons.factory_outlined
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                         if (widget.analysis.identidade.metodoCoccao != null) ...[
+                          _buildModernBadge(
+                             widget.analysis.identidade.metodoCoccao!, 
+                             Colors.orange.shade700,
+                             Icons.microwave_outlined
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                         if (widget.analysis.identidade.validade != null) ...[
+                          _buildModernBadge(
+                             "Validade: ${widget.analysis.identidade.validade}", 
+                             Colors.blueGrey,
+                             Icons.calendar_today
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                // 🛡️ [V136] Advanced Insights Alert (Se houver)
+                if (widget.analysis.performance.insightsAvancados.isNotEmpty) ...[
+                   Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                     child: Column(
+                       children: widget.analysis.performance.insightsAvancados.map((alert) => Container(
+                         margin: const EdgeInsets.only(bottom: 6),
+                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                         decoration: BoxDecoration(
+                           color: alert.toLowerCase().contains("alerta") ? Colors.red.withValues(alpha: 0.1) : Colors.green.withValues(alpha: 0.1),
+                           borderRadius: BorderRadius.circular(8),
+                           border: Border.all(color: alert.toLowerCase().contains("alerta") ? Colors.red.withValues(alpha: 0.3) : Colors.green.withValues(alpha: 0.3)),
+                         ),
+                         child: Row(
+                           children: [
+                             const Icon(Icons.lightbulb, color: Colors.orange, size: 16), // 💡 ÍCONE PEDIDO NA V2.5
+                             const SizedBox(width: 8),
+                             Expanded(child: Text(alert, style: TextStyle(color: alert.toLowerCase().contains("alerta") ? Colors.red : Colors.green, fontSize: 12, fontWeight: FontWeight.bold))),
+                           ],
+                         ),
+                       )).toList(),
+                     ),
+                   )
+                ],
 
                 // TabBar
                 Container(
@@ -174,9 +271,9 @@ class _ResultCardState extends ConsumerState<ResultCard>
                       fontWeight: FontWeight.w600,
                     ),
                     tabs: [
-                      Tab(text: l10n.cardTabOverview),
-                      Tab(text: l10n.cardTabDetails),
-                      Tab(text: l10n.cardTabTips),
+                      Tab(text: foodL10n.foodExSummary),
+                      Tab(text: foodL10n.foodDetails),
+                      Tab(text: foodL10n.foodGastronomy),
                     ],
                   ),
                 ),
@@ -205,7 +302,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
 
   Widget _buildOverviewTab(ScrollController scrollController) {
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return const SizedBox.shrink();
     final settings = ref.watch(settingsProvider);
     final dailyGoal = settings.dailyCalorieGoal;
 
@@ -262,7 +360,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
               ),
               const SizedBox(height: 16),
               Text(
-                l10n.cardTotalCalories,
+                foodL10n.foodCalories,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -271,12 +369,30 @@ class _ResultCardState extends ConsumerState<ResultCard>
               ),
               const SizedBox(height: 4),
               Text(
-                "${((widget.analysis.estimatedCalories / dailyGoal) * 100).toStringAsFixed(0)}% ${l10n.cardDailyGoal} ($dailyGoal kcal)",
+                "${((widget.analysis.estimatedCalories / dailyGoal) * 100).toStringAsFixed(0)}% ${foodL10n.foodGoalLabel} ($dailyGoal kcal)",
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: AppDesign.textSecondaryDark,
                 ),
               ),
+              const SizedBox(height: 8),
+              // TESTE UI: Visualização 2.5 (Forçar Renderização)
+              if (widget.analysis.identidade.metodoCoccao != null)
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '🔥 MÉTODO: ${widget.analysis.identidade.metodoCoccao}',
+                    style: const TextStyle(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -301,7 +417,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.protein),
                   color: AppDesign.info,
-                  title: l10n.foodProt,
+                  title: foodL10n.foodProt,
                   radius: 50,
                   titleStyle: GoogleFonts.poppins(
                       fontSize: 12,
@@ -311,7 +427,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.carbs),
                   color: AppDesign.warning,
-                  title: l10n.foodCarb,
+                  title: foodL10n.foodCarb,
                   radius: 50,
                   titleStyle: GoogleFonts.poppins(
                       fontSize: 12,
@@ -321,7 +437,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                 PieChartSectionData(
                   value: _parseGrams(widget.analysis.macronutrients.fats),
                   color: AppDesign.primary,
-                  title: l10n.foodFat,
+                  title: foodL10n.foodFat,
                   radius: 50,
                   titleStyle: GoogleFonts.poppins(
                       fontSize: 12,
@@ -337,7 +453,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
 
         // Macros Dashboard
         Text(
-          l10n.cardMacroDist,
+          foodL10n.foodMacros,
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -348,21 +464,21 @@ class _ResultCardState extends ConsumerState<ResultCard>
 
         // Macros em Column (sem overflow)
         _buildMacroCard(
-          l10n.nutrientsProteins,
+          foodL10n.foodNutrientsProteins,
           widget.analysis.macronutrients.protein,
           Icons.fitness_center,
           AppDesign.info,
         ),
         const SizedBox(height: 12),
         _buildMacroCard(
-          l10n.nutrientsCarbs,
+          foodL10n.foodNutrientsCarbs,
           widget.analysis.macronutrients.carbs,
           Icons.grain,
           AppDesign.warning,
         ),
         const SizedBox(height: 12),
         _buildMacroCard(
-          l10n.nutrientsFats,
+          foodL10n.foodNutrientsFats,
           widget.analysis.macronutrients.fats,
           Icons.opacity,
           AppDesign.primary,
@@ -372,7 +488,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
 
         // Quick Stats
         Text(
-          l10n.cardQuickSummary,
+          foodL10n.foodExSummary,
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -388,7 +504,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                 onTap: () => _showBenefitsDialog(context),
                 child: _buildStatCard(
                   "${widget.analysis.benefits.length}",
-                  l10n.cardBenefits,
+                  foodL10n.foodPros,
                   Icons.check_circle,
                   AppDesign.success,
                 ),
@@ -400,7 +516,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                 onTap: () => _showAlertsDialog(context),
                 child: _buildStatCard(
                   "${widget.analysis.risks.length}",
-                  l10n.cardAlerts,
+                  foodL10n.foodCons,
                   Icons.warning_amber_rounded,
                   AppDesign.warning,
                 ),
@@ -446,7 +562,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        l10n.cardVitalityScore,
+                        foodL10n.foodPerformance,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: AppDesign.textSecondaryDark,
@@ -501,6 +617,79 @@ class _ResultCardState extends ConsumerState<ResultCard>
             ),
           ),
         ),
+        const SizedBox(height: 24),
+        
+        // 🧬 BIOHACKING & PERFORMANCE SECTION (Gemini 2.5)
+        if (widget.analysis.performance.impactoFocoEnergia.isNotEmpty || widget.analysis.micronutrientes.sinergiaNutricional.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E2C), // Darker background for differentiation
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.bolt, color: Colors.blueAccent, size: 24),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Biohacking & Performance",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Focus Impact
+                if (widget.analysis.performance.impactoFocoEnergia.isNotEmpty) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.psychology, color: Colors.white70, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Impacto no Foco", style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text(widget.analysis.performance.impactoFocoEnergia, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // Nutritional Synergy
+                 if (widget.analysis.micronutrientes.sinergiaNutricional.isNotEmpty) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.hub, color: Colors.white70, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Sinergia Nutricional", style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text(widget.analysis.micronutrientes.sinergiaNutricional, style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -607,13 +796,14 @@ class _ResultCardState extends ConsumerState<ResultCard>
 
   Widget _buildDetailsTab(ScrollController scrollController) {
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return const SizedBox.shrink();
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.all(24),
       children: [
         Text(
-          l10n.cardDetailedInfo,
+          foodL10n.foodDetailedNutrition,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -625,7 +815,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
         // Protein Details
         if (widget.analysis.macronutrients.protein.contains('('))
           _buildDetailCard(
-            l10n.nutrientsProteins,
+            foodL10n.foodNutrientsProteins,
             widget.analysis.macronutrients.protein,
             Icons.fitness_center,
           ),
@@ -633,7 +823,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
         // Carbs Details
         if (widget.analysis.macronutrients.carbs.contains('('))
           _buildDetailCard(
-            l10n.nutrientsCarbs,
+            foodL10n.foodNutrientsCarbs,
             widget.analysis.macronutrients.carbs,
             Icons.grain,
           ),
@@ -641,14 +831,14 @@ class _ResultCardState extends ConsumerState<ResultCard>
         // Fats Details
         if (widget.analysis.macronutrients.fats.contains('('))
           _buildDetailCard(
-            l10n.nutrientsFats,
+            foodL10n.foodNutrientsFats,
             widget.analysis.macronutrients.fats,
             Icons.opacity,
           ),
 
         const SizedBox(height: 16),
         Text(
-          l10n.cardDisclaimer,
+          foodL10n.foodDisclaimer,
           style:
               const TextStyle(color: AppDesign.textSecondaryDark, fontSize: 12),
           textAlign: TextAlign.center,
@@ -659,7 +849,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
 
   Widget _buildInsightsTab(ScrollController scrollController) {
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return const SizedBox.shrink();
     return ListView(
       controller: scrollController,
       padding: const EdgeInsets.all(24),
@@ -667,7 +858,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
         // Benefits
         if (widget.analysis.benefits.isNotEmpty) ...[
           Text(
-            l10n.cardBenefits,
+            foodL10n.foodBodyBenefits,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -682,7 +873,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
         // Risks
         if (widget.analysis.risks.isNotEmpty) ...[
           Text(
-            l10n.foodCons,
+            foodL10n.foodCons,
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -1599,12 +1790,7 @@ class _ResultCardState extends ConsumerState<ResultCard>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          AppLocalizations.of(context)?.foodRecipesTitle ?? 'Receitas',
-                          style: GoogleFonts.poppins(
-                            color: AppDesign.textPrimaryDark,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          FoodLocalizations.of(context)?.foodRecipesTitle ?? 'Receitas',
                         ),
                         Text(
                           'Com ${widget.analysis.itemName}',
@@ -1821,36 +2007,34 @@ class _ResultCardState extends ConsumerState<ResultCard>
   }
 
   Future<void> _generateFoodPdf(FoodAnalysisModel analysis) async {
-    final l10n = AppLocalizations.of(context);
-    if (l10n == null) return;
-    final labels = FoodPdfLabels(
-      title: l10n.pdfFoodTitle,
-      date: DateFormat.yMd(l10n.localeName).format(DateTime.now()),
-      nutrientsTable: l10n.pdfDetailedNutrition,
-      qty: l10n.pdfQuantity,
-      dailyGoal: l10n.pdfGoalLabel,
-      calories: l10n.pdfCalories,
-      proteins: l10n.foodProt,
-      carbs: l10n.foodCarb,
-      fats: l10n.foodFat,
-      healthRating: l10n.labelTrafficLight,
-      clinicalRec: l10n.pdfAiVerdict,
-      disclaimer: l10n.foodDisclaimer,
-      recipesTitle: l10n.foodRecipesTitle,
-      justificationLabel: l10n.foodJustification,
-      difficultyLabel: l10n.foodDifficulty,
-      instructionsLabel: l10n.foodInstructions,
-    );
+    final foodL10n = FoodLocalizations.of(context);
+    if (foodL10n == null) return;
+    
+    // Show simple loading feedback
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gerando PDF...'), duration: Duration(seconds: 1)));
 
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FoodPdfPreviewScreen(
-          analysis: analysis,
-          labels: labels,
+    try {
+      // 🛡️ Iron Law: Use standard intelligence service
+      final pdfFile = await FoodExportService().generateIntelligencePDF(analysis, null, foodL10n);
+      
+      if (!mounted) return;
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FoodPdfPreviewScreen(
+            pdfPath: pdfFile.path,
+            foodName: analysis.identidade.nome,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      debugPrint('Error generating PDF: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('Erro ao gerar PDF: $e'), backgroundColor: Colors.red)
+        );
+      }
+    }
   }
 }

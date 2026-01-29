@@ -8,7 +8,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../models/nutrition_history_item.dart';
+import '../models/food_nutrition_history_item.dart';
 import '../models/food_analysis_model.dart';
 import '../../../core/services/permanent_backup_service.dart';
 

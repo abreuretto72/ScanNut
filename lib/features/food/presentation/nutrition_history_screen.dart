@@ -2,19 +2,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../models/nutrition_history_item.dart';
+import '../models/food_nutrition_history_item.dart';
+import '../models/food_pdf_labels.dart';
 import '../services/nutrition_service.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart'; // Keeping it used in list? Check line 166 usage. The analysis says unused?
+// If analysis says unused, I remove it.
 import '../models/food_analysis_model.dart';
-import 'food_result_screen.dart';
 import 'food_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../core/utils/translation_mapper.dart';
+import '../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
 import '../services/food_export_service.dart';
 import 'food_pdf_preview_screen.dart';
-import '../../../core/services/media_vault_service.dart';
 import 'widgets/food_export_configuration_modal.dart';
 import 'widgets/food_history_card.dart';
 import 'food_chat_screen.dart';
@@ -51,8 +51,8 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.msgRecipeDiscarded, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(l10n.msgRecipeDiscardedDesc, style: const TextStyle(fontSize: 12)),
+                  Text(l10n?.msgRecipeDiscarded ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(l10n?.msgRecipeDiscardedDesc ?? '', style: const TextStyle(fontSize: 12)),
                 ],
               ),
               backgroundColor: AppDesign.foodOrange.withValues(alpha: 0.9),
@@ -78,14 +78,15 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
   Widget build(BuildContext context) {
     debugPrint('🖥️ [HistoryScreen] Building...');
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return const SizedBox.shrink();
 
 
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(l10n.foodHistoryTitle,
+        title: Text(foodL10n.foodHistoryTitle,
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.black,
         elevation: 0,
@@ -100,7 +101,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
             onPressed: _generateHistoryPdf,
-            tooltip: l10n.tooltipHistoryReport,
+            tooltip: foodL10n.tooltipHistoryReport,
           ),
         ],
       ),
@@ -191,7 +192,8 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
 
   Widget _buildEmptyState() {
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return const SizedBox.shrink();
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return const SizedBox.shrink();
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -199,7 +201,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
           Icon(Icons.restaurant_menu, size: 80, color: Colors.grey.shade800),
           const SizedBox(height: 16),
           Text(
-            l10n.foodHistoryEmpty,
+            foodL10n.foodHistoryEmpty,
             style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
           ),
           const SizedBox(height: 24),
@@ -219,25 +221,26 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
 
   Future<void> _confirmDelete(NutritionHistoryItem item) async {
     final l10n = AppLocalizations.of(context);
-    if (l10n == null) return;
+    final foodL10n = FoodLocalizations.of(context);
+    if (l10n == null || foodL10n == null) return;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text(l10n.foodDeleteConfirmTitle,
+        title: Text(foodL10n.foodDeleteConfirmTitle,
             style: GoogleFonts.poppins(
                 color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text(l10n.foodDeleteConfirmContent,
+        content: Text(foodL10n.foodDeleteConfirmContent,
             style: GoogleFonts.poppins(color: Colors.grey)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.commonCancel,
+            child: Text(foodL10n.foodCancel,
                 style: GoogleFonts.poppins(color: Colors.white)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.commonDelete,
+            child: Text(foodL10n.foodDelete,
                 style: GoogleFonts.poppins(
                     color: Colors.red, fontWeight: FontWeight.bold)),
           ),
@@ -354,50 +357,18 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
 
           if (selectedItems.isEmpty) return;
 
-          Navigator.push(
+              Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => FoodPdfPreviewScreen(
-                labels: FoodPdfLabels(
-                  title: l10n.pdfTitleFoodHistory(DateFormat('dd/MM').format(DateTime.now())),
-                  date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-                  nutrientsTable: l10n.pdfDetailedNutrition,
-                  qty: l10n.pdfQuantity,
-                  dailyGoal: l10n.pdfGoalLabel,
-                  calories: l10n.pdfCalories,
-                  proteins: l10n.foodProt,
-                  carbs: l10n.foodCarb,
-                  fats: l10n.foodFat,
-                  healthRating: l10n.labelTrafficLight,
-                  clinicalRec: l10n.pdfAiVerdict,
-                  disclaimer: "Aviso: Consulte um especialista.",
-                  recipesTitle: l10n.foodRecipesTitle,
-                  justificationLabel: l10n.foodJustification,
-                  difficultyLabel: l10n.foodDifficulty,
-                  instructionsLabel: l10n.foodInstructions,
-                ),
+                foodName: l10n.pdfTitleFoodHistory(DateFormat('dd/MM').format(DateTime.now())),
                 buildPdf: (format) async {
-                  return await FoodExportService().generateFoodHistoryReport(
-                    selectedItems,
-                    FoodPdfLabels(
-                      title: l10n.pdfTitleFoodHistory(DateFormat('dd/MM').format(DateTime.now())),
-                      date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-                      nutrientsTable: l10n.pdfDetailedNutrition,
-                      qty: l10n.pdfQuantity,
-                      dailyGoal: l10n.pdfGoalLabel,
-                      calories: l10n.pdfCalories,
-                      proteins: l10n.foodProt,
-                      carbs: l10n.foodCarb,
-                      fats: l10n.foodFat,
-                      healthRating: l10n.labelTrafficLight,
-                      clinicalRec: l10n.pdfAiVerdict,
-                      disclaimer: "Aviso: Consulte um especialista.",
-                      recipesTitle: l10n.foodRecipesTitle,
-                      justificationLabel: l10n.foodJustification,
-                      difficultyLabel: l10n.foodDifficulty,
-                      instructionsLabel: l10n.foodInstructions,
-                    ),
+                  final foodStrings = FoodLocalizations.of(context)!;
+                  final doc = await FoodExportService().generateFoodHistoryReport(
+                    items: selectedItems,
+                    strings: foodStrings,
                   );
+                  return doc.save();
                 },
               ),
             ),

@@ -10,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../l10n/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/utils/permission_helper.dart';
 import '../../../../core/utils/app_feedback.dart';
@@ -74,13 +74,20 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('🔄 [FoodCameraBody] Lifecycle Change: $state');
     final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return;
-
-    if (state == AppLifecycleState.inactive) {
-      _disposeCamera();
-    } else if (state == AppLifecycleState.resumed && widget.isActive) {
-      _initCamera();
+    
+    // Se a aplicação for minimizada ou perder foco (ex: Galeria)
+    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+      if (controller != null && controller.value.isInitialized) {
+        _disposeCamera();
+      }
+    } 
+    // Se a aplicação voltar ao foco e esta aba estiver ativa
+    else if (state == AppLifecycleState.resumed) {
+      if (widget.isActive) {
+         _initCamera();
+      }
     }
   }
 
@@ -88,6 +95,7 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
     if (_isInitializing || _controller != null) return;
     if (!mounted) return;
 
+    debugPrint('📷 [FoodTrace] Initializing Camera');
     setState(() => _isInitializing = true);
 
     try {
@@ -138,52 +146,63 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized || _isProcessing) return;
 
+    // 1. Reset Mandatório de Estado (Lei de Ferro)
+    ref.read(foodAnalysisNotifierProvider.notifier).reset();
+
     try {
+      debugPrint('📸 [FoodTrace] Capture started');
       setState(() => _isProcessing = true);
       HapticFeedback.mediumImpact();
 
+      // 2. Captura
       final XFile rawFile = await controller.takePicture();
       final File optimizedFile = await _optimizeImage(File(rawFile.path));
       
       if (!mounted) return;
 
-      // Atualiza visualização local
+      // 3. Preview
       setState(() {
         _capturedImage = optimizedFile;
       });
 
-      // 🛡️ INJEÇÃO V135: Disparo de Análise + Auto-Save
-      // O FoodAnalysisNotifier já contém a lógica de Auto-Save (verif. passo 3686)
+      // 4. Disparo Seguro
+      debugPrint('🚀 [FoodTrace] Triggering analyzeAndOpen from Camera');
       await FoodRouter.analyzeAndOpen(
         context: context, 
         ref: ref, 
         image: optimizedFile
       );
 
-      // Limpa estado local após retorno (se necessário)
-      if (mounted) {
-         setState(() {
-            _isProcessing = false;
-            _capturedImage = null; // Limpa preview para próxima foto
-         });
-      }
-
     } catch (e) {
       debugPrint('❌ Erro na captura de comida: $e');
       if (mounted) {
-        setState(() => _isProcessing = false);
         AppFeedback.showError(context, 'Erro ao capturar: $e');
+      }
+    } finally {
+      // 5. Liberação Obrigatória de Recursos
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+          _capturedImage = null; // Limpa preview para liberar câmera
+        });
       }
     }
   }
 
   Future<void> _pickFromGallery() async {
+    // 1. Reset Mandatório (Start Fresh)
+    ref.read(foodAnalysisNotifierProvider.notifier).reset();
+
     try {
       final picker = ImagePicker();
+      // 2. Await User Input
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
       
       if (image != null) {
+        debugPrint('🖼️ [FoodTrace] Image picked from gallery: ${image.path}');
+        
         setState(() => _isProcessing = true);
+        
         final File optimizedFile = await _optimizeImage(File(image.path));
         
         if (mounted) {
@@ -194,17 +213,30 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
               ref: ref, 
               image: optimizedFile
            );
-           
-           if(mounted) {
-              setState(() {
-                _isProcessing = false;
-                _capturedImage = null;
-              });
-           }
         }
+      } else {
+        debugPrint('⚠️ Seleção da galeria cancelada pelo usuário.');
       }
     } catch (e) {
       debugPrint('❌ Erro na galeria: $e');
+      if (mounted) {
+        AppFeedback.showError(context, 'Erro na galeria: $e');
+      }
+    } finally {
+      // 3. Liberação de Estado (Garante que botões desbloqueiem)
+      if (mounted) {
+         setState(() {
+           _isProcessing = false;
+           _capturedImage = null;
+         });
+         
+         // 🛡️ REPARO DE CICLO DE VIDA: Força reinicialização da câmera ao retornar da galeria
+         // O ImagePicker pode causar pausa da atividade, e o lifecycle pode não ter recuperado a tempo.
+         if (widget.isActive && (_controller == null || !_controller!.value.isInitialized)) {
+            debugPrint('🔄 [FoodTrace] Forçando reinicialização da câmera após Galeria');
+            await _initCamera();
+         }
+      }
     }
   }
 
@@ -278,7 +310,7 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
             ),
             child: IconButton(
               icon: const Icon(Icons.history, color: AppDesign.foodOrange, size: 28),
-              tooltip: AppLocalizations.of(context)?.tooltipNutritionHistory,
+              tooltip: FoodLocalizations.of(context)?.foodTooltipNutritionHistory,
               onPressed: () => FoodRouter.navigateToHistory(context),
             ),
           ),
@@ -308,7 +340,7 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
             ),
             child: IconButton(
               icon: const Icon(Icons.restaurant_menu, color: AppDesign.foodOrange, size: 28),
-              tooltip: AppLocalizations.of(context)?.tooltipNutritionManagement,
+              tooltip: FoodLocalizations.of(context)?.foodTooltipNutritionManagement,
               onPressed: () => FoodRouter.navigateToManagement(context),
             ),
           ),
@@ -438,8 +470,8 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
   Widget _buildLoadingOverlay(BuildContext context, AnalysisState state) {
     String message = 'Processando...';
     if (state is AnalysisLoading) {
-      final l10n = AppLocalizations.of(context);
-      message = l10n?.loadingFood ?? "Analisando...";
+      final l10n = FoodLocalizations.of(context);
+      message = l10n?.foodLoading ?? "Analisando...";
     }
 
     return Container(

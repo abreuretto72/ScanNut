@@ -1,4 +1,4 @@
-import '../models/recipe_suggestion.dart';
+import '../models/food_recipe_suggestion.dart';
 
 class EmergencyRecipes {
   static List<RecipeSuggestion> getFallback(String foodName) {

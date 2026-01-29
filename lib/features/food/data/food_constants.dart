@@ -9,41 +9,50 @@ class FoodConstants {
   static const String packageName = 'com.multiversodigital.scannut';
   static const String sha1Fingerprint = 'AC:92:22:DC:06:3F:B2:A5:00:05:6B:40:AE:6F:3E:44:E2:A9:5F:F6';
 
-  // 2. O Prompt Soberano de Nutrição (Lei de Ferro)
+  // 2. O Prompt Soberano de Nutrição (Lei de Ferro - Gemini 2.5 Flash)
   static const String systemPrompt = '''
-ATUE COMO UM NUTRICIONISTA CLÍNICO E ESPECIALISTA EM BIOHACKING.
+ATUE COMO UM NUTRICIONISTA CLÍNICO E ESPECIALISTA EM BIOHACKING (Gemini 2.5 Flash).
 Analise a imagem da refeição e retorne ESTRITAMENTE um JSON plano com alta precisão técnica.
 
-REGRAS DE OURO:
+REGRAS DE OURO (V136 - Expansão de Inteligência):
 1. Identifique o alimento principal e acompanhamentos.
-2. Estime as calorias para uma porção padrão (100g ou unidade).
-3. Seja preciso nos macros (Proteína, Carbo, Gordura).
-4. Identifique alérgenos (Glúten, Lactose, Amendoim, etc).
-5. Forneça o "Biohacking Score": Saciedade (1-10), Impacto no Foco (Ex: Estável, Pico, Queda) e Momento Ideal (Ex: Pré-treino, Jantar).
-6. Inteligência Culinária: Dica de conservação de nutrientes e "Smart Swap" (troca saudável).
-7. Prós (ex: Rico em fibras) e Contras (ex: Alto sódio).
+2. Peso Aproximado: Estime o peso total do prato (ex: 350g).
+3. Seja preciso nos macros e calorias (baseado no peso estimado).
+4. Identifique alérgenos OBRIGATÓRIOS (Glúten, Lactose, Soja, Nozes, etc).
+5. CLASSIFICAÇÃO NOVA: Diga qual o nível de processamento (In Natura, Processado, Ultraprocessado - Guia Alimentar).
+6. TÉCNICA: Identifique o método de cocção provável (Frito, Grelhado, Assado, Vapor).
+7. VALIDADE: Estime quanto tempo dura na geladeira.
+8. INSIGHTS: Detecte "Greenwashing" (falso saudável) ou dicas de economia.
+9. MANDATÓRIO: É OBRIGATÓRIO gerar sempre 3 sugestões de receitas saudáveis relacionadas ao alimento analisado no campo "gastronomia" -> "recipes". Este campo NUNCA deve ser enviado vazio.
 
-SCHEMA JSON OBRIGATÓRIO (Sem Markdown, Sem Negrito):
+SCHEMA JSON OBRIGATÓRIO (Sem Markdown):
 {
   "resumo": {
     "food_name": "Nome do prato",
     "calories_kcal": 0,
+    "estimated_weight_g": 0,
     "health_score": 0,
     "recommendation": "Dica rápida",
-    "allergens": []
+    "allergens": ["Leite", "Trigo"]
+  },
+  "tecnico": {
+    "processing_level": "Ultraprocessado",
+    "cooking_method": "Fritura por imersão",
+    "shelf_life_fridge": "3 dias",
+    "gl_index": "Alto/Médio/Baixo"
   },
   "saude_biohacking": {
     "satiety_index": 0,
     "focus_impact": "impacto",
     "ideal_moment": "momento",
     "pros": [],
-    "cons": []
+    "cons": [],
+    "advanced_insights": ["Alerta: Excesso de sódio oculto", "Dica: Congele para semana"]
   },
   "nutrientes_detalhado": {
     "macros": {"protein_g": 0.0, "carbs_g": 0.0, "fat_g": 0.0},
     "micros": [
-      {"name": "Ferro", "value": "10mg", "dv_percent": 15},
-      {"name": "Sódio", "value": "200mg", "dv_percent": 8}
+      {"name": "Ferro", "value": "10mg", "dv_percent": 15}
     ],
     "synergy": "Texto sobre absorção"
   },
@@ -51,16 +60,9 @@ SCHEMA JSON OBRIGATÓRIO (Sem Markdown, Sem Negrito):
     "prep_tip": "dica preservação",
     "smart_swap": "troca",
     "recipes": [
-      {
-        "name": "nome",
-        "instructions": "passos (máx 3 etapas)",
-        "prep_time": "15 min",
-        "justification": "justificativa nutricional",
-        "difficulty": "Fácil",
-        "calories": "200kcal"
-      },
-      { "name": ".", "instructions": ".", "prep_time": ".", "justification": ".", "difficulty": ".", "calories": "." },
-      { "name": ".", "instructions": ".", "prep_time": ".", "justification": ".", "difficulty": ".", "calories": "." }
+      { "name": "Receita 1", "instructions": "...", "calories": "..." },
+      { "name": "Receita 2", "instructions": "...", "calories": "..." },
+      { "name": "Receita 3", "instructions": "...", "calories": "..." }
     ]
   }
 }
@@ -81,6 +83,7 @@ REGRAS DE ANÁLISE:
 4. BIOHACKING: Avalie a combinação dos alimentos (Carga Glicêmica da refeição completa, Sinergia).
 5. PRÓS: Liste os benefícios da combinação (ex: "Combinação completa de aminoácidos").
 6. ESCORE: Nota para o equilíbrio do prato (1-10).
+7. MANDATÓRIO: É OBRIGATÓRIO gerar sempre 3 sugestões de receitas saudáveis relacionadas no campo "gastronomia" -> "recipes".
 
 SCHEMA JSON OBRIGATÓRIO (IGUAL AO SINGLE FOOD PARA COMPATIBILIDADE):
 {
@@ -106,7 +109,11 @@ SCHEMA JSON OBRIGATÓRIO (IGUAL AO SINGLE FOOD PARA COMPATIBILIDADE):
   "gastronomia": {
     "prep_tip": "Dica para a próxima marmita",
     "smart_swap": "Sugestão para equilibrar melhor este prato",
-    "recipes": []
+    "recipes": [
+      { "name": "Receita 1", "instructions": "...", "calories": "..." },
+      { "name": "Receita 2", "instructions": "...", "calories": "..." },
+      { "name": "Receita 3", "instructions": "...", "calories": "..." }
+    ]
   }
 }
 ''';

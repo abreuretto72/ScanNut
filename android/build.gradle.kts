@@ -1,3 +1,9 @@
+
+
+
+// Define kotlin_version for plugins that rely on it
+extra["kotlin_version"] = "2.1.0"
+
 allprojects {
     repositories {
         google()

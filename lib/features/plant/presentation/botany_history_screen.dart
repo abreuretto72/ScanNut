@@ -8,7 +8,7 @@ import '../models/botany_history_item.dart';
 import '../models/plant_analysis_model.dart';
 import '../services/botany_service.dart';
 import 'widgets/plant_result_card.dart';
-import '../../../core/services/export_service.dart';
+import '../services/plant_export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../../../l10n/app_localizations.dart';
@@ -513,7 +513,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           builder: (context) => PdfPreviewScreen(
             title: l10n.botanyDossierTitle(item.plantName),
             buildPdf: (format) async {
-              final pdf = await ExportService().generatePlantAnalysisReport(
+              final pdf = await PlantExportService().generatePlantAnalysisReport(
                 analysis: analysis,
                 strings: AppLocalizations.of(context)!,
                 imageFile:
@@ -635,7 +635,7 @@ class _BotanyHistoryScreenState extends State<BotanyHistoryScreen> {
           );
 
           try {
-            final doc = await ExportService().generatePlantHistoryReport(
+            final doc = await PlantExportService().generatePlantHistoryReport(
                 items: selectedItems, strings: AppLocalizations.of(context)!);
 
             // 4. Fecha o Loading Dialog (via Root Navigator)

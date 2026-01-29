@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../constants/nutrition_prompts.dart';
+import '../../features/food/services/food_prompts.dart';
 import '../services/gemini_service.dart';
 import '../services/meal_history_service.dart';
 
@@ -40,6 +40,6 @@ class MealPlanGenerator {
         ? 'Nenhuma restrição.'
         : 'EVITE os seguintes ingredientes usados recentemente: ${excludedIngredients.join(", ")}.';
 
-    return NutritionPrompts.getPetMenuPlanPrompt(raceName, exclusionText);
+    return FoodPrompts.getPetMenuPlanPrompt(raceName, exclusionText);
   }
 }

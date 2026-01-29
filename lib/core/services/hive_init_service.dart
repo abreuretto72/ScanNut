@@ -2,9 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../features/pet/models/weekly_meal_plan.dart';
 import '../../features/plant/models/botany_history_item.dart';
-import '../../nutrition/data/models/weekly_plan.dart';
-import '../../nutrition/data/models/meal_log.dart';
-import '../../nutrition/data/models/shopping_list_item.dart';
+import '../../features/food/food_module.dart';
 import 'hive_atomic_manager.dart';
 
 /// 🛡️ V70: CENTRALIZED HIVE INITIALIZATION SERVICE
@@ -76,13 +74,10 @@ class HiveInitService {
       await _openBox('box_workouts', cipher: cipher);
       await _openBox('recipe_history_box', cipher: cipher);
 
-      // 6. NUTRITION MODULE BOXES (encrypted)
-      await _openBox('nutrition_user_profile', cipher: cipher);
-      await _openTypedBox<WeeklyPlan>('nutrition_weekly_plans', cipher: cipher);
-      await _openTypedBox<MealLog>('nutrition_meal_logs', cipher: cipher);
-      await _openTypedBox<ShoppingListItem>('nutrition_shopping_list',
-          cipher: cipher);
-      await _openBox('menu_filter_settings', cipher: cipher);
+      // 6. NUTRITION MODULE BOXES (Decoupled V135)
+      await FoodModule.init(cipher: cipher);
+
+      // (Legacy direct calls removed - Managed by FoodModule)
 
       // 7. DEDUPLICATION BOX (encrypted)
       await _openBox('processed_images_box', cipher: cipher);

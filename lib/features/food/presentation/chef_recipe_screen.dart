@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:scannut/l10n/app_localizations.dart';
+import 'package:scannut/features/food/l10n/app_localizations.dart';
 import 'package:scannut/core/theme/app_design.dart';
 import 'package:scannut/features/food/models/food_analysis_model.dart';
-import 'package:scannut/features/food/models/recipe_suggestion.dart';
-import 'package:scannut/core/services/export_service.dart';
+import 'package:scannut/features/food/models/food_recipe_suggestion.dart';
+import 'package:scannut/features/food/services/food_export_service.dart';
 import 'package:scannut/core/widgets/pdf_preview_screen.dart';
 
 class ChefRecipeScreen extends StatelessWidget {
@@ -246,8 +246,8 @@ class ChefRecipeScreen extends StatelessWidget {
         builder: (context) => PdfPreviewScreen(
           title: "Chef Vision Recipes",
           buildPdf: (format) async {
-             final strings = AppLocalizations.of(context)!;
-             final pdf = await ExportService().generateChefVisionReport(
+             final strings = FoodLocalizations.of(context)!;
+             final pdf = await FoodExportService().generateChefVisionReport(
                analysis: analysis, 
                strings: strings,
                imageFile: imageFile

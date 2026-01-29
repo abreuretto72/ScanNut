@@ -9,7 +9,7 @@ import '../../../core/services/whatsapp_service.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/widgets/pdf_action_button.dart';
 import '../../pet/models/pet_analysis_result.dart';
-import '../../../core/services/export_service.dart';
+import '../services/partner_export_service.dart';
 import '../../../core/widgets/pdf_preview_screen.dart';
 import '../../../core/theme/app_design.dart';
 import 'partner_registration_screen.dart';
@@ -488,7 +488,7 @@ class _PartnersScreenState extends ConsumerState<PartnersScreen> {
           );
 
           try {
-            final pdf = await ExportService().generatePartnersReport(
+            final pdf = await PartnerExportService().generatePartnersReport(
               partners: selectedPartners,
               region: 'SP (Mock Location)',
               strings: AppLocalizations.of(context)!,

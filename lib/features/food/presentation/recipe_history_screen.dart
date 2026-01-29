@@ -4,12 +4,14 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../core/theme/app_design.dart';
-import '../models/recipe_history_item.dart';
+import '../models/food_recipe_history_item.dart';
+import '../models/food_pdf_labels.dart';
 import '../services/recipe_service.dart';
 import 'widgets/recipe_export_configuration_modal.dart';
 import '../services/food_export_service.dart';
 import 'food_pdf_preview_screen.dart';
 import 'package:scannut/l10n/app_localizations.dart';
+import '../../../../features/food/l10n/app_localizations.dart';
 
 class RecipeHistoryScreen extends StatefulWidget {
   const RecipeHistoryScreen({super.key});
@@ -236,7 +238,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: Text(
-                            AppLocalizations.of(context)?.btnViewDetails ?? '',
+                            FoodLocalizations.of(context)?.foodViewDetails ?? 'Ver detalhes',
                             style: GoogleFonts.poppins(
                                 color: Colors.white54, fontSize: 11)),
                       ),
@@ -252,6 +254,10 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
   }
 
   void _showFullRecipe(RecipeHistoryItem recipe) {
+    final foodL10n = FoodLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
+    
+    if (foodL10n == null) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -273,7 +279,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                 ),
               const SizedBox(height: 16),
               Text(
-                  l10n.labelMainIngredient(recipe.foodName),
+                  foodL10n.foodMainIngredient(recipe.foodName),
                   style:
                       GoogleFonts.poppins(color: Colors.white54, fontSize: 12)),
               const SizedBox(height: 16),
@@ -286,7 +292,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.commonClose,
+            child: Text(foodL10n.foodClose,
                 style: GoogleFonts.poppins(color: Colors.white)),
           ),
         ],
@@ -296,6 +302,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
 
   void _showExportModal(BuildContext context) {
     if (!Hive.isBoxOpen(RecipeService.boxName)) return;
+    final l10n = AppLocalizations.of(context)!;
 
     final box = Hive.box<RecipeHistoryItem>(RecipeService.boxName);
     final allItems = box.values.toList();
@@ -333,54 +340,24 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
 
             if (!mounted) return;
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FoodPdfPreviewScreen(
-                  labels: FoodPdfLabels(
-                    title: l10n.pdfTitleRecipeBook,
-                    date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-                    nutrientsTable: l10n.pdfDetailedNutrition,
-                    qty: l10n.pdfQuantity,
-                    dailyGoal: l10n.pdfGoalLabel,
-                    calories: l10n.pdfCalories,
-                    proteins: l10n.foodProt,
-                    carbs: l10n.foodCarb,
-                    fats: l10n.foodFat,
-                    healthRating: l10n.labelTrafficLight,
-                    clinicalRec: l10n.pdfAiVerdict,
-                    disclaimer: "Aviso: Consulte um especialista.",
-                    recipesTitle: l10n.foodRecipesTitle,
-                    justificationLabel: l10n.foodJustification,
-                    difficultyLabel: l10n.foodDifficulty,
-                    instructionsLabel: l10n.foodInstructions,
-                  ),
-                  buildPdf: (format) async {
-                    return await FoodExportService().generateRecipeHistoryReportFromList(
-                      selectedItems,
-                      FoodPdfLabels(
-                        title: l10n.pdfTitleRecipeBook,
-                        date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-                        nutrientsTable: l10n.pdfDetailedNutrition,
-                        qty: l10n.pdfQuantity,
-                        dailyGoal: l10n.pdfGoalLabel,
-                        calories: l10n.pdfCalories,
-                        proteins: l10n.foodProt,
-                        carbs: l10n.foodCarb,
-                        fats: l10n.foodFat,
-                        healthRating: l10n.labelTrafficLight,
-                        clinicalRec: l10n.pdfAiVerdict,
-                        disclaimer: "Aviso: Consulte um especialista.",
-                        recipesTitle: l10n.foodRecipesTitle,
-                        justificationLabel: l10n.foodJustification,
-                        difficultyLabel: l10n.foodDifficulty,
-                        instructionsLabel: l10n.foodInstructions,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            );
+            final foodL10n = FoodLocalizations.of(context);
+            if (foodL10n == null) return;
+
+              Navigator.push(
+               context,
+               MaterialPageRoute(
+                 builder: (context) => FoodPdfPreviewScreen(
+                   foodName: foodL10n.foodRecipeBookTitle,
+                   buildPdf: (format) async {
+                     final doc = await FoodExportService().generateRecipeHistoryReport(
+                       selectedItems,
+                       foodL10n,
+                     );
+                     return doc.save();
+                   },
+                 ),
+               ),
+             );
           } catch (e) {
             // Close loading dialog on error
             if (Navigator.canPop(context)) {
@@ -400,6 +377,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
   }
 
   Future<void> _confirmClear() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

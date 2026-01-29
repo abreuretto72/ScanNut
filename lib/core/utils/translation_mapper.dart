@@ -1,8 +1,9 @@
 import '../../l10n/app_localizations.dart';
+import '../../features/food/l10n/app_localizations.dart';
 
 class TranslationMapper {
   /// Maps food names/categories to localized strings
-  static String localizeFoodName(String rawName, AppLocalizations l10n) {
+  static String localizeFoodName(String rawName, FoodLocalizations l10n) {
     final key = rawName.toLowerCase().trim();
 
     // English specific overrides for WeeklyPlanGenerator hardcoded strings
@@ -144,42 +145,45 @@ class TranslationMapper {
   }
 
   /// Maps loading states to localized strings
-  static String localizeLoadingMessage(String key, AppLocalizations l10n) {
-    switch (key) {
-      case 'loadingFood':
-        return l10n.loadingFood;
-      case 'loadingPlant':
-        return l10n.loadingPlant;
-      case 'loadingPetBreed':
-        return l10n.loadingPetBreed;
-      case 'loadingPetHealth':
-        return l10n.loadingPetHealth;
-      default:
-        return key;
+  static String localizeLoadingMessage(String key, dynamic l10n) {
+    if (l10n is FoodLocalizations && key == 'loadingFood') {
+      return l10n.foodLoading;
     }
+    
+    if (l10n is AppLocalizations) {
+      switch (key) {
+        case 'loadingPlant':
+          return l10n.loadingPlant;
+        case 'loadingPetBreed':
+          return l10n.loadingPetBreed;
+        case 'loadingPetHealth':
+          return l10n.loadingPetHealth;
+      }
+    }
+    return key;
   }
 
   /// Helper to translate batch cooking tips directly from keys
-  static String localizeTip(String tipKey, AppLocalizations l10n) {
+  static String localizeTip(String tipKey, FoodLocalizations l10n) {
     switch (tipKey) {
       case 'tipBeans':
-        return l10n.tipBeans;
+        return l10n.foodTipBeans;
       case 'tipRice':
-        return l10n.tipRice;
+        return l10n.foodTipRice;
       case 'tipChicken':
-        return l10n.tipChicken;
+        return l10n.foodTipChicken;
       case 'tipEggs':
-        return l10n.tipEggs;
+        return l10n.foodTipEggs;
       case 'tipVeggies':
-        return l10n.tipVeggies;
+        return l10n.foodTipVeggies;
       case 'tipRoots':
-        return l10n.tipRoots;
+        return l10n.foodTipRoots;
       case 'tipGroundMeat':
-        return l10n.tipGroundMeat;
+        return l10n.foodTipGroundMeat;
       case 'tipFruits':
-        return l10n.tipFruits;
+        return l10n.foodTipFruits;
       case 'tipDefault':
-        return l10n.tipDefault;
+        return l10n.foodTipDefault;
       default:
         return tipKey;
     }

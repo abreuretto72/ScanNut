@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_design.dart';
-import '../../models/nutrition_history_item.dart';
+import '../../models/food_nutrition_history_item.dart';
 
 class FoodExportConfigurationModal extends StatefulWidget {
   final List<NutritionHistoryItem> allItems;

@@ -88,8 +88,12 @@ class _PlantChatScreenState extends State<PlantChatScreen> {
         }
       },
       localeId: Localizations.localeOf(context).toString(),
-      cancelOnError: true,
       listenMode: ListenMode.dictation,
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+      onSoundLevelChange: null,
+      cancelOnError: true,
+      partialResults: true,
     );
     
     if (mounted) setState(() => _isListening = true);
@@ -283,11 +287,11 @@ class _PlantChatScreenState extends State<PlantChatScreen> {
                     constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
                     decoration: BoxDecoration(
                       color: isUser 
-                          ? Colors.green[700]!.withOpacity(0.3)
-                          : Colors.grey[800]!.withOpacity(0.5),
+                          ? Colors.green[700]!.withValues(alpha: 0.3)
+                          : Colors.grey[800]!.withValues(alpha: 0.5),
                       border: Border.all(
                         color: isUser 
-                          ? Colors.greenAccent.withOpacity(0.5) 
+                          ? Colors.greenAccent.withValues(alpha: 0.5) 
                           : Colors.white24,
                       ),
                       borderRadius: BorderRadius.only(
@@ -345,7 +349,7 @@ class _PlantChatScreenState extends State<PlantChatScreen> {
               bottom: MediaQuery.of(context).padding.bottom + 10
             ), 
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               border: const Border(top: BorderSide(color: Colors.white10)),
             ),
             child: Row(
@@ -393,7 +397,7 @@ class _PlantChatScreenState extends State<PlantChatScreen> {
                   icon: const Icon(Icons.send_rounded),
                   color: Colors.greenAccent,
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.green.withOpacity(0.2),
+                    backgroundColor: Colors.green.withValues(alpha: 0.2),
                     shape: const CircleBorder(),
                   ),
                 ),

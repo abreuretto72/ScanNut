@@ -19,7 +19,7 @@ class PdfPreviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Nome do arquivo para exportação
-    final fileName = 'ScanNut_${title.replaceAll(' ', '_')}.pdf';
+    final fileName = 'ScanNut_${title.replaceAll(RegExp(r'[^\w\.-]'), '_')}.pdf';
 
     return Scaffold(
       backgroundColor: Colors.grey[900], // 🛡️ Background Preto Institucional
@@ -62,16 +62,34 @@ class PdfPreviewScreen extends StatelessWidget {
                 icon: Icons.print,
                 tooltip: 'Imprimir',
                 onPressed: () async {
-                  final bytes = await buildPdf(PdfPageFormat.a4);
-                  await Printing.layoutPdf(onLayout: (format) async => bytes);
+                  try {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Preparando impressão...'), duration: Duration(seconds: 1)),
+                    );
+                    final bytes = await buildPdf(PdfPageFormat.a4);
+                    await Printing.layoutPdf(onLayout: (format) async => bytes);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erro ao imprimir: $e'), backgroundColor: AppDesign.error),
+                    );
+                  }
                 },
               ),
               _buildBottomAction(
                 icon: Icons.open_in_new, // Vis. Externa
                 tooltip: 'Abrir Externamente',
                 onPressed: () async {
-                  final bytes = await buildPdf(PdfPageFormat.a4);
-                  await Printing.sharePdf(bytes: bytes, filename: fileName);
+                  try {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Abrindo...'), duration: Duration(seconds: 1)),
+                    );
+                    final bytes = await buildPdf(PdfPageFormat.a4);
+                    await Printing.sharePdf(bytes: bytes, filename: fileName);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erro ao abrir: $e'), backgroundColor: AppDesign.error),
+                    );
+                  }
                 },
               ),
               if (showShare)
@@ -79,9 +97,18 @@ class PdfPreviewScreen extends StatelessWidget {
                   icon: Icons.share,
                   tooltip: 'Compartilhar',
                   onPressed: () async {
-                    // 🛡️ Compartilhamento Nativo Blindado
-                    final bytes = await buildPdf(PdfPageFormat.a4);
-                    await Printing.sharePdf(bytes: bytes, filename: fileName);
+                    try {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Preparando compartilhamento...'), duration: Duration(seconds: 1)),
+                      );
+                      // 🛡️ Compartilhamento Nativo Blindado
+                      final bytes = await buildPdf(PdfPageFormat.a4);
+                      await Printing.sharePdf(bytes: bytes, filename: fileName);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erro ao compartilhar: $e'), backgroundColor: AppDesign.error),
+                      );
+                    }
                   },
                 ),
             ],
