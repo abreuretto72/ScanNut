@@ -5,6 +5,7 @@ import '../services/food_analysis_service.dart';
 import '../services/nutrition_service.dart';
 import '../models/food_analysis_model.dart';
 import '../../../core/models/analysis_state.dart';
+import '../../../core/services/permanent_backup_service.dart';
 
 // 🛡️ Provider exclusivo para o Notifier de Comida (Isolamento de Domínio)
 final foodAnalysisNotifierProvider = 
@@ -35,6 +36,7 @@ class FoodAnalysisNotifier extends StateNotifier<AnalysisState> {
   Future<AnalysisState> analyze(File image, {bool isMeal = false, bool isChefVision = false, String? userConstraints}) async {
     debugPrint('🔄 [FoodTrace] Notifier.analyze called. ChefVision: $isChefVision');
     // 🛡️ REATIVIDADE IMEDIATA: State Loading disparado antes de qualquer await
+    print('DEBUG_CHEF: Estado atual antes da navegação: ${state.runtimeType}');
     state = AnalysisLoading(message: isChefVision ? 'Criando receitas...' : 'loadingFood', imagePath: image.path);
     
     try {
@@ -53,6 +55,7 @@ class FoodAnalysisNotifier extends StateNotifier<AnalysisState> {
       
       // 3. Mapeamento V135: O Service já retorna o modelo rico
       state = AnalysisSuccess<FoodAnalysisModel>(result);
+      print('DEBUG_CHEF: Sucesso! Dados mapeados: ${result.recipes}');
       debugPrint('✅ [FoodTrace] Notifier State: Success. Data: ${result.identidade.nome}');
       return state;
     } catch (e) {
@@ -68,7 +71,11 @@ class FoodAnalysisNotifier extends StateNotifier<AnalysisState> {
     try {
       debugPrint('💾 Iniciando Auto-Save para: ${analysis.identidade.nome}');
       await _nutritionService.saveFoodAnalysis(analysis, image);
-      debugPrint('✅ Auto-Save concluído com sucesso.');
+      debugPrint('✅ Auto-Save (Hive) concluído. Iniciando Backup Permanente...');
+      
+      // 🛡️ V136: Mandatório Backup Permanente para Inventário
+      await PermanentBackupService().createAutoBackup();
+      debugPrint('✅ Auto-Save (Permanent) concluído.');
     } catch (e) {
       debugPrint('🚨 ERRO CRÍTICO NO AUTO-SAVE: $e');
       // 🛡️ Lei de Ferro: Se não salvou, é erro de análise (Não garantido no disco)

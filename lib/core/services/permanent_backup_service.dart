@@ -99,27 +99,22 @@ class PermanentBackupService {
             dynamic value = box.get(key);
             if (value != null) {
               try {
-                // 🛡️ V135: Robust Serialization Strategy
                 if (value is List) {
-                  // Handle Lists (e.g. recipes, history lists)
                   boxData[key.toString()] = value.map((e) {
                     try {
                       return (e as dynamic).toJson();
                     } catch (_) {
-                      return e; // Return primitive or toString if needed
+                      return e;
                     }
                   }).toList();
                 } else {
-                  // Handle single Objects
                   try {
                     boxData[key.toString()] = (value as dynamic).toJson();
                   } catch (_) {
-                    // Fallback: If no toJson, keep as is (primitive) or string
-                     boxData[key.toString()] = value;
+                    boxData[key.toString()] = value;
                   }
                 }
               } catch (e) {
-                // Fallback global para item corrompido
                 boxData[key.toString()] = value.toString();
               }
             }
@@ -245,8 +240,14 @@ class PermanentBackupService {
             dynamic value = box.get(key);
             if (value != null) {
               try {
-                boxData[key.toString()] = value.toJson();
-              } catch (e) {
+                if (value is List) {
+                   boxData[key.toString()] = value.map((e) {
+                      try { return (e as dynamic).toJson(); } catch (_) { return e; }
+                   }).toList();
+                } else {
+                   boxData[key.toString()] = (value as dynamic).toJson();
+                }
+              } catch (_) {
                 boxData[key.toString()] = value;
               }
             }

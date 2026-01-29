@@ -278,19 +278,66 @@ class WeeklyPlanGenerator {
           if (avoidRepetition) {
             usedRecipeIds.add(receita.id);
           }
+          
+          // 🛡️ LOG REQ: Rastreabilidade da "IA"
+          debugPrint('📥 [MenuGen] RESPOSTA BRUTA DA IA (Simulada): ${receita.toJson()}');
+          debugPrint('   -> Selected Recipe: ${receita.nome} | ID: ${receita.id}');
+
+          // 🛡️ REQ V135: Enriched Title & Instructions
+          String finalTitle = receita.nome;
+          String extraInstructions = '';
+          
+          if (receita.ingredientes.length > 1) { // Removed ' com ' check to guarantee side instructions
+             if (receita.ingredientes.any((i) => i.toLowerCase().contains('arroz'))) {
+               if (!finalTitle.contains('Completo') && !finalTitle.contains(' com ') && !finalTitle.contains('Arroz')) finalTitle = '$finalTitle Completo';
+               extraInstructions += '\n\n🍚 ARROZ: Refogue alho e cebola no azeite. Adicione o arroz e sal. Coloque 2 medidas de água fervente para 1 de arroz. Cozinhe em fogo baixo até secar.';
+             }
+             if (receita.ingredientes.any((i) => i.toLowerCase().contains('feijão'))) {
+               if (!finalTitle.contains('Completo') && !finalTitle.contains(' com ') && !finalTitle.contains('Feijão')) finalTitle = '$finalTitle com Feijão';
+               extraInstructions += '\n\n🫘 FEIJÃO: Se usar pré-cozido, refogue alho no azeite, adicione o feijão e deixe apurar o caldo. Finalize com cheiro-verde.';
+             }
+             if (receita.ingredientes.any((i) => i.toLowerCase().contains('salada') || i.toLowerCase().contains('folhas'))) {
+               if (!finalTitle.contains('Completo') && !finalTitle.contains(' com ')) finalTitle = '$finalTitle Leve';
+               extraInstructions += '\n\n🥗 SALADA: Lave e seque bem as folhas. Prepare um molho com azeite, limão e sal. Só tempere na hora de servir para não murchar.';
+             }
+             if (receita.ingredientes.any((i) => i.toLowerCase().contains('purê') || i.toLowerCase().contains('batata'))) {
+                extraInstructions += '\n\n🥔 PURÊ/BATATA: Cozinhe as batatas até ficarem macias. Amasse bem, adicione manteiga e um pouco de leite. Mexa até ficar cremoso. Ajuste o sal.';
+             }
+          }
 
           meals.add(Meal(
             tipo: tipo,
-            recipeId: receita.id,
-            nomePrato: receita.nome,
-            itens: receita.ingredientes
-                .map((ing) => MealItem(
-                      nome: ing,
-                      quantidadeTexto: isEn ? '1 serving' : '1 porção',
-                    ))
-                .toList(),
+            recipeId: receita.id, // Keep ID for base lookup too
+            nomePrato: finalTitle,
+            itens: receita.ingredientes.map((ing) {
+              String qtd = '';
+              String nome = ing;
+              final lower = ing.toLowerCase();
+
+              // 1. Try Regex Extraction (e.g. "200g Frango")
+              final regex = RegExp(r'^(\d+(?:[.,]\d+)?\s?(?:g|kg|ml|l|col|un|fatia|xícara|copo)s?\.?)\s+(.*)$', caseSensitive: false);
+              final match = regex.firstMatch(ing);
+              
+              if (match != null) {
+                qtd = match.group(1) ?? '';
+                nome = match.group(2) ?? ing;
+              } 
+              
+              // 2. Fallback to centralized Smart Engine
+              qtd = _getSmartQuantity(nome, qtd, isEn);
+
+              // Capitalize name
+              if (nome.isNotEmpty) {
+                nome = nome[0].toUpperCase() + nome.substring(1);
+              }
+
+              return MealItem(
+                nome: nome,
+                quantidadeTexto: qtd,
+              );
+            }).toList(),
             observacoes:
-                '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
+                '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal|||${receita.modoPreparo}\n$extraInstructions',
             criadoEm: DateTime.now(),
           ));
         }
@@ -323,7 +370,7 @@ class WeeklyPlanGenerator {
       );
     }
 
-    // Helper to get random food by category
+    // Helper to get random food by category with Smart Quantity
     MealItem? getFoodByCat(List<String> categories) {
       final candidates = foods
           .where((f) => categories
@@ -331,9 +378,13 @@ class WeeklyPlanGenerator {
           .toList();
       if (candidates.isEmpty) return null;
       final food = candidates[_random.nextInt(candidates.length)];
+      
+      // 🛡️ REQ V135: Smart Quantity Logic (Unified)
+      final qtd = _getSmartQuantity(food.nome, food.porcao, isEn);
+
       return MealItem(
         nome: food.nome,
-        quantidadeTexto: food.porcao,
+        quantidadeTexto: qtd,
         observacoes: '${food.calorias} kcal',
       );
     }
@@ -367,7 +418,8 @@ class WeeklyPlanGenerator {
       // Fallback if structured picking failed
       if (selectedFoods.isEmpty) {
         final food = foods[_random.nextInt(foods.length)];
-        selectedFoods.add(MealItem(
+        // Apply smart logic manually for single item fallback
+        selectedFoods.add(getFoodByCat([food.categoria]) ?? MealItem(
             nome: food.nome,
             quantidadeTexto: food.porcao,
             observacoes: '${food.calorias} kcal'));
@@ -395,7 +447,7 @@ class WeeklyPlanGenerator {
       if (selectedFoods.length < 2) {
         final food = foods[_random.nextInt(foods.length)];
         if (!selectedFoods.any((f) => f.nome == food.nome)) {
-          selectedFoods.add(MealItem(
+           selectedFoods.add(getFoodByCat([food.categoria]) ?? MealItem(
               nome: food.nome,
               quantidadeTexto: food.porcao,
               observacoes: '${food.calorias} kcal'));
@@ -403,11 +455,32 @@ class WeeklyPlanGenerator {
       }
     }
 
+    // 🛡️ REQ V135: Dynamic Instructions for Simple Meals
+    String instructions = isEn 
+        ? '1. Organize the ingredients.\n2. Prepare the main protein (grilled or roasted).\n3. Serve with the sides.'
+        : '1. Organize os ingredientes.\n2. Prepare a proteína principal (grelhada ou assada).\n3. Sirva com os acompanhamentos.';
+        
+    // Generate specialized instructions based on items
+    final instructionsList = <String>[];
+    for (var item in selectedFoods) {
+       final n = item.nome.toLowerCase();
+       if (n.contains('arroz')) instructionsList.add('🍚 ARROZ: Refogue alho, adicione arroz e água (2:1). Cozinhe até secar.');
+       else if (n.contains('feijão')) instructionsList.add('🫘 FEIJÃO: Tempere o feijão cozido com alho e cebola refogados.');
+       else if (n.contains('frango')) instructionsList.add('🍗 FRANGO: Tempere com limão, sal e pimenta. Grelhe em frigideira quente até dourar.');
+       else if (n.contains('ovo')) instructionsList.add('🥚 OVO: Prepare cozido (8min) ou mexido com pouco óleo.');
+       else if (n.contains('salada')) instructionsList.add('🥗 SALADA: Higienize as folhas e tempere apenas na hora de servir.');
+       else if (n.contains('pão')) instructionsList.add('🍞 PÃO: Pode ser tostado levemente na frigideira.');
+    }
+    
+    if (instructionsList.isNotEmpty) {
+       instructions = instructionsList.join('\n\n');
+    }
+
     return Meal(
       tipo: tipo,
       nomePrato: dishName,
       itens: selectedFoods,
-      observacoes: isEn ? 'Balanced suggestion' : 'Sugestão equilibrada',
+      observacoes: (isEn ? 'Balanced choice' : 'Escolha equilibrada') + '|||' + instructions,
       criadoEm: DateTime.now(),
     );
   }
@@ -496,24 +569,105 @@ class WeeklyPlanGenerator {
       final receita =
           receitasDisponiveis[_random.nextInt(receitasDisponiveis.length)];
 
+      // 🛡️ REQ V135: Enriched Logic reuse for Swapped Meals
+      String finalTitle = receita.nome;
+      String extraInstructions = '';
+      
+      if (receita.ingredientes.length > 1) {
+         if (receita.ingredientes.any((i) => i.toLowerCase().contains('arroz'))) {
+           if (!finalTitle.contains('Completo') && !finalTitle.contains(' com ') && !finalTitle.contains('Arroz')) finalTitle = '$finalTitle Completo';
+           extraInstructions += '\n\n🍚 ARROZ: Refogue alho e cebola no azeite. Adicione o arroz e sal. Coloque 2 medidas de água fervente para 1 de arroz. Cozinhe em fogo baixo até secar.';
+         }
+         if (receita.ingredientes.any((i) => i.toLowerCase().contains('feijão'))) {
+           if (!finalTitle.contains('Completo') && !finalTitle.contains(' com ') && !finalTitle.contains('Feijão')) finalTitle = '$finalTitle com Feijão';
+           extraInstructions += '\n\n🫘 FEIJÃO: Se usar pré-cozido, refogue alho no azeite, adicione o feijão e deixe apurar o caldo. Finalize com cheiro-verde.';
+         }
+         if (receita.ingredientes.any((i) => i.toLowerCase().contains('salada') || i.toLowerCase().contains('folhas'))) {
+           if (!finalTitle.contains('Completo') && !finalTitle.contains(' com ')) finalTitle = '$finalTitle Leve';
+           extraInstructions += '\n\n🥗 SALADA: Lave e seque bem as folhas. Prepare um molho com azeite, limão e sal. Só tempere na hora de servir para não murchar.';
+         }
+         if (receita.ingredientes.any((i) => i.toLowerCase().contains('purê') || i.toLowerCase().contains('batata'))) {
+            extraInstructions += '\n\n🥔 PURÊ/BATATA: Cozinhe as batatas até ficarem macias. Amasse bem, adicione manteiga e um pouco de leite. Mexa até ficar cremoso. Ajuste o sal.';
+         }
+      }
+
       return Meal(
         tipo: tipo,
         recipeId: receita.id,
-        nomePrato: receita.nome,
-        itens: receita.ingredientes
-            .map((ing) => MealItem(
-                  nome: ing,
-                  quantidadeTexto: isEn ? '1 serving' : '1 porção',
-                ))
-            .toList(),
+        nomePrato: finalTitle,
+        itens: receita.ingredientes.map((ing) {
+              String qtd = '';
+              String nome = ing;
+              final lower = ing.toLowerCase();
+
+              // 1. Try Regex Extraction
+              final regex = RegExp(r'^(\d+(?:[.,]\d+)?\s?(?:g|kg|ml|l|col|un|fatia|xícara|copo)s?\.?)\s+(.*)$', caseSensitive: false);
+              final match = regex.firstMatch(ing);
+              
+              if (match != null) {
+                qtd = match.group(1) ?? '';
+                nome = match.group(2) ?? ing;
+              } 
+              
+              // 2. Fallback to centralized Smart Engine
+              qtd = _getSmartQuantity(nome, qtd, isEn);
+
+              if (nome.isNotEmpty) nome = nome[0].toUpperCase() + nome.substring(1);
+
+              return MealItem(
+                nome: nome,
+                quantidadeTexto: qtd,
+              );
+            }).toList(),
         observacoes:
-            '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal',
+            '${receita.tempoPreparo.replaceAll("minutos", "min")} - ${receita.calorias} kcal|||${receita.modoPreparo}\n$extraInstructions',
         criadoEm: DateTime.now(),
       );
     } catch (e) {
       debugPrint('❌ Error swapping meal: $e');
       return _createSimpleMeal(tipo, profile.restricoes, languageCode);
     }
+  }
+
+  // 🛡️ REQ V135: Smart Quantity Engine
+  String _getSmartQuantity(String name, String currentQtd, bool isEn) {
+      if (currentQtd.isNotEmpty && !currentQtd.contains('1 porção') && !currentQtd.contains('1 serving')) {
+          return currentQtd;
+      }
+      
+      final lower = name.toLowerCase();
+      
+      // Protein
+      if (lower.contains('frango') || lower.contains('carne') || lower.contains('peixe') || lower.contains('bife') || lower.contains('filé') || lower.contains('hambúrguer') || lower.contains('lombo')) return '1 filé médio (120g)';
+      if (lower.contains('ovo') || lower.contains('omelete')) return isEn ? '2 large units' : '2 ovos grandes';
+      if (lower.contains('queijo') || lower.contains('presunto')) return isEn ? '2 slices' : '2 fatias médias';
+      
+      // Carbs
+      if (lower.contains('arroz')) return isEn ? '1 cup (cooked)' : '1 escumadeira cheia';
+      if (lower.contains('feijão') || lower.contains('lentilha') || lower.contains('grão')) return isEn ? '1 ladle' : '1 concha média';
+      if (lower.contains('purê') || lower.contains('batata') || lower.contains('mandioca') || lower.contains('inhame')) return isEn ? '3 tbsp' : '3 col. servir';
+      if (lower.contains('macarrão') || lower.contains('espaguete') || lower.contains('penne') || lower.contains('lasanha')) return isEn ? '1.5 cups' : '1 prato raso';
+      if (lower.contains('pão') || lower.contains('torrada') || lower.contains('bagel')) return isEn ? '2 slices' : '2 fatias';
+      if (lower.contains('tapioca') || lower.contains('panqueca') || lower.contains('waffle')) return isEn ? '1 unit' : '1 unidade';
+      if (lower.contains('aveia') || lower.contains('granola') || lower.contains('cereal')) return isEn ? '3 tbsp' : '3 col. sopa';
+      if (lower.contains('bolo')) return isEn ? '1 slice' : '1 fatia média';
+      
+      // Veggies & Fruits
+      if (lower.contains('salada') || lower.contains('folhas') || lower.contains('alface') || lower.contains('rúcula')) return isEn ? 'Fill half plate' : 'Metade do prato';
+      if (lower.contains('legumes') || lower.contains('cenoura') || lower.contains('abobrinha') || lower.contains('brócolis') || lower.contains('vagem')) return isEn ? '1 cup' : '1 pires cheio';
+      if (lower.contains('tomate') || lower.contains('cebola') || lower.contains('pepino')) return isEn ? '1/2 unit' : '1/2 unidade';
+      if (lower.contains('fruta') || lower.contains('banana') || lower.contains('maçã') || lower.contains('laranja') || lower.contains('pera')) return isEn ? '1 unit' : '1 unidade';
+      if (lower.contains('abacate') || lower.contains('mamão') || lower.contains('manga')) return isEn ? '1/2 unit' : '1/2 unidade';
+      if (lower.contains('morango') || lower.contains('uva')) return isEn ? '10 units' : '10 unidades';
+
+      // Liquids & Others
+      if (lower.contains('leite') || lower.contains('iogurte') || lower.contains('suco') || lower.contains('café') || lower.contains('chá') || lower.contains('vitamina') || lower.contains('whey')) return isEn ? '1 glass (200ml)' : '1 copo (200ml)';
+      if (lower.contains('azeite') || lower.contains('óleo')) return isEn ? '1 tsp' : '1 fio generoso';
+      if (lower.contains('manteiga') || lower.contains('requeijão') || lower.contains('pasta')) return isEn ? '1 tsp' : '1 ponta de faca';
+      if (lower.contains('mel') || lower.contains('açúcar') || lower.contains('adoçante')) return isEn ? '1 tsp' : '1 col. chá';
+      
+      // Default
+      return isEn ? '1 portion' : '1 porção média';
   }
 
   /// Retorna a segunda-feira da semana

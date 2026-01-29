@@ -147,7 +147,7 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
                     }
 
                     return ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 120),
                       itemCount: recipes.length,
                       itemBuilder: (context, index) {
                         return _buildRecipeCard(recipes[index]);
@@ -169,9 +169,8 @@ class _RecipeHistoryScreenState extends State<RecipeHistoryScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image Thumbnail
             Container(

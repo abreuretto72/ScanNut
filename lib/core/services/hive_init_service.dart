@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../features/pet/models/weekly_meal_plan.dart';
 import '../../features/plant/models/botany_history_item.dart';
+import '../../features/food/nutrition/data/models/meal.dart';
+import '../../features/food/nutrition/data/models/plan_day.dart';
+import '../../features/food/nutrition/data/models/weekly_plan.dart';
+import '../../features/food/nutrition/data/models/shopping_list_item.dart';
 import '../../features/food/food_module.dart';
 import 'hive_atomic_manager.dart';
 
@@ -37,6 +41,33 @@ class HiveInitService {
     if (!Hive.isAdapterRegistered(21)) {
       Hive.registerAdapter(BotanyHistoryItemAdapter());
       debugPrint('✅ [V70-HIVE] BotanyHistoryItemAdapter (Type 21) registered.');
+    }
+
+    // 🛡️ NUTRITION ADAPTERS (V135 - Human Menu)
+    // Meal (25), MealItem (26), PlanDay (27), WeeklyPlan (28)
+    if (!Hive.isAdapterRegistered(25)) {
+      Hive.registerAdapter(MealAdapter());
+      debugPrint('✅ [V70-HIVE] MealAdapter (Type 25) registered.');
+    }
+    if (!Hive.isAdapterRegistered(26)) {
+      Hive.registerAdapter(MealItemAdapter());
+      debugPrint('✅ [V70-HIVE] MealItemAdapter (Type 26) registered.');
+    }
+    if (!Hive.isAdapterRegistered(27)) {
+      Hive.registerAdapter(PlanDayAdapter());
+      debugPrint('✅ [V70-HIVE] PlanDayAdapter (Type 27) registered.');
+    }
+    if (Hive.isAdapterRegistered(28)) {
+       // Just check, already registered
+    } else {
+      Hive.registerAdapter(WeeklyPlanAdapter());
+      debugPrint('✅ [V70-HIVE] WeeklyPlanAdapter (Type 28) registered.');
+    }
+    
+    // 🛡️ SHOPPING LIST ADAPTER (V135 - Critical Fix)
+    if (!Hive.isAdapterRegistered(30)) {
+       Hive.registerAdapter(ShoppingListItemAdapter());
+       debugPrint('✅ [V70-HIVE] ShoppingListItemAdapter (Type 30) registered.');
     }
 
     try {

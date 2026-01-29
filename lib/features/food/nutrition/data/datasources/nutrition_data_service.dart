@@ -233,6 +233,15 @@ class NutritionDataService {
     return _foods.first;
   }
 
+  /// Retorna uma receita pelo ID
+  RecipeItem? getRecipeById(String id) {
+    try {
+      return _recipes.firstWhere((r) => r.id == id);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Retorna uma receita aleatória
   RecipeItem? getRandomRecipe({List<String>? restricoes}) {
     List<RecipeItem> available = restricoes != null && restricoes.isNotEmpty

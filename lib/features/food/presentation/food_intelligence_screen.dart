@@ -101,7 +101,7 @@ class _FoodIntelligenceScreenState extends ConsumerState<FoodIntelligenceScreen>
                         ),
                       ),
                     ),
-                    const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
                   ],
                 ),
 
@@ -120,7 +120,7 @@ class _FoodIntelligenceScreenState extends ConsumerState<FoodIntelligenceScreen>
                          ),
                        ),
                     ),
-                    const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+                    const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
                   ],
                 ),
 
@@ -133,7 +133,7 @@ class _FoodIntelligenceScreenState extends ConsumerState<FoodIntelligenceScreen>
                         child: _buildRecipesSection(l10n),
                       ),
                     ),
-                     const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+                     const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
                   ],
                 ),
               ],
@@ -223,7 +223,7 @@ class _FoodIntelligenceScreenState extends ConsumerState<FoodIntelligenceScreen>
         Text(
           _analysis.identidade.nome,
           style: GoogleFonts.poppins(
-            fontSize: 28,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: _activeThemeColor,
           ),
@@ -249,9 +249,33 @@ class _FoodIntelligenceScreenState extends ConsumerState<FoodIntelligenceScreen>
              ),
              const SizedBox(width: 12),
              Expanded(
-               child: Text(
-                 "${_analysis.macros.calorias100g} kcal/100g",
-                 style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.white70),
+               child: Wrap(
+                 crossAxisAlignment: WrapCrossAlignment.center,
+                 spacing: 8,
+                 runSpacing: 4,
+                 children: [
+                   Text(
+                     "${_analysis.macros.calorias100g} kcal/100g",
+                     style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.white70),
+                   ),
+                   if (widget.imageFile != null)
+                     Container(
+                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                       decoration: BoxDecoration(
+                         color: AppDesign.chefVisionPurple.withValues(alpha: 0.15),
+                         borderRadius: BorderRadius.circular(6),
+                         border: Border.all(color: AppDesign.chefVisionPurple.withValues(alpha: 0.5)),
+                       ),
+                       child: Text(
+                         l10n.chefVisionLabel,
+                         style: GoogleFonts.poppins(
+                           fontSize: 10,
+                           fontWeight: FontWeight.bold,
+                           color: AppDesign.chefVisionPurple,
+                         ),
+                       ),
+                     ),
+                 ],
                ),
              ),
           ],
@@ -552,6 +576,7 @@ class _FoodIntelligenceScreenState extends ConsumerState<FoodIntelligenceScreen>
               themeColor: _activeThemeColor,
               onDelete: () {}, // Read only here
               isExpansionTile: true,
+              initiallyExpanded: true,
            ),
         )
       ],

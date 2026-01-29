@@ -719,4 +719,155 @@ class FoodLocalizationsPt extends FoodLocalizations {
 
   @override
   String get foodDelete => 'Excluir';
+
+
+
+  @override
+  String get foodPeriodFortnight => 'Quinzena';
+
+  @override
+  String get foodPeriodMonth => 'Mês';
+
+
+
+  @override
+  String get foodGenerateFortnightAction => 'Gerar para quinzena';
+
+  @override
+  String get foodGenerateMonthAction => 'Gerar para um mês';
+
+  @override
+  String get foodPrepShort => 'Preparo';
+
+  @override
+  String get foodPdfFooter => 'ScanNut | Chef Vision | © 2026 Multiverso Digital';
+  
+  @override
+  String get foodNotAvailable => 'N/D';
+
+  @override
+  String shopItems(int count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+      
+    );
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString Itens';
+  }
+
+  @override
+  String get shopSyncPlan => 'Sincronizar com Plano';
+
+  @override
+  String get shopClearDone => 'Limpar Concluídos';
+
+  @override
+  String get shopEmptyTitle => 'Lista Vazia';
+
+  @override
+  String get shopEmptySubtitle => 'Adicione itens manualmente ou gere a partir do seu menu semanal.';
+
+  @override
+  String get shopGenerateFromMenu => 'Gerar do Menu';
+
+  @override
+  String get shopNoMenuError => 'Nenhum menu ativo para gerar lista.';
+
+  @override
+  String get shopReplaceTitle => 'Substituir Lista?';
+
+  @override
+  String get shopReplaceContent => 'A lista atual será substituída pelos ingredientes do menu da semana.';
+
+  @override
+  String get shopGenerateBtn => 'Gerar Lista';
+
+  @override
+  String get shopGeneratedSuccess => 'Lista gerada com sucesso!';
+
+  @override
+  String get shopAddItemTitle => 'Adicionar Item';
+
+  @override
+  String get shopItemName => 'Nome do item';
+
+  @override
+  String get shopItemQty => 'Quantidade';
+
+  @override
+  String get shopDefaultQty => '1 un';
+
+  @override
+  String get cancel => 'Cancelar';
+
+  @override
+  String get add => 'Adicionar';
+
+  @override
+  String get creatingProfile => 'Perfil básico criado automaticamente.';
+
+  @override
+  String get errorGeneric => 'Ops! Algo correu mal. Tente novamente.';
+
+  @override
+  String weeklyPlanTitle(String date) {
+    return 'Plano da Semana de $date';
+  }
+
+  @override
+  String daysPlanned(int count) {
+    return '$count dias planeados';
+  }
+
+  @override
+  String get delete => 'Eliminar';
+
+  @override
+  String get foodToday => 'HOJE';
+
+  @override
+  String get plateDefaultName => 'Prato Personalizado';
+
+  @override
+  String get ingredients => 'INGREDIENTES';
+
+  @override
+  String get createPlanButton => 'Criar Novo Plano';
+
+  @override
+  String get foodBiohackingTitle => 'BIOHACKING & PERFORMANCE';
+
+  @override
+  String get foodBodyBenefitsTitle => 'BENEFÍCIOS AO CORPO';
+
+  @override
+  String get foodBodyAttentionTitle => 'ATENÇÃO AO CORPO';
+
+  @override
+  String get foodNoCriticalPoints => ' - Nenhum ponto crítico.';
+
+  @override
+  String get foodSatietyLabel => 'Saciedade';
+
+  @override
+  String get foodFocusEnergyTitle => 'FOCO & ENERGIA';
+
+  @override
+  String get foodIdealMomentTitle => 'MOMENTO IDEAL';
+
+  @override
+  String get foodActionPlanTitle => 'PLANO DE AÇÃO NUTRICIONAL';
+
+  @override
+  String get foodSmartSwapTitle => 'SMART SWAP (TROCA INTELIGENTE)';
+
+  @override
+  String get foodChefVisionReportTitle => 'CHEF VISION: RELATÓRIO DE RECEITAS';
+
+  @override
+  String get foodInventoryDetectedTitle => 'INVENTÁRIO DETECTADO';
+
+  @override
+  String get chefVisionLabel => 'Chef Vision';
 }

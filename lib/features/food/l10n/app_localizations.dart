@@ -916,6 +916,8 @@ abstract class FoodLocalizations {
   /// In pt, this message translates to:
   /// **'Próximos 28 dias'**
   String get foodPeriod28Days;
+  String get foodPeriodFortnight;
+  String get foodPeriodMonth;
 
   /// No description provided for @foodObjectiveSectionTitle.
   ///
@@ -1001,6 +1003,9 @@ abstract class FoodLocalizations {
   /// **'Gerar próximos 28 dias'**
   String get foodGenerate28DaysAction;
 
+  String get foodGenerateFortnightAction;
+  String get foodGenerateMonthAction;
+
   /// No description provided for @foodCreateNewVersion.
   ///
   /// In pt, this message translates to:
@@ -1012,6 +1017,50 @@ abstract class FoodLocalizations {
   /// In pt, this message translates to:
   /// **'Substituir atual'**
   String get foodReplaceExisting;
+  
+  String get foodPrepShort;
+  String get foodPdfFooter;
+  String get foodNotAvailable;
+
+  String shopItems(int count);
+  String get shopSyncPlan;
+  String get shopClearDone;
+  String get shopEmptyTitle;
+  String get shopEmptySubtitle;
+  String get shopGenerateFromMenu;
+  String get shopNoMenuError;
+  String get shopReplaceTitle;
+  String get shopReplaceContent;
+  String get shopGenerateBtn;
+  String get shopGeneratedSuccess;
+  String get shopAddItemTitle;
+  String get shopItemName;
+  String get shopItemQty;
+  String get shopDefaultQty;
+  String get cancel;
+  String get add;
+
+  String get creatingProfile;
+  String get errorGeneric;
+  String weeklyPlanTitle(String date);
+  String daysPlanned(int count);
+  String get delete;
+  String get foodToday;
+  String get plateDefaultName;
+  String get ingredients;
+  String get createPlanButton;
+  
+  String get foodBiohackingTitle;
+  String get foodBodyBenefitsTitle;
+  String get foodBodyAttentionTitle;
+  String get foodNoCriticalPoints;
+  String get foodSatietyLabel;
+  String get foodFocusEnergyTitle;
+  String get foodIdealMomentTitle;
+  String get foodActionPlanTitle;
+  String get foodSmartSwapTitle;
+  String get foodChefVisionReportTitle;
+  String get foodInventoryDetectedTitle;
 
   /// No description provided for @foodRedoPlanPrompt.
   ///
@@ -1486,6 +1535,12 @@ abstract class FoodLocalizations {
   /// In pt, this message translates to:
   /// **'Excluir'**
   String get foodDelete;
+  
+  /// No description provided for @chefVisionLabel.
+  ///
+  /// In pt, this message translates to:
+  /// **'Chef Vision'**
+  String get chefVisionLabel;
 }
 
 class _FoodLocalizationsDelegate extends LocalizationsDelegate<FoodLocalizations> {

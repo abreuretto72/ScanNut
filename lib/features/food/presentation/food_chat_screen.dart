@@ -14,6 +14,7 @@ import 'package:scannut/l10n/app_localizations.dart';
 import 'package:scannut/features/food/l10n/app_localizations.dart';
 import '../../../../core/theme/app_design.dart';
 import '../../../../core/widgets/pdf_preview_screen.dart';
+import '../../../../core/services/base_pdf_helper.dart';
 import '../services/food_ai_chat_service.dart';
 
 class FoodChatScreen extends StatefulWidget {
@@ -37,6 +38,8 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
   // Mensagens: {'role': 'user'|'ai', 'text': '...'}
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
+
+
 
   @override
   void initState() {
@@ -163,6 +166,42 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
     });
   }
 
+  Future<void> _confirmClearChat() async {
+    final foodL10n = FoodLocalizations.of(context);
+    if (foodL10n == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: Text(foodL10n.foodChatClear,
+            style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text(foodL10n.foodDeleteConfirmContent,
+            style: GoogleFonts.poppins(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(foodL10n.foodCancel,
+                style: GoogleFonts.poppins(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(foodL10n.foodDelete,
+                style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      _clearChat();
+    }
+  }
+
   void _clearChat() {
     _aiService.clearHistory();
     setState(() {
@@ -192,60 +231,87 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
   }
 
   Future<Uint8List> _generatePdf(PdfPageFormat format, FoodLocalizations l10n, String date) async {
+    debugPrint('📄 [NutriChatPdf] Iniciando com ${_messages.length} mensagens');
     final pdf = pw.Document();
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: format,
-        margin: const pw.EdgeInsets.all(32),
-        footer: (context) => _buildPdfFooter(context),
-        header: (context) => _buildPdfHeader(l10n, date),
-        build: (context) => [
-          pw.SizedBox(height: 10),
-          ..._messages.map((m) {
-            final isUser = m['role'] == 'user';
-            return pw.Container(
-              margin: const pw.EdgeInsets.only(bottom: 10),
-              alignment: isUser ? pw.Alignment.centerRight : pw.Alignment.centerLeft,
-              child: pw.Container(
-                constraints: const pw.BoxConstraints(maxWidth: 400),
-                padding: const pw.EdgeInsets.all(10),
-                decoration: pw.BoxDecoration(
-                  color: isUser ? PdfColors.orange100 : PdfColors.grey100,
-                  borderRadius: pw.BorderRadius.circular(8),
-                  border: pw.Border.all(color: isUser ? PdfColors.orange300 : PdfColors.grey300),
-                ),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text(
-                      isUser ? "Você" : "NutriChat IA",
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.grey700),
-                    ),
-                    pw.SizedBox(height: 4),
-                    pw.Text(
-                      m['text'] ?? '',
-                      style: const pw.TextStyle(fontSize: 10),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-          pw.SizedBox(height: 20),
-          pw.Divider(color: PdfColors.grey300),
-          pw.Center(
-            child: pw.Text(
-              l10n.foodChatDisclaimer,
-              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey500),
-              textAlign: pw.TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
+    try {
+      final font = await PdfGoogleFonts.robotoRegular();
+      final fontBold = await PdfGoogleFonts.robotoBold();
+      final theme = pw.ThemeData.withFont(base: font, bold: fontBold);
 
-    return pdf.save();
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: format,
+          maxPages: 20,
+          margin: const pw.EdgeInsets.all(32),
+          theme: theme,
+          footer: (context) => _buildPdfFooter(context),
+          header: (context) => _buildPdfHeader(l10n, date),
+          build: (context) {
+            return _messages.expand((m) {
+              debugPrint('🔍 [PdfItem] Processando mensagem ID: ${m.hashCode} | Tamanho: ${m['text']?.length ?? 0}');
+              final isUser = m['role'] == 'user';
+              final roleLabel = isUser ? "Você" : "NutriChat IA";
+              final color = isUser ? PdfColors.orange700 : PdfColors.green700;
+              final isChefVision = m['source'] == 'AI_SCAN';
+              
+              final paragraphs = BasePdfHelper.safeSplitText(m['text'] ?? '');
+              final List<pw.Widget> widgets = [];
+
+              // 1. Cabeçalho da Mensagem (Role + Time + Label)
+              widgets.add(
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(bottom: 4),
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text(roleLabel, 
+                         style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: color)),
+                      pw.SizedBox(width: 5),
+                      pw.Text(DateFormat('HH:mm').format(DateTime.now()), 
+                         style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
+                      if (isChefVision) ...[
+                         pw.SizedBox(width: 5),
+                         pw.Container(
+                           padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                           decoration: pw.BoxDecoration(
+                             color: PdfColor.fromInt(0xFF9C27B0), // Purple
+                             borderRadius: pw.BorderRadius.all(pw.Radius.circular(2)),
+                           ),
+                           child: pw.Text("Chef Vision", style: pw.TextStyle(color: PdfColors.white, fontSize: 6, fontWeight: pw.FontWeight.bold))
+                         )
+                      ]
+                    ]
+                  )
+                )
+              );
+
+              // 2. Fragmentação em Parágrafos (Quebra o bloco gigante)
+              for (var para in paragraphs) {
+                if (para.trim().isNotEmpty) {
+                   widgets.add(
+                     pw.Paragraph(
+                        text: para.trim(),
+                        style: const pw.TextStyle(fontSize: 10, lineSpacing: 1.2),
+                        margin: const pw.EdgeInsets.only(bottom: 6), // Espaço entre parágrafos
+                     )
+                   );
+                }
+              }
+              
+              // 3. Espaçamento final da mensagem
+              widgets.add(pw.SizedBox(height: 12));
+
+              return widgets;
+            }).toList();
+          },
+        ),
+      );
+      return pdf.save();
+    } catch (e) {
+      debugPrint('❌ [PdfFatal] Erro NutriChat: $e');
+      rethrow;
+    }
   }
 
   pw.Widget _buildPdfHeader(FoodLocalizations l10n, String date) {
@@ -297,7 +363,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.delete_sweep),
-            onPressed: _clearChat,
+            onPressed: _confirmClearChat,
             tooltip: foodL10n.foodChatClear,
           ),
         ],
@@ -308,7 +374,7 @@ class _FoodChatScreenState extends State<FoodChatScreen> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16), // Padding seguro
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120), // 🛡️ Padding Seguro (Samsung)
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];

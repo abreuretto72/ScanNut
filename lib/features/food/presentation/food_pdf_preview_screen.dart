@@ -26,19 +26,23 @@ class FoodPdfPreviewScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: PdfPreview(
-        build: (format) async {
-          if (buildPdf != null) {
-            return buildPdf!(format);
-          } else if (pdfPath != null) {
-            return File(pdfPath!).readAsBytes();
-          }
-          return Uint8List(0);
-        },
-        allowPrinting: true,
-        allowSharing: true,
-        canChangeOrientation: false,
-        canChangePageFormat: false,
+      body: Padding(
+        padding: const EdgeInsets.only(bottom: 120), // 🛡️ Fix: Safe Area for Samsung A256E
+        child: PdfPreview(
+          build: (format) async {
+             if (buildPdf != null) {
+               return buildPdf!(format);
+             } else if (pdfPath != null) {
+               return File(pdfPath!).readAsBytes();
+             }
+             return Uint8List(0);
+          },
+          allowPrinting: true,
+          allowSharing: true,
+          canChangeOrientation: false,
+          canChangePageFormat: false,
+          scrollViewDecoration: const BoxDecoration(color: Colors.white),
+        ),
       ),
     );
   }

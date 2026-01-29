@@ -9,6 +9,7 @@ class FoodRecipeCard extends StatelessWidget {
   final Color themeColor;
   final VoidCallback onDelete;
   final bool isExpansionTile;
+  final bool initiallyExpanded;
 
   const FoodRecipeCard({
     super.key,
@@ -17,6 +18,7 @@ class FoodRecipeCard extends StatelessWidget {
     required this.themeColor,
     required this.onDelete,
     this.isExpansionTile = true,
+    this.initiallyExpanded = false,
   });
 
   @override
@@ -51,6 +53,7 @@ class FoodRecipeCard extends StatelessWidget {
             side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: ExpansionTile(
+            initiallyExpanded: initiallyExpanded,
             title: Text(safeName, 
               style: TextStyle(fontWeight: FontWeight.bold, color: themeColor),
               maxLines: 2,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +18,7 @@ import '../widgets/edit_meal_dialog.dart';
 import 'package:scannut/features/food/services/food_export_service.dart';
 import 'package:scannut/core/widgets/pdf_preview_screen.dart';
 import 'package:scannut/core/widgets/pdf_action_button.dart';
-import 'package:scannut/l10n/app_localizations.dart';
+// import 'package:scannut/l10n/app_localizations.dart';
 import 'package:scannut/features/food/l10n/app_localizations.dart';
 import 'package:scannut/core/utils/translation_mapper.dart';
 import 'package:scannut/core/widgets/pro_access_wrapper.dart';
@@ -78,7 +79,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
   }
 
   Future<void> _showRedoOptions() async {
-    final l10n = AppLocalizations.of(context)!;
+    // final l10n = AppLocalizations.of(context)!; // Removed
     final foodL10n = FoodLocalizations.of(context)!;
     final plan = ref.read(currentWeekPlanProvider);
     if (plan == null) return;
@@ -95,33 +96,33 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.refresh, color: AppDesign.accent),
-              title: Text(foodL10n.foodRedoPlanAction,
+              title: Text(foodL10n.foodRedoPlanAction, // "Refazer esta semana" (Weekly)
                   style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () {
                 Navigator.pop(context);
                 _showCreateMenuDialog(
-                    preferredPeriodId: 'this_week'); // Always show filter
+                    preferredPeriodId: 'weekly'); 
               },
             ),
             ListTile(
-              leading: const Icon(Icons.skip_next, color: AppDesign.primary),
-              title: Text(foodL10n.foodGenerateNextWeekAction,
+              leading: const Icon(Icons.calendar_view_week, color: AppDesign.primary),
+              title: Text(foodL10n.foodGenerateFortnightAction, // "Gerar Quinzena"
                   style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () {
                 Navigator.pop(context);
                 _showCreateMenuDialog(
-                    preferredPeriodId: 'next_week'); // Always show filter
+                    preferredPeriodId: 'biweekly');
               },
             ),
             ListTile(
               leading:
                   const Icon(Icons.calendar_month, color: AppDesign.warning),
-              title: Text(foodL10n.foodGenerate28DaysAction,
+              title: Text(foodL10n.foodGenerateMonthAction, // "Gerar Mês"
                   style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
               onTap: () {
                 Navigator.pop(context);
                 _showCreateMenuDialog(
-                    preferredPeriodId: 'month'); // Always show filter
+                    preferredPeriodId: 'monthly'); // 30 days
               },
             ),
             const SizedBox(height: 20),
@@ -132,7 +133,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
   }
 
   Future<void> _generatePDF(WeeklyPlan plan) async {
-    final l10n = AppLocalizations.of(context)!;
+    // final l10n = AppLocalizations.of(context)!; // Removed
     final foodL10n = FoodLocalizations.of(context)!;
     final String goal = plan.objective == 'emagrecimento'
         ? foodL10n.foodObjWeightLoss
@@ -159,7 +160,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
   }
 
   Future<void> _showCreateMenuDialog({String? preferredPeriodId}) async {
-    final l10n = AppLocalizations.of(context)!;
+    // final l10n = AppLocalizations.of(context)!; // Removed
     final foodL10n = FoodLocalizations.of(context)!;
     try {
       debugPrint('[CriarCardapio] Botão tocado');
@@ -191,7 +192,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
       debugPrint('[CriarCardapio] Perfil lido');
 
-      debugPrint('[CriarCardapio] Abrindo showDialog...');
+      debugPrint('🔍 [MenuGen] Abrindo filtros de nutrição...');
       final result = await showDialog<MenuCreationResult>(
         context: context,
         builder: (context) => CreateMenuDialog(
@@ -200,9 +201,16 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           initialSelectedPeriodId: preferredPeriodId ?? lastPeriodId,
         ),
       );
-      debugPrint('[CriarCardapio] showDialog retornou');
+      
+      if (result == null) {
+        debugPrint('⚠️ [MenuGen] Geração cancelada: filtros vazios ou diálogo dispensado');
+        return;
+      }
+      
+      debugPrint('📊 [MenuGen] Filtros selecionados: params=${result.params.periodType}, obj=${result.params.objective}, customDays=${result.params.customDays}');
+      debugPrint('🚀 [MenuGen] Iniciando geração com filtros: ${result.params.toString()}');
 
-      if (result != null && mounted) {
+      if (mounted) {
         final params = result.params;
 
         // Persist last config
@@ -266,7 +274,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(l10n.creatingProfile),
+                  content: Text(foodL10n.creatingProfile),
                   backgroundColor: AppDesign.warning,
                   duration: const Duration(seconds: 2),
                 ),
@@ -297,7 +305,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${l10n.errorGeneric} $e'),
+                content: Text('${foodL10n.errorGeneric} $e'),
                 backgroundColor: AppDesign.error,
               ),
             );
@@ -306,13 +314,37 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           if (mounted) setState(() => _isLoading = false);
         }
       }
-    } catch (e) {
+
+    } catch (e, stack) {
       debugPrint('[CriarCardapio] Erro crítico: $e');
+      debugPrint('📚 [STACKTRACE]: $stack');
+      
       if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+        
+        // 🛡️ LEI DE FERRO: Erro Técnico em Vermelho (SnackBar + State)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro: $e'),
-            backgroundColor: Colors.red,
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(foodL10n.foodPlanError,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('$e', style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+            backgroundColor: AppDesign.error,
+            duration: const Duration(seconds: 10), // Increased duration
+            action: SnackBarAction(
+              label: 'COPIAR',
+              textColor: Colors.white,
+              onPressed: () =>
+                  Clipboard.setData(ClipboardData(text: e.toString())),
+            ),
           ),
         );
       }
@@ -320,7 +352,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
   }
 
   void _showHistory() {
-    final l10n = AppLocalizations.of(context)!;
+    // final l10n = AppLocalizations.of(context)!; // Removed
     final foodL10n = FoodLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
@@ -390,7 +422,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  l10n.weeklyPlanTitle(
+                                  foodL10n.weeklyPlanTitle(
                                     DateFormat('dd/MM', locale)
                                         .format(plan.weekStartDate),
                                   ),
@@ -420,7 +452,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                             ],
                           ),
                           subtitle: Text(
-                            '${plan.periodType == '28days' ? '28 dias' : l10n.daysPlanned(plan.days.length)} | ${plan.objective == 'emagrecimento' ? foodL10n.foodObjWeightLoss : foodL10n.foodObjMaintenance} | ${foodL10n.foodVersionLabel} ${plan.version}',
+                            '${plan.periodType == '28days' ? '28 dias' : foodL10n.daysPlanned(plan.days.length)} | ${plan.objective == 'emagrecimento' ? foodL10n.foodObjWeightLoss : foodL10n.foodObjMaintenance} | ${foodL10n.foodVersionLabel} ${plan.version}',
                             style: GoogleFonts.poppins(
                               color: AppDesign.textSecondaryDark,
                               fontSize: 11,
@@ -449,11 +481,11 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                                         TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(context, false),
-                                            child: Text(l10n.cancel)),
+                                            child: Text(foodL10n.cancel)),
                                         TextButton(
                                             onPressed: () =>
                                                 Navigator.pop(context, true),
-                                            child: Text(l10n.commonDelete,
+                                            child: Text(foodL10n.delete,
                                                 style: const TextStyle(
                                                     color: AppDesign.error))),
                                       ],
@@ -504,7 +536,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    // final l10n = AppLocalizations.of(context)!; // Removed
     final foodL10n = FoodLocalizations.of(context)!;
     if (_isLoading) {
       return Center(
@@ -524,33 +556,58 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: AppDesign.error),
-            const SizedBox(height: 16),
-            Text(
-              foodL10n.foodPlanError,
-              style: GoogleFonts.poppins(
-                  color: AppDesign.textPrimaryDark, fontSize: 18),
+      return SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 120), // 🛡️ IRON LAW: Footer Protection
+            child: Card(
+              color: AppDesign.error.withValues(alpha: 0.1),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: AppDesign.error)),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 64, color: AppDesign.error),
+                    const SizedBox(height: 16),
+                    Text(
+                      foodL10n.foodPlanError,
+                      style: GoogleFonts.poppins(
+                          color: AppDesign.error, fontSize: 18, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.black12,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SelectableText( // Allow copying
+                        _error!,
+                        style: GoogleFonts.sourceCodePro( // Technical font
+                            color: AppDesign.textSecondaryDark, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _loadPlan,
+                      icon: const Icon(Icons.refresh, color: AppDesign.backgroundDark),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppDesign.accent,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                      label: Text(foodL10n.foodTryAgain,
+                          style: GoogleFonts.poppins(color: AppDesign.backgroundDark, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: GoogleFonts.poppins(
-                  color: AppDesign.textSecondaryDark, fontSize: 12),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadPlan,
-              style:
-                  ElevatedButton.styleFrom(backgroundColor: AppDesign.accent),
-              child: Text(foodL10n.foodTryAgain,
-                  style: GoogleFonts.poppins(color: AppDesign.backgroundDark)),
-            ),
-          ],
+          ),
         ),
       );
     }
@@ -579,7 +636,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                 style: ElevatedButton.styleFrom(
                     backgroundColor:
                         AppDesign.foodOrange), // Synced with Footer Icon
-                child: Text(l10n.createPlanButton,
+                child: Text(foodL10n.createPlanButton,
                     style: GoogleFonts.poppins(
                         color: Colors.white, fontWeight: FontWeight.bold)),
               ),
@@ -590,8 +647,8 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     }
 
     return ProAccessWrapper(
-      featureName: l10n.featureMenuPlanTitle,
-      featureDescription: l10n.featureMenuPlanDesc,
+      featureName: foodL10n.foodMenuPlanTitle,
+      featureDescription: foodL10n.foodMenuPlanDesc,
       featureIcon: Icons.calendar_month,
       child: Column(
         children: [
@@ -643,7 +700,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           // Lista de dias
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
               itemCount: plan.days.length,
               itemBuilder: (context, index) {
                 final day = plan.days[index];
@@ -660,7 +717,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     if (plan.dicasPreparo == null || plan.dicasPreparo!.isEmpty) {
       return const SizedBox.shrink();
     }
-    final l10n = AppLocalizations.of(context)!;
+    // final l10n = AppLocalizations.of(context)!; // Removed
     final foodL10n = FoodLocalizations.of(context)!;
     final localizedTips = _getLocalizedTips(plan.dicasPreparo, foodL10n);
 
@@ -801,7 +858,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     final locale = Localizations.localeOf(context).toString();
     final dayName = DateFormat('EEEE', locale).format(day.date);
     final dayNumber = DateFormat('dd/MM', locale).format(day.date);
-    final l10n = AppLocalizations.of(context)!;
+    final foodL10n = FoodLocalizations.of(context)!;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -837,7 +894,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        l10n.todayLabel,
+                        foodL10n.foodToday,
                         style: GoogleFonts.poppins(
                           color: AppDesign.backgroundDark,
                           fontSize: 10,
@@ -880,7 +937,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
   }
 
   Widget _buildMealChip(Meal meal) {
-    final l10n = AppLocalizations.of(context)!;
+    final foodL10n = FoodLocalizations.of(context)!;
     final icon = _getMealIcon(meal.tipo);
     final color = _getMealColor(meal.tipo);
 
@@ -897,7 +954,7 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
           Icon(icon, size: 16, color: color),
           const SizedBox(width: 6),
           Text(
-            _getMealLabel(meal.tipo, l10n),
+            _getMealLabel(meal.tipo, foodL10n),
             style: GoogleFonts.poppins(
               color: color,
               fontSize: 12,
@@ -910,6 +967,10 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
   }
 
   void _openDayDetails(PlanDay day) {
+    debugPrint('🔍 [GestaoNav] Abrindo Dia: ${day.date}');
+    debugPrint('🍽️ [GestaoNav] Refeições no objeto: ${day.meals.length}');
+    debugPrint('📦 [GestaoNav] Keys das Refeições: ${day.meals.map((m) => m.key).toList()}');
+    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -955,16 +1016,16 @@ class _WeeklyPlanScreenState extends ConsumerState<WeeklyPlanScreen> {
     }
   }
 
-  String _getMealLabel(String tipo, AppLocalizations l10n) {
+  String _getMealLabel(String tipo, FoodLocalizations foodL10n) {
     switch (tipo) {
       case 'cafe':
-        return l10n.mealBreakfast;
+        return foodL10n.foodMealBreakfast;
       case 'almoco':
-        return l10n.mealLunch;
+        return foodL10n.foodMealLunch;
       case 'lanche':
-        return l10n.mealSnack;
+        return foodL10n.foodMealSnack;
       case 'jantar':
-        return l10n.mealDinner;
+        return foodL10n.foodMealDinner;
       default:
         return tipo;
     }
@@ -979,6 +1040,8 @@ class DayPlanDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('📥 [DayDetails] Recebido: ${day.meals.length} refeições (Constructor)');
+    
     final locale = Localizations.localeOf(context).toString();
     // Watch for changes to the plan to ensure we have the latest version of the day
     final plan = ref.watch(currentWeekPlanProvider);
@@ -993,35 +1056,78 @@ class DayPlanDetailsScreen extends ConsumerWidget {
         ) ??
         day;
 
+    // 🛡️ REQ V135: Data Audit & Empty State Protection
+    if (currentDay.meals.isEmpty) {
+        debugPrint('🗄️ [HiveAudit] Keys no Box WeeklyPlan: ${Hive.box<WeeklyPlan>('nutrition_weekly_plans').keys}');
+        debugPrint('❌ [DayDetails] CurrentDay meals empty! Key: ${currentDay.key} | Date: ${currentDay.date}');
+    }
+
     final dayName =
         DateFormat('EEEE, dd/MM/yyyy', locale).format(currentDay.date);
-    final l10n = AppLocalizations.of(context)!;
+
     final foodL10n = FoodLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppDesign.backgroundDark,
-      appBar: AppBar(
-        backgroundColor: AppDesign.surfaceDark,
-        title: Text(
-          dayName,
-          style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
-        ),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: currentDay.meals.length,
-        itemBuilder: (context, index) {
-          final meal = currentDay.meals[index];
-          return _buildMealCard(context, ref, meal, l10n, foodL10n, currentDay);
-        },
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            backgroundColor: AppDesign.surfaceDark,
+            title: Text(
+              dayName,
+              style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark),
+            ),
+            floating: true,
+            pinned: true,
+            elevation: 0,
+          ),
+          if (currentDay.meals.isEmpty)
+             SliverToBoxAdapter(
+                 child: Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                        color: AppDesign.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppDesign.error)
+                    ),
+                    child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                            Icon(Icons.error_outline, size: 48, color: AppDesign.error),
+                            const SizedBox(height: 16),
+                            Text('Nenhuma refeição encontrada para este dia',
+                                style: GoogleFonts.poppins(color: AppDesign.error, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center),
+                             const SizedBox(height: 8),
+                            Text('Verifique o log para detalhes técnicos.',
+                                style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark, fontSize: 12),
+                                textAlign: TextAlign.center)
+                        ]
+                    )
+                 )
+             ),
+          if (currentDay.meals.isNotEmpty)
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final meal = currentDay.meals[index];
+                  // 🛡️ Safe Meal Access and Render
+                  return _buildMealCard(context, ref, meal, foodL10n, currentDay);
+                },
+                childCount: currentDay.meals.length,
+              ),
+            ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 120)), // 🛡️ Iron Law
+        ],
       ),
     );
   }
 
   Widget _buildMealCard(BuildContext context, WidgetRef ref, Meal meal,
-      AppLocalizations l10n, FoodLocalizations foodL10n, PlanDay currentDay) {
+      FoodLocalizations foodL10n, PlanDay currentDay) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: AppDesign.surfaceDark,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -1042,7 +1148,7 @@ class DayPlanDetailsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _getMealLabel(meal.tipo, l10n),
+                        _getMealLabel(meal.tipo, foodL10n),
                         style: GoogleFonts.poppins(
                           color: AppDesign.textSecondaryDark,
                           fontSize: 12,
@@ -1053,7 +1159,7 @@ class DayPlanDetailsScreen extends ConsumerWidget {
                             meal.nomePrato ??
                                 (meal.itens.isNotEmpty
                                     ? meal.itens.first.nome
-                                    : l10n.mealDefault),
+                                    : foodL10n.plateDefaultName),
                             foodL10n),
                         style: GoogleFonts.poppins(
                           color: AppDesign.textPrimaryDark,
@@ -1075,7 +1181,9 @@ class DayPlanDetailsScreen extends ConsumerWidget {
             if (meal.observacoes.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                meal.observacoes,
+                meal.observacoes.contains('|||')
+                    ? meal.observacoes.split('|||')[0].trim()
+                    : meal.observacoes,
                 style: GoogleFonts.poppins(
                     color: Colors.white70,
                     fontSize: 12,
@@ -1086,7 +1194,7 @@ class DayPlanDetailsScreen extends ConsumerWidget {
             const Divider(color: Colors.white10),
             const SizedBox(height: 8),
             Text(
-              l10n.ingredientsTitle,
+              foodL10n.ingredients,
               style: GoogleFonts.poppins(
                 color: Colors.white30,
                 fontSize: 10,
@@ -1098,27 +1206,84 @@ class DayPlanDetailsScreen extends ConsumerWidget {
             ...meal.itens.map((item) => Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.circle,
-                          size: 6,
-                          color:
-                              _getMealColor(meal.tipo).withValues(alpha: 0.5)),
-                      const SizedBox(width: 10),
+                      // 🛡️ LAYOUT FIX: Wrapped in Expanded to constrain width
                       Expanded(
-                        child: Text(
-                          TranslationMapper.localizeFoodName(item.nome, foodL10n),
-                          style: GoogleFonts.poppins(
-                              color: Colors.white, fontSize: 14),
+                        child: Row(
+                          children: [
+                            Icon(Icons.circle,
+                                size: 6,
+                                color: _getMealColor(meal.tipo)
+                                    .withValues(alpha: 0.5)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                TranslationMapper.localizeFoodName(
+                                    item.nome, foodL10n),
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white, fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Text(
-                        item.quantidadeTexto,
+                        item.quantidadeTexto.replaceAll('Ver detalhes', ''),
                         style: GoogleFonts.poppins(
-                            color: Colors.white54, fontSize: 12),
+                            color: AppDesign.foodOrange,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 )),
+
+            // 🍳 MODO DE PREPARO (NOVO V135 - UNIVERSAL)
+            Consumer(builder: (context, ref, _) {
+                String instructions = '';
+                 
+                // 1. Try baked instructions (Priority V135)
+                if (meal.observacoes.contains('|||')) {
+                   instructions = meal.observacoes.split('|||')[1].trim();
+                } 
+                // 2. Fallback to Catalog (Legacy/Recovery)
+                else if (meal.recipeId != null) {
+                   final ds = ref.read(nutritionDataProvider);
+                   final receita = ds.getRecipeById(meal.recipeId!);
+                   if (receita != null) instructions = receita.modoPreparo;
+                }
+
+                if (instructions.isEmpty) return const SizedBox.shrink();
+
+                return Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ExpansionTile(
+                    title: Text(foodL10n.foodInstructionsLabel, 
+                        style: GoogleFonts.poppins(
+                          color: AppDesign.foodOrange,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
+                    iconColor: AppDesign.foodOrange,
+                    collapsedIconColor: AppDesign.textSecondaryDark,
+                    tilePadding: EdgeInsets.zero,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          instructions,
+                          style: GoogleFonts.poppins(
+                              color: AppDesign.textSecondaryDark, 
+                              fontSize: 13,
+                              height: 1.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -1182,16 +1347,16 @@ class DayPlanDetailsScreen extends ConsumerWidget {
     }
   }
 
-  String _getMealLabel(String tipo, AppLocalizations l10n) {
+  String _getMealLabel(String tipo, FoodLocalizations foodL10n) {
     switch (tipo) {
       case 'cafe':
-        return l10n.mealBreakfast;
+        return foodL10n.foodMealBreakfast;
       case 'almoco':
-        return l10n.mealLunch;
+        return foodL10n.foodMealLunch;
       case 'lanche':
-        return l10n.mealSnack;
+        return foodL10n.foodMealSnack;
       case 'jantar':
-        return l10n.mealDinner;
+        return foodL10n.foodMealDinner;
       default:
         return tipo;
     }

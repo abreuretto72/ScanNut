@@ -15,6 +15,8 @@ import '../nutrition/data/models/shopping_list_model.dart';
 import '../models/food_pdf_labels.dart';
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart' show WidgetsFlutterBinding; // 🛡️ Fix: Import for ensureInitialized
+
 /// Refined Service for Food-specific PDF exports.
 /// Part of the Micro-Apps strategy and Iron Law of isolation.
 class FoodExportService {
@@ -56,8 +58,37 @@ class FoodExportService {
     required List<NutritionHistoryItem> items,
     required FoodLocalizations strings,
   }) async {
+    WidgetsFlutterBinding.ensureInitialized(); // 🛡️ Fix: Ensure AssetManifest for fonts
     final pdf = pw.Document();
     final String timestampStr = DateFormat('dd/MM/yyyy HH:mm', strings.localeName).format(DateTime.now());
+
+    final List<pw.ImageProvider?> loadedImages = [];
+    debugPrint('🔍 [PDF Debug] Iniciando carga de imagens. Total itens: ${items.length}');
+    
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      debugPrint('🔍 [PDF Debug] Item $i: ${item.foodName} | Path: ${item.imagePath}');
+
+      if (item.imagePath != null && item.imagePath!.isNotEmpty) {
+        try {
+          final file = File(item.imagePath!);
+          if (await file.exists()) {
+            final bytes = await file.readAsBytes();
+            debugPrint('✅ [PDF Debug] Imagem carregada: ${bytes.lengthInBytes} bytes');
+            loadedImages.add(pw.MemoryImage(bytes));
+          } else {
+            debugPrint('❌ [PDF Debug] Arquivo não existe no caminho: ${item.imagePath}');
+            loadedImages.add(null);
+          }
+        } catch (e) {
+          debugPrint('⚠️ [PDF Debug] Exceção ao ler arquivo: $e');
+          loadedImages.add(null);
+        }
+      } else {
+        debugPrint('ℹ️ [PDF Debug] ImagePath nulo ou vazio para este item.');
+        loadedImages.add(null);
+      }
+    }
 
     pdf.addPage(
       pw.MultiPage(
@@ -68,19 +99,45 @@ class FoodExportService {
             color: themeColor, appName: 'ScanNut'),
         footer: (context) => _buildFooter(context, strings: strings),
         build: (context) {
-           return items.map((item) {
+           return items.asMap().entries.map((e) {
+             final index = e.key;
+             final item = e.value;
+             final image = loadedImages[index];
+
              return pw.Container(
                margin: const pw.EdgeInsets.only(bottom: 10),
                padding: const pw.EdgeInsets.all(10),
-               decoration: pw.BoxDecoration(
-                 border: pw.Border.all(color: PdfColors.grey400),
-                 borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+               decoration: const pw.BoxDecoration(
+                 border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5)),
                ),
                child: pw.Row(
-                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                  children: [
-                    pw.Text(item.foodName ?? 'N/A', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                    pw.Text(DateFormat('dd/MM/yyyy').format(item.timestamp), style: const pw.TextStyle(color: PdfColors.grey600)),
+                    // Imagem (Restored)
+                    pw.Container(
+                      width: 50, height: 50,
+                      margin: const pw.EdgeInsets.only(right: 12),
+                      decoration: pw.BoxDecoration(
+                        color: PdfColors.grey200,
+                        borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+                        image: image != null ? pw.DecorationImage(image: image, fit: pw.BoxFit.cover) : null,
+                      ),
+                    ),
+                    
+                    // Info
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(item.foodName ?? strings.foodNotAvailable, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                          pw.SizedBox(height: 4),
+                          pw.Text(DateFormat('dd/MM/yyyy HH:mm').format(item.timestamp), style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                        ]
+                      )
+                    ),
+
+                    // Calories
+                    pw.Text('${item.calories} kcal', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: themeColor)),
                  ]
                )
              );
@@ -138,6 +195,7 @@ class FoodExportService {
   Future<pw.Document> generateFullAnalysisPdf(
       FoodAnalysisModel analysis, FoodPdfLabels labels, {File? imageFile}) async {
     final pdf = pw.Document();
+    WidgetsFlutterBinding.ensureInitialized(); // 🛡️ Samsung Fix: Ensure AssetManifest
     
     // 🛡️ IRON LAW: Load font to prevent missing character errors
     final font = await PdfGoogleFonts.robotoRegular();
@@ -165,9 +223,16 @@ class FoodExportService {
     final String fats = analysis.macros.gordurasPerfil;
 
     pw.MemoryImage? foodImage;
-    if (imageFile != null && await imageFile.exists()) {
-      final imageBytes = await imageFile.readAsBytes();
-      foodImage = pw.MemoryImage(imageBytes);
+    if (imageFile != null) {
+      try {
+        if (await imageFile.exists()) {
+           final imageBytes = await imageFile.readAsBytes();
+           foodImage = pw.MemoryImage(imageBytes);
+        }
+      } catch (e) {
+        debugPrint('⚠️ [PDF Blindagem] Erro ao ler imagem principal: $e');
+        foodImage = null;
+      }
     }
 
     pdf.addPage(
@@ -205,7 +270,7 @@ class FoodExportService {
                 pw.Text('${labels.qty}: $weight',
                     style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
               if (method != null)
-                pw.Text('Preparo: $method',
+                pw.Text('${labels.strings!.foodPrepShort}: $method',
                     style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
             ]))
           ]),
@@ -234,12 +299,12 @@ class FoodExportService {
                 border: pw.Border.all(color: PdfColors.grey300),
               ),
               child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                pw.Text('VEREDITO DA IA:',
+                pw.Text(labels.strings!.foodVerdict.toUpperCase(),
                     style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
                 pw.Text(analysis.analise.vereditoIa, style: const pw.TextStyle(fontSize: 10)),
                 if (analysis.analise.pontosPositivos.isNotEmpty) ...[
                   pw.SizedBox(height: 8),
-                  pw.Text('PONTOS POSITIVOS:',
+                  pw.Text(labels.strings!.foodPros.toUpperCase(),
                       style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.green700)),
                   ...analysis.analise.pontosPositivos.map((e) => _buildSafeBullet(e, color: PdfColors.green700)),
                 ],
@@ -254,18 +319,18 @@ class FoodExportService {
           pw.SizedBox(height: 20),
 
           // 4. PERFORMANCE & BIOHACKING
-          BasePdfHelper.buildSectionHeader('BIOHACKING & PERFORMANCE', color: themeColor),
+          BasePdfHelper.buildSectionHeader(labels.strings!.foodBiohackingTitle, color: themeColor),
           pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
             pw.Expanded(
                 child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-              pw.Text('BENEFÍCIOS AO CORPO:',
+              pw.Text(labels.strings!.foodBodyBenefitsTitle,
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
               ...analysis.performance.pontosPositivosCorpo.map((e) => _buildSafeBullet(e, color: themeColor)),
               pw.SizedBox(height: 10),
-              pw.Text('ATENÇÃO AO CORPO:',
+              pw.Text(labels.strings!.foodBodyAttentionTitle,
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
               if (analysis.performance.pontosAtencaoCorpo.isEmpty)
-                pw.Text(' - Nenhum ponto crítico.',
+                pw.Text(labels.strings!.foodNoCriticalPoints,
                     style: pw.TextStyle(fontSize: 9, fontStyle: pw.FontStyle.italic))
               else
                 ...analysis.performance.pontosAtencaoCorpo
@@ -274,13 +339,13 @@ class FoodExportService {
             pw.SizedBox(width: 15),
             pw.Expanded(
                 child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-              BasePdfHelper.buildIndicator('Saciedade', '${analysis.performance.indiceSaciedade}/10', PdfColors.teal),
+              BasePdfHelper.buildIndicator(labels.strings!.foodSatietyLabel, '${analysis.performance.indiceSaciedade}/10', PdfColors.teal),
               pw.SizedBox(height: 10),
-              pw.Text('FOCO & ENERGIA:',
+              pw.Text(labels.strings!.foodFocusEnergyTitle,
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
               pw.Text(analysis.performance.impactoFocoEnergia, style: const pw.TextStyle(fontSize: 9)),
               pw.SizedBox(height: 10),
-              pw.Text('MOMENTO IDEAL:',
+              pw.Text(labels.strings!.foodIdealMomentTitle,
                   style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10)),
               pw.Text(analysis.performance.momentoIdealConsumo, style: const pw.TextStyle(fontSize: 9)),
             ])),
@@ -296,14 +361,14 @@ class FoodExportService {
           pageFormat: PdfPageFormat.a4,
           margin: const pw.EdgeInsets.all(35),
           theme: theme, // Ensure fonts here too
-          header: (context) => BasePdfHelper.buildHeader("PLANO DE AÇÃO NUTRICIONAL", timestampStr, color: themeColor, appName: 'ScanNut'),
+          header: (context) => BasePdfHelper.buildHeader(labels.strings!.foodActionPlanTitle, timestampStr, color: themeColor, appName: 'ScanNut'),
           footer: (context) => _buildFooter(context, strings: labels.strings),
           build: (context) {
              final List<pw.Widget> content = [];
              
              // Smart Swap
              if (analysis.gastronomia.smartSwap.isNotEmpty) {
-                content.add(BasePdfHelper.buildSectionHeader(labels.strings?.foodSmartSwap ?? "SMART SWAP (TROCA INTELIGENTE)", color: PdfColors.blueAccent));
+                content.add(BasePdfHelper.buildSectionHeader(labels.strings!.foodSmartSwapTitle, color: PdfColors.blueAccent));
                 content.add(
                   pw.Container(
                     width: double.infinity,
@@ -450,7 +515,7 @@ class FoodExportService {
                                       fontSize: 10, lineSpacing: 1.5)),
                               pw.Divider(color: PdfColors.grey300),
                               pw.Row(children:[
-                                pw.Text("${labels.difficultyLabel}: ${recipe.difficulty ?? 'N/A'} ", 
+                                pw.Text("${labels.difficultyLabel}: ${recipe.difficulty ?? labels.strings!.foodNotAvailable} ", 
                                   style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
                                 pw.Spacer(),
                                 pw.Text(recipe.justification,
@@ -492,7 +557,7 @@ class FoodExportService {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(35),
         header: (context) => BasePdfHelper.buildHeader(
-          "CHEF VISION: RELATÓRIO DE RECEITAS", 
+          strings.foodChefVisionReportTitle, 
           timestampStr, 
           color: themeColor, 
           dateLabel: strings.foodDateLabel,
@@ -532,7 +597,7 @@ class FoodExportService {
               child: pw.Column(
                  crossAxisAlignment: pw.CrossAxisAlignment.start,
                  children: [
-                    pw.Text("INVENTÁRIO DETECTADO", style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)),
+                    pw.Text(strings.foodInventoryDetectedTitle, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10, color: PdfColors.black)),
                     pw.SizedBox(height: 5),
                     pw.Text(inventory, style: const pw.TextStyle(fontSize: 12, color: PdfColors.black))
                  ]
@@ -843,7 +908,7 @@ class FoodExportService {
     final pageText = strings?.foodPage(context.pageNumber, context.pagesCount) ??
         'Página ${context.pageNumber} de ${context.pagesCount}';
 
-    final footerLabel = institutionalFooter;
+    final footerLabel = strings?.foodPdfFooter ?? institutionalFooter;
 
     return pw.Column(
       children: [

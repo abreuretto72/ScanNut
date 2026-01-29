@@ -101,6 +101,7 @@ class FoodAnalysisService {
         }
 
         final rawText = parts[0]['text']?.toString() ?? '';
+        print('DEBUG_CHEF: Resposta bruta da IA: $rawText');
         final Map<String, dynamic> json = _safeJsonDecode(rawText);
         
         // 🛡️ [ALERTA 2.5] JSON BRUTO (Protocolo de Visibilidade)
@@ -155,6 +156,7 @@ class FoodAnalysisService {
          return {'error': 'parse_error', 'raw': text};
        }
      } catch (e) {
+       print('DEBUG_CHEF: Erro ao parsear JSON: $e');
        debugPrint('⚠️ [FoodService] JSON Parse Error: $e');
        return {'error': 'parse_error', 'raw': text};
      }

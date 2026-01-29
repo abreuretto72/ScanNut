@@ -86,13 +86,15 @@ class _FoodCameraBodyState extends ConsumerState<FoodCameraBody> with WidgetsBin
     // Se a aplicação voltar ao foco e esta aba estiver ativa
     else if (state == AppLifecycleState.resumed) {
       if (widget.isActive) {
+         // Force Init logic
          _initCamera();
       }
     }
   }
 
   Future<void> _initCamera() async {
-    if (_isInitializing || _controller != null) return;
+    // 🛡️ FIX: Apenas retorna se estiver inicializando ou se o controller estiver VÁLIDO e INICIALIZADO
+    if (_isInitializing || (_controller != null && _controller!.value.isInitialized)) return;
     if (!mounted) return;
 
     debugPrint('📷 [FoodTrace] Initializing Camera');

@@ -25,6 +25,39 @@ class BasePdfHelper {
     return file;
   }
 
+  /// 🛡️ VACCINE: Safe Text Splitter (Sanitization & Fragmentation)
+  /// Removes invisible noise (U+FE0F) and splits gigantic blocks.
+  static List<String> safeSplitText(String text) {
+    if (text.isEmpty) return [];
+
+    // 1. Remove Noise (Keep ASCII + Latin-1 + Space)
+    // RegExp(r'[^\x20-\x7E\s\u00C0-\u00FF]')
+    final clean = text.replaceAll(RegExp(r'[^\x20-\x7E\s\u00C0-\u00FF]'), '').trim();
+
+    // 2. Fragment Blocks > 1000 chars
+    final List<String> result = [];
+    final lines = clean.split('\n');
+
+    for (var line in lines) {
+      if (line.trim().isEmpty) continue;
+      
+      if (line.length <= 1000) {
+        result.add(line.trim());
+      } else {
+        // Split huge lines by period
+        final sentences = line.split('. ');
+        for (var s in sentences) {
+           final chunk = s.trim();
+           if (chunk.isNotEmpty) {
+             // Re-append period if simplified split removed it, or just trat as chunk
+             result.add(chunk);
+           }
+        }
+      }
+    }
+    return result;
+  }
+
   /// Memory-optimized image loading for PDF.
   /// Downsamples and optimizes for Samsung A25 compatibility.
   static Future<pw.ImageProvider?> safeLoadImage(String? path) async {

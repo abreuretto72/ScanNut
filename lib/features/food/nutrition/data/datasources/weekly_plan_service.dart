@@ -62,6 +62,9 @@ class WeeklyPlanService {
           '[WeeklyMenu] SAVE id=${plan.id} start=${plan.weekStartDate} status=${plan.status}');
     } catch (e) {
       debugPrint('❌ Error saving plan: $e');
+      if (e.toString().contains('unknown type') || e.toString().contains('Adapter')) {
+         debugPrint('🛑 [CRITICAL] ERRO DE ADAPTADOR HIVE DETECTADO! Verifique HiveInitService.');
+      }
       rethrow;
     }
   }

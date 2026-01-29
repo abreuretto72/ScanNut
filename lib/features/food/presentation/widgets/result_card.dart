@@ -148,6 +148,8 @@ class _ResultCardState extends ConsumerState<ResultCard>
                       Expanded(
                         child: Text(
                           widget.analysis.itemName.replaceAll('aproximadamente', '±'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,

@@ -233,6 +233,7 @@ class ChefRecipeScreen extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.poppins(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

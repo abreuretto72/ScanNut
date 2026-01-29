@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/nutrition_providers.dart';
 import '../../data/models/shopping_list_item.dart';
-import 'package:scannut/l10n/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:scannut/core/theme/app_design.dart';
+import 'package:scannut/features/food/nutrition/data/repositories/shopping_list_repository.dart';
+import 'package:scannut/features/food/l10n/app_localizations.dart'; // Import correto
 
 class ShoppingListScreen extends ConsumerWidget {
   const ShoppingListScreen({super.key});
@@ -22,7 +24,7 @@ class ShoppingListScreen extends ConsumerWidget {
                 _buildHeader(context, ref, items.length),
                 Expanded(
                   child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 120),
                     itemCount: items.length,
                     separatorBuilder: (_, __) => Divider(
                         color:
@@ -51,7 +53,7 @@ class ShoppingListScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            AppLocalizations.of(context)!.shopItems(count),
+            FoodLocalizations.of(context)!.shopItems(count),
             style: GoogleFonts.poppins(
                 color: AppDesign.textSecondaryDark,
                 fontWeight: FontWeight.bold),
@@ -62,12 +64,12 @@ class ShoppingListScreen extends ConsumerWidget {
                 onPressed: () => _generateFromPlan(context, ref),
                 icon:
                     const Icon(Icons.sync, size: 18, color: AppDesign.success),
-                label: Text(AppLocalizations.of(context)!.shopSyncPlan,
+                label: Text(FoodLocalizations.of(context)!.shopSyncPlan,
                     style: GoogleFonts.poppins(color: AppDesign.success)),
               ),
               IconButton(
                 icon: const Icon(Icons.delete_sweep, color: Colors.red),
-                tooltip: AppLocalizations.of(context)!.shopClearDone,
+                tooltip: FoodLocalizations.of(context)!.shopClearDone,
                 onPressed: () =>
                     ref.read(shoppingListProvider.notifier).clearCompleted(),
               ),
@@ -88,13 +90,13 @@ class ShoppingListScreen extends ConsumerWidget {
               color: AppDesign.textPrimaryDark.withValues(alpha: 0.24)),
           const SizedBox(height: 24),
           Text(
-            AppLocalizations.of(context)!.shopEmptyTitle,
+            FoodLocalizations.of(context)!.shopEmptyTitle,
             style: GoogleFonts.poppins(
                 color: AppDesign.textPrimaryDark, fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.shopEmptySubtitle,
+            FoodLocalizations.of(context)!.shopEmptySubtitle,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark),
           ),
@@ -102,7 +104,7 @@ class ShoppingListScreen extends ConsumerWidget {
           ElevatedButton.icon(
             onPressed: () => _generateFromPlan(context, ref),
             icon: const Icon(Icons.restaurant_menu),
-            label: Text(AppLocalizations.of(context)!.shopGenerateFromMenu,
+            label: Text(FoodLocalizations.of(context)!.shopGenerateFromMenu,
                 style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppDesign.success,
@@ -159,7 +161,7 @@ class ShoppingListScreen extends ConsumerWidget {
     final currentPlan = ref.read(currentWeekPlanProvider);
     if (currentPlan == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(AppLocalizations.of(context)!.shopNoMenuError)));
+          content: Text(FoodLocalizations.of(context)!.shopNoMenuError)));
       return;
     }
 
@@ -167,19 +169,19 @@ class ShoppingListScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppDesign.surfaceDark,
-        title: Text(AppLocalizations.of(context)!.shopReplaceTitle,
+        title: Text(FoodLocalizations.of(context)!.shopReplaceTitle,
             style: const TextStyle(color: AppDesign.textPrimaryDark)),
-        content: Text(AppLocalizations.of(context)!.shopReplaceContent,
+        content: Text(FoodLocalizations.of(context)!.shopReplaceContent,
             style: const TextStyle(color: AppDesign.textSecondaryDark)),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text(AppLocalizations.of(context)!.btnCancel)),
+              child: Text(FoodLocalizations.of(context)!.cancel)),
           ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
               style:
                   ElevatedButton.styleFrom(backgroundColor: AppDesign.success),
-              child: Text(AppLocalizations.of(context)!.shopGenerateBtn)),
+              child: Text(FoodLocalizations.of(context)!.shopGenerateBtn)),
         ],
       ),
     );
@@ -190,7 +192,7 @@ class ShoppingListScreen extends ConsumerWidget {
           .generateFromPlan(currentPlan);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(AppLocalizations.of(context)!.shopGeneratedSuccess),
+            content: Text(FoodLocalizations.of(context)!.shopGeneratedSuccess),
             backgroundColor: AppDesign.success));
       }
     }
@@ -204,7 +206,7 @@ class ShoppingListScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppDesign.surfaceDark,
-        title: Text(AppLocalizations.of(context)!.shopAddItemTitle,
+        title: Text(FoodLocalizations.of(context)!.shopAddItemTitle,
             style: GoogleFonts.poppins(color: AppDesign.textPrimaryDark)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -214,7 +216,7 @@ class ShoppingListScreen extends ConsumerWidget {
               autofocus: true,
               style: const TextStyle(color: AppDesign.textPrimaryDark),
               decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.shopItemName,
+                labelText: FoodLocalizations.of(context)!.shopItemName,
                 labelStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                 enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
@@ -227,7 +229,7 @@ class ShoppingListScreen extends ConsumerWidget {
               controller: qtdController,
               style: const TextStyle(color: AppDesign.textPrimaryDark),
               decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.shopItemQty,
+                labelText: FoodLocalizations.of(context)!.shopItemQty,
                 labelStyle: const TextStyle(color: AppDesign.textSecondaryDark),
                 enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(
@@ -240,7 +242,7 @@ class ShoppingListScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.btnCancel,
+            child: Text(FoodLocalizations.of(context)!.cancel,
                 style: GoogleFonts.poppins(color: AppDesign.textSecondaryDark)),
           ),
           ElevatedButton(
@@ -249,14 +251,14 @@ class ShoppingListScreen extends ConsumerWidget {
                 ref.read(shoppingListProvider.notifier).addItem(
                       nomeController.text,
                       qtdController.text.isEmpty
-                          ? AppLocalizations.of(context)!.shopDefaultQty
+                          ? FoodLocalizations.of(context)!.shopDefaultQty
                           : qtdController.text,
                     );
                 Navigator.pop(context);
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppDesign.accent),
-            child: Text(AppLocalizations.of(context)!.commonAdd,
+            child: Text(FoodLocalizations.of(context)!.add,
                 style: GoogleFonts.poppins(
                     color: AppDesign.textPrimaryDark,
                     fontWeight: FontWeight.bold)),

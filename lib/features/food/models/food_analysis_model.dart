@@ -76,7 +76,11 @@ class FoodAnalysisModel {
     }
 
     // Mapeamento de Identidade
-    final nome = raw['resumo']?['food_name'] ?? get('food_name', category: resumo)?.toString() ?? 'Alimento Detectado';
+    String rawNome = raw['resumo']?['food_name'] ?? get('food_name', category: resumo)?.toString() ?? 'Alimento Detectado';
+    
+    // 🛡️ Limpeza de Prefixo (ChefVision Hygiene)
+    final nome = rawNome.replaceAll(RegExp(r'^(Inventário Detectado: |Inventário: )', caseSensitive: false), '').trim();
+
     final cal = raw['resumo']?['calories_kcal'] ?? get('calories_kcal', category: resumo);
     final score = get('health_score', category: resumo);
     final rec = get('recommendation', category: resumo) ?? saude['recommendation'] ?? raw['recommendation'] ?? "Equilíbrio é a chave.";
@@ -113,12 +117,23 @@ class FoodAnalysisModel {
 
     // Mapeamento de Micronutrientes: V2.5 pode ter sinergia em nutre['synergy']
     final microsRaw = nutre['micros'] as List? ?? [];
-    final nutriList = microsRaw.map((mi) => NutrienteItem(
-      nome: mi['name']?.toString() ?? 'Nutriente',
-      quantidade: mi['value']?.toString() ?? '0',
-      percentualDv: mi['dv_percent'] ?? 0,
-      funcao: mi['function']?.toString() ?? 'Manutenção'
-    )).toList();
+    final nutriList = microsRaw.map((mi) {
+      if (mi is String) {
+        return NutrienteItem(
+          nome: mi,
+          quantidade: 'Presente',
+          percentualDv: 0,
+          funcao: 'Essencial'
+        );
+      }
+      final map = _safeMap(mi);
+      return NutrienteItem(
+        nome: map['name']?.toString() ?? 'Nutriente',
+        quantidade: map['value']?.toString() ?? '0',
+        percentualDv: _parseIntSafe(map['dv_percent']),
+        funcao: map['function']?.toString() ?? 'Manutenção'
+      );
+    }).toList();
 
     return FoodAnalysisModel(
       identidade: IdentidadeESeguranca.fromJson(identidadeMap),
@@ -147,44 +162,42 @@ class FoodAnalysisModel {
         'recipes': gastro['recipes'] ?? raw['recipes'] ?? []
       }),
       receitas: ((gastro['recipes'] ?? raw['recipes']) as List? ?? [])
-          .map((r) => RecipeSuggestion.fromJson(r, foodName: nome))
+          .map((r) => RecipeSuggestion.fromJson(_safeMap(r), foodName: nome))
           .toList(),
       dicaEspecialista: rec,
     );
   }
 
   static int _parseCal(dynamic val) {
-    if (val == null) return 0;
-    if (val is int) return val;
-    final s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
-    return int.tryParse(s) ?? 0;
+    return _parseIntSafe(val);
   }
 
   static Map<String, dynamic> _safeMap(dynamic input) {
     if (input is Map<String, dynamic>) return input;
     if (input is Map) return Map<String, dynamic>.from(input);
+    if (input is List && input.isNotEmpty) {
+      if (input.first is Map) return Map<String, dynamic>.from(input.first);
+    }
     return {};
   }
 
   static dynamic _normalizeSatiety(dynamic value) {
-    if (value == null) return 5;
-    if (value is num) {
-      if (value > 10) return value / 10;
-      return value;
-    }
-    if (value is String) {
-       // Remove /10 if present
-       final clean = value.replaceAll('/10', '').trim();
-       final numVal = double.tryParse(clean) ?? 5.0;
-       if (numVal > 10) return numVal / 10;
-       return numVal;
-    }
-    return 5;
+     final i = _parseIntSafe(value);
+     if (i > 10) return i / 10; // Normalize 80 -> 8
+     return i;
   }
 
 
+  static int _parseIntSafe(dynamic val) {
+    if (val == null) return 0;
+    if (val is int) return val;
+    if (val is double) return val.toInt();
+    final s = val.toString().replaceAll(RegExp(r'[^0-9]'), '');
+    return int.tryParse(s) ?? 0;
+  }
+
   static String _mapTrafficLight(dynamic score) {
-    final s = int.tryParse(score.toString()) ?? 5;
+    final s = _parseIntSafe(score);
     if (s >= 8) return 'Verde';
     if (s >= 5) return 'Amarelo';
     return 'Vermelho';
@@ -346,7 +359,8 @@ class MacronutrientesPro {
 
   factory MacronutrientesPro.fromJson(Map<String, dynamic> json) {
     return MacronutrientesPro(
-      calorias100g: json['calories_100g'] ?? json['calorias_100g'] ?? 0,
+      calorias100g: FoodAnalysisModel._parseIntSafe(
+          json['calories_100g'] ?? json['calorias_100g']),
       proteinas:
           json['proteins']?.toString() ?? json['proteinas']?.toString() ?? '',
       carboidratosLiquidos: json['net_carbs']?.toString() ??
@@ -413,12 +427,7 @@ class NutrienteItem {
       nome: json['name']?.toString() ?? json['nome']?.toString() ?? '',
       quantidade:
           json['amount']?.toString() ?? json['quantidade']?.toString() ?? '',
-      percentualDv: ((json['dv_percent'] ?? json['percentual_dv']) is int)
-          ? (json['dv_percent'] ?? json['percentual_dv'])
-          : int.tryParse(
-                  (json['dv_percent'] ?? json['percentual_dv'])?.toString() ??
-                      '0') ??
-              0,
+      percentualDv: FoodAnalysisModel._parseIntSafe(json['dv_percent'] ?? json['percentual_dv']),
       funcao: json['function']?.toString() ?? json['funcao']?.toString() ?? '',
     );
   }
@@ -498,13 +507,7 @@ class BiohackingPerformance {
               [])
           .map((e) => e.toString())
           .toList(),
-      indiceSaciedade:
-          ((json['satiety_index'] ?? json['indice_saciedade']) is int)
-              ? (json['satiety_index'] ?? json['indice_saciedade'])
-              : int.tryParse((json['satiety_index'] ?? json['indice_saciedade'])
-                          ?.toString() ??
-                      '3') ??
-                  3,
+      indiceSaciedade: FoodAnalysisModel._parseIntSafe(json['satiety_index'] ?? json['indice_saciedade']),
       impactoFocoEnergia: json['focus_energy_impact']?.toString() ??
           json['impacto_foco_energia']?.toString() ??
           '',

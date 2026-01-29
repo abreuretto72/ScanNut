@@ -14,6 +14,7 @@ import '../../../l10n/app_localizations.dart';
 import '../l10n/app_localizations.dart';
 import '../../../core/theme/app_design.dart';
 import '../services/food_export_service.dart';
+
 import 'food_pdf_preview_screen.dart';
 import 'widgets/food_export_configuration_modal.dart';
 import 'widgets/food_history_card.dart';
@@ -160,7 +161,7 @@ class _NutritionHistoryScreenState extends State<NutritionHistoryScreen> {
                   color: const Color(0xFF00E676),
                   backgroundColor: Colors.black,
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 120),
                     itemCount: items.length,
                     physics: const AlwaysScrollableScrollPhysics(),
                     itemBuilder: (context, index) {

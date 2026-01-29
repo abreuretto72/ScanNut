@@ -1,0 +1,50 @@
+Plano de Implementação: RAG Onisciente (Food Domain)
+Objetivo: Capacitar a IA do Chat (
+FoodAiChatService
+) a "ler" todo o universo do domínio Food: histórico de refeições, planos semanais, receitas salvas e como o app funciona, para atuar como Nutricionista e Tutora do App.
+
+Fase 1: Mapeamento de Fontes de Conhecimento ("O que a IA vai ler")
+Precisamos definir quais "caixas" (Hive Boxes) e conceitos serão lidos.
+
+Histórico Alimentar (Já existente, mas limitado):
+Expandir para ler não só "o que comeu", mas padrões (horários frequentes, locais).
+Plano Semanal (Novo):
+Ler o WeeklyPlanService.
+Saber qual é o plano atual, metas de calorias e o status das refeições (feito/não feito).
+Biblioteca de Receitas (Novo):
+Ler o RecipeService.
+Saber quais receitas o usuário salvou ou favoritou para sugerir com base no gosto real.
+Mapa de Navegação & Funcionalidades (Novo - A "Tutora"):
+Criar uma definição textual clara de todas as telas do domínio Food e o que cada botão faz.
+Ex: FoodCameraBody: Tela de captura. Único ponto de entrada de dados. Botão Chef Vision analisa ingredientes.
+Fase 2: Arquitetura de Ingestão ("Como a IA vai ler")
+Modificar 
+FoodAiChatService
+ para orquestrar a coleta desses dados sem travar o app (assincronamente).
+
+Injeção de Dependências:
+Adicionar instâncias de WeeklyPlanService e RecipeService no 
+FoodAiChatService
+.
+Builder de Contexto (
+_buildRagContext
+ aprimorado):
+Criar sub-rotinas para formatar cada fonte de dados em texto legível para LLM.
+_contextoHistorico(): "Últimas 20 refeições..."
+_contextoPlano(): "Plano Atual: Foco em Hipertrofia. Almoço de hoje: Frango..."
+_contextoApp(): "Manual de Uso: O app funciona assim..."
+Fase 3: Engenharia de Prompt ("Como a IA vai pensar")
+Atualizar o prompt final para priorizar a instrução do app quando o usuário tiver dúvidas de uso.
+
+System Prompt Dinâmico:
+Incluir: "Você tem acesso ao MANUAL DO APP abaixo. Se o usuário perguntar 'como faço X', consulte o manual. Se a função não existir, explique o fluxo correto (ex: use a câmera)."
+Fase 4: Execução Segura (Blindagem)
+Tratamento de Erros: Se o Hive do plano semanal falhar, o chat não pode quebrar. O RAG deve ser resiliente (ignorar fontes falhas).
+Limite de Tokens: Com tanta informação, precisamos resumir inteligentemente. Não dá para jogar o banco inteiro. Usaremos "Janelas Deslizantes" (últimos 3 dias de plano, últimas 10 receitas).
+Você aprova este roteiro? Se sim, o próximo passo lógico é eu criar o Texto do Mapa de Funcionalidades ("Manual") para que você valide se a descrição reflete a realidade do app, antes de injetarmos no código.
+
+Good
+Bad
+Review Changes
+
+

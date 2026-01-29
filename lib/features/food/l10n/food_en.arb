@@ -134,8 +134,10 @@
   "foodPeriodSectionTitle": "Para quando?",
   "foodPeriodSectionDesc": "Escolha o período do cardápio que será gerado.",
   "foodPeriodThisWeek": "Esta semana",
-  "foodPeriodNextWeek": "Próxima semana",
-  "foodPeriod28Days": "Próximos 28 dias",
+  "foodPeriodNextWeek": "Next Week",
+  "foodPeriodFortnight": "Fortnight",
+  "foodPeriodMonth": "Month",
+  "foodPeriod28Days": "Next 28 Days",
   "foodObjectiveSectionTitle": "Objetivo do cardápio",
   "foodObjectiveSectionDesc": "O objetivo influencia a escolha dos alimentos e calorias.",
   "foodPreferencesSectionTitle": "Preferências alimentares",
@@ -148,11 +150,79 @@
   "foodSelectPeriodError": "Escolha o período do cardápio.",
   "foodGeneratingMenu": "Gerando seu cardápio...",
   "foodRedoPlanAction": "Refazer esta semana",
-  "foodGenerateNextWeekAction": "Gerar próxima semana",
-  "foodGenerate28DaysAction": "Gerar próximos 28 dias",
-  "foodCreateNewVersion": "Criar nova versão",
-  "foodReplaceExisting": "Substituir atual",
-  "foodRedoPlanPrompt": "Como você deseja refazer este cardápio?",
+  "foodGenerateNextWeekAction": "Generate Next Week",
+  "foodGenerateFortnightAction": "Generate for Fortnight",
+  "foodGenerateMonthAction": "Generate for a Month",
+  "foodGenerate28DaysAction": "Generate Next 28 Days",
+  "foodCreateNewVersion": "Create New Version",
+  "foodReplaceExisting": "Replace Current",
+  "foodRedoPlanPrompt": "How do you want to redo this plan?",
+  "foodPrepShort": "Prep",
+  "foodPdfFooter": "ScanNut | Chef Vision | © 2026 Multiverso Digital",
+  "foodNotAvailable": "N/A",
+  "shopItems": "{count} Items",
+  "@shopItems": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact"
+      }
+    }
+  },
+  "shopSyncPlan": "Sync with Plan",
+  "shopClearDone": "Clear Completed",
+  "shopEmptyTitle": "List is Empty",
+  "shopEmptySubtitle": "Add items manually or generate from your weekly menu.",
+  "shopGenerateFromMenu": "Generate from Menu",
+  "shopNoMenuError": "No active menu to generate list from.",
+  "shopReplaceTitle": "Replace List?",
+  "shopReplaceContent": "Current list will be replaced by weekly menu ingredients.",
+  "shopGenerateBtn": "Generate List",
+  "shopGeneratedSuccess": "List generated successfully!",
+  "shopAddItemTitle": "Add Item",
+  "shopItemName": "Item Name",
+  "shopItemQty": "Quantity",
+  "shopDefaultQty": "1 unit",
+  "cancel": "Cancel",
+  "add": "Add",
+  "creatingProfile": "Basic profile created automatically.",
+  "errorGeneric": "Oops! Something went wrong. Try again.",
+  "weeklyPlanTitle": "Week of {date}",
+  "@weeklyPlanTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daysPlanned": "{count} days planned",
+  "@daysPlanned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "delete": "Delete",
+  "foodToday": "TODAY",
+  "foodMealBreakfast": "Breakfast",
+  "foodMealLunch": "Lunch",
+  "foodMealSnack": "Snack",
+  "foodMealDinner": "Dinner",
+  "plateDefaultName": "Custom Meal",
+  "ingredients": "INGREDIENTS",
+  "createPlanButton": "Create New Plan",
+  "foodBiohackingTitle": "BIOHACKING & PERFORMANCE",
+  "foodBodyBenefitsTitle": "BODY BENEFITS",
+  "foodBodyAttentionTitle": "BODY ATTENTION",
+  "foodNoCriticalPoints": " - No critical points.",
+  "foodSatietyLabel": "Satiety",
+  "foodFocusEnergyTitle": "FOCUS & ENERGY",
+  "foodIdealMomentTitle": "IDEAL MOMENT",
+  "foodActionPlanTitle": "NUTRITIONAL ACTION PLAN",
+  "foodSmartSwapTitle": "SMART SWAP",
+  "foodChefVisionReportTitle": "CHEF VISION: RECIPE REPORT",
+  "foodInventoryDetectedTitle": "DETECTED INVENTORY",
   "foodHistoryFilter": "Filtrar Histórico",
   "foodAllPeriods": "Todos os Períodos",
   "foodActiveStatus": "Ativo",
@@ -282,5 +352,6 @@
   "foodNutrientsFats": "Fats",
   "tooltipHistoryReport": "Export Report",
   "foodCancel": "Cancel",
-  "foodDelete": "Delete"
+  "foodDelete": "Delete",
+  "chefVisionLabel": "Chef Vision"
 }

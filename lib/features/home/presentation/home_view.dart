@@ -96,7 +96,7 @@ class _HomeViewState extends ConsumerState<HomeView>
       _disposeCamera();
     } else if (state == AppLifecycleState.resumed) {
       // 🛡️ Re-init if mode is still active
-      if (_currentIndex != -1) {
+      if (_currentIndex > 0) { // Only re-init legacy modes
         _initCamera();
       }
     }
@@ -253,6 +253,12 @@ class _HomeViewState extends ConsumerState<HomeView>
       return;
     }
 
+    // 🛡️ FOOD ISOLATION (V135): Food mode manages its own camera (FoodCameraBody)
+    if (_currentIndex == 0) {
+      debugPrint('🛡️ [HomeView] Skipping Legacy Camera init (Food Mode Active)');
+      return; 
+    }
+
     // 🛡️ FIX: Check if controller is disposed before trying to use it
     if (_controller != null) {
       try {
@@ -406,6 +412,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   /// Handles camera capture
   Future<void> _onCapture() async {
     debugPrint('🔵 _onCapture: START');
+    
+    // 🛡️ FOOD ISOLATION: Managed by FoodCameraBody
+    if (_currentIndex == 0) return;
 
     if (_controller == null || !_controller!.value.isInitialized) {
       debugPrint('❌ _onCapture: Camera not initialized');
@@ -439,6 +448,9 @@ class _HomeViewState extends ConsumerState<HomeView>
   Future<void> _pickFromGallery() async {
     debugPrint('🔵 _pickFromGallery: START');
     try {
+      // 🛡️ FOOD ISOLATION: Managed by FoodCameraBody
+      if (_currentIndex == 0) return;
+
       final picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
 

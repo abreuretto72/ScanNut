@@ -135,6 +135,8 @@
   "foodPeriodSectionDesc": "Escolha o período do cardápio que será gerado.",
   "foodPeriodThisWeek": "Esta semana",
   "foodPeriodNextWeek": "Próxima semana",
+  "foodPeriodFortnight": "Quinzena",
+  "foodPeriodMonth": "Mês",
   "foodPeriod28Days": "Próximos 28 dias",
   "foodObjectiveSectionTitle": "Objetivo do cardápio",
   "foodObjectiveSectionDesc": "O objetivo influencia a escolha dos alimentos e calorias.",
@@ -149,11 +151,79 @@
   "foodGeneratingMenu": "Gerando seu cardápio...",
   "foodRedoPlanAction": "Refazer esta semana",
   "foodGenerateNextWeekAction": "Gerar próxima semana",
+  "foodGenerateFortnightAction": "Gerar para quinzena",
+  "foodGenerateMonthAction": "Gerar para um mês",
   "foodGenerate28DaysAction": "Gerar próximos 28 dias",
   "foodCreateNewVersion": "Criar nova versão",
   "foodReplaceExisting": "Substituir atual",
   "foodRedoPlanPrompt": "Como você deseja refazer este cardápio?",
   "foodHistoryFilter": "Filtrar Histórico",
+  "foodPrepShort": "Preparo",
+  "foodPdfFooter": "ScanNut | Chef Vision | © 2026 Multiverso Digital",
+  "foodNotAvailable": "N/D",
+  "shopItems": "{count} Itens",
+  "@shopItems": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact"
+      }
+    }
+  },
+  "shopSyncPlan": "Sincronizar com Plano",
+  "shopClearDone": "Limpar Concluídos",
+  "shopEmptyTitle": "Lista Vazia",
+  "shopEmptySubtitle": "Adicione itens manualmente ou gere a partir do seu menu semanal.",
+  "shopGenerateFromMenu": "Gerar do Menu",
+  "shopNoMenuError": "Nenhum menu ativo para gerar lista.",
+  "shopReplaceTitle": "Substituir Lista?",
+  "shopReplaceContent": "A lista atual será substituída pelos ingredientes do menu da semana.",
+  "shopGenerateBtn": "Gerar Lista",
+  "shopGeneratedSuccess": "Lista gerada com sucesso!",
+  "shopAddItemTitle": "Adicionar Item",
+  "shopItemName": "Nome do item",
+  "shopItemQty": "Quantidade",
+  "shopDefaultQty": "1 un",
+  "cancel": "Cancelar",
+  "add": "Adicionar",
+  "creatingProfile": "Perfil básico criado automaticamente.",
+  "errorGeneric": "Ops! Algo correu mal. Tente novamente.",
+  "weeklyPlanTitle": "Plano da Semana de {date}",
+  "@weeklyPlanTitle": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "daysPlanned": "{count} dias planeados",
+  "@daysPlanned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "delete": "Eliminar",
+  "foodToday": "HOJE",
+  "foodMealBreakfast": "Café da Manhã",
+  "foodMealLunch": "Almoço",
+  "foodMealSnack": "Lanche",
+  "foodMealDinner": "Jantar",
+  "plateDefaultName": "Prato Personalizado",
+  "ingredients": "INGREDIENTES",
+  "createPlanButton": "Criar Novo Plano",
+  "foodBiohackingTitle": "BIOHACKING & PERFORMANCE",
+  "foodBodyBenefitsTitle": "BENEFÍCIOS AO CORPO",
+  "foodBodyAttentionTitle": "ATENÇÃO AO CORPO",
+  "foodNoCriticalPoints": " - Nenhum ponto crítico.",
+  "foodSatietyLabel": "Saciedade",
+  "foodFocusEnergyTitle": "FOCO & ENERGIA",
+  "foodIdealMomentTitle": "MOMENTO IDEAL",
+  "foodActionPlanTitle": "PLANO DE AÇÃO NUTRICIONAL",
+  "foodSmartSwapTitle": "SMART SWAP (TROCA INTELIGENTE)",
+  "foodChefVisionReportTitle": "CHEF VISION: RELATÓRIO DE RECEITAS",
+  "foodInventoryDetectedTitle": "INVENTÁRIO DETECTADO",
   "foodAllPeriods": "Todos os Períodos",
   "foodActiveStatus": "Ativo",
   "foodArchivedStatus": "Arquivado",
@@ -282,5 +352,6 @@
   "foodNutrientsFats": "Gorduras",
   "tooltipHistoryReport": "Exportar Relatório",
   "foodCancel": "Cancelar",
-  "foodDelete": "Excluir"
+  "foodDelete": "Excluir",
+  "chefVisionLabel": "Chef Vision"
 }

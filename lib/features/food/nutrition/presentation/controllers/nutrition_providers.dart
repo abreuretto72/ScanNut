@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/user_nutrition_profile.dart';
 import '../../data/models/weekly_plan.dart';
@@ -88,47 +89,60 @@ class WeeklyPlanNotifier extends StateNotifier<WeeklyPlan?> {
     String? languageCode,
     bool replace = false,
   }) async {
-    // Check if a plan already exists for this date to determine version
-    final targetStart =
-        startDate ?? params?.startDate ?? _service.getMonday(DateTime.now());
-    final existingPlans = _service
-        .getAllPlans()
-        .where((p) => _service.isSameDay(p.weekStartDate, targetStart))
-        .toList();
-    final nextVersion = existingPlans.isEmpty
-        ? 1
-        : (existingPlans.map((p) => p.version).reduce((a, b) => a > b ? a : b) +
-            1);
+    try {
+      debugPrint('🚀 [MenuGen] Iniciando geração no Notifier...');
+      
+      // Check if a plan already exists for this date to determine version
+      final targetStart =
+          startDate ?? params?.startDate ?? _service.getMonday(DateTime.now());
+      final existingPlans = _service
+          .getAllPlans()
+          .where((p) => _service.isSameDay(p.weekStartDate, targetStart))
+          .toList();
+      final nextVersion = existingPlans.isEmpty
+          ? 1
+          : (existingPlans.map((p) => p.version).reduce((a, b) => a > b ? a : b) +
+              1);
 
-    final plan = await _generator.generateWeeklyPlan(
-        profile: profile,
-        params: params,
-        startDate: startDate ?? params?.startDate,
-        languageCode: languageCode);
+      debugPrint('📥 [MenuGen] Chamando Generator...');
+      final plan = await _generator.generateWeeklyPlan(
+          profile: profile,
+          params: params,
+          startDate: startDate ?? params?.startDate,
+          languageCode: languageCode);
 
-    if (plan != null) {
-      plan.version = nextVersion;
-      plan.objective = params?.objective ?? profile.objetivo ?? 'maintenance';
-      plan.periodType = params?.periodType ?? 'weekly';
+      if (plan != null) {
+        debugPrint('📥 [MenuGen] Sucesso na Geração (Simulada). Configurando metadados...');
+        plan.version = nextVersion;
+        plan.objective = params?.objective ?? profile.objetivo ?? 'maintenance';
+        plan.periodType = params?.periodType ?? 'weekly';
 
-      // Generate and save shopping list JSON
-      plan.shoppingListJson =
-          _shoppingService.generateMainShoppingListJson(plan);
+        // Generate and save shopping list JSON
+        plan.shoppingListJson =
+            _shoppingService.generateMainShoppingListJson(plan);
 
-      if (replace) {
-        // Soft delete all active plans in this slot before saving new one
-        for (var p in existingPlans) {
-          if (p.id != null && p.status == 'active') {
-            await _service.softDeletePlan(p.id!);
+        if (replace) {
+          // Soft delete all active plans in this slot before saving new one
+          for (var p in existingPlans) {
+            if (p.id != null && p.status == 'active') {
+              await _service.softDeletePlan(p.id!);
+            }
           }
         }
+
+        debugPrint('💾 [MenuGen] Tentando persistir no Hive box_weekly_plans...');
+        await _service.savePlan(plan);
+        debugPrint('💾 [MenuGen] Persistência OK!');
+        
+        state = plan;
+
+        // Sync shopping list automatically
+        await ref.read(shoppingListProvider.notifier).generateFromPlan(plan);
       }
-
-      await _service.savePlan(plan);
-      state = plan;
-
-      // Sync shopping list automatically
-      await ref.read(shoppingListProvider.notifier).generateFromPlan(plan);
+    } catch (e, stack) {
+      debugPrint('❌ [CRITICAL_MENU_ERROR]: $e');
+      debugPrint('📚 [STACKTRACE]: $stack');
+      rethrow; // Pass error to UI to display Red Card
     }
   }
 

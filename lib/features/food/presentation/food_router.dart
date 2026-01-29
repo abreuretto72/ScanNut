@@ -11,6 +11,7 @@ import '../../../core/models/analysis_state.dart';
 import '../services/nutrition_service.dart';
 
 import 'package:scannut/features/food/presentation/chef_recipe_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// 🛡️ FOOD ROUTER (V135) - Selagem de Navegação
 /// Este arquivo é o único ponto de entrada para a UI de Comida.
@@ -57,10 +58,33 @@ class FoodRouter {
     } catch (e) {
       debugPrint('❌ FoodRouter Critical Error: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro Crítico: $e'),
-            backgroundColor: Colors.red,
+        // Enviar para tela de erro em vez de SnackBar
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Scaffold(
+              backgroundColor: Colors.red.shade900,
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 80, color: Colors.white),
+                      const SizedBox(height: 16),
+                      Text('Critical Analysis Error', style: GoogleFonts.poppins(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      Text(e.toString(), style: const TextStyle(color: Colors.white70), textAlign: TextAlign.center),
+                      const SizedBox(height: 32),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Try Again'),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         );
       }
@@ -72,6 +96,14 @@ class FoodRouter {
     debugPrint('🔄 [FoodTrace] handleResult called with ${state.runtimeType}');
     if (state is! AnalysisSuccess || state.data is! FoodAnalysisModel) {
        debugPrint('❌ [FoodTrace] Invalid state for handleResult: $state');
+       if (state is AnalysisError && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro na Análise: ${(state as AnalysisError).message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+       }
        return;
     }
     
@@ -111,22 +143,12 @@ class FoodRouter {
     File? imageFile,
     bool isChefVision = false,
   }) async {
+    print('DEBUG_CHEF: Tentando navegar para FoodIntelligenceScreen...');
     // 🛡️ Filtro de Integridade: Se houver imagem, vai para tela cheia (V135)
     // Se não, abre o BottomSheet (ResultCard)
     if (imageFile != null) {
-      // 🍳 CHEF VISION REDIRECT: New Screen for Inventory & Recipes
-      if (isChefVision) {
-         await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChefRecipeScreen(
-                analysis: analysis,
-                imageFile: imageFile,
-              ),
-            ),
-         );
-         return;
-      }
+      // 🚀 UNIFIED NAVIGATION: FoodIntelligenceScreen handles ChefVision too (V135)
+      // Removed ChefRecipeScreen redirection to strict adherence to Unified UI.
 
       await Navigator.push(
         context,

@@ -45,6 +45,7 @@ class AppDesign {
   static const Color petPink =
       Color(0xFFFFD1DC); // Rosa Pastel (Protocol V63 Standard)
   static const Color walkBlue = Color(0xFF536DFE); // Azul Walk
+  static const Color chefVisionPurple = Color(0xFF9C27B0); // Chef Vision Roxo
 
   static Color getModeColor(int modeIndex) {
     switch (modeIndex) {
